@@ -8,6 +8,7 @@
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "dev": "npm run build -- --watch",
+    "lint": "tsc --noEmit",
     "test": "vitest run",
     "test:ci": "vitest run --coverage --reporter=verbose",
     "test:emulator": "vitest run emulator.test.ts",
