@@ -6,6 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuth } from "@/hooks/useAuth";
 import { resendEmailVerification, logout } from "@/lib/auth";
+import { getFirebaseAuth } from "@/lib/firebase";
+import { updateProfile } from "firebase/auth";
 
 export default function VerifyPage() {
   const [isResending, setIsResending] = useState(false);
@@ -52,6 +54,29 @@ export default function VerifyPage() {
     }
   };
 
+  const handleSimulateVerification = async () => {
+    try {
+      const auth = getFirebaseAuth();
+      const currentUser = auth.currentUser;
+      
+      if (currentUser) {
+        // In development mode, simulate email verification
+        await updateProfile(currentUser, {
+          emailVerified: true
+        });
+        
+        // Reload the user to get updated state
+        await currentUser.reload();
+        
+        // Redirect to dashboard
+        router.push("/dashboard/user");
+      }
+    } catch (err) {
+      console.error("Error simulating verification:", err);
+      setError("Error al simular la verificación");
+    }
+  };
+
   if (loading) {
     return <div className="flex min-h-[50vh] items-center justify-center">Cargando...</div>;
   }
@@ -71,6 +96,12 @@ export default function VerifyPage() {
             Te hemos enviado un email de verificación a <strong>{user.email}</strong>. Por favor
             revisa tu bandeja de entrada y haz clic en el enlace para verificar tu cuenta.
           </p>
+          
+          {window.location.hostname === 'localhost' && (
+            <div className="rounded-md border border-blue-200 bg-blue-50 p-3 text-sm text-blue-600 dark:border-blue-800 dark:bg-blue-900/20 dark:text-blue-400">
+              <strong>Modo Desarrollo:</strong> En el emulador, puedes simular la verificación haciendo clic en "Ya verifiqué mi email".
+            </div>
+          )}
 
           {error && (
             <div className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-600 dark:border-red-800 dark:bg-red-900/20 dark:text-red-400">
@@ -94,7 +125,7 @@ export default function VerifyPage() {
               {isResending ? "Reenviando..." : "Reenviar Email de Verificación"}
             </Button>
 
-            <Button onClick={() => router.push("/dashboard/user")} className="w-full">
+            <Button onClick={handleSimulateVerification} className="w-full">
               Ya verifiqué mi email
             </Button>
 
