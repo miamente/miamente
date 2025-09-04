@@ -25,6 +25,11 @@
     "test:e2e:ui": "playwright test --ui",
     "test:e2e:headed": "playwright test --headed",
     "test:e2e:staging": "E2E_BASE_URL=https://miamente-staging.web.app playwright test",
+    "backup:firestore": "node scripts/backup-firestore.js",
+    "backup:firestore:staging": "node scripts/backup-firestore.js --project=miamente-staging",
+    "backup:firestore:dry-run": "node scripts/backup-firestore.js --dry-run",
+    "backup:validate": "node scripts/validate-backup.js",
+    "backup:notify": "node scripts/backup-notifications.js",
     "emulators": "npm run emulators -w functions",
     "deploy": "npm run deploy -w functions",
     "prepare": "husky"

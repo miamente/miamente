@@ -4,3 +4,4 @@ dist/
 build/
 *.min.js
 functions/lib/
+scripts/
