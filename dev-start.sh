@@ -94,6 +94,10 @@ if [ "$1" = "full" ]; then
     echo "⏳ Waiting for emulators to start..."
     sleep 10
     
+    # Initialize test users
+    echo "👥 Creating test users..."
+    node scripts/init-test-users.js
+    
     # Start web app
     echo "🌐 Starting Web Application..."
     cd apps/web && npm run dev &
@@ -113,6 +117,12 @@ echo "📝 Development Notes:"
 echo "- App Check is disabled in development mode"
 echo "- Firestore rules are relaxed for development"
 echo "- All Firebase services use emulators"
+echo ""
+echo "👥 Test Users Available:"
+echo "- admin@miamente.com / admin123 (Admin)"
+echo "- user@miamente.com / user123 (User)"
+echo "- pro@miamente.com / pro123 (Professional)"
+echo "- test@miamente.com / test123 (User)"
     echo ""
     echo "Press Ctrl+C to stop all services"
     
