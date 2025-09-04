@@ -4,6 +4,7 @@ import { httpsCallable } from 'firebase/functions';
 import { functions } from '@/lib/firebase';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
+import { PaymentManager } from '@/lib/payments/PaymentService';
 import { 
   CreditCardIcon,
   CheckCircleIcon,
@@ -84,25 +85,29 @@ const CheckoutPage: React.FC<CheckoutPageProps> = () => {
       setProcessingPayment(true);
       setPaymentError(null);
       
-      // Simulate payment processing with random success/failure
-      await new Promise(resolve => setTimeout(resolve, 3000));
+      // Initialize payment manager
+      const paymentManager = new PaymentManager();
+      await paymentManager.initialize(appointment.id);
       
-      // 90% success rate for simulation
-      const success = Math.random() > 0.1;
+      // Start checkout process
+      const checkoutResult = await paymentManager.startCheckout(appointment.id);
       
-      if (success) {
+      if (checkoutResult.redirectUrl) {
+        // Redirect to the payment provider or success/pending page
+        router.push(checkoutResult.redirectUrl);
+      } else if (checkoutResult.clientSecret) {
+        // Handle client-side payment confirmation (e.g., Stripe)
+        // For now, simulate success
         setPaymentSuccess(true);
-        
-        // Simulate updating appointment status
         setTimeout(() => {
           router.push(`/appointment/${appointment.id}?payment=success`);
         }, 2000);
       } else {
-        setPaymentError('El pago fue rechazado. Por favor, intenta con otra tarjeta.');
+        throw new Error('No redirect URL or client secret received');
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error('Error processing payment:', err);
-      setPaymentError('Error al procesar el pago. Por favor, intenta nuevamente.');
+      setPaymentError(err.message || 'Error al procesar el pago. Por favor, intenta nuevamente.');
     } finally {
       setProcessingPayment(false);
     }

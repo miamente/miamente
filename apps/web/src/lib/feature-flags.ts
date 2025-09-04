@@ -1,208 +1,319 @@
-import {
-  collection,
-  doc,
-  getDocs,
-  getDoc,
-  setDoc,
-  updateDoc,
-  query,
-  where,
-} from "firebase/firestore";
+/**
+ * Feature Flags Configuration
+ * 
+ * Centralized feature flag management for the Miamente platform.
+ * In production, these would be managed through Firebase Remote Config
+ * or a dedicated feature flag service.
+ */
 
-import { getFirebaseFirestore } from "./firebase";
-
-export interface FeatureFlag {
-  id: string;
-  key: string;
-  enabled: boolean;
-  description: string;
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-export interface CreateFeatureFlagRequest {
-  key: string;
-  enabled: boolean;
-  description: string;
+export interface FeatureFlags {
+  // Payment System
+  payments_enabled: boolean;
+  payments_mock_auto_approve: boolean;
+  
+  // User Features
+  user_registration_enabled: boolean;
+  professional_verification_enabled: boolean;
+  
+  // Admin Features
+  admin_dashboard_enabled: boolean;
+  admin_analytics_enabled: boolean;
+  
+  // Communication
+  email_notifications_enabled: boolean;
+  sms_notifications_enabled: boolean;
+  
+  // Integrations
+  wompi_integration_enabled: boolean;
+  stripe_integration_enabled: boolean;
+  jitsi_integration_enabled: boolean;
+  
+  // UI/UX
+  dark_mode_enabled: boolean;
+  advanced_search_enabled: boolean;
+  
+  // Development
+  debug_mode_enabled: boolean;
+  test_data_enabled: boolean;
 }
 
 /**
- * Get all feature flags
+ * Default feature flags configuration
+ * These are the fallback values when the remote config is not available
  */
-export async function getFeatureFlags(): Promise<FeatureFlag[]> {
-  const firestore = getFirebaseFirestore();
+export const DEFAULT_FEATURE_FLAGS: FeatureFlags = {
+  // Payment System
+  payments_enabled: false,
+  payments_mock_auto_approve: true,
+  
+  // User Features
+  user_registration_enabled: true,
+  professional_verification_enabled: true,
+  
+  // Admin Features
+  admin_dashboard_enabled: true,
+  admin_analytics_enabled: true,
+  
+  // Communication
+  email_notifications_enabled: true,
+  sms_notifications_enabled: false,
+  
+  // Integrations
+  wompi_integration_enabled: false,
+  stripe_integration_enabled: false,
+  jitsi_integration_enabled: true,
+  
+  // UI/UX
+  dark_mode_enabled: false,
+  advanced_search_enabled: false,
+  
+  // Development
+  debug_mode_enabled: false,
+  test_data_enabled: false,
+};
 
-  try {
-    const flagsSnapshot = await getDocs(collection(firestore, "feature_flags"));
+/**
+ * Feature Flag Manager
+ * Handles fetching and caching of feature flags
+ */
+export class FeatureFlagManager {
+  private static instance: FeatureFlagManager | null = null;
+  private flags: FeatureFlags = DEFAULT_FEATURE_FLAGS;
+  private lastFetch: number = 0;
+  private readonly CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
 
-    return flagsSnapshot.docs.map((doc) => {
-      const data = doc.data();
-      return {
-        id: doc.id,
-        key: data.key,
-        enabled: data.enabled,
-        description: data.description,
-        createdAt: data.createdAt.toDate(),
-        updatedAt: data.updatedAt.toDate(),
-      };
+  private constructor() {}
+
+  /**
+   * Get singleton instance
+   */
+  static getInstance(): FeatureFlagManager {
+    if (!this.instance) {
+      this.instance = new FeatureFlagManager();
+    }
+    return this.instance;
+  }
+
+  /**
+   * Get a feature flag value
+   * @param flagName - The name of the feature flag
+   * @returns Promise with the flag value
+   */
+  async getFlag<K extends keyof FeatureFlags>(flagName: K): Promise<FeatureFlags[K]> {
+    await this.ensureFlagsLoaded();
+    return this.flags[flagName];
+  }
+
+  /**
+   * Get multiple feature flags
+   * @param flagNames - Array of flag names to get
+   * @returns Promise with the flag values
+   */
+  async getFlags<K extends keyof FeatureFlags>(
+    flagNames: K[]
+  ): Promise<Pick<FeatureFlags, K>> {
+    await this.ensureFlagsLoaded();
+    
+    const result = {} as Pick<FeatureFlags, K>;
+    flagNames.forEach(flagName => {
+      result[flagName] = this.flags[flagName];
     });
-  } catch (error) {
-    console.error("Error fetching feature flags:", error);
-    throw new Error("Failed to fetch feature flags");
+    
+    return result;
   }
-}
 
-/**
- * Get a specific feature flag by key
- */
-export async function getFeatureFlag(key: string): Promise<FeatureFlag | null> {
-  const firestore = getFirebaseFirestore();
+  /**
+   * Get all feature flags
+   * @returns Promise with all flag values
+   */
+  async getAllFlags(): Promise<FeatureFlags> {
+    await this.ensureFlagsLoaded();
+    return { ...this.flags };
+  }
 
-  try {
-    const flagQuery = query(collection(firestore, "feature_flags"), where("key", "==", key));
-    const flagSnapshot = await getDocs(flagQuery);
+  /**
+   * Check if flags need to be refreshed
+   */
+  private shouldRefreshFlags(): boolean {
+    return Date.now() - this.lastFetch > this.CACHE_DURATION;
+  }
 
-    if (flagSnapshot.empty) {
-      return null;
+  /**
+   * Ensure flags are loaded and up to date
+   */
+  private async ensureFlagsLoaded(): Promise<void> {
+    if (this.shouldRefreshFlags()) {
+      await this.loadFlags();
     }
-
-    const doc = flagSnapshot.docs[0];
-    const data = doc.data();
-
-    return {
-      id: doc.id,
-      key: data.key,
-      enabled: data.enabled,
-      description: data.description,
-      createdAt: data.createdAt.toDate(),
-      updatedAt: data.updatedAt.toDate(),
-    };
-  } catch (error) {
-    console.error("Error fetching feature flag:", error);
-    throw new Error("Failed to fetch feature flag");
   }
-}
 
-/**
- * Check if a feature flag is enabled
- */
-export async function isFeatureEnabled(key: string): Promise<boolean> {
-  try {
-    const flag = await getFeatureFlag(key);
-    return flag?.enabled || false;
-  } catch (error) {
-    console.error("Error checking feature flag:", error);
-    return false; // Default to disabled if there's an error
-  }
-}
-
-/**
- * Create a new feature flag
- */
-export async function createFeatureFlag(
-  flagData: CreateFeatureFlagRequest,
-): Promise<{ success: boolean; flagId?: string; error?: string }> {
-  const firestore = getFirebaseFirestore();
-
-  try {
-    // Check if flag with this key already exists
-    const existingFlag = await getFeatureFlag(flagData.key);
-    if (existingFlag) {
-      return {
-        success: false,
-        error: "A feature flag with this key already exists",
+  /**
+   * Load feature flags from remote source
+   */
+  private async loadFlags(): Promise<void> {
+    try {
+      // In a real implementation, this would fetch from Firebase Remote Config
+      // or your feature flag service
+      console.log('[FeatureFlagManager] Loading feature flags...');
+      
+      // For now, we'll use the default flags
+      // TODO: Implement actual remote config fetching
+      /*
+      const remoteConfig = getRemoteConfig();
+      await fetchAndActivate(remoteConfig);
+      
+      const flags: FeatureFlags = {
+        payments_enabled: remoteConfig.getBoolean('payments_enabled'),
+        payments_mock_auto_approve: remoteConfig.getBoolean('payments_mock_auto_approve'),
+        // ... other flags
       };
+      
+      this.flags = flags;
+      */
+      
+      this.flags = DEFAULT_FEATURE_FLAGS;
+      this.lastFetch = Date.now();
+      
+      console.log('[FeatureFlagManager] Feature flags loaded:', this.flags);
+    } catch (error) {
+      console.error('[FeatureFlagManager] Error loading feature flags:', error);
+      // Fallback to default flags
+      this.flags = DEFAULT_FEATURE_FLAGS;
+      this.lastFetch = Date.now();
     }
+  }
 
-    const flagRef = doc(collection(firestore, "feature_flags"));
-    const now = new Date();
+  /**
+   * Force refresh of feature flags
+   */
+  async refreshFlags(): Promise<void> {
+    this.lastFetch = 0;
+    await this.loadFlags();
+  }
 
-    await setDoc(flagRef, {
-      key: flagData.key,
-      enabled: flagData.enabled,
-      description: flagData.description,
-      createdAt: now,
-      updatedAt: now,
-    });
+  /**
+   * Set feature flags (for testing purposes)
+   */
+  setFlags(flags: Partial<FeatureFlags>): void {
+    this.flags = { ...this.flags, ...flags };
+    this.lastFetch = Date.now();
+  }
 
-    return {
-      success: true,
-      flagId: flagRef.id,
-    };
-  } catch (error) {
-    console.error("Error creating feature flag:", error);
-    return {
-      success: false,
-      error: "Failed to create feature flag",
-    };
+  /**
+   * Reset to default flags
+   */
+  resetToDefaults(): void {
+    this.flags = DEFAULT_FEATURE_FLAGS;
+    this.lastFetch = Date.now();
   }
 }
 
 /**
- * Update a feature flag
+ * Convenience functions for common feature flag checks
  */
-export async function updateFeatureFlag(
-  flagId: string,
-  updates: Partial<Pick<FeatureFlag, "enabled" | "description">>,
-): Promise<{ success: boolean; error?: string }> {
-  const firestore = getFirebaseFirestore();
 
-  try {
-    const updateData: Record<string, unknown> = {
-      updatedAt: new Date(),
-    };
-
-    if (updates.enabled !== undefined) {
-      updateData.enabled = updates.enabled;
-    }
-
-    if (updates.description !== undefined) {
-      updateData.description = updates.description;
-    }
-
-    await updateDoc(doc(firestore, "feature_flags", flagId), updateData);
-
-    return { success: true };
-  } catch (error) {
-    console.error("Error updating feature flag:", error);
-    return {
-      success: false,
-      error: "Failed to update feature flag",
-    };
-  }
+/**
+ * Check if payments are enabled
+ */
+export async function isPaymentsEnabled(): Promise<boolean> {
+  const manager = FeatureFlagManager.getInstance();
+  return await manager.getFlag('payments_enabled');
 }
 
 /**
- * Toggle a feature flag
+ * Check if mock payments should auto-approve
  */
-export async function toggleFeatureFlag(
-  flagId: string,
-): Promise<{ success: boolean; error?: string }> {
-  const firestore = getFirebaseFirestore();
+export async function isMockAutoApproveEnabled(): Promise<boolean> {
+  const manager = FeatureFlagManager.getInstance();
+  return await manager.getFlag('payments_mock_auto_approve');
+}
 
-  try {
-    const flagDoc = await getDoc(doc(firestore, "feature_flags", flagId));
+/**
+ * Check if user registration is enabled
+ */
+export async function isUserRegistrationEnabled(): Promise<boolean> {
+  const manager = FeatureFlagManager.getInstance();
+  return await manager.getFlag('user_registration_enabled');
+}
 
-    if (!flagDoc.exists()) {
-      return {
-        success: false,
-        error: "Feature flag not found",
-      };
-    }
+/**
+ * Check if professional verification is enabled
+ */
+export async function isProfessionalVerificationEnabled(): Promise<boolean> {
+  const manager = FeatureFlagManager.getInstance();
+  return await manager.getFlag('professional_verification_enabled');
+}
 
-    const currentEnabled = flagDoc.data()?.enabled || false;
+/**
+ * Check if admin dashboard is enabled
+ */
+export async function isAdminDashboardEnabled(): Promise<boolean> {
+  const manager = FeatureFlagManager.getInstance();
+  return await manager.getFlag('admin_dashboard_enabled');
+}
 
-    await updateDoc(doc(firestore, "feature_flags", flagId), {
-      enabled: !currentEnabled,
-      updatedAt: new Date(),
-    });
+/**
+ * Check if email notifications are enabled
+ */
+export async function isEmailNotificationsEnabled(): Promise<boolean> {
+  const manager = FeatureFlagManager.getInstance();
+  return await manager.getFlag('email_notifications_enabled');
+}
 
-    return { success: true };
-  } catch (error) {
-    console.error("Error toggling feature flag:", error);
-    return {
-      success: false,
-      error: "Failed to toggle feature flag",
-    };
-  }
+/**
+ * Check if Wompi integration is enabled
+ */
+export async function isWompiIntegrationEnabled(): Promise<boolean> {
+  const manager = FeatureFlagManager.getInstance();
+  return await manager.getFlag('wompi_integration_enabled');
+}
+
+/**
+ * Check if Stripe integration is enabled
+ */
+export async function isStripeIntegrationEnabled(): Promise<boolean> {
+  const manager = FeatureFlagManager.getInstance();
+  return await manager.getFlag('stripe_integration_enabled');
+}
+
+/**
+ * Check if Jitsi integration is enabled
+ */
+export async function isJitsiIntegrationEnabled(): Promise<boolean> {
+  const manager = FeatureFlagManager.getInstance();
+  return await manager.getFlag('jitsi_integration_enabled');
+}
+
+/**
+ * Check if debug mode is enabled
+ */
+export async function isDebugModeEnabled(): Promise<boolean> {
+  const manager = FeatureFlagManager.getInstance();
+  return await manager.getFlag('debug_mode_enabled');
+}
+
+/**
+ * React hook for feature flags
+ * Usage: const isEnabled = useFeatureFlag('payments_enabled');
+ */
+export function useFeatureFlag<K extends keyof FeatureFlags>(
+  flagName: K
+): FeatureFlags[K] | null {
+  // This would be implemented as a React hook
+  // For now, we'll return null to indicate it's not implemented
+  console.warn('useFeatureFlag hook not implemented yet');
+  return null;
+}
+
+/**
+ * React hook for multiple feature flags
+ * Usage: const flags = useFeatureFlags(['payments_enabled', 'debug_mode_enabled']);
+ */
+export function useFeatureFlags<K extends keyof FeatureFlags>(
+  flagNames: K[]
+): Pick<FeatureFlags, K> | null {
+  // This would be implemented as a React hook
+  // For now, we'll return null to indicate it's not implemented
+  console.warn('useFeatureFlags hook not implemented yet');
+  return null;
 }
