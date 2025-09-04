@@ -1,6 +1,7 @@
 import { onCall, HttpsError } from 'firebase-functions/v2/https';
 import { getFirestore, FieldValue } from 'firebase-admin/firestore';
 import { getAuth } from 'firebase-admin/auth';
+import { sendEmailHandler, generateConfirmationEmailHtml } from './email';
 
 const db = getFirestore();
 
@@ -97,7 +98,7 @@ export const mockApprovePayment = onCall<MockApprovePaymentRequest, Promise<Mock
       });
 
       // Send confirmation email
-      await sendConfirmationEmail(appointmentId, result.jitsiUrl);
+      await sendConfirmationEmail(appointmentId, result.jitsiUrl, result.appointmentData);
 
       // Log successful approval
       console.log(`Mock payment approved successfully: ${appointmentId} for user ${auth.uid}`);
@@ -142,19 +143,8 @@ function generateJitsiUrl(appointmentId: string, professionalId: string): string
 /**
  * Send confirmation email
  */
-async function sendConfirmationEmail(appointmentId: string, jitsiUrl: string): Promise<void> {
+async function sendConfirmationEmail(appointmentId: string, jitsiUrl: string, appointmentData: any): Promise<void> {
   try {
-    // Get appointment details for email
-    const appointmentRef = db.collection('appointments').doc(appointmentId);
-    const appointmentDoc = await appointmentRef.get();
-    
-    if (!appointmentDoc.exists) {
-      console.error('Appointment not found for email confirmation');
-      return;
-    }
-
-    const appointmentData = appointmentDoc.data();
-    
     // Get user details
     const userRef = db.collection('users').doc(appointmentData?.userId);
     const userDoc = await userRef.get();
@@ -172,28 +162,28 @@ async function sendConfirmationEmail(appointmentId: string, jitsiUrl: string): P
       return;
     }
 
-    // Check if SendGrid is configured
-    const sendGridApiKey = process.env.SENDGRID_API_KEY;
-    if (!sendGridApiKey) {
-      console.log('SendGrid not configured, skipping email confirmation');
-      return;
+    // Create appointment date
+    const appointmentDate = new Date(`${appointmentData.slot.date}T${appointmentData.slot.time}:00`);
+
+    // Generate email HTML using the centralized function
+    const emailHtml = generateConfirmationEmailHtml(
+      appointmentDate,
+      jitsiUrl,
+      appointmentData.professional?.fullName
+    );
+
+    // Send email using the centralized email handler
+    const result = await sendEmailHandler(
+      userEmail,
+      'Cita Confirmada - Miamente',
+      emailHtml
+    );
+
+    if (result.success) {
+      console.log(`Confirmation email sent to ${userEmail} for appointment ${appointmentId}`);
+    } else {
+      console.error(`Failed to send confirmation email for appointment ${appointmentId}:`, result.error);
     }
-
-    // Send email using SendGrid
-    const sgMail = require('@sendgrid/mail');
-    sgMail.setApiKey(sendGridApiKey);
-
-    const emailContent = generateConfirmationEmail(appointmentData, jitsiUrl);
-
-    const msg = {
-      to: userEmail,
-      from: process.env.SENDGRID_FROM_EMAIL || 'noreply@miamente.com',
-      subject: 'Cita Confirmada - Miamente',
-      html: emailContent,
-    };
-
-    await sgMail.send(msg);
-    console.log(`Confirmation email sent to ${userEmail} for appointment ${appointmentId}`);
 
   } catch (error) {
     console.error('Error sending confirmation email:', error);
@@ -201,74 +191,3 @@ async function sendConfirmationEmail(appointmentId: string, jitsiUrl: string): P
   }
 }
 
-/**
- * Generate confirmation email HTML content
- */
-function generateConfirmationEmail(appointmentData: any, jitsiUrl: string): string {
-  const { professional, slot, payment } = appointmentData;
-  
-  return `
-    <!DOCTYPE html>
-    <html>
-    <head>
-      <meta charset="utf-8">
-      <title>Cita Confirmada - Miamente</title>
-      <style>
-        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
-        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-        .header { background-color: #3B82F6; color: white; padding: 20px; text-align: center; }
-        .content { padding: 20px; background-color: #f9f9f9; }
-        .appointment-details { background-color: white; padding: 20px; margin: 20px 0; border-radius: 8px; }
-        .button { display: inline-block; background-color: #10B981; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; margin: 10px 0; }
-        .footer { text-align: center; padding: 20px; color: #666; font-size: 14px; }
-      </style>
-    </head>
-    <body>
-      <div class="container">
-        <div class="header">
-          <h1>¡Cita Confirmada!</h1>
-          <p>Tu pago ha sido procesado exitosamente</p>
-        </div>
-        
-        <div class="content">
-          <h2>Detalles de tu Cita</h2>
-          
-          <div class="appointment-details">
-            <h3>Profesional</h3>
-            <p><strong>${professional.fullName}</strong><br>
-            ${professional.specialty}</p>
-            
-            <h3>Fecha y Hora</h3>
-            <p>${slot.date} a las ${slot.time}<br>
-            Duración: ${slot.duration} minutos</p>
-            
-            <h3>Pago</h3>
-            <p>Total pagado: ${new Intl.NumberFormat('es-CO', {
-              style: 'currency',
-              currency: 'COP',
-              minimumFractionDigits: 0,
-            }).format(payment.amountCents)}</p>
-          </div>
-          
-          <h3>Acceso a la Videollamada</h3>
-          <p>Tu sesión estará disponible 5 minutos antes de la hora programada.</p>
-          
-          <a href="${jitsiUrl}" class="button">Acceder a la Videollamada</a>
-          
-          <h3>Próximos Pasos</h3>
-          <ul>
-            <li>Recibirás un recordatorio 24 horas antes de tu cita</li>
-            <li>Podrás acceder a la videollamada 5 minutos antes</li>
-            <li>Después de la sesión, podrás dejar una reseña</li>
-          </ul>
-        </div>
-        
-        <div class="footer">
-          <p>Si tienes alguna pregunta, contáctanos en support@miamente.com</p>
-          <p>© 2024 Miamente. Todos los derechos reservados.</p>
-        </div>
-      </div>
-    </body>
-    </html>
-  `;
-}

@@ -8,6 +8,7 @@ import { cleanupHeldSlots } from "./cleanup";
 import { sendEmailHandler } from "./email";
 import { sendReminderEmails, sendPostSessionEmails } from "./reminders";
 import { runRemindersHandler } from "./reminders-https";
+import { runReminders } from "./reminders-https";
 import type { SendEmailRequest } from "./types";
 
 admin.initializeApp();
@@ -43,6 +44,9 @@ export { mockApprovePayment };
 
 // Export admin payment functions
 export { adminConfirmPayment, adminFailPayment };
+
+// Export reminders HTTPS function
+export { runReminders };
 
 export const wompiWebhook = functions.region("us-central1").https.onRequest(async (req, res) => {
   res.status(200).send("ok");

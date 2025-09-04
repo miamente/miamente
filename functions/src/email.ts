@@ -101,6 +101,14 @@ export function generateConfirmationEmailHtml(
           <li>La sesión comenzará puntualmente</li>
         </ul>
         
+        <div class="appointment-details">
+          <h3>📋 Política de Cancelación</h3>
+          <p><strong>Cancelaciones:</strong> Puedes cancelar tu cita hasta 24 horas antes sin costo.</p>
+          <p><strong>Reprogramaciones:</strong> Las reprogramaciones están disponibles hasta 12 horas antes de la cita.</p>
+          <p><strong>No-show:</strong> Si no te presentas a la cita, se aplicará el costo completo.</p>
+          <p><strong>Emergencias:</strong> Para situaciones de emergencia, contáctanos inmediatamente.</p>
+        </div>
+        
         <p>Si tienes alguna pregunta o necesitas reprogramar tu cita, no dudes en contactarnos.</p>
         
         <p>¡Esperamos verte pronto!</p>
