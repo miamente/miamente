@@ -3,6 +3,7 @@ import * as functions from "firebase-functions";
 
 import { bookAppointment, getAppointment, cancelAppointment } from "./appointments";
 import { mockApprovePayment } from "./mock-payment";
+import { adminConfirmPayment, adminFailPayment } from "./admin-payments";
 import { cleanupHeldSlots } from "./cleanup";
 import { sendEmailHandler } from "./email";
 import { sendReminderEmails, sendPostSessionEmails } from "./reminders";
@@ -39,6 +40,9 @@ export { bookAppointment, getAppointment, cancelAppointment };
 
 // Export mock payment function
 export { mockApprovePayment };
+
+// Export admin payment functions
+export { adminConfirmPayment, adminFailPayment };
 
 export const wompiWebhook = functions.region("us-central1").https.onRequest(async (req, res) => {
   res.status(200).send("ok");
