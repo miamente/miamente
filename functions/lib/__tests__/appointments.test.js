@@ -25,22 +25,7 @@ describe('Appointment Booking', () => {
     let mockDb;
     let mockTransaction;
     beforeEach(async () => {
-        testEnv = await initializeTestEnvironment({
-            projectId: 'test-project',
-            firestore: {
-                rules: `
-          rules_version = '2';
-          service cloud.firestore {
-            match /databases/{database}/documents {
-              match /{document=**} {
-                allow read, write: if true;
-              }
-            }
-          }
-        `,
-            },
-        });
-        // Mock database and transaction
+        // Mock database and transaction (always available)
         mockDb = {
             runTransaction: vi.fn(),
             collection: vi.fn(() => ({
@@ -56,12 +41,38 @@ describe('Appointment Booking', () => {
             set: vi.fn(),
             update: vi.fn(),
         };
-        mockDb.runTransaction.mockImplementation(async (callback) => {
+                    mockDb.runTransaction.mockImplementation(async (callback) => {
             return await callback(mockTransaction);
         });
+        
+        // Try to initialize test environment (optional for Firebase rule testing)
+        try {
+            testEnv = await initializeTestEnvironment({
+                projectId: 'test-project',
+                firestore: {
+                    host: '127.0.0.1',
+                    port: 8080,
+                    rules: `
+                        rules_version = '2';
+                        service cloud.firestore {
+                            match /databases/{database}/documents {
+                                match /{document=**} {
+                                    allow read, write: if true;
+                                }
+                            }
+                        }
+                    `,
+                },
+            });
+        } catch (error) {
+            console.warn('Failed to initialize test environment:', error);
+            testEnv = null;
+        }
     });
     afterEach(async () => {
-        await testEnv.cleanup();
+        if (testEnv && typeof testEnv.cleanup === 'function') {
+            await testEnv.cleanup();
+        }
     });
     describe('bookAppointment', () => {
         it('should successfully book an appointment when slot is available', async () => {

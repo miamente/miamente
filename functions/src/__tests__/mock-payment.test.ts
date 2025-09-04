@@ -35,23 +35,7 @@ describe('Mock Payment Approval', () => {
   let mockTransaction: any;
 
   beforeEach(async () => {
-    testEnv = await initializeTestEnvironment({
-      projectId: 'test-project',
-      firestore: {
-        rules: `
-          rules_version = '2';
-          service cloud.firestore {
-            match /databases/{database}/documents {
-              match /{document=**} {
-                allow read, write: if true;
-              }
-            }
-          }
-        `,
-      },
-    });
-
-    // Mock database and transaction
+    // Mock database and transaction (always available)
     mockDb = {
       runTransaction: vi.fn(),
       collection: vi.fn(() => ({
@@ -77,10 +61,36 @@ describe('Mock Payment Approval', () => {
     process.env.JITSI_BASE_URL = 'https://meet.jit.si';
     process.env.SENDGRID_API_KEY = 'test-key';
     process.env.SENDGRID_FROM_EMAIL = 'test@miamente.com';
+
+    // Try to initialize test environment (optional for Firebase rule testing)
+    try {
+      testEnv = await initializeTestEnvironment({
+        projectId: 'test-project',
+        firestore: {
+          host: '127.0.0.1',
+          port: 8080,
+          rules: `
+            rules_version = '2';
+            service cloud.firestore {
+              match /databases/{database}/documents {
+                match /{document=**} {
+                  allow read, write: if true;
+                }
+              }
+            }
+          `,
+        },
+      });
+    } catch (error) {
+      console.warn('Failed to initialize test environment:', error);
+      testEnv = null as any;
+    }
   });
 
   afterEach(async () => {
-    await testEnv.cleanup();
+    if (testEnv && typeof testEnv.cleanup === 'function') {
+      await testEnv.cleanup();
+    }
     vi.clearAllMocks();
   });
 

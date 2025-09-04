@@ -26,9 +26,8 @@ describe('Email and Reminder System', () => {
     let testEnv;
     let mockDb;
     beforeEach(async () => {
-        testEnv = await initializeTestEnvironment({
-            projectId: 'test-project',
-            firestore: {
+        // Mock database (always available)
+        mockDb = {
                 rules: `
           rules_version = '2';
           service cloud.firestore {
@@ -59,9 +58,35 @@ describe('Email and Reminder System', () => {
         process.env.SENDGRID_FROM_EMAIL = 'test@miamente.com';
         process.env.REMINDERS_AUTH_TOKEN = 'test-token';
         process.env.JITSI_BASE_URL = 'https://meet.jit.si';
+        
+        // Try to initialize test environment (optional for Firebase rule testing)
+        try {
+            testEnv = await initializeTestEnvironment({
+                projectId: 'test-project',
+                firestore: {
+                    host: '127.0.0.1',
+                    port: 8080,
+                    rules: `
+                        rules_version = '2';
+                        service cloud.firestore {
+                            match /databases/{database}/documents {
+                                match /{document=**} {
+                                    allow read, write: if true;
+                                }
+                            }
+                        }
+                    `,
+                },
+            });
+        } catch (error) {
+            console.warn('Failed to initialize test environment:', error);
+            testEnv = null;
+        }
     });
     afterEach(async () => {
-        await testEnv.cleanup();
+        if (testEnv && typeof testEnv.cleanup === 'function') {
+            await testEnv.cleanup();
+        }
         vi.clearAllMocks();
     });
     describe('Email Templates', () => {
