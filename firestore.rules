@@ -61,6 +61,22 @@ service cloud.firestore {
       allow delete: if false; // No direct deletion, use status updates
     }
 
+    // Reviews - users can only create one review per appointment they attended
+    match /reviews/{reviewId} {
+      allow read: if isSignedIn() && (
+        isOwner(resource.data.userId) || // User can read their own reviews
+        isOwner(resource.data.proId) // Professional can read reviews for them
+      );
+      allow create: if isSignedIn() && 
+        request.auth.uid == request.resource.data.userId && // Only the user can create their review
+        request.resource.data.rating >= 1 && 
+        request.resource.data.rating <= 5 && // Rating must be 1-5
+        request.resource.data.appointmentId != null &&
+        request.resource.data.userId != null;
+      allow update: if false; // No editing reviews
+      allow delete: if false; // No deleting reviews
+    }
+
     // Default deny all other collections
     match /{document=**} {
       allow read, write: if false;
