@@ -16,10 +16,24 @@ export function useAuthGuard(options: AuthGuardOptions = {}) {
   const { user, profile, loading } = useAuth();
   const router = useRouter();
 
-  const { requiredRole, requireEmailVerification = true, redirectTo = "/login" } = options;
+  // In development mode (emulator), disable email verification requirement by default
+  const isDevelopment = typeof window !== 'undefined' && window.location.hostname === 'localhost';
+  const defaultEmailVerification = isDevelopment ? false : true;
+  
+  const { requiredRole, requireEmailVerification = defaultEmailVerification, redirectTo = "/login" } = options;
 
   useEffect(() => {
     if (loading) return;
+
+    // Debug logging in development
+    if (isDevelopment) {
+      console.log('useAuthGuard - Development mode:', {
+        user: user?.email,
+        emailVerified: user?.emailVerified,
+        requireEmailVerification,
+        profile: profile?.role
+      });
+    }
 
     // Not logged in
     if (!user) {
@@ -29,6 +43,9 @@ export function useAuthGuard(options: AuthGuardOptions = {}) {
 
     // Email verification required but not verified
     if (requireEmailVerification && !user.emailVerified) {
+      if (isDevelopment) {
+        console.log('useAuthGuard - Redirecting to /verify (email not verified)');
+      }
       router.push("/verify");
       return;
     }
@@ -40,7 +57,7 @@ export function useAuthGuard(options: AuthGuardOptions = {}) {
       router.push(roleDashboard);
       return;
     }
-  }, [user, profile, loading, requiredRole, requireEmailVerification, redirectTo, router]);
+  }, [user, profile, loading, requiredRole, requireEmailVerification, redirectTo, router, isDevelopment]);
 
   return {
     user,
@@ -49,7 +66,7 @@ export function useAuthGuard(options: AuthGuardOptions = {}) {
     isAuthorized:
       !loading &&
       !!user &&
-      (!requireEmailVerification || user.emailVerified) &&
+      (!requireEmailVerification || user?.emailVerified) &&
       (!requiredRole || profile?.role === requiredRole),
   };
 }

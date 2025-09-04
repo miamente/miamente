@@ -22,9 +22,17 @@ export default function VerifyPage() {
         router.push("/login");
         return;
       }
-      if (user.emailVerified) {
-        router.push("/dashboard/user");
-        return;
+      
+      // In development mode (emulator), allow bypassing email verification
+      const isDevelopment = window.location.hostname === 'localhost';
+      
+      if (user.emailVerified || isDevelopment) {
+        // Only auto-redirect if email is actually verified
+        // In development, we let the user manually proceed
+        if (user.emailVerified) {
+          router.push("/dashboard/user");
+          return;
+        }
       }
     }
   }, [user, loading, router]);
@@ -60,20 +68,33 @@ export default function VerifyPage() {
       const currentUser = auth.currentUser;
       
       if (currentUser) {
-        // In development mode, simulate email verification
-        await updateProfile(currentUser, {
-          emailVerified: true
-        });
+        // Check if we're running in development (emulator)
+        const isDevelopment = window.location.hostname === 'localhost';
         
-        // Reload the user to get updated state
-        await currentUser.reload();
-        
-        // Redirect to dashboard
-        router.push("/dashboard/user");
+        if (isDevelopment) {
+          // In development mode, we can directly call the Firebase Admin API via emulator
+          // or simply redirect since emulator doesn't enforce email verification
+          console.log('Development mode: Simulating email verification');
+          
+          // Force reload the user to check current state
+          await currentUser.reload();
+          
+          // For emulator, we can proceed even if not verified
+          router.push("/dashboard/user");
+        } else {
+          // In production, we would need actual email verification
+          await currentUser.reload();
+          
+          if (currentUser.emailVerified) {
+            router.push("/dashboard/user");
+          } else {
+            setError("El email aún no ha sido verificado. Por favor revisa tu bandeja de entrada.");
+          }
+        }
       }
     } catch (err) {
-      console.error("Error simulating verification:", err);
-      setError("Error al simular la verificación");
+      console.error("Error checking verification:", err);
+      setError("Error al verificar el estado del email");
     }
   };
 
