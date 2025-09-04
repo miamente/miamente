@@ -2,7 +2,11 @@ import type { Metadata } from "next";
 import { Montserrat } from "next/font/google";
 import { NextIntlClientProvider } from "next-intl";
 import { getMessages, getLocale } from "next-intl/server";
+
 import "./globals.css";
+import { Footer } from "@/components/footer";
+import { Header } from "@/components/header";
+import { ThemeProvider } from "@/components/theme-provider";
 
 const montserrat = Montserrat({ variable: "--font-montserrat", subsets: ["latin"] });
 
@@ -20,8 +24,16 @@ export default async function RootLayout({
   const messages = await getMessages();
   return (
     <html lang={locale}>
-      <body className={`${montserrat.variable} font-sans antialiased`}>
-        <NextIntlClientProvider messages={messages}>{children}</NextIntlClientProvider>
+      <body
+        className={`${montserrat.variable} min-h-screen bg-white font-sans text-neutral-900 antialiased dark:bg-neutral-950 dark:text-neutral-50`}
+      >
+        <NextIntlClientProvider messages={messages}>
+          <ThemeProvider>
+            <Header />
+            <main className="mx-auto min-h-[70vh] max-w-6xl px-4 py-8">{children}</main>
+            <Footer />
+          </ThemeProvider>
+        </NextIntlClientProvider>
       </body>
     </html>
   );

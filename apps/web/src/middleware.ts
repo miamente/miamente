@@ -7,6 +7,5 @@ export default createMiddleware({
 });
 
 export const config = {
-  // eslint-disable-next-line no-useless-escape
-  matcher: ["/((?!_next|.*\..*).*)"],
+  matcher: ["/((?!_next|.*\\..*).*)"],
 };

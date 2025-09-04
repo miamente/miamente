@@ -9,6 +9,7 @@
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "dev": "npm run build -- --watch",
+    "test": "echo 'no tests yet'",
     "deploy": "npx firebase deploy --only functions",
     "emulators": "npx firebase emulators:start --only functions,firestore,storage,auth --project demo-miamente"
   },

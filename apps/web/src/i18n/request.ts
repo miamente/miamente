@@ -8,7 +8,8 @@ function isSupportedLocale(locale: string): locale is SupportedLocale {
 }
 
 export default getRequestConfig(async ({ locale }) => {
-  const normalized: SupportedLocale = isSupportedLocale(locale) ? locale : "es";
+  const current = locale ?? "es";
+  const normalized: SupportedLocale = isSupportedLocale(current) ? current : "es";
   return {
     locale: normalized,
     messages: (await import(`./messages/${normalized}.json`)).default,

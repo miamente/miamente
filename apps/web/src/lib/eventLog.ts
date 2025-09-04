@@ -17,7 +17,7 @@ export async function writeEvent(name: string, payload?: Record<string, unknown>
   await addDoc(ref, {
     name,
     payload: payload ?? {},
-    userId: userId ?? null,
+    userId: userId ?? undefined,
     createdAt: serverTimestamp(),
     utc: true,
   } satisfies EventLog);
