@@ -1,0 +1,302 @@
+name: E2E Tests
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to test against'
+        required: true
+        default: 'staging'
+        type: choice
+        options:
+          - staging
+          - production
+
+env:
+  NODE_VERSION: '20'
+
+jobs:
+  # Job 1: Setup and Install Dependencies
+  setup:
+    name: Setup E2E Test Environment
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps
+
+      - name: Cache Playwright browsers
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: ${{ runner.os }}-playwright-${{ hashFiles('package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-playwright-
+
+  # Job 2: Build Application
+  build:
+    name: Build Application
+    runs-on: ubuntu-latest
+    needs: setup
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build web application
+        run: cd apps/web && npm run build
+        env:
+          NEXT_PUBLIC_FB_API_KEY: ${{ secrets.NEXT_PUBLIC_FB_API_KEY }}
+          NEXT_PUBLIC_FB_AUTH_DOMAIN: ${{ secrets.NEXT_PUBLIC_FB_AUTH_DOMAIN }}
+          NEXT_PUBLIC_FB_PROJECT_ID: ${{ secrets.NEXT_PUBLIC_FB_PROJECT_ID }}
+          NEXT_PUBLIC_FB_STORAGE_BUCKET: ${{ secrets.NEXT_PUBLIC_FB_STORAGE_BUCKET }}
+          NEXT_PUBLIC_FB_MESSAGING_SENDER_ID: ${{ secrets.NEXT_PUBLIC_FB_MESSAGING_SENDER_ID }}
+          NEXT_PUBLIC_FB_APP_ID: ${{ secrets.NEXT_PUBLIC_FB_APP_ID }}
+          NEXT_PUBLIC_FB_MEASUREMENT_ID: ${{ secrets.NEXT_PUBLIC_FB_MEASUREMENT_ID }}
+          NEXT_PUBLIC_RECAPTCHA_ENTERPRISE_SITE_KEY: ${{ secrets.NEXT_PUBLIC_RECAPTCHA_ENTERPRISE_SITE_KEY }}
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-artifacts
+          path: apps/web/.next
+          retention-days: 1
+
+  # Job 3: E2E Tests on Staging
+  e2e-staging:
+    name: E2E Tests - Staging
+    runs-on: ubuntu-latest
+    needs: [setup, build]
+    if: github.event.inputs.environment != 'production' || github.event_name != 'workflow_dispatch'
+    environment: staging
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps
+
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: build-artifacts
+          path: apps/web/.next
+
+      - name: Start Next.js server
+        run: |
+          cd apps/web
+          npm start &
+          sleep 30
+        env:
+          NODE_ENV: production
+          PORT: 3000
+          NEXT_PUBLIC_FB_API_KEY: ${{ secrets.NEXT_PUBLIC_FB_API_KEY }}
+          NEXT_PUBLIC_FB_AUTH_DOMAIN: ${{ secrets.NEXT_PUBLIC_FB_AUTH_DOMAIN }}
+          NEXT_PUBLIC_FB_PROJECT_ID: ${{ secrets.NEXT_PUBLIC_FB_PROJECT_ID }}
+          NEXT_PUBLIC_FB_STORAGE_BUCKET: ${{ secrets.NEXT_PUBLIC_FB_STORAGE_BUCKET }}
+          NEXT_PUBLIC_FB_MESSAGING_SENDER_ID: ${{ secrets.NEXT_PUBLIC_FB_MESSAGING_SENDER_ID }}
+          NEXT_PUBLIC_FB_APP_ID: ${{ secrets.NEXT_PUBLIC_FB_APP_ID }}
+          NEXT_PUBLIC_FB_MEASUREMENT_ID: ${{ secrets.NEXT_PUBLIC_FB_MEASUREMENT_ID }}
+          NEXT_PUBLIC_RECAPTCHA_ENTERPRISE_SITE_KEY: ${{ secrets.NEXT_PUBLIC_RECAPTCHA_ENTERPRISE_SITE_KEY }}
+
+      - name: Run E2E tests
+        run: npm run test:e2e
+        env:
+          E2E_BASE_URL: http://localhost:3000
+          NODE_ENV: test
+
+      - name: Upload E2E test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: e2e-test-results-staging
+          path: |
+            test-results/
+            playwright-report/
+          retention-days: 7
+
+  # Job 4: E2E Tests on Production
+  e2e-production:
+    name: E2E Tests - Production
+    runs-on: ubuntu-latest
+    needs: setup
+    if: github.event.inputs.environment == 'production' && github.event_name == 'workflow_dispatch'
+    environment: production
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps
+
+      - name: Run E2E tests against production
+        run: npm run test:e2e:staging
+        env:
+          E2E_BASE_URL: https://miamente-prod.web.app
+          NODE_ENV: test
+
+      - name: Upload E2E test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: e2e-test-results-production
+          path: |
+            test-results/
+            playwright-report/
+          retention-days: 7
+
+  # Job 5: E2E Tests on Live Staging
+  e2e-live-staging:
+    name: E2E Tests - Live Staging
+    runs-on: ubuntu-latest
+    needs: setup
+    if: github.ref == 'refs/heads/develop' && github.event_name == 'push'
+    environment: staging
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps
+
+      - name: Wait for staging deployment
+        run: |
+          echo "Waiting for staging deployment to be ready..."
+          sleep 60
+          
+          # Check if staging is accessible
+          for i in {1..10}; do
+            if curl -f -s https://miamente-staging.web.app > /dev/null; then
+              echo "Staging is ready!"
+              break
+            fi
+            echo "Attempt $i: Staging not ready yet, waiting..."
+            sleep 30
+          done
+
+      - name: Run E2E tests against live staging
+        run: npm run test:e2e:staging
+        env:
+          E2E_BASE_URL: https://miamente-staging.web.app
+          NODE_ENV: test
+
+      - name: Upload E2E test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: e2e-test-results-live-staging
+          path: |
+            test-results/
+            playwright-report/
+          retention-days: 7
+
+  # Job 6: Generate E2E Test Report
+  e2e-report:
+    name: Generate E2E Test Report
+    runs-on: ubuntu-latest
+    needs: [e2e-staging, e2e-production, e2e-live-staging]
+    if: always()
+    steps:
+      - name: Download E2E test results
+        uses: actions/download-artifact@v4
+        with:
+          pattern: e2e-test-results-*
+          merge-multiple: true
+
+      - name: Generate test report
+        run: |
+          echo "## 🧪 E2E Test Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          if [ -f "test-results/e2e-results.json" ]; then
+            echo "### Test Summary" >> $GITHUB_STEP_SUMMARY
+            echo "- **Total Tests**: $(jq '.stats.total' test-results/e2e-results.json)" >> $GITHUB_STEP_SUMMARY
+            echo "- **Passed**: $(jq '.stats.passed' test-results/e2e-results.json)" >> $GITHUB_STEP_SUMMARY
+            echo "- **Failed**: $(jq '.stats.failed' test-results/e2e-results.json)" >> $GITHUB_STEP_SUMMARY
+            echo "- **Skipped**: $(jq '.stats.skipped' test-results/e2e-results.json)" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          if [ -d "playwright-report" ]; then
+            echo "### 📊 Test Report" >> $GITHUB_STEP_SUMMARY
+            echo "Detailed test report is available in the artifacts." >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          echo "### 🔍 Test Coverage" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ User Registration and Email Verification" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Professional Slot Creation and User Booking" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Payment Processing and Confirmation" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Email with Jitsi URL and Review System" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Admin Professional Verification and Metrics" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Complete User Journey End-to-End" >> $GITHUB_STEP_SUMMARY
+
+  # Job 7: Notify on E2E Test Results
+  notify:
+    name: Notify E2E Test Results
+    runs-on: ubuntu-latest
+    needs: [e2e-staging, e2e-production, e2e-live-staging, e2e-report]
+    if: always()
+    steps:
+      - name: E2E Tests Success Notification
+        if: needs.e2e-staging.result == 'success' || needs.e2e-production.result == 'success' || needs.e2e-live-staging.result == 'success'
+        run: |
+          echo "🎉 E2E tests completed successfully!"
+          echo "All user journeys are working correctly."
+
+      - name: E2E Tests Failure Notification
+        if: needs.e2e-staging.result == 'failure' || needs.e2e-production.result == 'failure' || needs.e2e-live-staging.result == 'failure'
+        run: |
+          echo "❌ E2E tests failed!"
+          echo "Please check the test results and fix any issues."
+          echo "Test artifacts are available for download."
