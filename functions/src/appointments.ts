@@ -1,175 +1,269 @@
-import * as admin from "firebase-admin";
-import * as functions from "firebase-functions";
+import { onCall, HttpsError } from 'firebase-functions/v2/https';
+import { getFirestore, FieldValue } from 'firebase-admin/firestore';
+import { getAuth } from 'firebase-admin/auth';
 
-import { checkRateLimit, RATE_LIMITS, getClientIP } from "./rate-limiting";
-import type { BookAppointmentResponse, Appointment } from "./types";
-import { createJitsiUrl } from "./utils";
+const db = getFirestore();
 
-const db = admin.firestore();
+interface BookAppointmentRequest {
+  proId: string;
+  slotId: string;
+}
 
-export async function bookAppointmentHandler(
-  userId: string,
-  proId: string,
-  slotId: string,
-  request?: {
-    headers: Record<string, string>;
-    connection?: { remoteAddress?: string };
-    socket?: { remoteAddress?: string };
-  },
-): Promise<BookAppointmentResponse> {
-  const slotRef = db.collection("availability").doc(proId).collection("slots").doc(slotId);
-  const appointmentsRef = db.collection("appointments");
+interface BookAppointmentResponse {
+  appointmentId: string;
+}
 
-  try {
-    // Check rate limiting
-    const ipAddress = request ? getClientIP(request) : undefined;
-    const rateLimitResult = await checkRateLimit(
-      userId,
-      RATE_LIMITS.APPOINTMENT_CREATION,
-      ipAddress,
-    );
+/**
+ * Book an appointment with transaction handling to prevent double booking
+ */
+export const bookAppointment = onCall<BookAppointmentRequest, Promise<BookAppointmentResponse>>(
+  { region: 'us-central1' },
+  async (request) => {
+    const { proId, slotId } = request.data;
+    const { auth } = request;
 
-    if (!rateLimitResult.allowed) {
-      return {
-        success: false,
-        error: `Rate limit exceeded. Try again after ${new Date(rateLimitResult.resetTime).toISOString()}`,
-      };
+    // Verify authentication
+    if (!auth) {
+      throw new HttpsError('unauthenticated', 'User must be authenticated to book appointments');
     }
 
-    // Use transaction to ensure atomicity
-    const result = await db.runTransaction(async (transaction) => {
-      // Read the slot
-      const slotDoc = await transaction.get(slotRef);
+    const userId = auth.uid;
 
-      if (!slotDoc.exists) {
-        throw new functions.https.HttpsError("not-found", "Slot not found");
-      }
+    // Validate input
+    if (!proId || !slotId) {
+      throw new HttpsError('invalid-argument', 'proId and slotId are required');
+    }
 
-      const slotData = slotDoc.data();
+    try {
+      // Use transaction to ensure atomicity
+      const result = await db.runTransaction(async (transaction) => {
+        // Get the slot document
+        const slotRef = db.collection('availability').doc(slotId);
+        const slotDoc = await transaction.get(slotRef);
 
-      if (!slotData) {
-        throw new functions.https.HttpsError("not-found", "Slot data not found");
-      }
+        if (!slotDoc.exists) {
+          throw new HttpsError('not-found', 'Slot not found');
+        }
 
-      // Check if slot is still free
-      if (slotData.status !== "free") {
-        throw new functions.https.HttpsError("failed-precondition", "Slot is no longer available");
-      }
+        const slotData = slotDoc.data();
+        
+        // Verify the slot belongs to the specified professional
+        if (slotData?.professionalId !== proId) {
+          throw new HttpsError('invalid-argument', 'Slot does not belong to the specified professional');
+        }
 
-      // Check if user already has an appointment for this slot (idempotency)
-      const existingAppointmentQuery = await transaction.get(
-        appointmentsRef
-          .where("userId", "==", userId)
-          .where("proId", "==", proId)
-          .where("slotId", "==", slotId)
-          .limit(1),
-      );
+        // Check if slot is available
+        if (slotData?.status !== 'free') {
+          throw new HttpsError('failed-precondition', 'Slot is no longer available');
+        }
 
-      if (!existingAppointmentQuery.empty) {
-        const existingAppointment = existingAppointmentQuery.docs[0];
-        return {
-          success: true,
-          appointmentId: existingAppointment.id,
+        // Get professional data to get rate
+        const proRef = db.collection('professionals').doc(proId);
+        const proDoc = await transaction.get(proRef);
+
+        if (!proDoc.exists) {
+          throw new HttpsError('not-found', 'Professional not found');
+        }
+
+        const proData = proDoc.data();
+        const rateCents = proData?.rateCents;
+
+        if (!rateCents || rateCents <= 0) {
+          throw new HttpsError('invalid-argument', 'Professional rate not configured');
+        }
+
+        // Update slot status to "held"
+        transaction.update(slotRef, {
+          status: 'held',
+          heldBy: userId,
+          heldAt: FieldValue.serverTimestamp(),
+          updatedAt: FieldValue.serverTimestamp()
+        });
+
+        // Create appointment document
+        const appointmentRef = db.collection('appointments').doc();
+        const appointmentData = {
+          id: appointmentRef.id,
+          userId,
+          professionalId: proId,
+          slotId,
+          status: 'pending_payment',
+          paid: false,
+          payment: {
+            provider: 'mock', // Mock payment provider for now
+            amountCents: rateCents,
+            currency: 'COP',
+            status: 'pending'
+          },
+          slot: {
+            date: slotData.date,
+            time: slotData.time,
+            duration: slotData.duration,
+            timezone: slotData.timezone || 'America/Bogota'
+          },
+          professional: {
+            id: proId,
+            fullName: proData.fullName,
+            specialty: proData.specialty,
+            rateCents: rateCents
+          },
+          createdAt: FieldValue.serverTimestamp(),
+          updatedAt: FieldValue.serverTimestamp()
         };
-      }
 
-      // Update slot status to "held"
-      transaction.update(slotRef, {
-        status: "held",
-        updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+        transaction.set(appointmentRef, appointmentData);
+
+        return {
+          appointmentId: appointmentRef.id,
+          slotData,
+          proData,
+          appointmentData
+        };
       });
 
-      // Create appointment
-      const appointmentId = appointmentsRef.doc().id;
-      const jitsiUrl = createJitsiUrl(appointmentId);
-
-      const appointmentData: Omit<Appointment, "createdAt" | "updatedAt"> = {
-        userId,
-        proId,
-        slotId,
-        start: slotData.start,
-        end: slotData.end,
-        status: "pending_payment",
-        paid: false,
-        jitsiUrl,
-      };
-
-      const appointmentRef = appointmentsRef.doc(appointmentId);
-      transaction.set(appointmentRef, {
-        ...appointmentData,
-        createdAt: admin.firestore.FieldValue.serverTimestamp(),
-        updatedAt: admin.firestore.FieldValue.serverTimestamp(),
-      });
+      // Log successful booking
+      console.log(`Appointment booked successfully: ${result.appointmentId} for user ${userId}`);
 
       return {
-        success: true,
-        appointmentId: appointmentRef.id,
+        appointmentId: result.appointmentId
       };
-    });
 
-    return result;
-  } catch (error) {
-    functions.logger.error("Error booking appointment:", error);
+    } catch (error) {
+      console.error('Error booking appointment:', error);
 
-    if (error instanceof functions.https.HttpsError) {
-      throw error;
+      if (error instanceof HttpsError) {
+        throw error;
+      }
+
+      // Handle specific error cases
+      if (error.code === 'failed-precondition') {
+        throw new HttpsError('failed-precondition', 'Slot is no longer available. Another user may have booked it.');
+      }
+
+      throw new HttpsError('internal', 'Failed to book appointment. Please try again.');
     }
-
-    throw new functions.https.HttpsError("internal", "Failed to book appointment");
   }
-}
+);
 
-export async function getAppointment(appointmentId: string): Promise<Appointment | null> {
-  try {
-    const appointmentDoc = await db.collection("appointments").doc(appointmentId).get();
+/**
+ * Get appointment details by ID
+ */
+export const getAppointment = onCall<{ appointmentId: string }, Promise<any>>(
+  { region: 'us-central1' },
+  async (request) => {
+    const { appointmentId } = request.data;
+    const { auth } = request;
 
-    if (!appointmentDoc.exists) {
-      return null;
+    // Verify authentication
+    if (!auth) {
+      throw new HttpsError('unauthenticated', 'User must be authenticated');
     }
 
-    const data = appointmentDoc.data();
-    if (!data) {
-      return null;
+    const userId = auth.uid;
+
+    if (!appointmentId) {
+      throw new HttpsError('invalid-argument', 'appointmentId is required');
     }
 
-    return {
-      userId: data.userId,
-      proId: data.proId,
-      slotId: data.slotId,
-      start: data.start.toDate(),
-      end: data.end.toDate(),
-      status: data.status,
-      paid: data.paid,
-      jitsiUrl: data.jitsiUrl,
-      createdAt: data.createdAt.toDate(),
-      updatedAt: data.updatedAt.toDate(),
-    };
-  } catch (error) {
-    functions.logger.error("Error getting appointment:", error);
-    return null;
+    try {
+      const appointmentRef = db.collection('appointments').doc(appointmentId);
+      const appointmentDoc = await appointmentRef.get();
+
+      if (!appointmentDoc.exists) {
+        throw new HttpsError('not-found', 'Appointment not found');
+      }
+
+      const appointmentData = appointmentDoc.data();
+
+      // Verify user owns this appointment
+      if (appointmentData?.userId !== userId) {
+        throw new HttpsError('permission-denied', 'You can only view your own appointments');
+      }
+
+      return appointmentData;
+
+    } catch (error) {
+      console.error('Error getting appointment:', error);
+
+      if (error instanceof HttpsError) {
+        throw error;
+      }
+
+      throw new HttpsError('internal', 'Failed to get appointment details');
+    }
   }
-}
+);
 
-export async function updateAppointmentStatus(
-  appointmentId: string,
-  status: Appointment["status"],
-  paid?: boolean,
-): Promise<void> {
-  try {
-    const appointmentRef = db.collection("appointments").doc(appointmentId);
+/**
+ * Cancel an appointment (only if not paid)
+ */
+export const cancelAppointment = onCall<{ appointmentId: string }, Promise<void>>(
+  { region: 'us-central1' },
+  async (request) => {
+    const { appointmentId } = request.data;
+    const { auth } = request;
 
-    const updateData: Record<string, unknown> = {
-      status,
-      updatedAt: admin.firestore.FieldValue.serverTimestamp(),
-    };
-
-    if (paid !== undefined) {
-      updateData.paid = paid;
+    // Verify authentication
+    if (!auth) {
+      throw new HttpsError('unauthenticated', 'User must be authenticated');
     }
 
-    await appointmentRef.update(updateData);
-  } catch (error) {
-    functions.logger.error("Error updating appointment status:", error);
-    throw new functions.https.HttpsError("internal", "Failed to update appointment status");
+    const userId = auth.uid;
+
+    if (!appointmentId) {
+      throw new HttpsError('invalid-argument', 'appointmentId is required');
+    }
+
+    try {
+      await db.runTransaction(async (transaction) => {
+        const appointmentRef = db.collection('appointments').doc(appointmentId);
+        const appointmentDoc = await transaction.get(appointmentRef);
+
+        if (!appointmentDoc.exists) {
+          throw new HttpsError('not-found', 'Appointment not found');
+        }
+
+        const appointmentData = appointmentDoc.data();
+
+        // Verify user owns this appointment
+        if (appointmentData?.userId !== userId) {
+          throw new HttpsError('permission-denied', 'You can only cancel your own appointments');
+        }
+
+        // Only allow cancellation if not paid
+        if (appointmentData?.paid === true) {
+          throw new HttpsError('failed-precondition', 'Cannot cancel paid appointments');
+        }
+
+        // Update appointment status
+        transaction.update(appointmentRef, {
+          status: 'cancelled',
+          cancelledAt: FieldValue.serverTimestamp(),
+          updatedAt: FieldValue.serverTimestamp()
+        });
+
+        // Release the slot
+        if (appointmentData?.slotId) {
+          const slotRef = db.collection('availability').doc(appointmentData.slotId);
+          transaction.update(slotRef, {
+            status: 'free',
+            heldBy: FieldValue.delete(),
+            heldAt: FieldValue.delete(),
+            updatedAt: FieldValue.serverTimestamp()
+          });
+        }
+      });
+
+      console.log(`Appointment cancelled: ${appointmentId} by user ${userId}`);
+
+    } catch (error) {
+      console.error('Error cancelling appointment:', error);
+
+      if (error instanceof HttpsError) {
+        throw error;
+      }
+
+      throw new HttpsError('internal', 'Failed to cancel appointment');
+    }
   }
-}
+);

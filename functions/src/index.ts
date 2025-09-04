@@ -1,12 +1,12 @@
 import * as admin from "firebase-admin";
 import * as functions from "firebase-functions";
 
-import { bookAppointmentHandler } from "./appointments";
+import { bookAppointment, getAppointment, cancelAppointment } from "./appointments";
 import { cleanupHeldSlots } from "./cleanup";
 import { sendEmailHandler } from "./email";
 import { sendReminderEmails, sendPostSessionEmails } from "./reminders";
 import { runRemindersHandler } from "./reminders-https";
-import type { BookAppointmentRequest, SendEmailRequest } from "./types";
+import type { SendEmailRequest } from "./types";
 
 admin.initializeApp();
 
@@ -33,26 +33,8 @@ export const sendEmail = functions
     return await sendEmailHandler(to, subject, html);
   });
 
-export const bookAppointment = functions
-  .region("us-central1")
-  .https.onCall(async (data: BookAppointmentRequest, context) => {
-    if (!context.auth) {
-      throw new functions.https.HttpsError("unauthenticated", "Auth required");
-    }
-
-    if (!context.app) {
-      throw new functions.https.HttpsError("failed-precondition", "App Check required");
-    }
-
-    const { proId, slotId } = data;
-    const userId = context.auth.uid;
-
-    if (!proId || !slotId) {
-      throw new functions.https.HttpsError("invalid-argument", "proId and slotId are required");
-    }
-
-    return await bookAppointmentHandler(userId, proId, slotId, context.rawRequest);
-  });
+// Export the new appointment functions
+export { bookAppointment, getAppointment, cancelAppointment };
 
 export const wompiWebhook = functions.region("us-central1").https.onRequest(async (req, res) => {
   res.status(200).send("ok");
