@@ -194,12 +194,15 @@ export default function ProfessionalsPage() {
             </CardHeader>
             <CardContent className="flex flex-1 flex-col gap-3">
               {pro.photoUrl ? (
-                <img
-                  src={pro.photoUrl}
-                  alt={`Foto del profesional en ${pro.specialty}`}
-                  className="h-40 w-full rounded-md object-cover"
-                  loading="lazy"
-                />
+                <>
+                  {}
+                  <img
+                    src={pro.photoUrl}
+                    alt={`Foto del profesional en ${pro.specialty}`}
+                    className="h-40 w-full rounded-md object-cover"
+                    loading="lazy"
+                  />
+                </>
               ) : (
                 <div className="flex h-40 w-full items-center justify-center rounded-md bg-neutral-100 text-neutral-500 dark:bg-neutral-900 dark:text-neutral-400">
                   Sin foto

@@ -1,14 +1,12 @@
-import { httpsCallable } from 'firebase/functions';
-import { getFirebaseFunctions } from '@/lib/firebase';
-import type { 
-  PaymentService, 
-  PaymentCheckoutResult, 
-  PaymentReturnParams 
-} from '../PaymentService';
+import { httpsCallable } from "firebase/functions";
+
+import type { PaymentService, PaymentCheckoutResult, PaymentReturnParams } from "../PaymentService";
+
+import { getFirebaseFunctions } from "@/lib/firebase";
 
 /**
  * Mock Payment Adapter
- * 
+ *
  * Simulates payment processing for development and testing.
  * Supports both auto-approve and manual approval modes.
  */
@@ -20,10 +18,10 @@ export class MockPaymentAdapter implements PaymentService {
         payments_enabled: false,
         payments_mock_auto_approve: true,
       };
-      
+
       return featureFlags[flagName as keyof typeof featureFlags] || false;
     } catch (error) {
-      console.error('Error fetching feature flag:', error);
+      console.error("Error fetching feature flag:", error);
       return true; // Default to auto-approve
     }
   }
@@ -37,30 +35,32 @@ export class MockPaymentAdapter implements PaymentService {
       console.log(`[MockPaymentAdapter] Starting checkout for appointment: ${appointmentId}`);
 
       // Get appointment details
-      const getAppointment = httpsCallable(getFirebaseFunctions(), 'getAppointment');
+      const getAppointment = httpsCallable(getFirebaseFunctions(), "getAppointment");
       const result = await getAppointment({ appointmentId });
-      const appointment = result.data as any;
+      const appointment = result.data as Record<string, unknown>;
 
       if (!appointment) {
-        throw new Error('Appointment not found');
+        throw new Error("Appointment not found");
       }
 
       // Update appointment status to pending_confirmation
-      await this.updateAppointmentStatus(appointmentId, 'pending_confirmation');
+      await this.updateAppointmentStatus(appointmentId, "pending_confirmation");
 
       // Check if auto-approve is enabled
-      const autoApprove = await this.getFeatureFlag('payments_mock_auto_approve');
-      
+      const autoApprove = await this.getFeatureFlag("payments_mock_auto_approve");
+
       const sessionId = `mock_session_${appointmentId}_${Date.now()}`;
-      
+
       if (autoApprove) {
         console.log(`[MockPaymentAdapter] Auto-approve enabled, redirecting to success`);
-        
+
         // Call mockApprovePayment function for immediate approval
         try {
-          const mockApprovePayment = httpsCallable(getFirebaseFunctions(), 'mockApprovePayment');
+          const mockApprovePayment = httpsCallable(getFirebaseFunctions(), "mockApprovePayment");
           await mockApprovePayment({ appointmentId });
-          console.log(`[MockPaymentAdapter] Mock payment approved automatically for appointment: ${appointmentId}`);
+          console.log(
+            `[MockPaymentAdapter] Mock payment approved automatically for appointment: ${appointmentId}`,
+          );
         } catch (error) {
           console.error(`[MockPaymentAdapter] Error auto-approving payment:`, error);
           // Fallback to manual approval if auto-approval fails
@@ -70,15 +70,15 @@ export class MockPaymentAdapter implements PaymentService {
           redirectUrl: `/checkout/success?appt=${appointmentId}&session=${sessionId}`,
           sessionId,
           metadata: {
-            provider: 'mock',
+            provider: "mock",
             autoApproved: true,
             amount: appointment.payment.amountCents,
-            currency: appointment.payment.currency
-          }
+            currency: appointment.payment.currency,
+          },
         };
       } else {
         console.log(`[MockPaymentAdapter] Auto-approve disabled, redirecting to pending`);
-        
+
         // Leave appointment in pending_confirmation status
         // No automatic approval - admin will need to manually approve
 
@@ -86,16 +86,16 @@ export class MockPaymentAdapter implements PaymentService {
           redirectUrl: `/checkout/pending?appt=${appointmentId}&session=${sessionId}`,
           sessionId,
           metadata: {
-            provider: 'mock',
+            provider: "mock",
             autoApproved: false,
             amount: appointment.payment.amountCents,
-            currency: appointment.payment.currency
-          }
+            currency: appointment.payment.currency,
+          },
         };
       }
     } catch (error) {
-      console.error('[MockPaymentAdapter] Error in startCheckout:', error);
-      throw new Error('Failed to start checkout process');
+      console.error("[MockPaymentAdapter] Error in startCheckout:", error);
+      throw new Error("Failed to start checkout process");
     }
   }
 
@@ -106,28 +106,30 @@ export class MockPaymentAdapter implements PaymentService {
   async handleReturn(params: PaymentReturnParams): Promise<void> {
     try {
       console.log(`[MockPaymentAdapter] Handling return with params:`, params);
-      
+
       const { sessionId, status } = params;
-      
+
       if (!sessionId) {
-        throw new Error('Session ID is required');
+        throw new Error("Session ID is required");
       }
 
       // Extract appointment ID from session ID
-      const appointmentId = sessionId.split('_')[2];
-      
-      if (status === 'success') {
-        await this.updateAppointmentStatus(appointmentId, 'confirmed');
-      } else if (status === 'failed') {
-        await this.updateAppointmentStatus(appointmentId, 'failed');
-      } else if (status === 'cancelled') {
-        await this.updateAppointmentStatus(appointmentId, 'cancelled');
+      const appointmentId = sessionId.split("_")[2];
+
+      if (status === "success") {
+        await this.updateAppointmentStatus(appointmentId, "confirmed");
+      } else if (status === "failed") {
+        await this.updateAppointmentStatus(appointmentId, "failed");
+      } else if (status === "cancelled") {
+        await this.updateAppointmentStatus(appointmentId, "cancelled");
       }
 
-      console.log(`[MockPaymentAdapter] Return handling completed for appointment: ${appointmentId}`);
+      console.log(
+        `[MockPaymentAdapter] Return handling completed for appointment: ${appointmentId}`,
+      );
     } catch (error) {
-      console.error('[MockPaymentAdapter] Error in handleReturn:', error);
-      throw new Error('Failed to handle payment return');
+      console.error("[MockPaymentAdapter] Error in handleReturn:", error);
+      throw new Error("Failed to handle payment return");
     }
   }
 
@@ -135,36 +137,41 @@ export class MockPaymentAdapter implements PaymentService {
    * Get payment status for an appointment
    */
   async getPaymentStatus(appointmentId: string): Promise<{
-    status: 'pending' | 'confirmed' | 'failed' | 'cancelled';
+    status: "pending" | "confirmed" | "failed" | "cancelled";
     amount?: number;
     currency?: string;
     provider?: string;
-    metadata?: Record<string, any>;
+    metadata?: Record<string, unknown>;
   }> {
     try {
-      const getAppointment = httpsCallable(getFirebaseFunctions(), 'getAppointment');
+      const getAppointment = httpsCallable(getFirebaseFunctions(), "getAppointment");
       const result = await getAppointment({ appointmentId });
-      const appointment = result.data as any;
+      const appointment = result.data as Record<string, unknown>;
 
       if (!appointment) {
-        throw new Error('Appointment not found');
+        throw new Error("Appointment not found");
       }
 
       return {
-        status: appointment.status === 'confirmed' ? 'confirmed' : 
-                appointment.status === 'failed' ? 'failed' :
-                appointment.status === 'cancelled' ? 'cancelled' : 'pending',
+        status:
+          appointment.status === "confirmed"
+            ? "confirmed"
+            : appointment.status === "failed"
+              ? "failed"
+              : appointment.status === "cancelled"
+                ? "cancelled"
+                : "pending",
         amount: appointment.payment?.amountCents,
         currency: appointment.payment?.currency,
         provider: appointment.payment?.provider,
         metadata: {
           appointmentId,
-          lastUpdated: appointment.updatedAt
-        }
+          lastUpdated: appointment.updatedAt,
+        },
       };
     } catch (error) {
-      console.error('[MockPaymentAdapter] Error getting payment status:', error);
-      throw new Error('Failed to get payment status');
+      console.error("[MockPaymentAdapter] Error getting payment status:", error);
+      throw new Error("Failed to get payment status");
     }
   }
 
@@ -174,20 +181,20 @@ export class MockPaymentAdapter implements PaymentService {
   async cancelPayment(sessionId: string): Promise<void> {
     try {
       console.log(`[MockPaymentAdapter] Cancelling payment session: ${sessionId}`);
-      
+
       // Extract appointment ID from session ID
-      const appointmentId = sessionId.split('_')[2];
-      
+      const appointmentId = sessionId.split("_")[2];
+
       // Update appointment status to cancelled
-      await this.updateAppointmentStatus(appointmentId, 'cancelled');
-      
+      await this.updateAppointmentStatus(appointmentId, "cancelled");
+
       // Release the slot
       await this.releaseSlot(appointmentId);
-      
+
       console.log(`[MockPaymentAdapter] Payment cancelled for appointment: ${appointmentId}`);
     } catch (error) {
-      console.error('[MockPaymentAdapter] Error cancelling payment:', error);
-      throw new Error('Failed to cancel payment');
+      console.error("[MockPaymentAdapter] Error cancelling payment:", error);
+      throw new Error("Failed to cancel payment");
     }
   }
 
@@ -198,13 +205,15 @@ export class MockPaymentAdapter implements PaymentService {
     try {
       // In a real implementation, this would call a Firebase function
       // For now, we'll simulate the update
-      console.log(`[MockPaymentAdapter] Updating appointment ${appointmentId} status to: ${status}`);
-      
+      console.log(
+        `[MockPaymentAdapter] Updating appointment ${appointmentId} status to: ${status}`,
+      );
+
       // TODO: Implement actual Firebase function call to update appointment status
       // const updateAppointment = httpsCallable(functions, 'updateAppointment');
       // await updateAppointment({ appointmentId, status });
     } catch (error) {
-      console.error('[MockPaymentAdapter] Error updating appointment status:', error);
+      console.error("[MockPaymentAdapter] Error updating appointment status:", error);
       throw error;
     }
   }
@@ -212,10 +221,12 @@ export class MockPaymentAdapter implements PaymentService {
   /**
    * Send confirmation email
    */
-  private async sendConfirmationEmail(appointment: any): Promise<void> {
+  private async sendConfirmationEmail(appointment: Record<string, unknown>): Promise<void> {
     try {
-      console.log(`[MockPaymentAdapter] Sending confirmation email for appointment: ${appointment.id}`);
-      
+      console.log(
+        `[MockPaymentAdapter] Sending confirmation email for appointment: ${appointment.id}`,
+      );
+
       // TODO: Implement actual email sending
       // const sendEmail = httpsCallable(functions, 'sendEmail');
       // await sendEmail({
@@ -224,7 +235,7 @@ export class MockPaymentAdapter implements PaymentService {
       //   html: `Tu cita ha sido confirmada...`
       // });
     } catch (error) {
-      console.error('[MockPaymentAdapter] Error sending confirmation email:', error);
+      console.error("[MockPaymentAdapter] Error sending confirmation email:", error);
       // Don't throw error for email failures
     }
   }
@@ -234,21 +245,25 @@ export class MockPaymentAdapter implements PaymentService {
    */
   private async simulateManualApproval(appointmentId: string): Promise<void> {
     try {
-      console.log(`[MockPaymentAdapter] Simulating manual approval for appointment: ${appointmentId}`);
-      
+      console.log(
+        `[MockPaymentAdapter] Simulating manual approval for appointment: ${appointmentId}`,
+      );
+
       // Simulate approval after 5 seconds
-      await this.updateAppointmentStatus(appointmentId, 'confirmed');
-      
+      await this.updateAppointmentStatus(appointmentId, "confirmed");
+
       // Get appointment details for email
-      const getAppointment = httpsCallable(getFirebaseFunctions(), 'getAppointment');
+      const getAppointment = httpsCallable(getFirebaseFunctions(), "getAppointment");
       const result = await getAppointment({ appointmentId });
-      const appointment = result.data as any;
-      
+      const appointment = result.data as Record<string, unknown>;
+
       await this.sendConfirmationEmail(appointment);
-      
-      console.log(`[MockPaymentAdapter] Manual approval completed for appointment: ${appointmentId}`);
+
+      console.log(
+        `[MockPaymentAdapter] Manual approval completed for appointment: ${appointmentId}`,
+      );
     } catch (error) {
-      console.error('[MockPaymentAdapter] Error in manual approval:', error);
+      console.error("[MockPaymentAdapter] Error in manual approval:", error);
     }
   }
 
@@ -258,12 +273,12 @@ export class MockPaymentAdapter implements PaymentService {
   private async releaseSlot(appointmentId: string): Promise<void> {
     try {
       console.log(`[MockPaymentAdapter] Releasing slot for appointment: ${appointmentId}`);
-      
+
       // TODO: Implement actual slot release
       // const releaseSlot = httpsCallable(functions, 'releaseSlot');
       // await releaseSlot({ appointmentId });
     } catch (error) {
-      console.error('[MockPaymentAdapter] Error releasing slot:', error);
+      console.error("[MockPaymentAdapter] Error releasing slot:", error);
       throw error;
     }
   }

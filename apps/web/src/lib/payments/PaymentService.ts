@@ -1,6 +1,6 @@
 /**
  * Payment Service Interface
- * 
+ *
  * Defines the contract for payment providers in the Miamente platform.
  * Each payment provider must implement this interface to be used in the system.
  */
@@ -13,7 +13,7 @@ export interface PaymentCheckoutResult {
   /** Payment session ID for tracking */
   sessionId?: string;
   /** Additional provider-specific data */
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 export interface PaymentReturnParams {
@@ -26,7 +26,7 @@ export interface PaymentReturnParams {
   /** Payment status */
   status?: string;
   /** Additional provider-specific parameters */
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 export interface PaymentService {
@@ -50,11 +50,11 @@ export interface PaymentService {
    * @returns Promise with payment status information
    */
   getPaymentStatus(appointmentId: string): Promise<{
-    status: 'pending' | 'confirmed' | 'failed' | 'cancelled';
+    status: "pending" | "confirmed" | "failed" | "cancelled";
     amount?: number;
     currency?: string;
     provider?: string;
-    metadata?: Record<string, any>;
+    metadata?: Record<string, unknown>;
   }>;
 
   /**
@@ -68,12 +68,13 @@ export interface PaymentService {
 /**
  * Payment Provider Types
  */
-export type PaymentProvider = 'mock' | 'wompi' | 'stripe';
+export type PaymentProvider = "mock" | "wompi" | "stripe";
 
 /**
  * Payment Service Factory
  * Creates the appropriate payment service based on provider and feature flags
  */
+// eslint-disable-next-line @typescript-eslint/no-extraneous-class
 export class PaymentServiceFactory {
   private static instance: PaymentService | null = null;
 
@@ -88,29 +89,32 @@ export class PaymentServiceFactory {
     }
 
     // Check feature flags
-    const paymentsEnabled = await this.getFeatureFlag('payments_enabled');
-    
+    const paymentsEnabled = await this.getFeatureFlag("payments_enabled");
+
     if (!paymentsEnabled) {
       // Always use mock adapter when payments are disabled
-      const { MockPaymentAdapter } = await import('./adapters/mockAdapter');
+      const { MockPaymentAdapter } = await import("./adapters/mockAdapter");
       this.instance = new MockPaymentAdapter();
       return this.instance;
     }
 
     // Select adapter based on provider
     switch (provider) {
-      case 'mock':
-        const { MockPaymentAdapter } = await import('./adapters/mockAdapter');
+      case "mock": {
+        const { MockPaymentAdapter } = await import("./adapters/mockAdapter");
         this.instance = new MockPaymentAdapter();
         break;
-      case 'wompi':
-        const { WompiPaymentAdapter } = await import('./adapters/wompiAdapter');
+      }
+      case "wompi": {
+        const { WompiPaymentAdapter } = await import("./adapters/wompiAdapter");
         this.instance = new WompiPaymentAdapter();
         break;
-      case 'stripe':
-        const { StripePaymentAdapter } = await import('./adapters/stripeAdapter');
+      }
+      case "stripe": {
+        const { StripePaymentAdapter } = await import("./adapters/stripeAdapter");
         this.instance = new StripePaymentAdapter();
         break;
+      }
       default:
         throw new Error(`Unsupported payment provider: ${provider}`);
     }
@@ -131,10 +135,10 @@ export class PaymentServiceFactory {
         payments_enabled: false,
         payments_mock_auto_approve: true,
       };
-      
+
       return featureFlags[flagName as keyof typeof featureFlags] || false;
     } catch (error) {
-      console.error('Error fetching feature flag:', error);
+      console.error("Error fetching feature flag:", error);
       return false;
     }
   }
@@ -161,19 +165,19 @@ export class PaymentManager {
   async initialize(appointmentId: string): Promise<void> {
     try {
       // Get appointment to determine provider
-      const { httpsCallable } = await import('firebase/functions');
-      const { getFirebaseFunctions } = await import('@/lib/firebase');
-      
-      const getAppointment = httpsCallable(getFirebaseFunctions(), 'getAppointment');
-      const result = await getAppointment({ appointmentId });
-      const appointment = result.data as any;
+      const { httpsCallable } = await import("firebase/functions");
+      const { getFirebaseFunctions } = await import("@/lib/firebase");
 
-      const provider = appointment.payment?.provider || 'mock';
+      const getAppointment = httpsCallable(getFirebaseFunctions(), "getAppointment");
+      const result = await getAppointment({ appointmentId });
+      const appointment = result.data as Record<string, unknown>;
+
+      const provider = appointment.payment?.provider || "mock";
       this.service = await PaymentServiceFactory.getService(provider as PaymentProvider);
     } catch (error) {
-      console.error('Error initializing payment service:', error);
+      console.error("Error initializing payment service:", error);
       // Fallback to mock adapter
-      this.service = await PaymentServiceFactory.getService('mock');
+      this.service = await PaymentServiceFactory.getService("mock");
     }
   }
 
@@ -186,9 +190,9 @@ export class PaymentManager {
     if (!this.service) {
       await this.initialize(appointmentId);
     }
-    
+
     if (!this.service) {
-      throw new Error('Payment service not initialized');
+      throw new Error("Payment service not initialized");
     }
 
     return await this.service.startCheckout(appointmentId);
@@ -200,7 +204,7 @@ export class PaymentManager {
    */
   async handleReturn(params: PaymentReturnParams): Promise<void> {
     if (!this.service) {
-      throw new Error('Payment service not initialized');
+      throw new Error("Payment service not initialized");
     }
 
     return await this.service.handleReturn(params);
@@ -211,13 +215,13 @@ export class PaymentManager {
    * @param appointmentId - The appointment ID
    * @returns Promise with payment status
    */
-  async getPaymentStatus(appointmentId: string): Promise<any> {
+  async getPaymentStatus(appointmentId: string): Promise<Record<string, unknown>> {
     if (!this.service) {
       await this.initialize(appointmentId);
     }
-    
+
     if (!this.service) {
-      throw new Error('Payment service not initialized');
+      throw new Error("Payment service not initialized");
     }
 
     return await this.service.getPaymentStatus(appointmentId);
@@ -229,7 +233,7 @@ export class PaymentManager {
    */
   async cancelPayment(sessionId: string): Promise<void> {
     if (!this.service) {
-      throw new Error('Payment service not initialized');
+      throw new Error("Payment service not initialized");
     }
 
     return await this.service.cancelPayment(sessionId);

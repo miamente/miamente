@@ -1,26 +1,27 @@
-import React, { useState, useEffect } from 'react';
-import { useRouter } from 'next/router';
-import { httpsCallable } from 'firebase/functions';
-import { getFirebaseFunctions } from '@/lib/firebase';
-import { PaymentManager } from '@/lib/payments/PaymentService';
-import { format } from 'date-fns';
-import { es } from 'date-fns/locale';
-import { 
-  CalendarIcon, 
-  ClockIcon, 
-  UserIcon, 
+import {
+  CalendarIcon,
+  ClockIcon,
+  UserIcon,
   CreditCardIcon,
   CheckCircleIcon,
   XCircleIcon,
-  ExclamationTriangleIcon
-} from '@heroicons/react/24/outline';
+  ExclamationTriangleIcon,
+} from "@heroicons/react/24/outline";
+import { format } from "date-fns";
+import { es } from "date-fns/locale";
+import { httpsCallable } from "firebase/functions";
+import { useRouter } from "next/router";
+import React, { useState, useEffect } from "react";
+
+import { getFirebaseFunctions } from "@/lib/firebase";
+import { PaymentManager } from "@/lib/payments/PaymentService";
 
 interface Appointment {
   id: string;
   userId: string;
   professionalId: string;
   slotId: string;
-  status: 'pending_payment' | 'confirmed' | 'cancelled' | 'completed';
+  status: "pending_payment" | "confirmed" | "cancelled" | "completed";
   paid: boolean;
   payment: {
     provider: string;
@@ -40,8 +41,8 @@ interface Appointment {
     specialty: string;
     rateCents: number;
   };
-  createdAt: any;
-  updatedAt: any;
+  createdAt: unknown;
+  updatedAt: unknown;
 }
 
 interface AppointmentDetailProps {
@@ -55,7 +56,7 @@ const AppointmentDetail: React.FC<AppointmentDetailProps> = ({ appointmentId }) 
   const [error, setError] = useState<string | null>(null);
   const [processingPayment, setProcessingPayment] = useState(false);
 
-  const getAppointment = httpsCallable(getFirebaseFunctions(), 'getAppointment');
+  const getAppointment = httpsCallable(getFirebaseFunctions(), "getAppointment");
 
   useEffect(() => {
     const fetchAppointment = async () => {
@@ -65,9 +66,9 @@ const AppointmentDetail: React.FC<AppointmentDetailProps> = ({ appointmentId }) 
 
         const result = await getAppointment({ appointmentId });
         setAppointment(result.data as Appointment);
-      } catch (err: any) {
-        console.error('Error fetching appointment:', err);
-        setError(err.message || 'Error al cargar la cita');
+      } catch (err: unknown) {
+        console.error("Error fetching appointment:", err);
+        setError(err instanceof Error ? err.message : "Error al cargar la cita");
       } finally {
         setLoading(false);
       }
@@ -76,7 +77,7 @@ const AppointmentDetail: React.FC<AppointmentDetailProps> = ({ appointmentId }) 
     if (appointmentId) {
       fetchAppointment();
     }
-  }, [appointmentId]);
+  }, [appointmentId, getAppointment]);
 
   const handlePayment = async () => {
     if (!appointment) return;
@@ -84,60 +85,60 @@ const AppointmentDetail: React.FC<AppointmentDetailProps> = ({ appointmentId }) 
     try {
       setProcessingPayment(true);
       setError(null);
-      
+
       // Track payment attempt analytics
-      if (typeof window !== 'undefined' && (window as any).gtag) {
-        (window as any).gtag('event', 'payment_attempt', {
-          event_category: 'payment',
+      if (typeof window !== "undefined" && (window as Record<string, unknown>).gtag) {
+        (window as Record<string, unknown>).gtag("event", "payment_attempt", {
+          event_category: "payment",
           event_label: appointment.id,
           value: appointment.payment.amountCents,
           currency: appointment.payment.currency,
-          payment_provider: appointment.payment.provider
+          payment_provider: appointment.payment.provider,
         });
       }
-      
+
       // Initialize payment manager and start checkout
       const paymentManager = new PaymentManager();
       await paymentManager.initialize(appointment.id);
-      
+
       const checkoutResult = await paymentManager.startCheckout(appointment.id);
-      
+
       if (checkoutResult.redirectUrl) {
         // Redirect to the payment provider or success/pending page
         router.push(checkoutResult.redirectUrl);
       } else {
-        throw new Error('No redirect URL received from payment service');
+        throw new Error("No redirect URL received from payment service");
       }
-    } catch (err: any) {
-      console.error('Error processing payment:', err);
-      setError(err.message || 'Error al procesar el pago');
+    } catch (err: unknown) {
+      console.error("Error processing payment:", err);
+      setError(err instanceof Error ? err.message : "Error al procesar el pago");
     } finally {
       setProcessingPayment(false);
     }
   };
 
   const formatCurrency = (cents: number) => {
-    return new Intl.NumberFormat('es-CO', {
-      style: 'currency',
-      currency: 'COP',
+    return new Intl.NumberFormat("es-CO", {
+      style: "currency",
+      currency: "COP",
       minimumFractionDigits: 0,
     }).format(cents);
   };
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
-    return format(date, 'EEEE, d \'de\' MMMM \'de\' yyyy', { locale: es });
+    return format(date, "EEEE, d 'de' MMMM 'de' yyyy", { locale: es });
   };
 
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case 'pending_payment':
+      case "pending_payment":
         return <ExclamationTriangleIcon className="h-5 w-5 text-yellow-500" />;
-      case 'confirmed':
+      case "confirmed":
         return <CheckCircleIcon className="h-5 w-5 text-green-500" />;
-      case 'cancelled':
+      case "cancelled":
         return <XCircleIcon className="h-5 w-5 text-red-500" />;
-      case 'completed':
+      case "completed":
         return <CheckCircleIcon className="h-5 w-5 text-blue-500" />;
       default:
         return <ExclamationTriangleIcon className="h-5 w-5 text-gray-500" />;
@@ -146,39 +147,39 @@ const AppointmentDetail: React.FC<AppointmentDetailProps> = ({ appointmentId }) 
 
   const getStatusText = (status: string) => {
     switch (status) {
-      case 'pending_payment':
-        return 'Pendiente de Pago';
-      case 'confirmed':
-        return 'Confirmada';
-      case 'cancelled':
-        return 'Cancelada';
-      case 'completed':
-        return 'Completada';
+      case "pending_payment":
+        return "Pendiente de Pago";
+      case "confirmed":
+        return "Confirmada";
+      case "cancelled":
+        return "Cancelada";
+      case "completed":
+        return "Completada";
       default:
-        return 'Desconocido';
+        return "Desconocido";
     }
   };
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'pending_payment':
-        return 'bg-yellow-100 text-yellow-800';
-      case 'confirmed':
-        return 'bg-green-100 text-green-800';
-      case 'cancelled':
-        return 'bg-red-100 text-red-800';
-      case 'completed':
-        return 'bg-blue-100 text-blue-800';
+      case "pending_payment":
+        return "bg-yellow-100 text-yellow-800";
+      case "confirmed":
+        return "bg-green-100 text-green-800";
+      case "cancelled":
+        return "bg-red-100 text-red-800";
+      case "completed":
+        return "bg-blue-100 text-blue-800";
       default:
-        return 'bg-gray-100 text-gray-800';
+        return "bg-gray-100 text-gray-800";
     }
   };
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="flex min-h-screen items-center justify-center bg-gray-50">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <div className="mx-auto h-12 w-12 animate-spin rounded-full border-b-2 border-blue-600"></div>
           <p className="mt-4 text-gray-600">Cargando detalles de la cita...</p>
         </div>
       </div>
@@ -187,14 +188,14 @@ const AppointmentDetail: React.FC<AppointmentDetailProps> = ({ appointmentId }) 
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="flex min-h-screen items-center justify-center bg-gray-50">
         <div className="text-center">
-          <XCircleIcon className="h-12 w-12 text-red-500 mx-auto mb-4" />
-          <h2 className="text-xl font-semibold text-gray-900 mb-2">Error</h2>
-          <p className="text-gray-600 mb-4">{error}</p>
+          <XCircleIcon className="mx-auto mb-4 h-12 w-12 text-red-500" />
+          <h2 className="mb-2 text-xl font-semibold text-gray-900">Error</h2>
+          <p className="mb-4 text-gray-600">{error}</p>
           <button
-            onClick={() => router.push('/dashboard')}
-            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+            onClick={() => router.push("/dashboard")}
+            className="rounded-lg bg-blue-600 px-4 py-2 text-white transition-colors hover:bg-blue-700"
           >
             Volver al Dashboard
           </button>
@@ -205,14 +206,16 @@ const AppointmentDetail: React.FC<AppointmentDetailProps> = ({ appointmentId }) 
 
   if (!appointment) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="flex min-h-screen items-center justify-center bg-gray-50">
         <div className="text-center">
-          <ExclamationTriangleIcon className="h-12 w-12 text-yellow-500 mx-auto mb-4" />
-          <h2 className="text-xl font-semibold text-gray-900 mb-2">Cita no encontrada</h2>
-          <p className="text-gray-600 mb-4">La cita solicitada no existe o no tienes permisos para verla.</p>
+          <ExclamationTriangleIcon className="mx-auto mb-4 h-12 w-12 text-yellow-500" />
+          <h2 className="mb-2 text-xl font-semibold text-gray-900">Cita no encontrada</h2>
+          <p className="mb-4 text-gray-600">
+            La cita solicitada no existe o no tienes permisos para verla.
+          </p>
           <button
-            onClick={() => router.push('/dashboard')}
-            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+            onClick={() => router.push("/dashboard")}
+            className="rounded-lg bg-blue-600 px-4 py-2 text-white transition-colors hover:bg-blue-700"
           >
             Volver al Dashboard
           </button>
@@ -223,12 +226,14 @@ const AppointmentDetail: React.FC<AppointmentDetailProps> = ({ appointmentId }) 
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
-      <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-2xl px-4 sm:px-6 lg:px-8">
         {/* Header */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
-          <div className="flex items-center justify-between mb-4">
+        <div className="mb-6 rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
+          <div className="mb-4 flex items-center justify-between">
             <h1 className="text-2xl font-bold text-gray-900">Detalles de la Cita</h1>
-            <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(appointment.status)}`}>
+            <span
+              className={`inline-flex items-center rounded-full px-3 py-1 text-sm font-medium ${getStatusColor(appointment.status)}`}
+            >
               {getStatusIcon(appointment.status)}
               <span className="ml-2">{getStatusText(appointment.status)}</span>
             </span>
@@ -237,30 +242,32 @@ const AppointmentDetail: React.FC<AppointmentDetailProps> = ({ appointmentId }) 
         </div>
 
         {/* Appointment Details */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">Información de la Cita</h2>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="mb-6 rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
+          <h2 className="mb-4 text-lg font-semibold text-gray-900">Información de la Cita</h2>
+
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
             {/* Date and Time */}
             <div className="space-y-4">
               <div className="flex items-center">
-                <CalendarIcon className="h-5 w-5 text-gray-400 mr-3" />
+                <CalendarIcon className="mr-3 h-5 w-5 text-gray-400" />
                 <div>
                   <p className="text-sm font-medium text-gray-900">Fecha</p>
-                  <p className="text-sm text-gray-600 capitalize">{formatDate(appointment.slot.date)}</p>
+                  <p className="text-sm text-gray-600 capitalize">
+                    {formatDate(appointment.slot.date)}
+                  </p>
                 </div>
               </div>
-              
+
               <div className="flex items-center">
-                <ClockIcon className="h-5 w-5 text-gray-400 mr-3" />
+                <ClockIcon className="mr-3 h-5 w-5 text-gray-400" />
                 <div>
                   <p className="text-sm font-medium text-gray-900">Hora</p>
                   <p className="text-sm text-gray-600">{appointment.slot.time}</p>
                 </div>
               </div>
-              
+
               <div className="flex items-center">
-                <ClockIcon className="h-5 w-5 text-gray-400 mr-3" />
+                <ClockIcon className="mr-3 h-5 w-5 text-gray-400" />
                 <div>
                   <p className="text-sm font-medium text-gray-900">Duración</p>
                   <p className="text-sm text-gray-600">{appointment.slot.duration} minutos</p>
@@ -271,15 +278,15 @@ const AppointmentDetail: React.FC<AppointmentDetailProps> = ({ appointmentId }) 
             {/* Professional Info */}
             <div className="space-y-4">
               <div className="flex items-center">
-                <UserIcon className="h-5 w-5 text-gray-400 mr-3" />
+                <UserIcon className="mr-3 h-5 w-5 text-gray-400" />
                 <div>
                   <p className="text-sm font-medium text-gray-900">Profesional</p>
                   <p className="text-sm text-gray-600">{appointment.professional.fullName}</p>
                 </div>
               </div>
-              
+
               <div className="flex items-center">
-                <UserIcon className="h-5 w-5 text-gray-400 mr-3" />
+                <UserIcon className="mr-3 h-5 w-5 text-gray-400" />
                 <div>
                   <p className="text-sm font-medium text-gray-900">Especialidad</p>
                   <p className="text-sm text-gray-600">{appointment.professional.specialty}</p>
@@ -290,57 +297,63 @@ const AppointmentDetail: React.FC<AppointmentDetailProps> = ({ appointmentId }) 
         </div>
 
         {/* Payment Information */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">Información de Pago</h2>
-          
+        <div className="mb-6 rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
+          <h2 className="mb-4 text-lg font-semibold text-gray-900">Información de Pago</h2>
+
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <span className="text-sm font-medium text-gray-900">Estado del Pago</span>
-              <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-                appointment.paid ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
-              }`}>
-                {appointment.paid ? 'Pagado' : 'Pendiente'}
+              <span
+                className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ${
+                  appointment.paid ? "bg-green-100 text-green-800" : "bg-yellow-100 text-yellow-800"
+                }`}
+              >
+                {appointment.paid ? "Pagado" : "Pendiente"}
               </span>
             </div>
-            
+
             <div className="flex items-center justify-between">
               <span className="text-sm font-medium text-gray-900">Proveedor de Pago</span>
-              <span className="text-sm text-gray-600 capitalize">{appointment.payment.provider}</span>
+              <span className="text-sm text-gray-600 capitalize">
+                {appointment.payment.provider}
+              </span>
             </div>
-            
+
             <div className="flex items-center justify-between">
               <span className="text-sm font-medium text-gray-900">Total a Pagar</span>
-              <span className="text-lg font-bold text-gray-900">{formatCurrency(appointment.payment.amountCents)}</span>
+              <span className="text-lg font-bold text-gray-900">
+                {formatCurrency(appointment.payment.amountCents)}
+              </span>
             </div>
           </div>
         </div>
 
         {/* Actions */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-          <div className="flex flex-col sm:flex-row gap-4">
-            {appointment.status === 'pending_payment' && !appointment.paid && (
+        <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
+          <div className="flex flex-col gap-4 sm:flex-row">
+            {appointment.status === "pending_payment" && !appointment.paid && (
               <button
                 onClick={handlePayment}
                 disabled={processingPayment}
-                className="flex-1 bg-blue-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                className="flex-1 rounded-lg bg-blue-600 px-6 py-3 font-medium text-white transition-colors hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {processingPayment ? (
                   <div className="flex items-center justify-center">
-                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
+                    <div className="mr-2 h-5 w-5 animate-spin rounded-full border-b-2 border-white"></div>
                     Procesando...
                   </div>
                 ) : (
                   <div className="flex items-center justify-center">
-                    <CreditCardIcon className="h-5 w-5 mr-2" />
+                    <CreditCardIcon className="mr-2 h-5 w-5" />
                     Pagar {formatCurrency(appointment.payment.amountCents)}
                   </div>
                 )}
               </button>
             )}
-            
+
             <button
-              onClick={() => router.push('/dashboard')}
-              className="flex-1 bg-gray-100 text-gray-700 px-6 py-3 rounded-lg font-medium hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-colors"
+              onClick={() => router.push("/dashboard")}
+              className="flex-1 rounded-lg bg-gray-100 px-6 py-3 font-medium text-gray-700 transition-colors hover:bg-gray-200 focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 focus:outline-none"
             >
               Volver al Dashboard
             </button>

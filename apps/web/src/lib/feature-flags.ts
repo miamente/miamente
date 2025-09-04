@@ -1,6 +1,6 @@
 /**
  * Feature Flags Configuration
- * 
+ *
  * Centralized feature flag management for the Miamente platform.
  * In production, these would be managed through Firebase Remote Config
  * or a dedicated feature flag service.
@@ -10,28 +10,28 @@ export interface FeatureFlags {
   // Payment System
   payments_enabled: boolean;
   payments_mock_auto_approve: boolean;
-  
+
   // User Features
   user_registration_enabled: boolean;
   professional_verification_enabled: boolean;
-  
+
   // Admin Features
   admin_dashboard_enabled: boolean;
   admin_analytics_enabled: boolean;
-  
+
   // Communication
   email_notifications_enabled: boolean;
   sms_notifications_enabled: boolean;
-  
+
   // Integrations
   wompi_integration_enabled: boolean;
   stripe_integration_enabled: boolean;
   jitsi_integration_enabled: boolean;
-  
+
   // UI/UX
   dark_mode_enabled: boolean;
   advanced_search_enabled: boolean;
-  
+
   // Development
   debug_mode_enabled: boolean;
   test_data_enabled: boolean;
@@ -45,28 +45,28 @@ export const DEFAULT_FEATURE_FLAGS: FeatureFlags = {
   // Payment System
   payments_enabled: false,
   payments_mock_auto_approve: true,
-  
+
   // User Features
   user_registration_enabled: true,
   professional_verification_enabled: true,
-  
+
   // Admin Features
   admin_dashboard_enabled: true,
   admin_analytics_enabled: true,
-  
+
   // Communication
   email_notifications_enabled: true,
   sms_notifications_enabled: false,
-  
+
   // Integrations
   wompi_integration_enabled: false,
   stripe_integration_enabled: false,
   jitsi_integration_enabled: true,
-  
+
   // UI/UX
   dark_mode_enabled: false,
   advanced_search_enabled: false,
-  
+
   // Development
   debug_mode_enabled: false,
   test_data_enabled: false,
@@ -109,16 +109,14 @@ export class FeatureFlagManager {
    * @param flagNames - Array of flag names to get
    * @returns Promise with the flag values
    */
-  async getFlags<K extends keyof FeatureFlags>(
-    flagNames: K[]
-  ): Promise<Pick<FeatureFlags, K>> {
+  async getFlags<K extends keyof FeatureFlags>(flagNames: K[]): Promise<Pick<FeatureFlags, K>> {
     await this.ensureFlagsLoaded();
-    
+
     const result = {} as Pick<FeatureFlags, K>;
-    flagNames.forEach(flagName => {
+    flagNames.forEach((flagName) => {
       result[flagName] = this.flags[flagName];
     });
-    
+
     return result;
   }
 
@@ -154,8 +152,8 @@ export class FeatureFlagManager {
     try {
       // In a real implementation, this would fetch from Firebase Remote Config
       // or your feature flag service
-      console.log('[FeatureFlagManager] Loading feature flags...');
-      
+      console.log("[FeatureFlagManager] Loading feature flags...");
+
       // For now, we'll use the default flags
       // TODO: Implement actual remote config fetching
       /*
@@ -170,13 +168,13 @@ export class FeatureFlagManager {
       
       this.flags = flags;
       */
-      
+
       this.flags = DEFAULT_FEATURE_FLAGS;
       this.lastFetch = Date.now();
-      
-      console.log('[FeatureFlagManager] Feature flags loaded:', this.flags);
+
+      console.log("[FeatureFlagManager] Feature flags loaded:", this.flags);
     } catch (error) {
-      console.error('[FeatureFlagManager] Error loading feature flags:', error);
+      console.error("[FeatureFlagManager] Error loading feature flags:", error);
       // Fallback to default flags
       this.flags = DEFAULT_FEATURE_FLAGS;
       this.lastFetch = Date.now();
@@ -217,7 +215,7 @@ export class FeatureFlagManager {
  */
 export async function isPaymentsEnabled(): Promise<boolean> {
   const manager = FeatureFlagManager.getInstance();
-  return await manager.getFlag('payments_enabled');
+  return await manager.getFlag("payments_enabled");
 }
 
 /**
@@ -225,7 +223,7 @@ export async function isPaymentsEnabled(): Promise<boolean> {
  */
 export async function isMockAutoApproveEnabled(): Promise<boolean> {
   const manager = FeatureFlagManager.getInstance();
-  return await manager.getFlag('payments_mock_auto_approve');
+  return await manager.getFlag("payments_mock_auto_approve");
 }
 
 /**
@@ -233,7 +231,7 @@ export async function isMockAutoApproveEnabled(): Promise<boolean> {
  */
 export async function isUserRegistrationEnabled(): Promise<boolean> {
   const manager = FeatureFlagManager.getInstance();
-  return await manager.getFlag('user_registration_enabled');
+  return await manager.getFlag("user_registration_enabled");
 }
 
 /**
@@ -241,7 +239,7 @@ export async function isUserRegistrationEnabled(): Promise<boolean> {
  */
 export async function isProfessionalVerificationEnabled(): Promise<boolean> {
   const manager = FeatureFlagManager.getInstance();
-  return await manager.getFlag('professional_verification_enabled');
+  return await manager.getFlag("professional_verification_enabled");
 }
 
 /**
@@ -249,7 +247,7 @@ export async function isProfessionalVerificationEnabled(): Promise<boolean> {
  */
 export async function isAdminDashboardEnabled(): Promise<boolean> {
   const manager = FeatureFlagManager.getInstance();
-  return await manager.getFlag('admin_dashboard_enabled');
+  return await manager.getFlag("admin_dashboard_enabled");
 }
 
 /**
@@ -257,7 +255,7 @@ export async function isAdminDashboardEnabled(): Promise<boolean> {
  */
 export async function isEmailNotificationsEnabled(): Promise<boolean> {
   const manager = FeatureFlagManager.getInstance();
-  return await manager.getFlag('email_notifications_enabled');
+  return await manager.getFlag("email_notifications_enabled");
 }
 
 /**
@@ -265,7 +263,7 @@ export async function isEmailNotificationsEnabled(): Promise<boolean> {
  */
 export async function isWompiIntegrationEnabled(): Promise<boolean> {
   const manager = FeatureFlagManager.getInstance();
-  return await manager.getFlag('wompi_integration_enabled');
+  return await manager.getFlag("wompi_integration_enabled");
 }
 
 /**
@@ -273,7 +271,7 @@ export async function isWompiIntegrationEnabled(): Promise<boolean> {
  */
 export async function isStripeIntegrationEnabled(): Promise<boolean> {
   const manager = FeatureFlagManager.getInstance();
-  return await manager.getFlag('stripe_integration_enabled');
+  return await manager.getFlag("stripe_integration_enabled");
 }
 
 /**
@@ -281,7 +279,7 @@ export async function isStripeIntegrationEnabled(): Promise<boolean> {
  */
 export async function isJitsiIntegrationEnabled(): Promise<boolean> {
   const manager = FeatureFlagManager.getInstance();
-  return await manager.getFlag('jitsi_integration_enabled');
+  return await manager.getFlag("jitsi_integration_enabled");
 }
 
 /**
@@ -289,7 +287,7 @@ export async function isJitsiIntegrationEnabled(): Promise<boolean> {
  */
 export async function isDebugModeEnabled(): Promise<boolean> {
   const manager = FeatureFlagManager.getInstance();
-  return await manager.getFlag('debug_mode_enabled');
+  return await manager.getFlag("debug_mode_enabled");
 }
 
 /**
@@ -297,11 +295,12 @@ export async function isDebugModeEnabled(): Promise<boolean> {
  * Usage: const isEnabled = useFeatureFlag('payments_enabled');
  */
 export function useFeatureFlag<K extends keyof FeatureFlags>(
-  flagName: K
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  _flagName: K,
 ): FeatureFlags[K] | null {
   // This would be implemented as a React hook
   // For now, we'll return null to indicate it's not implemented
-  console.warn('useFeatureFlag hook not implemented yet');
+  console.warn("useFeatureFlag hook not implemented yet");
   return null;
 }
 
@@ -310,11 +309,12 @@ export function useFeatureFlag<K extends keyof FeatureFlags>(
  * Usage: const flags = useFeatureFlags(['payments_enabled', 'debug_mode_enabled']);
  */
 export function useFeatureFlags<K extends keyof FeatureFlags>(
-  flagNames: K[]
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  _flagNames: K[],
 ): Pick<FeatureFlags, K> | null {
   // This would be implemented as a React hook
   // For now, we'll return null to indicate it's not implemented
-  console.warn('useFeatureFlags hook not implemented yet');
+  console.warn("useFeatureFlags hook not implemented yet");
   return null;
 }
 
@@ -353,16 +353,16 @@ export interface FeatureFlagResponse {
  */
 export async function getFeatureFlags(): Promise<FeatureFlag[]> {
   try {
-    const { getFirebaseFirestore } = await import('@/lib/firebase');
-    const { collection, getDocs, orderBy, query } = await import('firebase/firestore');
-    
+    const { getFirebaseFirestore } = await import("@/lib/firebase");
+    const { collection, getDocs, orderBy, query } = await import("firebase/firestore");
+
     const db = getFirebaseFirestore();
-    const featureFlagsRef = collection(db, 'feature_flags');
-    const q = query(featureFlagsRef, orderBy('createdAt', 'desc'));
-    
+    const featureFlagsRef = collection(db, "feature_flags");
+    const q = query(featureFlagsRef, orderBy("createdAt", "desc"));
+
     const snapshot = await getDocs(q);
     const flags: FeatureFlag[] = [];
-    
+
     snapshot.forEach((doc) => {
       const data = doc.data();
       flags.push({
@@ -375,25 +375,27 @@ export async function getFeatureFlags(): Promise<FeatureFlag[]> {
         updatedAt: data.updatedAt,
       });
     });
-    
+
     return flags;
   } catch (error) {
-    console.error('Error fetching feature flags:', error);
-    throw new Error('Failed to fetch feature flags');
+    console.error("Error fetching feature flags:", error);
+    throw new Error("Failed to fetch feature flags");
   }
 }
 
 /**
  * Create a new feature flag
  */
-export async function createFeatureFlag(request: CreateFeatureFlagRequest): Promise<FeatureFlagResponse> {
+export async function createFeatureFlag(
+  request: CreateFeatureFlagRequest,
+): Promise<FeatureFlagResponse> {
   try {
-    const { getFirebaseFirestore } = await import('@/lib/firebase');
-    const { collection, addDoc, serverTimestamp } = await import('firebase/firestore');
-    
+    const { getFirebaseFirestore } = await import("@/lib/firebase");
+    const { collection, addDoc } = await import("firebase/firestore");
+
     const db = getFirebaseFirestore();
-    const featureFlagsRef = collection(db, 'feature_flags');
-    
+    const featureFlagsRef = collection(db, "feature_flags");
+
     const now = new Date().toISOString();
     const newFlag = {
       key: request.key,
@@ -403,9 +405,9 @@ export async function createFeatureFlag(request: CreateFeatureFlagRequest): Prom
       createdAt: now,
       updatedAt: now,
     };
-    
+
     const docRef = await addDoc(featureFlagsRef, newFlag);
-    
+
     return {
       success: true,
       data: {
@@ -414,10 +416,10 @@ export async function createFeatureFlag(request: CreateFeatureFlagRequest): Prom
       },
     };
   } catch (error) {
-    console.error('Error creating feature flag:', error);
+    console.error("Error creating feature flag:", error);
     return {
       success: false,
-      error: 'Failed to create feature flag',
+      error: "Failed to create feature flag",
     };
   }
 }
@@ -427,29 +429,29 @@ export async function createFeatureFlag(request: CreateFeatureFlagRequest): Prom
  */
 export async function toggleFeatureFlag(flagId: string): Promise<FeatureFlagResponse> {
   try {
-    const { getFirebaseFirestore } = await import('@/lib/firebase');
-    const { doc, updateDoc, getDoc } = await import('firebase/firestore');
-    
+    const { getFirebaseFirestore } = await import("@/lib/firebase");
+    const { doc, updateDoc, getDoc } = await import("firebase/firestore");
+
     const db = getFirebaseFirestore();
-    const flagRef = doc(db, 'feature_flags', flagId);
-    
+    const flagRef = doc(db, "feature_flags", flagId);
+
     // Get current state
     const flagDoc = await getDoc(flagRef);
     if (!flagDoc.exists()) {
       return {
         success: false,
-        error: 'Feature flag not found',
+        error: "Feature flag not found",
       };
     }
-    
+
     const currentData = flagDoc.data();
     const newEnabled = !currentData.enabled;
-    
+
     await updateDoc(flagRef, {
       enabled: newEnabled,
       updatedAt: new Date().toISOString(),
     });
-    
+
     return {
       success: true,
       data: {
@@ -463,10 +465,10 @@ export async function toggleFeatureFlag(flagId: string): Promise<FeatureFlagResp
       },
     };
   } catch (error) {
-    console.error('Error toggling feature flag:', error);
+    console.error("Error toggling feature flag:", error);
     return {
       success: false,
-      error: 'Failed to toggle feature flag',
+      error: "Failed to toggle feature flag",
     };
   }
 }
@@ -474,29 +476,32 @@ export async function toggleFeatureFlag(flagId: string): Promise<FeatureFlagResp
 /**
  * Update a feature flag
  */
-export async function updateFeatureFlag(flagId: string, updates: Partial<CreateFeatureFlagRequest>): Promise<FeatureFlagResponse> {
+export async function updateFeatureFlag(
+  flagId: string,
+  updates: Partial<CreateFeatureFlagRequest>,
+): Promise<FeatureFlagResponse> {
   try {
-    const { getFirebaseFirestore } = await import('@/lib/firebase');
-    const { doc, updateDoc } = await import('firebase/firestore');
-    
+    const { getFirebaseFirestore } = await import("@/lib/firebase");
+    const { doc, updateDoc } = await import("firebase/firestore");
+
     const db = getFirebaseFirestore();
-    const flagRef = doc(db, 'feature_flags', flagId);
-    
+    const flagRef = doc(db, "feature_flags", flagId);
+
     const updateData = {
       ...updates,
       updatedAt: new Date().toISOString(),
     };
-    
+
     await updateDoc(flagRef, updateData);
-    
+
     return {
       success: true,
     };
   } catch (error) {
-    console.error('Error updating feature flag:', error);
+    console.error("Error updating feature flag:", error);
     return {
       success: false,
-      error: 'Failed to update feature flag',
+      error: "Failed to update feature flag",
     };
   }
 }
@@ -506,22 +511,22 @@ export async function updateFeatureFlag(flagId: string, updates: Partial<CreateF
  */
 export async function deleteFeatureFlag(flagId: string): Promise<FeatureFlagResponse> {
   try {
-    const { getFirebaseFirestore } = await import('@/lib/firebase');
-    const { doc, deleteDoc } = await import('firebase/firestore');
-    
+    const { getFirebaseFirestore } = await import("@/lib/firebase");
+    const { doc, deleteDoc } = await import("firebase/firestore");
+
     const db = getFirebaseFirestore();
-    const flagRef = doc(db, 'feature_flags', flagId);
-    
+    const flagRef = doc(db, "feature_flags", flagId);
+
     await deleteDoc(flagRef);
-    
+
     return {
       success: true,
     };
   } catch (error) {
-    console.error('Error deleting feature flag:', error);
+    console.error("Error deleting feature flag:", error);
     return {
       success: false,
-      error: 'Failed to delete feature flag',
+      error: "Failed to delete feature flag",
     };
   }
 }

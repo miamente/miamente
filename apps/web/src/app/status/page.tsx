@@ -36,7 +36,7 @@ export default function StatusPage() {
     }
   };
 
-  const checkFirestore = async (): Promise<StatusItem> => {
+  const checkFirestore = useCallback(async (): Promise<StatusItem> => {
     try {
       if (!firestore) {
         return { name: "Firestore", status: "error", message: "Firestore not initialized" };
@@ -51,9 +51,9 @@ export default function StatusPage() {
     } catch (error) {
       return { name: "Firestore", status: "error", message: `Connection failed: ${error}` };
     }
-  };
+  }, [firestore]);
 
-  const checkFunctions = async (): Promise<StatusItem> => {
+  const checkFunctions = useCallback(async (): Promise<StatusItem> => {
     try {
       if (!functions) {
         return { name: "Functions", status: "error", message: "Functions not initialized" };
@@ -64,7 +64,7 @@ export default function StatusPage() {
     } catch (error) {
       return { name: "Functions", status: "error", message: `Error: ${error}` };
     }
-  };
+  }, [functions]);
 
   const runChecks = useCallback(async () => {
     setStatuses((prev) => prev.map((item) => ({ ...item, status: "loading" as const })));
@@ -81,7 +81,7 @@ export default function StatusPage() {
     ];
 
     setStatuses(newStatuses);
-  }, [isInitialized, firestore, functions]);
+  }, [isInitialized, checkFirestore, checkFunctions]);
 
   useEffect(() => {
     if (isInitialized) {
