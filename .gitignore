@@ -1,0 +1,25 @@
+# Node
+node_modules
+.pnpm-store
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Env
+.env*
+!.env.example
+
+# Build outputs
+.next
+dist
+out
+coverage
+
+# Mac
+.DS_Store
+
+# Firebase
+.firebase
+firebase-debug.log
+storage_debug.log
+
