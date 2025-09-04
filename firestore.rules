@@ -47,6 +47,20 @@ service cloud.firestore {
       allow create, update, delete: if isSignedIn() && isOwner(proId);
     }
 
+    // Appointments - users can create, read their own; professionals can read their appointments
+    match /appointments/{appointmentId} {
+      allow read: if isSignedIn() && (
+        isOwner(resource.data.userId) || // User can read their own appointments
+        isOwner(resource.data.proId) // Professional can read appointments for them
+      );
+      allow create: if isSignedIn() && request.auth.uid == request.resource.data.userId;
+      allow update: if isSignedIn() && (
+        isOwner(resource.data.userId) || // User can update their own appointments
+        isOwner(resource.data.proId) // Professional can update appointments for them
+      );
+      allow delete: if false; // No direct deletion, use status updates
+    }
+
     // Default deny all other collections
     match /{document=**} {
       allow read, write: if false;

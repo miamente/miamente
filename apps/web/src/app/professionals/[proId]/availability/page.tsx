@@ -4,6 +4,7 @@ import React, { useCallback, useEffect, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { bookAppointment } from "@/lib/appointments";
 import { getNext14DaysFreeSlots, type AvailabilitySlot } from "@/lib/availability";
 import { formatBogotaDateTime, formatBogotaDate } from "@/lib/timezone";
 
@@ -36,9 +37,22 @@ export default function ProfessionalAvailabilityPage() {
     loadSlots();
   }, [loadSlots]);
 
-  const handleBookSlot = (slotId: string) => {
-    // TODO: Implement booking functionality
-    console.log("Booking slot:", slotId);
+  const handleBookSlot = async (slotId: string) => {
+    if (!proId) return;
+
+    try {
+      const result = await bookAppointment(proId, slotId);
+      if (result.success && result.appointmentId) {
+        // Show success message and reload slots
+        alert(`Cita reservada exitosamente. ID: ${result.appointmentId}`);
+        await loadSlots();
+      } else {
+        alert(result.error || "Error al reservar la cita");
+      }
+    } catch (error) {
+      console.error("Error booking appointment:", error);
+      alert("Error al reservar la cita. Intenta nuevamente.");
+    }
   };
 
   // Group slots by date
