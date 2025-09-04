@@ -1,5 +1,5 @@
-import * as functions from "firebase-functions";
 import sgMail from "@sendgrid/mail";
+import * as functions from "firebase-functions";
 import { formatEmailDate } from "./utils";
 // Initialize SendGrid
 const sendGridApiKey = process.env.SENDGRID_API_KEY;

@@ -9,6 +9,8 @@ export interface AppointmentData {
   status: string;
   paid: boolean;
   jitsiUrl?: string;
+  sent24h?: boolean;
+  sent1h?: boolean;
   createdAt: Timestamp;
   updatedAt: Timestamp;
 }
