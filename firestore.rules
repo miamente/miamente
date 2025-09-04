@@ -2,23 +2,45 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     function isSignedIn() { return request.auth != null; }
-    function hasRole(r) { return isSignedIn() && r in request.auth.token.roles; }
+    function isOwner(userId) { return isSignedIn() && request.auth.uid == userId; }
+    function hasRole(role) { return isSignedIn() && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == role; }
 
+    // Event logging - anyone can create, only admins can read
     match /event_log/{docId} {
       allow create: if isSignedIn();
       allow read: if hasRole('admin');
       allow update, delete: if false;
     }
 
+    // Users collection - owner can read/write, public fields readable by all
     match /users/{userId} {
-      allow read, update: if isSignedIn() && request.auth.uid == userId;
-      allow create: if isSignedIn();
+      allow read: if isSignedIn() && (
+        isOwner(userId) || // Owner can read everything
+        // Others can only read public fields
+        (resource.data.keys().hasAll(['role', 'fullName']) && 
+         !resource.data.keys().hasAny(['phone', 'email']))
+      );
+      allow create: if isSignedIn() && isOwner(userId);
+      allow update: if isSignedIn() && isOwner(userId);
       allow delete: if false;
     }
 
+    // Professionals collection - owner can read/write, public fields readable by all
+    match /professionals/{userId} {
+      allow read: if isSignedIn() && (
+        isOwner(userId) || // Owner can read everything
+        // Others can only read public fields
+        (resource.data.keys().hasAll(['specialty', 'rateCents', 'bio', 'isVerified']) &&
+         !resource.data.keys().hasAny(['credentials', 'privateNotes']))
+      );
+      allow create: if isSignedIn() && isOwner(userId);
+      allow update: if isSignedIn() && isOwner(userId);
+      allow delete: if false;
+    }
+
+    // Default deny all other collections
     match /{document=**} {
-      allow read: if false;
-      allow write: if false;
+      allow read, write: if false;
     }
   }
 }

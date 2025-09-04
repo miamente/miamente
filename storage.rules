@@ -2,9 +2,25 @@ rules_version = '2';
 service firebase.storage {
   match /b/{bucket}/o {
     function isSignedIn() { return request.auth != null; }
-    match /user_uploads/{userId}/{allPaths=**} {
-      allow read, write: if isSignedIn() && request.auth.uid == userId;
+    function isOwner(userId) { return isSignedIn() && request.auth.uid == userId; }
+
+    // Public photos - readable by all, writable by owner
+    match /public_photos/{userId}/{allPaths=**} {
+      allow read: if isSignedIn();
+      allow write: if isOwner(userId);
     }
+
+    // Private credentials - only readable/writable by owner
+    match /private_credentials/{userId}/{allPaths=**} {
+      allow read, write: if isOwner(userId);
+    }
+
+    // User uploads (general) - only accessible by owner
+    match /user_uploads/{userId}/{allPaths=**} {
+      allow read, write: if isOwner(userId);
+    }
+
+    // Default deny all other paths
     match /{allPaths=**} {
       allow read, write: if false;
     }
