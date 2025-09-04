@@ -161,6 +161,24 @@ export function useAnalytics() {
     [user],
   );
 
+  const trackCTAClick = useCallback(
+    async (ctaType: string, metadata?: Record<string, unknown>) => {
+      if (!user) {
+        console.warn("Cannot track CTA click: user not authenticated");
+        return { success: false, error: "User not authenticated" };
+      }
+
+      try {
+        const result = await logEvent(user.uid, "cta_click", undefined, { ctaType, ...metadata });
+        return result;
+      } catch (error) {
+        console.error("Error tracking CTA click:", error);
+        return { success: false, error: "Failed to track CTA click" };
+      }
+    },
+    [user],
+  );
+
   return {
     trackEvent,
     trackSignup,
@@ -170,5 +188,6 @@ export function useAnalytics() {
     trackPaymentAttempt,
     trackPaymentSuccess,
     trackPaymentFailed,
+    trackCTAClick,
   };
 }

@@ -137,6 +137,33 @@ export default function RegisterPage() {
               )}
             </div>
 
+            {/* Consent Checkbox */}
+            <div className="flex items-start space-x-3">
+              <input
+                {...register("consent")}
+                type="checkbox"
+                id="consent"
+                className="mt-1 h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                disabled={isLoading}
+              />
+              <label htmlFor="consent" className="text-sm text-gray-600 dark:text-gray-400">
+                Acepto los{" "}
+                <Link href="/terms" className="text-blue-600 hover:underline dark:text-blue-400">
+                  Términos y Condiciones
+                </Link>{" "}
+                y la{" "}
+                <Link href="/privacy" className="text-blue-600 hover:underline dark:text-blue-400">
+                  Política de Privacidad
+                </Link>
+                . Autorizo el tratamiento de mis datos personales según la Ley 1581 de 2012.
+              </label>
+            </div>
+            {errors.consent && (
+              <p className="mt-1 text-sm text-red-600 dark:text-red-400">
+                {errors.consent.message}
+              </p>
+            )}
+
             <Button type="submit" className="w-full" disabled={isLoading}>
               {isLoading ? "Creando cuenta..." : "Crear Cuenta"}
             </Button>

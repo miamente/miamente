@@ -9,7 +9,8 @@ export type AnalyticsEvent =
   | "appointment_confirmed"
   | "payment_attempt"
   | "payment_success"
-  | "payment_failed";
+  | "payment_failed"
+  | "cta_click";
 
 export interface EventLogEntry {
   userId: string;

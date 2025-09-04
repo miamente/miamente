@@ -10,6 +10,9 @@ export const registerSchema = z
     email: z.string().email("Email inválido"),
     password: z.string().min(6, "La contraseña debe tener al menos 6 caracteres"),
     confirmPassword: z.string(),
+    consent: z.boolean().refine((val) => val === true, {
+      message: "Debes aceptar los términos y condiciones y la política de privacidad",
+    }),
   })
   .refine((data) => data.password === data.confirmPassword, {
     message: "Las contraseñas no coinciden",

@@ -12,6 +12,7 @@
     "emulators": "npm run emulators -w functions -s"
   },
   "dependencies": {
+    "@axe-core/react": "^4.10.2",
     "@hookform/resolvers": "^5.2.1",
     "@radix-ui/react-slot": "^1.2.3",
     "@testing-library/jest-dom": "^6.8.0",
@@ -24,7 +25,7 @@
     "jsdom": "^26.1.0",
     "lucide-react": "^0.542.0",
     "next": "15.5.2",
-    "next-intl": "^4.3.5",
+    "next-intl": "^4.3.6",
     "next-themes": "^0.4.6",
     "react": "19.1.0",
     "react-dom": "19.1.0",

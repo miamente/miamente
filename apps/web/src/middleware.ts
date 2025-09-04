@@ -1,10 +1,8 @@
-import createMiddleware from "next-intl/middleware";
+import { NextResponse } from "next/server";
 
-export default createMiddleware({
-  locales: ["es", "en"],
-  defaultLocale: "es",
-  localeDetection: true,
-});
+export function middleware() {
+  return NextResponse.next();
+}
 
 export const config = {
   matcher: ["/((?!_next|.*\\..*).*)"],
