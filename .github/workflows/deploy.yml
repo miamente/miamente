@@ -2,11 +2,9 @@ name: Deploy to Firebase
 
 on:
   # Staging deployment on push to dev branch
-  push:
-    branches: [dev]
-  
   # Production deployment on release tags
   push:
+    branches: [dev]
     tags:
       - 'v*'
   
@@ -28,7 +26,7 @@ on:
         type: boolean
 
 env:
-  NODE_VERSION: '20'
+  NODE_VERSION: '22'
 
 jobs:
   # Job 1: Determine deployment environment
@@ -153,6 +151,9 @@ jobs:
       - name: Set up Cloud SDK
         uses: google-github-actions/setup-gcloud@v2
 
+      - name: Install Firebase CLI
+        run: npm install -g firebase-tools
+
       - name: Deploy to Firebase Hosting
         run: |
           cd apps/web
@@ -169,6 +170,7 @@ jobs:
           SENDGRID_API_KEY: ${{ secrets.SENDGRID_API_KEY }}
           WOMPI_SECRET: ${{ secrets.WOMPI_SECRET }}
           JITSI_BASE_URL: ${{ secrets.JITSI_BASE_URL }}
+          REMINDERS_AUTH_TOKEN: ${{ secrets.REMINDERS_AUTH_TOKEN }}
 
       - name: Deploy Firestore Security Rules
         run: |
@@ -247,6 +249,9 @@ jobs:
           fi
           
           echo "Verifying functions deployment for project: $PROJECT_ID"
+          
+          # Install Firebase CLI
+          npm install -g firebase-tools
           
           # List deployed functions
           firebase functions:list --project=$PROJECT_ID || echo "Functions list verification completed"
