@@ -45,6 +45,9 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Install Firebase Admin SDK
+        run: npm install firebase-admin
+
       - name: Set project and dry-run variables
         id: set-project
         run: |
@@ -90,6 +93,9 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Install Firebase Admin SDK
+        run: npm install firebase-admin
+
       - name: Create service account key file
         run: |
           echo '${{ secrets.FIREBASE_SERVICE_ACCOUNT }}' > service-account.json
@@ -110,16 +116,32 @@ jobs:
           # Set backup start time
           echo "BACKUP_START_TIME=$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> $GITHUB_ENV
           
+          # Check if backup script exists
+          if [ ! -f "scripts/backup-firestore.js" ]; then
+            echo "❌ Backup script not found: scripts/backup-firestore.js"
+            echo "backup_exit_code=1" >> $GITHUB_OUTPUT
+            exit 1
+          fi
+          
           # Run backup script
+          echo "🔄 Starting Firestore backup for project: ${{ needs.setup.outputs.project_id }}"
           if [ "${{ needs.setup.outputs.dry_run }}" = "true" ]; then
+            echo "🧪 Running in dry-run mode"
             node scripts/backup-firestore.js --project=${{ needs.setup.outputs.project_id }} --dry-run
           else
+            echo "💾 Running full backup"
             node scripts/backup-firestore.js --project=${{ needs.setup.outputs.project_id }}
           fi
           
           # Capture exit code
           BACKUP_EXIT_CODE=$?
           echo "backup_exit_code=$BACKUP_EXIT_CODE" >> $GITHUB_OUTPUT
+          
+          if [ $BACKUP_EXIT_CODE -eq 0 ]; then
+            echo "✅ Backup completed successfully"
+          else
+            echo "❌ Backup failed with exit code: $BACKUP_EXIT_CODE"
+          fi
           
           # Set backup end time
           echo "BACKUP_END_TIME=$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> $GITHUB_ENV
@@ -155,18 +177,28 @@ jobs:
       - name: Send success notifications
         if: steps.backup.outputs.backup_exit_code == 0
         run: |
-          node scripts/backup-notifications.js \
-            --status=success \
-            --backup-id=$(date -u +%Y-%m-%d/%H%M%S) \
-            --report-file=${{ steps.backup.outputs.report_file }}
+          if [ -f "scripts/backup-notifications.js" ]; then
+            echo "📧 Sending success notifications..."
+            node scripts/backup-notifications.js \
+              --status=success \
+              --backup-id=$(date -u +%Y-%m-%d/%H%M%S) \
+              --report-file=${{ steps.backup.outputs.report_file }} || echo "⚠️ Notification script failed, but backup was successful"
+          else
+            echo "⚠️ Notification script not found, skipping notifications"
+          fi
 
       - name: Send failure notifications
         if: steps.backup.outputs.backup_exit_code != 0
         run: |
-          node scripts/backup-notifications.js \
-            --status=failure \
-            --backup-id=$(date -u +%Y-%m-%d/%H%M%S) \
-            --report-file=${{ steps.backup.outputs.report_file }}
+          if [ -f "scripts/backup-notifications.js" ]; then
+            echo "📧 Sending failure notifications..."
+            node scripts/backup-notifications.js \
+              --status=failure \
+              --backup-id=$(date -u +%Y-%m-%d/%H%M%S) \
+              --report-file=${{ steps.backup.outputs.report_file }} || echo "⚠️ Notification script failed"
+          else
+            echo "⚠️ Notification script not found, skipping notifications"
+          fi
 
       - name: Upload backup report
         if: always()
@@ -197,6 +229,9 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Install Firebase Admin SDK
+        run: npm install firebase-admin
+
       - name: Create service account key file
         run: |
           echo '${{ secrets.FIREBASE_SERVICE_ACCOUNT }}' > service-account.json
@@ -217,6 +252,13 @@ jobs:
 
           async function cleanupOldBackups() {
             try {
+              console.log('🧹 Starting backup cleanup process...');
+              
+              // Check if service account file exists
+              if (!process.env.GOOGLE_APPLICATION_CREDENTIALS) {
+                throw new Error('GOOGLE_APPLICATION_CREDENTIALS not set');
+              }
+              
               const serviceAccount = JSON.parse(await fs.readFile(process.env.GOOGLE_APPLICATION_CREDENTIALS, 'utf8'));
               
               const app = initializeApp({
@@ -243,14 +285,18 @@ jobs:
               let totalSize = 0;
               
               for (const file of files) {
-                const [metadata] = await file.getMetadata();
-                const created = new Date(metadata.timeCreated);
-                
-                if (created < cutoffDate) {
-                  console.log(`🗑️ Deleting old backup: ${file.name} (created: ${created.toISOString()})`);
-                  await file.delete();
-                  deletedCount++;
-                  totalSize += parseInt(metadata.size || 0);
+                try {
+                  const [metadata] = await file.getMetadata();
+                  const created = new Date(metadata.timeCreated);
+                  
+                  if (created < cutoffDate) {
+                    console.log(`🗑️ Deleting old backup: ${file.name} (created: ${created.toISOString()})`);
+                    await file.delete();
+                    deletedCount++;
+                    totalSize += parseInt(metadata.size || 0);
+                  }
+                } catch (fileError) {
+                  console.warn(`⚠️ Failed to process file ${file.name}:`, fileError.message);
                 }
               }
               
@@ -265,6 +311,7 @@ jobs:
           cleanupOldBackups();
           EOF
           
+          echo "🔄 Running backup cleanup script..."
           node cleanup-backups.js
 
   # Job 4: Generate Backup Summary
@@ -276,6 +323,7 @@ jobs:
     steps:
       - name: Download backup report
         uses: actions/download-artifact@v4
+        continue-on-error: true
         with:
           name: backup-report-${{ needs.setup.outputs.project_id }}-${{ github.run_number }}
           path: ./reports
@@ -291,11 +339,16 @@ jobs:
           echo "- **Status**: ${{ needs.backup.outputs.backup_exit_code == 0 && '✅ Success' || '❌ Failed' }}" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           
-          if [ -f "./reports/backup-report-${{ needs.setup.outputs.project_id }}-${{ github.run_number }}.json" ]; then
+          # Check if backup report exists
+          REPORT_FILE="./reports/backup-report-${{ needs.setup.outputs.project_id }}-${{ github.run_number }}.json"
+          if [ -f "$REPORT_FILE" ]; then
             echo "### 📋 Backup Report" >> $GITHUB_STEP_SUMMARY
             echo '```json' >> $GITHUB_STEP_SUMMARY
-            cat "./reports/backup-report-${{ needs.setup.outputs.project_id }}-${{ github.run_number }}.json" >> $GITHUB_STEP_SUMMARY
+            cat "$REPORT_FILE" >> $GITHUB_STEP_SUMMARY
             echo '```' >> $GITHUB_STEP_SUMMARY
+          else
+            echo "### 📋 Backup Report" >> $GITHUB_STEP_SUMMARY
+            echo "⚠️ Backup report not available" >> $GITHUB_STEP_SUMMARY
           fi
           
           echo "" >> $GITHUB_STEP_SUMMARY
@@ -308,7 +361,11 @@ jobs:
           echo "- GitHub commit status updated" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### 🧹 Cleanup" >> $GITHUB_STEP_SUMMARY
-          echo "- Old backups cleaned up (retention: ${{ env.BACKUP_RETENTION_DAYS }} days)" >> $GITHUB_STEP_SUMMARY
+          if [ "${{ needs.setup.outputs.dry_run }}" = "true" ]; then
+            echo "- Cleanup skipped (dry-run mode)" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "- Old backups cleaned up (retention: ${{ env.BACKUP_RETENTION_DAYS }} days)" >> $GITHUB_STEP_SUMMARY
+          fi
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "---" >> $GITHUB_STEP_SUMMARY
           echo "*This backup was created by the Miamente Backup System*" >> $GITHUB_STEP_SUMMARY
