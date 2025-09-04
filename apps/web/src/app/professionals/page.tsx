@@ -1,4 +1,5 @@
 "use client";
+import Image from "next/image";
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { Button } from "@/components/ui/button";
@@ -194,15 +195,14 @@ export default function ProfessionalsPage() {
             </CardHeader>
             <CardContent className="flex flex-1 flex-col gap-3">
               {pro.photoUrl ? (
-                <>
-                  {}
-                  <img
-                    src={pro.photoUrl}
-                    alt={`Foto del profesional en ${pro.specialty}`}
-                    className="h-40 w-full rounded-md object-cover"
-                    loading="lazy"
-                  />
-                </>
+                <Image
+                  src={pro.photoUrl}
+                  alt={`Foto del profesional en ${pro.specialty}`}
+                  width={400}
+                  height={160}
+                  className="h-40 w-full rounded-md object-cover"
+                  priority={false}
+                />
               ) : (
                 <div className="flex h-40 w-full items-center justify-center rounded-md bg-neutral-100 text-neutral-500 dark:bg-neutral-900 dark:text-neutral-400">
                   Sin foto

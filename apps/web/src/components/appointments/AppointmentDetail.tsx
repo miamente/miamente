@@ -16,6 +16,13 @@ import React, { useState, useEffect } from "react";
 import { getFirebaseFunctions } from "@/lib/firebase";
 import { PaymentManager } from "@/lib/payments/PaymentService";
 
+// Global gtag interface for Google Analytics
+declare global {
+  interface Window {
+    gtag?: (...args: unknown[]) => void;
+  }
+}
+
 interface Appointment {
   id: string;
   userId: string;
@@ -87,8 +94,8 @@ const AppointmentDetail: React.FC<AppointmentDetailProps> = ({ appointmentId }) 
       setError(null);
 
       // Track payment attempt analytics
-      if (typeof window !== "undefined" && (window as Record<string, unknown>).gtag) {
-        (window as Record<string, unknown>).gtag("event", "payment_attempt", {
+      if (typeof window !== "undefined" && window.gtag) {
+        window.gtag("event", "payment_attempt", {
           event_category: "payment",
           event_label: appointment.id,
           value: appointment.payment.amountCents,

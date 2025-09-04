@@ -170,7 +170,11 @@ export class PaymentManager {
 
       const getAppointment = httpsCallable(getFirebaseFunctions(), "getAppointment");
       const result = await getAppointment({ appointmentId });
-      const appointment = result.data as Record<string, unknown>;
+      const appointment = result.data as {
+        payment?: {
+          provider?: string;
+        };
+      } & Record<string, unknown>;
 
       const provider = appointment.payment?.provider || "mock";
       this.service = await PaymentServiceFactory.getService(provider as PaymentProvider);

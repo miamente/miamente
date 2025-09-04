@@ -37,7 +37,14 @@ export class MockPaymentAdapter implements PaymentService {
       // Get appointment details
       const getAppointment = httpsCallable(getFirebaseFunctions(), "getAppointment");
       const result = await getAppointment({ appointmentId });
-      const appointment = result.data as Record<string, unknown>;
+      const appointment = result.data as {
+        id: string;
+        payment: {
+          amountCents: number;
+          currency: string;
+          provider: string;
+        };
+      } & Record<string, unknown>;
 
       if (!appointment) {
         throw new Error("Appointment not found");
@@ -146,7 +153,16 @@ export class MockPaymentAdapter implements PaymentService {
     try {
       const getAppointment = httpsCallable(getFirebaseFunctions(), "getAppointment");
       const result = await getAppointment({ appointmentId });
-      const appointment = result.data as Record<string, unknown>;
+      const appointment = result.data as {
+        id: string;
+        status: string;
+        payment?: {
+          amountCents: number;
+          currency: string;
+          provider: string;
+        };
+        updatedAt: string;
+      } & Record<string, unknown>;
 
       if (!appointment) {
         throw new Error("Appointment not found");
@@ -255,7 +271,9 @@ export class MockPaymentAdapter implements PaymentService {
       // Get appointment details for email
       const getAppointment = httpsCallable(getFirebaseFunctions(), "getAppointment");
       const result = await getAppointment({ appointmentId });
-      const appointment = result.data as Record<string, unknown>;
+      const appointment = result.data as {
+        id: string;
+      } & Record<string, unknown>;
 
       await this.sendConfirmationEmail(appointment);
 

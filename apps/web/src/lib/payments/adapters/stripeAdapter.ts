@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { PaymentService, CheckoutRequest } from "../PaymentService";
+import { PaymentService, PaymentCheckoutResult, PaymentReturnParams } from "../PaymentService";
 
 /**
  * Stripe Payment Adapter
@@ -16,23 +16,21 @@ export class StripePaymentAdapter implements PaymentService {
     }
   }
 
-  async createCheckoutSession(request: CheckoutRequest): Promise<{
-    sessionId: string;
-    redirectUrl: string;
-    provider: string;
-  }> {
+  async startCheckout(appointmentId: string): Promise<PaymentCheckoutResult> {
     try {
       // In a real implementation, this would create a Stripe Checkout session
       // For now, we'll return a mock response
       const sessionId = `stripe_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
       // Mock redirect URL for development
-      const redirectUrl = `/payment/stripe?session_id=${sessionId}&appointment_id=${request.appointmentId}`;
+      const redirectUrl = `/payment/stripe?session_id=${sessionId}&appointment_id=${appointmentId}`;
 
       return {
         sessionId,
         redirectUrl,
-        provider: "stripe",
+        metadata: {
+          provider: "stripe",
+        },
       };
     } catch (error) {
       console.error("Error creating Stripe checkout session:", error);
@@ -57,51 +55,34 @@ export class StripePaymentAdapter implements PaymentService {
     };
   }
 
-  async cancelPayment(sessionId: string): Promise<{
-    success: boolean;
-    message: string;
-  }> {
+  async handleReturn(params: PaymentReturnParams): Promise<void> {
     try {
-      // In a real implementation, this would cancel the Stripe session
-      console.log(`Cancelling Stripe session: ${sessionId}`);
-
-      return {
-        success: true,
-        message: "Payment session cancelled successfully",
-      };
+      console.log("Handling Stripe return with params:", params);
+      // TODO: Implement actual return handling
     } catch (error) {
-      console.error("Error cancelling Stripe payment:", error);
-      return {
-        success: false,
-        message: "Failed to cancel payment session",
-      };
+      console.error("Error handling Stripe return:", error);
+      throw new Error("Failed to handle payment return");
     }
   }
 
-  async processWebhook(
-    payload: Record<string, unknown>,
-    signature?: string,
-  ): Promise<{
-    success: boolean;
-    message: string;
-    data?: Record<string, unknown>;
-  }> {
+  async cancelPayment(sessionId: string): Promise<void> {
+    try {
+      // In a real implementation, this would cancel the Stripe session
+      console.log(`Cancelling Stripe session: ${sessionId}`);
+    } catch (error) {
+      console.error("Error cancelling Stripe payment:", error);
+      throw new Error("Failed to cancel payment session");
+    }
+  }
+
+  async processWebhook(payload: Record<string, unknown>, signature?: string): Promise<void> {
     try {
       // In a real implementation, this would verify the webhook signature
       // and process the Stripe webhook event
       console.log("Processing Stripe webhook:", { payload, signature });
-
-      return {
-        success: true,
-        message: "Webhook processed successfully",
-        data: payload,
-      };
     } catch (error) {
       console.error("Error processing Stripe webhook:", error);
-      return {
-        success: false,
-        message: "Failed to process webhook",
-      };
+      throw new Error("Failed to process webhook");
     }
   }
 
