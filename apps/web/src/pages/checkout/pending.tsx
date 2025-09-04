@@ -142,6 +142,22 @@ const CheckoutPendingPage: React.FC<CheckoutPendingPageProps> = () => {
               </div>
             </div>
 
+            {/* Admin Approval Message */}
+            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+              <div className="flex items-start">
+                <ExclamationTriangleIcon className="h-5 w-5 text-yellow-500 mr-3 mt-0.5" />
+                <div>
+                  <h3 className="text-sm font-medium text-yellow-900 mb-1">
+                    Aprobación Manual Requerida
+                  </h3>
+                  <p className="text-sm text-yellow-700">
+                    Un administrador confirmará tu pago y recibirás un correo con el enlace de la sesión.
+                    Este proceso puede tomar hasta 24 horas.
+                  </p>
+                </div>
+              </div>
+            </div>
+
             {/* Email Notification */}
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
               <div className="flex items-start">
@@ -151,7 +167,7 @@ const CheckoutPendingPage: React.FC<CheckoutPendingPageProps> = () => {
                     Notificación por Email
                   </h3>
                   <p className="text-sm text-blue-700">
-                    Te enviaremos un email de confirmación tan pronto como tu pago sea procesado. 
+                    Te enviaremos un email de confirmación tan pronto como tu pago sea aprobado. 
                     Por favor, revisa tu bandeja de entrada y la carpeta de spam.
                   </p>
                 </div>

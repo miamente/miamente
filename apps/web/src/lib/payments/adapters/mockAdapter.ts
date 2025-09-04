@@ -56,11 +56,15 @@ export class MockPaymentAdapter implements PaymentService {
       if (autoApprove) {
         console.log(`[MockPaymentAdapter] Auto-approve enabled, redirecting to success`);
         
-        // Simulate immediate approval
-        setTimeout(async () => {
-          await this.updateAppointmentStatus(appointmentId, 'confirmed');
-          await this.sendConfirmationEmail(appointment);
-        }, 1000);
+        // Call mockApprovePayment function for immediate approval
+        try {
+          const mockApprovePayment = httpsCallable(functions, 'mockApprovePayment');
+          await mockApprovePayment({ appointmentId });
+          console.log(`[MockPaymentAdapter] Mock payment approved automatically for appointment: ${appointmentId}`);
+        } catch (error) {
+          console.error(`[MockPaymentAdapter] Error auto-approving payment:`, error);
+          // Fallback to manual approval if auto-approval fails
+        }
 
         return {
           redirectUrl: `/checkout/success?appt=${appointmentId}&session=${sessionId}`,
@@ -75,10 +79,8 @@ export class MockPaymentAdapter implements PaymentService {
       } else {
         console.log(`[MockPaymentAdapter] Auto-approve disabled, redirecting to pending`);
         
-        // Simulate manual approval process
-        setTimeout(async () => {
-          await this.simulateManualApproval(appointmentId);
-        }, 5000);
+        // Leave appointment in pending_confirmation status
+        // No automatic approval - admin will need to manually approve
 
         return {
           redirectUrl: `/checkout/pending?appt=${appointmentId}&session=${sessionId}`,

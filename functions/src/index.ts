@@ -2,6 +2,7 @@ import * as admin from "firebase-admin";
 import * as functions from "firebase-functions";
 
 import { bookAppointment, getAppointment, cancelAppointment } from "./appointments";
+import { mockApprovePayment } from "./mock-payment";
 import { cleanupHeldSlots } from "./cleanup";
 import { sendEmailHandler } from "./email";
 import { sendReminderEmails, sendPostSessionEmails } from "./reminders";
@@ -35,6 +36,9 @@ export const sendEmail = functions
 
 // Export the new appointment functions
 export { bookAppointment, getAppointment, cancelAppointment };
+
+// Export mock payment function
+export { mockApprovePayment };
 
 export const wompiWebhook = functions.region("us-central1").https.onRequest(async (req, res) => {
   res.status(200).send("ok");

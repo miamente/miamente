@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import { httpsCallable } from 'firebase/functions';
 import { functions } from '@/lib/firebase';
+import { PaymentManager } from '@/lib/payments/PaymentService';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { 
@@ -82,15 +83,34 @@ const AppointmentDetail: React.FC<AppointmentDetailProps> = ({ appointmentId }) 
 
     try {
       setProcessingPayment(true);
+      setError(null);
       
-      // Simulate payment processing
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      // Track payment attempt analytics
+      if (typeof window !== 'undefined' && (window as any).gtag) {
+        (window as any).gtag('event', 'payment_attempt', {
+          event_category: 'payment',
+          event_label: appointment.id,
+          value: appointment.payment.amountCents,
+          currency: appointment.payment.currency,
+          payment_provider: appointment.payment.provider
+        });
+      }
       
-      // Navigate to checkout simulation
-      router.push(`/checkout/${appointment.id}`);
-    } catch (err) {
+      // Initialize payment manager and start checkout
+      const paymentManager = new PaymentManager();
+      await paymentManager.initialize(appointment.id);
+      
+      const checkoutResult = await paymentManager.startCheckout(appointment.id);
+      
+      if (checkoutResult.redirectUrl) {
+        // Redirect to the payment provider or success/pending page
+        router.push(checkoutResult.redirectUrl);
+      } else {
+        throw new Error('No redirect URL received from payment service');
+      }
+    } catch (err: any) {
       console.error('Error processing payment:', err);
-      setError('Error al procesar el pago');
+      setError(err.message || 'Error al procesar el pago');
     } finally {
       setProcessingPayment(false);
     }
