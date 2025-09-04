@@ -4,6 +4,8 @@ service cloud.firestore {
     function isSignedIn() { return request.auth != null; }
     function isOwner(userId) { return isSignedIn() && request.auth.uid == userId; }
     function hasRole(role) { return isSignedIn() && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == role; }
+    function isAdmin() { return hasRole('admin'); }
+    function isProfessional() { return hasRole('pro'); }
 
     // Event logging - anyone can create, only admins can read
     match /event_log/{docId} {
@@ -12,16 +14,20 @@ service cloud.firestore {
       allow update, delete: if false;
     }
 
-    // Users collection - owner can read/write, public fields readable by all
+    // Users collection - owner can read/write, public fields readable by all, admins can update isVerified
     match /users/{userId} {
       allow read: if isSignedIn() && (
         isOwner(userId) || // Owner can read everything
+        isAdmin() || // Admins can read everything
         // Others can only read public fields
         (resource.data.keys().hasAll(['role', 'fullName']) && 
          !resource.data.keys().hasAny(['phone', 'email']))
       );
       allow create: if isSignedIn() && isOwner(userId);
-      allow update: if isSignedIn() && isOwner(userId);
+      allow update: if isSignedIn() && (
+        isOwner(userId) || // Owner can update their own profile
+        (isAdmin() && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['isVerified'])) // Admins can only update isVerified
+      );
       allow delete: if false;
     }
 
@@ -75,6 +81,12 @@ service cloud.firestore {
         request.resource.data.userId != null;
       allow update: if false; // No editing reviews
       allow delete: if false; // No deleting reviews
+    }
+
+    // Feature flags - only admins can read/write
+    match /feature_flags/{flagId} {
+      allow read: if isSignedIn() && isAdmin();
+      allow create, update, delete: if isSignedIn() && isAdmin();
     }
 
     // Default deny all other collections
