@@ -24,7 +24,7 @@ export function Header() {
             <Button variant="ghost" aria-label="Toggle theme">
               Light
             </Button>
-            <Link href="/signup">
+            <Link href="/register">
               <Button>Crear cuenta</Button>
             </Link>
           </div>
@@ -48,7 +48,7 @@ export function Header() {
           >
             {isDark ? "Light" : "Dark"}
           </Button>
-          <Link href="/signup">
+          <Link href="/register">
             <Button>Crear cuenta</Button>
           </Link>
         </div>
