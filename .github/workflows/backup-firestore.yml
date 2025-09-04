@@ -165,10 +165,10 @@ jobs:
               "totalCollections": 8,
               "totalDocuments": 0,
               "totalSize": "0 Bytes",
-              "errorCount": ${{ steps.backup.outputs.backup_exit_code != 0 ? 1 : 0 }}
+              "errorCount": ${{ steps.backup.outputs.backup_exit_code != 0 && 1 || 0 }}
             },
             "collections": {},
-            "errors": ${{ steps.backup.outputs.backup_exit_code != 0 ? '[{"operation": "backup_process", "error": "Backup script failed"}]' : '[]' }}
+            "errors": ${{ steps.backup.outputs.backup_exit_code != 0 && '[{"operation": "backup_process", "error": "Backup script failed"}]' || '[]' }}
           }
           EOF
           
