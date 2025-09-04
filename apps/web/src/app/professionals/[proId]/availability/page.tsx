@@ -4,6 +4,7 @@ import React, { useCallback, useEffect, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useAnalytics } from "@/hooks/useAnalytics";
 import { bookAppointment } from "@/lib/appointments";
 import { getNext14DaysFreeSlots, type AvailabilitySlot } from "@/lib/availability";
 import { formatBogotaDateTime, formatBogotaDate } from "@/lib/timezone";
@@ -15,6 +16,8 @@ export default function ProfessionalAvailabilityPage() {
   const [slots, setSlots] = useState<Array<AvailabilitySlot & { id: string }>>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  const { trackAppointmentConfirmed } = useAnalytics();
 
   const loadSlots = useCallback(async () => {
     if (!proId) return;
@@ -43,6 +46,13 @@ export default function ProfessionalAvailabilityPage() {
     try {
       const result = await bookAppointment(proId, slotId);
       if (result.success && result.appointmentId) {
+        // Track appointment confirmation event
+        await trackAppointmentConfirmed(result.appointmentId, {
+          proId,
+          slotId,
+          timestamp: new Date().toISOString(),
+        });
+
         // Show success message and reload slots
         alert(`Cita reservada exitosamente. ID: ${result.appointmentId}`);
         await loadSlots();

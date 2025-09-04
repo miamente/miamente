@@ -1,31 +1,55 @@
 "use client";
 import React, { useEffect, useState } from "react";
 
+import { AppointmentChart } from "@/components/appointment-chart";
+import { ConversionFunnel } from "@/components/conversion-funnel";
 import { AdminGate } from "@/components/role-gate";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { getAdminMetrics, type AdminMetrics } from "@/lib/admin";
+import {
+  getAppointmentChartData,
+  getConversionFunnelData,
+  type AppointmentChartData,
+} from "@/lib/analytics-admin";
 
 export default function AdminDashboard() {
   const [metrics, setMetrics] = useState<AdminMetrics | null>(null);
+  const [chartData, setChartData] = useState<AppointmentChartData[]>([]);
+  const [funnelData, setFunnelData] = useState<{
+    signups: number;
+    profileCompletions: number;
+    slotCreations: number;
+    appointmentConfirmations: number;
+    paymentAttempts: number;
+    paymentSuccesses: number;
+  } | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const loadMetrics = async () => {
+    const loadData = async () => {
       try {
         setLoading(true);
         setError(null);
-        const data = await getAdminMetrics();
-        setMetrics(data);
+
+        const [metricsData, chartDataResult, funnelDataResult] = await Promise.all([
+          getAdminMetrics(),
+          getAppointmentChartData(),
+          getConversionFunnelData(),
+        ]);
+
+        setMetrics(metricsData);
+        setChartData(chartDataResult);
+        setFunnelData(funnelDataResult);
       } catch (err) {
-        console.error("Error loading admin metrics:", err);
-        setError("Error al cargar las métricas");
+        console.error("Error loading admin data:", err);
+        setError("Error al cargar los datos");
       } finally {
         setLoading(false);
       }
     };
 
-    loadMetrics();
+    loadData();
   }, []);
 
   if (loading) {
@@ -319,6 +343,27 @@ export default function AdminDashboard() {
                   <p className="text-muted-foreground text-sm">Gestionar funcionalidades</p>
                 </div>
               </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Analytics Charts */}
+        <div className="mt-8 grid grid-cols-1 gap-6 lg:grid-cols-2">
+          <Card>
+            <CardHeader>
+              <CardTitle>Citas Confirmadas (Últimos 30 días)</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <AppointmentChart data={chartData} loading={loading} />
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Embudo de Conversión</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ConversionFunnel data={funnelData} loading={loading} />
             </CardContent>
           </Card>
         </div>

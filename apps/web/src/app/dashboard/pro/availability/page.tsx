@@ -7,6 +7,7 @@ import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { useAnalytics } from "@/hooks/useAnalytics";
 import { useAuth } from "@/hooks/useAuth";
 import {
   generateSlots,
@@ -52,6 +53,7 @@ export default function ProAvailabilityPage() {
   const [isLoadingSlots, setIsLoadingSlots] = useState(false);
 
   const { user } = useAuth();
+  const { trackSlotCreated } = useAnalytics();
 
   const {
     register,
@@ -117,6 +119,17 @@ export default function ProAvailabilityPage() {
         `Creados ${result.created} slots. ${result.skipped} slots omitidos por solapamiento.`,
       );
       await loadExistingSlots();
+
+      // Track slot creation event
+      await trackSlotCreated("batch_creation", {
+        slotsCreated: result.created,
+        slotsSkipped: result.skipped,
+        startDate: data.startDate,
+        endDate: data.endDate,
+        durationMinutes: data.durationMinutes,
+        daysOfWeek: data.daysOfWeek,
+        timestamp: new Date().toISOString(),
+      });
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : "Error al generar slots";
       setError(errorMessage);

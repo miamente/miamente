@@ -8,6 +8,7 @@ import { FileUpload } from "@/components/file-upload";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { useAnalytics } from "@/hooks/useAnalytics";
 import { useAuth } from "@/hooks/useAuth";
 import { getUserProfile, updateUserProfile } from "@/lib/profiles";
 import { uploadFile, getStoragePath, generateUniqueFilename } from "@/lib/storage";
@@ -24,6 +25,7 @@ export default function UserProfilePage() {
 
   const { user } = useAuth();
   const router = useRouter();
+  const { trackProfileComplete } = useAnalytics();
 
   const {
     register,
@@ -82,6 +84,13 @@ export default function UserProfilePage() {
       setSuccess(true);
       setPhotoFile(null);
       await loadProfile();
+
+      // Track profile completion event
+      await trackProfileComplete({
+        hasPhoto: !!photoFile,
+        hasPhone: !!data.phone,
+        timestamp: new Date().toISOString(),
+      });
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : "Error al actualizar el perfil";
       setError(errorMessage);

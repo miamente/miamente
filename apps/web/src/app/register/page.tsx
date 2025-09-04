@@ -8,6 +8,7 @@ import { useForm } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { useAnalytics } from "@/hooks/useAnalytics";
 import { useAuth } from "@/hooks/useAuth";
 import { registerWithEmail } from "@/lib/auth";
 import { registerSchema, type RegisterFormData } from "@/lib/validations";
@@ -18,6 +19,7 @@ export default function RegisterPage() {
   const [success, setSuccess] = useState(false);
   const router = useRouter();
   const { user } = useAuth();
+  const { trackSignup } = useAnalytics();
 
   const {
     register,
@@ -45,6 +47,12 @@ export default function RegisterPage() {
     try {
       await registerWithEmail(data.email, data.password);
       setSuccess(true);
+
+      // Track signup event
+      await trackSignup({
+        email: data.email,
+        timestamp: new Date().toISOString(),
+      });
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : "Error al crear la cuenta";
       setError(errorMessage);
