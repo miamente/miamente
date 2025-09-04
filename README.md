@@ -1,5 +1,7 @@
 # Miamente Monorepo (MVP)
 
+[![CI/CD Pipeline](https://github.com/manueljurado/miamente_platform/actions/workflows/ci.yml/badge.svg)](https://github.com/manueljurado/miamente_platform/actions/workflows/ci.yml)
+
 ## Estructura
 
 - apps/web: Next.js App Router + Tailwind + shadcn/ui + next-intl (es/en)

@@ -14,8 +14,13 @@
     "build": "npm run build -ws",
     "lint": "npm run lint -ws",
     "format": "prettier --write .",
+    "format:check": "prettier --check .",
     "typecheck": "npm run typecheck -ws",
     "test": "npm run test -ws",
+    "test:ci": "npm run test:ci -ws",
+    "test:emulator": "npm run test:emulator -w functions",
+    "test:accessibility": "npm run test:accessibility -w apps/web",
+    "test:integration": "npm run test:integration -ws",
     "emulators": "npm run emulators -w functions",
     "deploy": "npm run deploy -w functions",
     "prepare": "husky"

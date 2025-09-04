@@ -9,7 +9,10 @@
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "dev": "npm run build -- --watch",
-    "test": "echo 'no tests yet'",
+    "test": "vitest run",
+    "test:ci": "vitest run --coverage --reporter=verbose",
+    "test:emulator": "vitest run emulator.test.ts",
+    "typecheck": "tsc --noEmit",
     "deploy": "npx firebase deploy --only functions",
     "emulators": "npx firebase emulators:start --only functions,firestore,storage,auth --project demo-miamente"
   },
@@ -20,6 +23,8 @@
     "@sendgrid/mail": "^8.1.0"
   },
   "devDependencies": {
-    "typescript": "^5.5.4"
+    "typescript": "^5.5.4",
+    "vitest": "^2.1.8",
+    "@firebase/rules-unit-testing": "^3.1.0"
   }
 }
