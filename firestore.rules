@@ -38,6 +38,15 @@ service cloud.firestore {
       allow delete: if false;
     }
 
+    // Availability slots - professionals can manage their own, users can read free slots
+    match /availability/{proId}/slots/{slotId} {
+      allow read: if isSignedIn() && (
+        isOwner(proId) || // Professional can read all their slots
+        (resource.data.status == "free") // Users can only read free slots
+      );
+      allow create, update, delete: if isSignedIn() && isOwner(proId);
+    }
+
     // Default deny all other collections
     match /{document=**} {
       allow read, write: if false;
