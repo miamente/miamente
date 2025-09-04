@@ -162,9 +162,9 @@ export class PaymentManager {
     try {
       // Get appointment to determine provider
       const { httpsCallable } = await import('firebase/functions');
-      const { functions } = await import('@/lib/firebase');
+      const { getFirebaseFunctions } = await import('@/lib/firebase');
       
-      const getAppointment = httpsCallable(functions, 'getAppointment');
+      const getAppointment = httpsCallable(getFirebaseFunctions(), 'getAppointment');
       const result = await getAppointment({ appointmentId });
       const appointment = result.data as any;
 

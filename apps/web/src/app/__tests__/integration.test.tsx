@@ -1,6 +1,7 @@
 import { render } from "@testing-library/react";
 import React from "react";
 import { describe, it, expect } from "vitest";
+import Link from "next/link";
 
 // Simple integration test example
 describe("Integration Tests", () => {
@@ -73,10 +74,10 @@ describe("Integration Tests", () => {
   it("should handle navigation", () => {
     const { container } = render(
       <nav>
-        <a href="/">Home</a>
-        <a href="/professionals">Professionals</a>
-        <a href="/register">Register</a>
-        <a href="/login">Login</a>
+        <Link href="/">Home</Link>
+        <Link href="/professionals">Professionals</Link>
+        <Link href="/register">Register</Link>
+        <Link href="/login">Login</Link>
       </nav>,
     );
 

@@ -317,3 +317,211 @@ export function useFeatureFlags<K extends keyof FeatureFlags>(
   console.warn('useFeatureFlags hook not implemented yet');
   return null;
 }
+
+/**
+ * Feature Flag Database Types
+ */
+export interface FeatureFlag {
+  id: string;
+  key: string;
+  name: string;
+  enabled: boolean;
+  description?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateFeatureFlagRequest {
+  key: string;
+  name: string;
+  description: string;
+  enabled?: boolean;
+}
+
+export interface FeatureFlagResponse {
+  success: boolean;
+  data?: FeatureFlag;
+  error?: string;
+}
+
+/**
+ * Admin Functions for Feature Flag Management
+ */
+
+/**
+ * Get all feature flags from Firestore
+ */
+export async function getFeatureFlags(): Promise<FeatureFlag[]> {
+  try {
+    const { getFirebaseFirestore } = await import('@/lib/firebase');
+    const { collection, getDocs, orderBy, query } = await import('firebase/firestore');
+    
+    const db = getFirebaseFirestore();
+    const featureFlagsRef = collection(db, 'feature_flags');
+    const q = query(featureFlagsRef, orderBy('createdAt', 'desc'));
+    
+    const snapshot = await getDocs(q);
+    const flags: FeatureFlag[] = [];
+    
+    snapshot.forEach((doc) => {
+      const data = doc.data();
+      flags.push({
+        id: doc.id,
+        key: data.key,
+        name: data.name,
+        enabled: data.enabled,
+        description: data.description,
+        createdAt: data.createdAt,
+        updatedAt: data.updatedAt,
+      });
+    });
+    
+    return flags;
+  } catch (error) {
+    console.error('Error fetching feature flags:', error);
+    throw new Error('Failed to fetch feature flags');
+  }
+}
+
+/**
+ * Create a new feature flag
+ */
+export async function createFeatureFlag(request: CreateFeatureFlagRequest): Promise<FeatureFlagResponse> {
+  try {
+    const { getFirebaseFirestore } = await import('@/lib/firebase');
+    const { collection, addDoc, serverTimestamp } = await import('firebase/firestore');
+    
+    const db = getFirebaseFirestore();
+    const featureFlagsRef = collection(db, 'feature_flags');
+    
+    const now = new Date().toISOString();
+    const newFlag = {
+      key: request.key,
+      name: request.name,
+      description: request.description,
+      enabled: request.enabled ?? false,
+      createdAt: now,
+      updatedAt: now,
+    };
+    
+    const docRef = await addDoc(featureFlagsRef, newFlag);
+    
+    return {
+      success: true,
+      data: {
+        id: docRef.id,
+        ...newFlag,
+      },
+    };
+  } catch (error) {
+    console.error('Error creating feature flag:', error);
+    return {
+      success: false,
+      error: 'Failed to create feature flag',
+    };
+  }
+}
+
+/**
+ * Toggle a feature flag
+ */
+export async function toggleFeatureFlag(flagId: string): Promise<FeatureFlagResponse> {
+  try {
+    const { getFirebaseFirestore } = await import('@/lib/firebase');
+    const { doc, updateDoc, getDoc } = await import('firebase/firestore');
+    
+    const db = getFirebaseFirestore();
+    const flagRef = doc(db, 'feature_flags', flagId);
+    
+    // Get current state
+    const flagDoc = await getDoc(flagRef);
+    if (!flagDoc.exists()) {
+      return {
+        success: false,
+        error: 'Feature flag not found',
+      };
+    }
+    
+    const currentData = flagDoc.data();
+    const newEnabled = !currentData.enabled;
+    
+    await updateDoc(flagRef, {
+      enabled: newEnabled,
+      updatedAt: new Date().toISOString(),
+    });
+    
+    return {
+      success: true,
+      data: {
+        id: flagId,
+        key: currentData.key,
+        name: currentData.name,
+        enabled: newEnabled,
+        description: currentData.description,
+        createdAt: currentData.createdAt,
+        updatedAt: new Date().toISOString(),
+      },
+    };
+  } catch (error) {
+    console.error('Error toggling feature flag:', error);
+    return {
+      success: false,
+      error: 'Failed to toggle feature flag',
+    };
+  }
+}
+
+/**
+ * Update a feature flag
+ */
+export async function updateFeatureFlag(flagId: string, updates: Partial<CreateFeatureFlagRequest>): Promise<FeatureFlagResponse> {
+  try {
+    const { getFirebaseFirestore } = await import('@/lib/firebase');
+    const { doc, updateDoc } = await import('firebase/firestore');
+    
+    const db = getFirebaseFirestore();
+    const flagRef = doc(db, 'feature_flags', flagId);
+    
+    const updateData = {
+      ...updates,
+      updatedAt: new Date().toISOString(),
+    };
+    
+    await updateDoc(flagRef, updateData);
+    
+    return {
+      success: true,
+    };
+  } catch (error) {
+    console.error('Error updating feature flag:', error);
+    return {
+      success: false,
+      error: 'Failed to update feature flag',
+    };
+  }
+}
+
+/**
+ * Delete a feature flag
+ */
+export async function deleteFeatureFlag(flagId: string): Promise<FeatureFlagResponse> {
+  try {
+    const { getFirebaseFirestore } = await import('@/lib/firebase');
+    const { doc, deleteDoc } = await import('firebase/firestore');
+    
+    const db = getFirebaseFirestore();
+    const flagRef = doc(db, 'feature_flags', flagId);
+    
+    await deleteDoc(flagRef);
+    
+    return {
+      success: true,
+    };
+  } catch (error) {
+    console.error('Error deleting feature flag:', error);
+    return {
+      success: false,
+      error: 'Failed to delete feature flag',
+    };
+  }
+}

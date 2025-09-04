@@ -1,5 +1,5 @@
 import { httpsCallable } from 'firebase/functions';
-import { functions } from '@/lib/firebase';
+import { getFirebaseFunctions } from '@/lib/firebase';
 import type { 
   PaymentService, 
   PaymentCheckoutResult, 
@@ -37,7 +37,7 @@ export class MockPaymentAdapter implements PaymentService {
       console.log(`[MockPaymentAdapter] Starting checkout for appointment: ${appointmentId}`);
 
       // Get appointment details
-      const getAppointment = httpsCallable(functions, 'getAppointment');
+      const getAppointment = httpsCallable(getFirebaseFunctions(), 'getAppointment');
       const result = await getAppointment({ appointmentId });
       const appointment = result.data as any;
 
@@ -58,7 +58,7 @@ export class MockPaymentAdapter implements PaymentService {
         
         // Call mockApprovePayment function for immediate approval
         try {
-          const mockApprovePayment = httpsCallable(functions, 'mockApprovePayment');
+          const mockApprovePayment = httpsCallable(getFirebaseFunctions(), 'mockApprovePayment');
           await mockApprovePayment({ appointmentId });
           console.log(`[MockPaymentAdapter] Mock payment approved automatically for appointment: ${appointmentId}`);
         } catch (error) {
@@ -142,7 +142,7 @@ export class MockPaymentAdapter implements PaymentService {
     metadata?: Record<string, any>;
   }> {
     try {
-      const getAppointment = httpsCallable(functions, 'getAppointment');
+      const getAppointment = httpsCallable(getFirebaseFunctions(), 'getAppointment');
       const result = await getAppointment({ appointmentId });
       const appointment = result.data as any;
 
@@ -240,7 +240,7 @@ export class MockPaymentAdapter implements PaymentService {
       await this.updateAppointmentStatus(appointmentId, 'confirmed');
       
       // Get appointment details for email
-      const getAppointment = httpsCallable(functions, 'getAppointment');
+      const getAppointment = httpsCallable(getFirebaseFunctions(), 'getAppointment');
       const result = await getAppointment({ appointmentId });
       const appointment = result.data as any;
       

@@ -13,6 +13,7 @@ import {
   type CreateFeatureFlagRequest,
 } from "@/lib/feature-flags";
 import { formatBogotaDateTime } from "@/lib/timezone";
+import { initializeFeatureFlags } from "@/lib/init-feature-flags";
 
 export default function AdminFeatureFlags() {
   const [flags, setFlags] = useState<FeatureFlag[]>([]);
@@ -21,6 +22,7 @@ export default function AdminFeatureFlags() {
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [newFlag, setNewFlag] = useState<CreateFeatureFlagRequest>({
     key: "",
+    name: "",
     enabled: false,
     description: "",
   });
@@ -32,6 +34,10 @@ export default function AdminFeatureFlags() {
       try {
         setLoading(true);
         setError(null);
+        
+        // Initialize feature flags if they don't exist
+        await initializeFeatureFlags();
+        
         const data = await getFeatureFlags();
         setFlags(data);
       } catch (err) {
@@ -48,7 +54,7 @@ export default function AdminFeatureFlags() {
   const handleCreateFlag = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!newFlag.key.trim() || !newFlag.description.trim()) {
+    if (!newFlag.key.trim() || !newFlag.name.trim() || !newFlag.description.trim()) {
       setError("Todos los campos son obligatorios");
       return;
     }
@@ -58,12 +64,9 @@ export default function AdminFeatureFlags() {
       setError(null);
 
       const result = await createFeatureFlag(newFlag);
-
       if (result.success) {
-        setNewFlag({ key: "", enabled: false, description: "" });
+        setNewFlag({ key: "", name: "", enabled: false, description: "" });
         setShowCreateForm(false);
-
-        // Reload flags
         const updatedFlags = await getFeatureFlags();
         setFlags(updatedFlags);
       } else {
@@ -83,12 +86,10 @@ export default function AdminFeatureFlags() {
       setError(null);
 
       const result = await toggleFeatureFlag(flagId);
-
-      if (result.success) {
-        // Update local state
+      if (result.success && result.data) {
         setFlags((prev) =>
           prev.map((flag) =>
-            flag.id === flagId ? { ...flag, enabled: !flag.enabled, updatedAt: new Date() } : flag,
+            flag.id === flagId ? result.data! : flag,
           ),
         );
       } else {
@@ -242,8 +243,8 @@ export default function AdminFeatureFlags() {
                         {flag.description}
                       </p>
                       <p className="mt-1 text-xs text-neutral-500">
-                        Creado: {formatBogotaDateTime(flag.createdAt)} | Actualizado:{" "}
-                        {formatBogotaDateTime(flag.updatedAt)}
+                        Creado: {formatBogotaDateTime(new Date(flag.createdAt))} | Actualizado:{" "}
+                        {formatBogotaDateTime(new Date(flag.updatedAt))}
                       </p>
                     </div>
 

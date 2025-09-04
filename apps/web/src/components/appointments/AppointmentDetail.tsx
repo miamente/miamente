@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import { httpsCallable } from 'firebase/functions';
-import { functions } from '@/lib/firebase';
+import { getFirebaseFunctions } from '@/lib/firebase';
 import { PaymentManager } from '@/lib/payments/PaymentService';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
@@ -55,7 +55,7 @@ const AppointmentDetail: React.FC<AppointmentDetailProps> = ({ appointmentId }) 
   const [error, setError] = useState<string | null>(null);
   const [processingPayment, setProcessingPayment] = useState(false);
 
-  const getAppointment = httpsCallable(functions, 'getAppointment');
+  const getAppointment = httpsCallable(getFirebaseFunctions(), 'getAppointment');
 
   useEffect(() => {
     const fetchAppointment = async () => {
