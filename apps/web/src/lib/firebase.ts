@@ -1,6 +1,6 @@
 import { getAnalytics, isSupported, type Analytics, logEvent } from "firebase/analytics";
 import { initializeApp, getApps, type FirebaseApp } from "firebase/app";
-import { initializeAppCheck, ReCaptchaV3Provider } from "firebase/app-check";
+import { initializeAppCheck, ReCaptchaEnterpriseProvider } from "firebase/app-check";
 import { getAuth, type Auth } from "firebase/auth";
 import { getFirestore, type Firestore } from "firebase/firestore";
 import { getFunctions, type Functions } from "firebase/functions";
@@ -28,13 +28,17 @@ export function getFirebaseApp(): FirebaseApp {
   const currentApp = app;
 
   if (typeof window !== "undefined") {
-    // App Check - required
-    const siteKey = process.env.NEXT_PUBLIC_RECAPTCHA_V3_SITE_KEY ?? "";
+    // App Check - required with reCAPTCHA Enterprise
+    const siteKey = process.env.NEXT_PUBLIC_RECAPTCHA_ENTERPRISE_SITE_KEY ?? "";
     if (siteKey) {
       initializeAppCheck(app, {
-        provider: new ReCaptchaV3Provider(siteKey),
+        provider: new ReCaptchaEnterpriseProvider(siteKey),
         isTokenAutoRefreshEnabled: true,
       });
+    } else {
+      console.warn(
+        "NEXT_PUBLIC_RECAPTCHA_ENTERPRISE_SITE_KEY not found. App Check will not be initialized.",
+      );
     }
 
     // Analytics if supported

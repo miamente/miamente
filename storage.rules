@@ -1,29 +1,46 @@
 rules_version = '2';
 service firebase.storage {
   match /b/{bucket}/o {
-    function isSignedIn() { return request.auth != null; }
-    function isOwner(userId) { return isSignedIn() && request.auth.uid == userId; }
-
-    // Public photos - readable by all, writable by owner
-    match /public_photos/{userId}/{allPaths=**} {
-      allow read: if isSignedIn();
-      allow write: if isOwner(userId);
+    // Helper functions
+    function isSignedIn() {
+      return request.auth != null;
     }
-
-    // Private credentials - only readable/writable by owner
-    match /private_credentials/{userId}/{allPaths=**} {
-      allow read, write: if isOwner(userId);
+    
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
     }
-
-    // User uploads (general) - only accessible by owner
-    match /user_uploads/{userId}/{allPaths=**} {
-      allow read, write: if isOwner(userId);
+    
+    function isAdmin() {
+      return isSignedIn() && 
+        firestore.exists(/databases/(default)/documents/users/$(request.auth.uid)) &&
+        firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.role == "admin";
     }
-
+    
+    // App Check verification
+    function isAppCheckValid() {
+      return request.appCheckToken != null;
+    }
+    
+    // Public photos - anyone can read, only owner can write
+    match /public/{userId}/{allPaths=**} {
+      allow read: if isSignedIn() && isAppCheckValid();
+      allow write: if isSignedIn() && isAppCheckValid() && isOwner(userId);
+    }
+    
+    // Private credentials - only owner and admins can read, only owner can write
+    match /private/{userId}/{allPaths=**} {
+      allow read: if isSignedIn() && isAppCheckValid() && (isOwner(userId) || isAdmin());
+      allow write: if isSignedIn() && isAppCheckValid() && isOwner(userId);
+    }
+    
+    // Admin uploads - only admins can access
+    match /admin/{allPaths=**} {
+      allow read, write: if isSignedIn() && isAppCheckValid() && isAdmin();
+    }
+    
     // Default deny all other paths
     match /{allPaths=**} {
       allow read, write: if false;
     }
   }
 }
-

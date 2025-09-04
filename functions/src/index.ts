@@ -51,7 +51,7 @@ export const bookAppointment = functions
       throw new functions.https.HttpsError("invalid-argument", "proId and slotId are required");
     }
 
-    return await bookAppointmentHandler(userId, proId, slotId);
+    return await bookAppointmentHandler(userId, proId, slotId, context.rawRequest);
   });
 
 export const wompiWebhook = functions.region("us-central1").https.onRequest(async (req, res) => {

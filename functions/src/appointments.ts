@@ -1,6 +1,7 @@
 import * as admin from "firebase-admin";
 import * as functions from "firebase-functions";
 
+import { checkRateLimit, RATE_LIMITS, getClientIP } from "./rate-limiting";
 import type { BookAppointmentResponse, Appointment } from "./types";
 import { createJitsiUrl } from "./utils";
 
@@ -10,11 +11,31 @@ export async function bookAppointmentHandler(
   userId: string,
   proId: string,
   slotId: string,
+  request?: {
+    headers: Record<string, string>;
+    connection?: { remoteAddress?: string };
+    socket?: { remoteAddress?: string };
+  },
 ): Promise<BookAppointmentResponse> {
   const slotRef = db.collection("availability").doc(proId).collection("slots").doc(slotId);
   const appointmentsRef = db.collection("appointments");
 
   try {
+    // Check rate limiting
+    const ipAddress = request ? getClientIP(request) : undefined;
+    const rateLimitResult = await checkRateLimit(
+      userId,
+      RATE_LIMITS.APPOINTMENT_CREATION,
+      ipAddress,
+    );
+
+    if (!rateLimitResult.allowed) {
+      return {
+        success: false,
+        error: `Rate limit exceeded. Try again after ${new Date(rateLimitResult.resetTime).toISOString()}`,
+      };
+    }
+
     // Use transaction to ensure atomicity
     const result = await db.runTransaction(async (transaction) => {
       // Read the slot

@@ -32,6 +32,50 @@
 - Configura variables en `apps/web/.env.local` (claves públicas)
 - Secretos en CI/CD (Firebase service account y project id)
 
+### Variables de Seguridad Requeridas
+
+```bash
+# App Check con reCAPTCHA Enterprise
+NEXT_PUBLIC_RECAPTCHA_ENTERPRISE_SITE_KEY=your_site_key
+
+# Firebase Configuration
+NEXT_PUBLIC_FB_API_KEY=your_api_key
+NEXT_PUBLIC_FB_AUTH_DOMAIN=your_domain
+NEXT_PUBLIC_FB_PROJECT_ID=your_project_id
+NEXT_PUBLIC_FB_STORAGE_BUCKET=your_bucket
+NEXT_PUBLIC_FB_MESSAGING_SENDER_ID=your_sender_id
+NEXT_PUBLIC_FB_APP_ID=your_app_id
+NEXT_PUBLIC_FB_MEASUREMENT_ID=your_measurement_id
+```
+
+## Seguridad
+
+### Características de Seguridad Implementadas
+
+- **App Check**: Integración con reCAPTCHA Enterprise para prevenir abuso
+- **Reglas de Seguridad**: Firestore y Storage con control de acceso granular
+- **Rate Limiting**: Limitación de velocidad en Functions HTTPS
+- **RBAC**: Control de acceso basado en roles (user/pro/admin)
+- **Pruebas de Seguridad**: Tests negativos para validar restricciones
+- **Logging**: Registro completo de eventos de seguridad
+
+### Documentación de Seguridad
+
+- [SECURITY.md](./SECURITY.md) - Documentación completa de seguridad
+- [APP_CHECK_SETUP.md](./docs/APP_CHECK_SETUP.md) - Guía de configuración de App Check
+- [Tests de Seguridad](./apps/web/src/app/__tests__/security-negative.test.tsx) - Pruebas negativas
+
+### Checklist de Seguridad Pre-Deployment
+
+- [ ] App Check configurado con reCAPTCHA Enterprise
+- [ ] Reglas de Firestore desplegadas y probadas
+- [ ] Reglas de Storage desplegadas y probadas
+- [ ] Rate limiting configurado y probado
+- [ ] Tests de seguridad pasando
+- [ ] Variables de entorno seguras
+- [ ] HTTPS habilitado
+- [ ] CORS configurado correctamente
+
 ## Contribución
 
 - Usa la plantilla de PR en `.github/pull_request_template.md`
