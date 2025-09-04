@@ -1,0 +1,108 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Helper functions
+    function isSignedIn() { return request.auth != null; }
+    function isOwner(userId) { return isSignedIn() && request.auth.uid == userId; }
+    function hasRole(role) { return isSignedIn() && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == role; }
+    function isAdmin() { return hasRole('admin'); }
+    function isProfessional() { return hasRole('pro'); }
+    function isUser() { return hasRole('user'); }
+    
+    // Rate limiting helper (basic implementation)
+    function isWithinRateLimit() {
+      // This is a simplified rate limit check
+      // In production, you might want to implement more sophisticated rate limiting
+      return true;
+    }
+
+    // Event logging - anyone can create, only admins can read
+    match /event_log/{docId} {
+      allow create: if isSignedIn();
+      allow read: if hasRole('admin');
+      allow update, delete: if false;
+    }
+
+    // Users collection - owner can read/write, public fields readable by all, admins can update isVerified
+    match /users/{userId} {
+      allow read: if isSignedIn() && (
+        isOwner(userId) || // Owner can read everything
+        isAdmin() || // Admins can read everything
+        // Others can only read public fields
+        (resource.data.keys().hasAll(['role', 'fullName']) && 
+         !resource.data.keys().hasAny(['phone', 'email']))
+      );
+      allow create: if isSignedIn() && isOwner(userId) && isWithinRateLimit();
+      allow update: if isSignedIn() && (
+        isOwner(userId) || // Owner can update their own profile
+        (isAdmin() && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['isVerified'])) // Admins can only update isVerified
+      );
+      allow delete: if false; // No direct deletion
+    }
+
+    // Professionals collection - owner can read/write, public fields readable by all
+    match /professionals/{userId} {
+      allow read: if isSignedIn() && (
+        isOwner(userId) || // Owner can read everything
+        // Others can only read public fields
+        (resource.data.keys().hasAll(['specialty', 'rateCents', 'bio', 'isVerified']) &&
+         !resource.data.keys().hasAny(['credentials', 'privateNotes']))
+      );
+      allow create: if isSignedIn() && isOwner(userId);
+      allow update: if isSignedIn() && isOwner(userId);
+      allow delete: if false;
+    }
+
+    // Availability slots - professionals can manage their own, users can read free slots
+    match /availability/{proId}/slots/{slotId} {
+      allow read: if isSignedIn() && (
+        isOwner(proId) || // Professional can read all their slots
+        (resource.data.status == "free") // Users can only read free slots
+      );
+      allow create, update, delete: if isSignedIn() && isOwner(proId);
+    }
+
+    // Appointments - users can create, read their own; professionals can read their appointments
+    match /appointments/{appointmentId} {
+      allow read: if isSignedIn() && (
+        isOwner(resource.data.userId) || // User can read their own appointments
+        isOwner(resource.data.proId) // Professional can read appointments for them
+      );
+      allow create: if isSignedIn() && isWithinRateLimit() && 
+        request.auth.uid == request.resource.data.userId && // Only the user can create their appointment
+        isUser(); // Only regular users can create appointments (not admins directly)
+      allow update: if isSignedIn() && (
+        isOwner(resource.data.userId) || // User can update their own appointments
+        isOwner(resource.data.proId) // Professional can update appointments for them
+      );
+      allow delete: if false; // No direct deletion, use status updates
+    }
+
+    // Reviews - users can only create one review per appointment they attended
+    match /reviews/{reviewId} {
+      allow read: if isSignedIn() && (
+        isOwner(resource.data.userId) || // User can read their own reviews
+        isOwner(resource.data.proId) // Professional can read reviews for them
+      );
+      allow create: if isSignedIn() && 
+        request.auth.uid == request.resource.data.userId && // Only the user can create their review
+        request.resource.data.rating >= 1 && 
+        request.resource.data.rating <= 5 && // Rating must be 1-5
+        request.resource.data.appointmentId != null &&
+        request.resource.data.userId != null;
+      allow update: if false; // No editing reviews
+      allow delete: if false; // No deleting reviews
+    }
+
+    // Feature flags - only admins can read/write
+    match /feature_flags/{flagId} {
+      allow read: if isSignedIn() && isAdmin();
+      allow create, update, delete: if isSignedIn() && isAdmin();
+    }
+
+    // Default deny all other collections
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

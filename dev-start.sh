@@ -6,14 +6,14 @@ echo "=================================================="
 
 # Check if Node.js is installed
 if ! command -v node &> /dev/null; then
-    echo "❌ Node.js is not installed. Please install Node.js 20+ first."
+    echo "❌ Node.js is not installed. Please install Node.js 22+ first."
     exit 1
 fi
 
 # Check Node.js version
 NODE_VERSION=$(node --version | cut -d'v' -f2 | cut -d'.' -f1)
-if [ "$NODE_VERSION" -lt 20 ]; then
-    echo "⚠️  Warning: Node.js version is $NODE_VERSION. Recommended: Node.js 20+"
+if [ "$NODE_VERSION" -lt 22 ]; then
+    echo "⚠️  Warning: Node.js version is $NODE_VERSION. Recommended: Node.js 22+"
 fi
 
 echo "✅ Node.js version: $(node --version)"
@@ -25,6 +25,19 @@ if ! command -v firebase &> /dev/null; then
 fi
 
 echo "✅ Firebase CLI version: $(firebase --version)"
+
+# Check if development configuration exists
+if [ ! -f "firebase.dev.json" ]; then
+    echo "⚠️  firebase.dev.json not found. Creating from firebase.json..."
+    cp firebase.json firebase.dev.json
+    echo "📝 Development configuration created"
+fi
+
+if [ ! -f "firestore.dev.rules" ]; then
+    echo "⚠️  firestore.dev.rules not found. Creating from firestore.rules..."
+    cp firestore.rules firestore.dev.rules
+    echo "📝 Development Firestore rules created"
+fi
 
 # Install dependencies if needed
 if [ ! -d "node_modules" ]; then
@@ -56,7 +69,7 @@ echo "1. Start Web App Only:"
 echo "   cd apps/web && npm run dev"
 echo ""
 echo "2. Start Firebase Emulators:"
-echo "   firebase emulators:start --project=demo-test"
+echo "   firebase emulators:start --project=demo-miamente --config=firebase.dev.json"
 echo ""
 echo "3. Start Both (Web App + Emulators):"
 echo "   ./dev-start.sh full"
@@ -74,7 +87,7 @@ if [ "$1" = "full" ]; then
     
     # Start Firebase emulators in background
     echo "🔥 Starting Firebase Emulators..."
-    firebase emulators:start --project=demo-test &
+    firebase emulators:start --project=demo-miamente --config=firebase.dev.json &
     FIREBASE_PID=$!
     
     # Wait for emulators to start
@@ -88,13 +101,18 @@ if [ "$1" = "full" ]; then
     
     echo ""
     echo "✅ Development Environment Started!"
-    echo "=================================="
-    echo "🌐 Web App: http://localhost:3000"
-    echo "🔥 Firebase Emulator UI: http://localhost:4000"
-    echo "📊 Firestore: http://localhost:8080"
-    echo "🔐 Auth: http://localhost:9099"
-    echo "☁️  Storage: http://localhost:9199"
-    echo "⚡ Functions: http://localhost:5001"
+echo "=================================="
+echo "🌐 Web App: http://localhost:3000"
+echo "🔥 Firebase Emulator UI: http://localhost:4000"
+echo "📊 Firestore: http://localhost:8080"
+echo "🔐 Auth: http://localhost:9099"
+echo "☁️  Storage: http://localhost:9199"
+echo "⚡ Functions: http://localhost:5001"
+echo ""
+echo "📝 Development Notes:"
+echo "- App Check is disabled in development mode"
+echo "- Firestore rules are relaxed for development"
+echo "- All Firebase services use emulators"
     echo ""
     echo "Press Ctrl+C to stop all services"
     

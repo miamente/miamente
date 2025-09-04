@@ -45,17 +45,18 @@ export function getFirebaseApp(): FirebaseApp {
   const currentApp = app;
 
   if (typeof window !== "undefined") {
-    // App Check - required with reCAPTCHA Enterprise
+    // App Check - only initialize in production with valid site key
     const siteKey = process.env.NEXT_PUBLIC_RECAPTCHA_ENTERPRISE_SITE_KEY ?? "";
-    if (siteKey) {
+    const isProduction = process.env.NODE_ENV === 'production';
+    
+    if (isProduction && siteKey) {
       initializeAppCheck(app, {
         provider: new ReCaptchaEnterpriseProvider(siteKey),
         isTokenAutoRefreshEnabled: true,
       });
+      console.log('App Check initialized for production');
     } else {
-      console.warn(
-        "NEXT_PUBLIC_RECAPTCHA_ENTERPRISE_SITE_KEY not found. App Check will not be initialized.",
-      );
+      console.log('App Check disabled for development mode');
     }
 
     // Analytics if supported

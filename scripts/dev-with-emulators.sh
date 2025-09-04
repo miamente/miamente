@@ -31,7 +31,7 @@ cleanup() {
 trap cleanup EXIT INT TERM
 
 echo "🔥 Starting Firebase emulators..."
-firebase emulators:start --project=demo-miamente &
+firebase emulators:start --project=demo-miamente --config=firebase.dev.json &
 EMULATOR_PID=$!
 
 # Wait for emulators to start
