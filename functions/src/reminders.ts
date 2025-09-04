@@ -1,5 +1,6 @@
+import "./firebase-admin"; // Initialize Firebase Admin first
 import * as admin from "firebase-admin";
-import * as functions from "firebase-functions";
+import { logger } from "firebase-functions/v2";
 
 import type { AppointmentData } from "./appointment-data";
 import { sendEmailHandler } from "./email";
@@ -19,7 +20,7 @@ export async function sendConfirmationEmail(appointmentId: string): Promise<void
   try {
     const appointment = await getAppointment(appointmentId);
     if (!appointment) {
-      functions.logger.error(`Appointment ${appointmentId} not found`);
+      logger.error(`Appointment ${appointmentId} not found`);
       return;
     }
 
@@ -35,7 +36,7 @@ export async function sendConfirmationEmail(appointmentId: string): Promise<void
     const appointmentData = appointment as unknown as AppointmentData;
 
     if (!userData?.email || !appointmentData.jitsiUrl) {
-      functions.logger.error(`Missing email or Jitsi URL for appointment ${appointmentId}`);
+      logger.error(`Missing email or Jitsi URL for appointment ${appointmentId}`);
       return;
     }
 
@@ -49,15 +50,15 @@ export async function sendConfirmationEmail(appointmentId: string): Promise<void
     const result = await sendEmailHandler(userData.email, subject, html);
 
     if (result.success) {
-      functions.logger.info(`Confirmation email sent for appointment ${appointmentId}`);
+      logger.info(`Confirmation email sent for appointment ${appointmentId}`);
     } else {
-      functions.logger.error(
+      logger.error(
         `Failed to send confirmation email for appointment ${appointmentId}:`,
         result.error,
       );
     }
   } catch (error) {
-    functions.logger.error(
+    logger.error(
       `Error sending confirmation email for appointment ${appointmentId}:`,
       error,
     );
@@ -101,11 +102,11 @@ export async function sendReminderEmails(): Promise<void> {
       await sendReminderEmail(appointmentDoc.id, appointment, 1);
     }
 
-    functions.logger.info(
+    logger.info(
       `Sent ${appointments24h.docs.length} 24h reminders and ${appointments1h.docs.length} 1h reminders`,
     );
   } catch (error) {
-    functions.logger.error("Error sending reminder emails:", error);
+    logger.error("Error sending reminder emails:", error);
   }
 }
 
@@ -130,9 +131,9 @@ export async function sendPostSessionEmails(): Promise<void> {
       await sendPostSessionEmail(appointmentDoc.id, appointment);
     }
 
-    functions.logger.info(`Sent ${completedAppointments.docs.length} post-session emails`);
+    logger.info(`Sent ${completedAppointments.docs.length} post-session emails`);
   } catch (error) {
-    functions.logger.error("Error sending post-session emails:", error);
+    logger.error("Error sending post-session emails:", error);
   }
 }
 
@@ -148,7 +149,7 @@ async function sendReminderEmail(
     const appointmentData = appointment as unknown as AppointmentData;
 
     if (!appointmentData.jitsiUrl) {
-      functions.logger.error(`No Jitsi URL for appointment ${appointmentId}`);
+      logger.error(`No Jitsi URL for appointment ${appointmentId}`);
       return;
     }
 
@@ -162,7 +163,7 @@ async function sendReminderEmail(
     const proData = proDoc.data();
 
     if (!userData?.email) {
-      functions.logger.error(`No email for user ${appointmentData.userId}`);
+      logger.error(`No email for user ${appointmentData.userId}`);
       return;
     }
 
@@ -178,17 +179,17 @@ async function sendReminderEmail(
     const result = await sendEmailHandler(userData.email, subject, html);
 
     if (result.success) {
-      functions.logger.info(
+      logger.info(
         `Reminder email sent for appointment ${appointmentId} (${hoursUntil}h)`,
       );
     } else {
-      functions.logger.error(
+      logger.error(
         `Failed to send reminder email for appointment ${appointmentId}:`,
         result.error,
       );
     }
   } catch (error) {
-    functions.logger.error(`Error sending reminder email for appointment ${appointmentId}:`, error);
+    logger.error(`Error sending reminder email for appointment ${appointmentId}:`, error);
   }
 }
 
@@ -212,7 +213,7 @@ async function sendPostSessionEmail(
     const proData = proDoc.data();
 
     if (!userData?.email) {
-      functions.logger.error(`No email for user ${appointmentData.userId}`);
+      logger.error(`No email for user ${appointmentData.userId}`);
       return;
     }
 
@@ -222,15 +223,15 @@ async function sendPostSessionEmail(
     const result = await sendEmailHandler(userData.email, subject, html);
 
     if (result.success) {
-      functions.logger.info(`Post-session email sent for appointment ${appointmentId}`);
+      logger.info(`Post-session email sent for appointment ${appointmentId}`);
     } else {
-      functions.logger.error(
+      logger.error(
         `Failed to send post-session email for appointment ${appointmentId}:`,
         result.error,
       );
     }
   } catch (error) {
-    functions.logger.error(
+    logger.error(
       `Error sending post-session email for appointment ${appointmentId}:`,
       error,
     );

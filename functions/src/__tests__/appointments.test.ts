@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { initializeTestEnvironment, RulesTestEnvironment } from '@firebase/rules-unit-testing';
-import { httpsCallable } from 'firebase-functions-test';
+import firebaseFunctionsTest from 'firebase-functions-test';
 import { bookAppointment } from '../appointments';
 
 // Mock Firebase Admin
@@ -117,7 +117,8 @@ describe('Appointment Booking', () => {
       };
 
       // Create the callable function
-      const bookAppointmentCallable = httpsCallable(bookAppointment);
+      const test = firebaseFunctionsTest();
+      const bookAppointmentCallable = test.wrap(bookAppointment);
 
       // Execute the function
       const result = await bookAppointmentCallable(mockRequest);
@@ -161,7 +162,8 @@ describe('Appointment Booking', () => {
       };
 
       // Create the callable function
-      const bookAppointmentCallable = httpsCallable(bookAppointment);
+      const test = firebaseFunctionsTest();
+      const bookAppointmentCallable = test.wrap(bookAppointment);
 
       // Execute and expect failure
       await expect(bookAppointmentCallable(mockRequest)).rejects.toThrow(
@@ -191,7 +193,8 @@ describe('Appointment Booking', () => {
       };
 
       // Create the callable function
-      const bookAppointmentCallable = httpsCallable(bookAppointment);
+      const test = firebaseFunctionsTest();
+      const bookAppointmentCallable = test.wrap(bookAppointment);
 
       // Execute and expect failure
       await expect(bookAppointmentCallable(mockRequest)).rejects.toThrow(
@@ -238,7 +241,8 @@ describe('Appointment Booking', () => {
       };
 
       // Create the callable function
-      const bookAppointmentCallable = httpsCallable(bookAppointment);
+      const test = firebaseFunctionsTest();
+      const bookAppointmentCallable = test.wrap(bookAppointment);
 
       // Execute and expect failure
       await expect(bookAppointmentCallable(mockRequest)).rejects.toThrow(
@@ -257,7 +261,8 @@ describe('Appointment Booking', () => {
       };
 
       // Create the callable function
-      const bookAppointmentCallable = httpsCallable(bookAppointment);
+      const test = firebaseFunctionsTest();
+      const bookAppointmentCallable = test.wrap(bookAppointment);
 
       // Execute and expect failure
       await expect(bookAppointmentCallable(mockRequest)).rejects.toThrow(
@@ -278,7 +283,8 @@ describe('Appointment Booking', () => {
       };
 
       // Create the callable function
-      const bookAppointmentCallable = httpsCallable(bookAppointment);
+      const test = firebaseFunctionsTest();
+      const bookAppointmentCallable = test.wrap(bookAppointment);
 
       // Execute and expect failure
       await expect(bookAppointmentCallable(mockRequest)).rejects.toThrow(
@@ -332,7 +338,8 @@ describe('Appointment Booking', () => {
       };
 
       // Create the callable function
-      const bookAppointmentCallable = httpsCallable(bookAppointment);
+      const test = firebaseFunctionsTest();
+      const bookAppointmentCallable = test.wrap(bookAppointment);
 
       // First user should succeed
       const result1 = await bookAppointmentCallable(mockRequest1);
@@ -415,7 +422,8 @@ describe('Appointment Booking', () => {
       };
 
       // Create the callable function
-      const bookAppointmentCallable = httpsCallable(bookAppointment);
+      const test = firebaseFunctionsTest();
+      const bookAppointmentCallable = test.wrap(bookAppointment);
 
       // Execute and expect failure
       await expect(bookAppointmentCallable(mockRequest)).rejects.toThrow(
@@ -469,7 +477,8 @@ describe('Appointment Booking', () => {
       };
 
       // Create the callable function
-      const bookAppointmentCallable = httpsCallable(bookAppointment);
+      const test = firebaseFunctionsTest();
+      const bookAppointmentCallable = test.wrap(bookAppointment);
 
       // Execute and expect failure
       await expect(bookAppointmentCallable(mockRequest)).rejects.toThrow(
@@ -508,7 +517,8 @@ describe('Appointment Booking', () => {
       };
 
       // Create the callable function
-      const bookAppointmentCallable = httpsCallable(bookAppointment);
+      const test = firebaseFunctionsTest();
+      const bookAppointmentCallable = test.wrap(bookAppointment);
 
       // Execute and expect failure
       await expect(bookAppointmentCallable(mockRequest)).rejects.toThrow(

@@ -1,47 +1,67 @@
-import sgMail from "@sendgrid/mail";
-import * as functions from "firebase-functions";
-import { formatEmailDate } from "./utils";
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.sendEmailHandler = sendEmailHandler;
+exports.generateConfirmationEmailHtml = generateConfirmationEmailHtml;
+exports.generateReminderEmailHtml = generateReminderEmailHtml;
+exports.generatePostSessionEmailHtml = generatePostSessionEmailHtml;
+const mail_1 = __importDefault(require("@sendgrid/mail"));
+const v2_1 = require("firebase-functions/v2");
+const utils_1 = require("./utils");
 // Initialize SendGrid
 const sendGridApiKey = process.env.SENDGRID_API_KEY;
-if (!sendGridApiKey) {
-  throw new Error("SENDGRID_API_KEY environment variable is required");
+if (sendGridApiKey) {
+    mail_1.default.setApiKey(sendGridApiKey);
 }
-sgMail.setApiKey(sendGridApiKey);
+else {
+    v2_1.logger.warn("SENDGRID_API_KEY not configured. Email functionality will be disabled.");
+}
 /**
  * Send email using SendGrid
  */
-export async function sendEmailHandler(to, subject, html) {
-  try {
-    const msg = {
-      to,
-      from: {
-        email: process.env.SENDGRID_FROM_EMAIL || "noreply@miamente.com",
-        name: "Miamente",
-      },
-      subject,
-      html,
-    };
-    const response = await sgMail.send(msg);
-    const messageId = response[0].headers["x-message-id"];
-    return {
-      success: true,
-      messageId,
-    };
-  } catch (error) {
-    functions.logger.error("Error sending email:", error);
-    return {
-      success: false,
-      error: error instanceof Error ? error.message : "Unknown error",
-    };
-  }
+async function sendEmailHandler(to, subject, html) {
+    // Check if SendGrid is configured
+    if (!sendGridApiKey) {
+        v2_1.logger.warn(`Email not sent - SendGrid not configured. To: ${to}, Subject: ${subject}`);
+        return {
+            success: false,
+            error: "SendGrid not configured",
+        };
+    }
+    try {
+        const msg = {
+            to,
+            from: {
+                email: process.env.SENDGRID_FROM_EMAIL || "noreply@miamente.com",
+                name: "Miamente",
+            },
+            subject,
+            html,
+        };
+        const response = await mail_1.default.send(msg);
+        const messageId = response[0].headers["x-message-id"];
+        return {
+            success: true,
+            messageId,
+        };
+    }
+    catch (error) {
+        v2_1.logger.error("Error sending email:", error);
+        return {
+            success: false,
+            error: error instanceof Error ? error.message : "Unknown error",
+        };
+    }
 }
 /**
  * Generate appointment confirmation email HTML
  */
-export function generateConfirmationEmailHtml(appointmentDate, jitsiUrl, professionalName) {
-  const formattedDate = formatEmailDate(appointmentDate);
-  const professionalInfo = professionalName ? ` con ${professionalName}` : "";
-  return `
+function generateConfirmationEmailHtml(appointmentDate, jitsiUrl, professionalName) {
+    const formattedDate = (0, utils_1.formatEmailDate)(appointmentDate);
+    const professionalInfo = professionalName ? ` con ${professionalName}` : "";
+    return `
     <!DOCTYPE html>
     <html>
     <head>
@@ -85,6 +105,14 @@ export function generateConfirmationEmailHtml(appointmentDate, jitsiUrl, profess
           <li>La sesión comenzará puntualmente</li>
         </ul>
         
+        <div class="appointment-details">
+          <h3>📋 Política de Cancelación</h3>
+          <p><strong>Cancelaciones:</strong> Puedes cancelar tu cita hasta 24 horas antes sin costo.</p>
+          <p><strong>Reprogramaciones:</strong> Las reprogramaciones están disponibles hasta 12 horas antes de la cita.</p>
+          <p><strong>No-show:</strong> Si no te presentas a la cita, se aplicará el costo completo.</p>
+          <p><strong>Emergencias:</strong> Para situaciones de emergencia, contáctanos inmediatamente.</p>
+        </div>
+        
         <p>Si tienes alguna pregunta o necesitas reprogramar tu cita, no dudes en contactarnos.</p>
         
         <p>¡Esperamos verte pronto!</p>
@@ -102,11 +130,11 @@ export function generateConfirmationEmailHtml(appointmentDate, jitsiUrl, profess
 /**
  * Generate reminder email HTML
  */
-export function generateReminderEmailHtml(appointmentDate, jitsiUrl, hoursUntil, professionalName) {
-  const formattedDate = formatEmailDate(appointmentDate);
-  const professionalInfo = professionalName ? ` con ${professionalName}` : "";
-  const timeMessage = hoursUntil === 1 ? "en 1 hora" : `en ${hoursUntil} horas`;
-  return `
+function generateReminderEmailHtml(appointmentDate, jitsiUrl, hoursUntil, professionalName) {
+    const formattedDate = (0, utils_1.formatEmailDate)(appointmentDate);
+    const professionalInfo = professionalName ? ` con ${professionalName}` : "";
+    const timeMessage = hoursUntil === 1 ? "en 1 hora" : `en ${hoursUntil} horas`;
+    return `
     <!DOCTYPE html>
     <html>
     <head>
@@ -169,9 +197,9 @@ export function generateReminderEmailHtml(appointmentDate, jitsiUrl, hoursUntil,
 /**
  * Generate post-session email HTML
  */
-export function generatePostSessionEmailHtml(professionalName) {
-  const professionalInfo = professionalName ? ` con ${professionalName}` : "";
-  return `
+function generatePostSessionEmailHtml(professionalName) {
+    const professionalInfo = professionalName ? ` con ${professionalName}` : "";
+    return `
     <!DOCTYPE html>
     <html>
     <head>

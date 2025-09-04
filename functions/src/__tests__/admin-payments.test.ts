@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { initializeTestEnvironment, RulesTestEnvironment } from '@firebase/rules-unit-testing';
-import { httpsCallable } from 'firebase-functions-test';
+import firebaseFunctionsTest from 'firebase-functions-test';
 import { adminConfirmPayment, adminFailPayment } from '../admin-payments';
 
 // Mock Firebase Admin
@@ -161,7 +161,8 @@ describe('Admin Payment Functions', () => {
       };
 
       // Create the callable function
-      const adminConfirmPaymentCallable = httpsCallable(adminConfirmPayment);
+      const test = firebaseFunctionsTest();
+      const adminConfirmPaymentCallable = test.wrap(adminConfirmPayment);
 
       // Execute the function
       const result = await adminConfirmPaymentCallable(mockRequest);
@@ -215,7 +216,8 @@ describe('Admin Payment Functions', () => {
       };
 
       // Create the callable function
-      const adminConfirmPaymentCallable = httpsCallable(adminConfirmPayment);
+      const test = firebaseFunctionsTest();
+      const adminConfirmPaymentCallable = test.wrap(adminConfirmPayment);
 
       // Execute and expect failure
       await expect(adminConfirmPaymentCallable(mockRequest)).rejects.toThrow(
@@ -233,7 +235,8 @@ describe('Admin Payment Functions', () => {
       };
 
       // Create the callable function
-      const adminConfirmPaymentCallable = httpsCallable(adminConfirmPayment);
+      const test = firebaseFunctionsTest();
+      const adminConfirmPaymentCallable = test.wrap(adminConfirmPayment);
 
       // Execute and expect failure
       await expect(adminConfirmPaymentCallable(mockRequest)).rejects.toThrow(
@@ -287,7 +290,8 @@ describe('Admin Payment Functions', () => {
       };
 
       // Create the callable function
-      const adminConfirmPaymentCallable = httpsCallable(adminConfirmPayment);
+      const test = firebaseFunctionsTest();
+      const adminConfirmPaymentCallable = test.wrap(adminConfirmPayment);
 
       // Execute and expect failure
       await expect(adminConfirmPaymentCallable(mockRequest)).rejects.toThrow(
@@ -355,7 +359,8 @@ describe('Admin Payment Functions', () => {
       };
 
       // Create the callable function
-      const adminConfirmPaymentCallable = httpsCallable(adminConfirmPayment);
+      const test = firebaseFunctionsTest();
+      const adminConfirmPaymentCallable = test.wrap(adminConfirmPayment);
 
       // Execute and expect failure
       await expect(adminConfirmPaymentCallable(mockRequest)).rejects.toThrow(
@@ -400,7 +405,8 @@ describe('Admin Payment Functions', () => {
       };
 
       // Create the callable function
-      const adminConfirmPaymentCallable = httpsCallable(adminConfirmPayment);
+      const test = firebaseFunctionsTest();
+      const adminConfirmPaymentCallable = test.wrap(adminConfirmPayment);
 
       // Execute and expect failure
       await expect(adminConfirmPaymentCallable(mockRequest)).rejects.toThrow(
@@ -470,7 +476,8 @@ describe('Admin Payment Functions', () => {
       };
 
       // Create the callable function
-      const adminFailPaymentCallable = httpsCallable(adminFailPayment);
+      const test = firebaseFunctionsTest();
+      const adminFailPaymentCallable = test.wrap(adminFailPayment);
 
       // Execute the function
       const result = await adminFailPaymentCallable(mockRequest);
@@ -523,7 +530,8 @@ describe('Admin Payment Functions', () => {
       };
 
       // Create the callable function
-      const adminFailPaymentCallable = httpsCallable(adminFailPayment);
+      const test = firebaseFunctionsTest();
+      const adminFailPaymentCallable = test.wrap(adminFailPayment);
 
       // Execute and expect failure
       await expect(adminFailPaymentCallable(mockRequest)).rejects.toThrow(
@@ -591,7 +599,8 @@ describe('Admin Payment Functions', () => {
       };
 
       // Create the callable function
-      const adminFailPaymentCallable = httpsCallable(adminFailPayment);
+      const test = firebaseFunctionsTest();
+      const adminFailPaymentCallable = test.wrap(adminFailPayment);
 
       // Execute and expect failure
       await expect(adminFailPaymentCallable(mockRequest)).rejects.toThrow(
@@ -660,7 +669,8 @@ describe('Admin Payment Functions', () => {
       };
 
       // Create the callable function
-      const adminConfirmPaymentCallable = httpsCallable(adminConfirmPayment);
+      const test = firebaseFunctionsTest();
+      const adminConfirmPaymentCallable = test.wrap(adminConfirmPayment);
 
       // Execute the function
       const result = await adminConfirmPaymentCallable(mockRequest);
@@ -728,7 +738,8 @@ describe('Admin Payment Functions', () => {
       };
 
       // Create the callable function
-      const adminConfirmPaymentCallable = httpsCallable(adminConfirmPayment);
+      const test = firebaseFunctionsTest();
+      const adminConfirmPaymentCallable = test.wrap(adminConfirmPayment);
 
       // Execute the function
       const result = await adminConfirmPaymentCallable(mockRequest);
@@ -774,7 +785,8 @@ describe('Admin Payment Functions', () => {
       };
 
       // Create the callable function
-      const adminConfirmPaymentCallable = httpsCallable(adminConfirmPayment);
+      const test = firebaseFunctionsTest();
+      const adminConfirmPaymentCallable = test.wrap(adminConfirmPayment);
 
       // Execute and expect failure
       await expect(adminConfirmPaymentCallable(mockRequest)).rejects.toThrow(

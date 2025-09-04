@@ -1,5 +1,6 @@
+import "./firebase-admin"; // Initialize Firebase Admin first
 import * as admin from "firebase-admin";
-import * as functions from "firebase-functions";
+import { logger } from "firebase-functions/v2";
 
 const db = admin.firestore();
 
@@ -21,11 +22,11 @@ export async function cleanupHeldSlots(): Promise<void> {
       .get();
 
     if (heldSlotsQuery.empty) {
-      functions.logger.info("No held slots to cleanup");
+      logger.info("No held slots to cleanup");
       return;
     }
 
-    functions.logger.info(`Found ${heldSlotsQuery.docs.length} held slots to cleanup`);
+    logger.info(`Found ${heldSlotsQuery.docs.length} held slots to cleanup`);
 
     // Use batch to update multiple slots
     const batch = db.batch();
@@ -66,10 +67,10 @@ export async function cleanupHeldSlots(): Promise<void> {
 
     if (cleanupCount > 0) {
       await batch.commit();
-      functions.logger.info(`Cleaned up ${cleanupCount} held slots`);
+      logger.info(`Cleaned up ${cleanupCount} held slots`);
     }
   } catch (error) {
-    functions.logger.error("Error in cleanup job:", error);
+    logger.error("Error in cleanup job:", error);
     throw error;
   }
 }
@@ -109,7 +110,7 @@ export async function manualCleanupHeldSlots(): Promise<{ cleaned: number }> {
 
     return { cleaned };
   } catch (error) {
-    functions.logger.error("Error in manual cleanup:", error);
+    logger.error("Error in manual cleanup:", error);
     throw error;
   }
 }

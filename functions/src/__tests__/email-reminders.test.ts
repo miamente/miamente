@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { initializeTestEnvironment, RulesTestEnvironment } from '@firebase/rules-unit-testing';
-import { httpsCallable } from 'firebase-functions-test';
+import firebaseFunctionsTest from 'firebase-functions-test';
 import { runReminders } from '../reminders-https';
 import { sendEmailHandler, generateConfirmationEmailHtml, generateReminderEmailHtml } from '../email';
 

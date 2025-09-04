@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { initializeTestEnvironment, RulesTestEnvironment } from '@firebase/rules-unit-testing';
-import { httpsCallable } from 'firebase-functions-test';
+import firebaseFunctionsTest from 'firebase-functions-test';
 import { mockApprovePayment } from '../mock-payment';
 
 // Mock Firebase Admin
@@ -132,7 +132,8 @@ describe('Mock Payment Approval', () => {
       };
 
       // Create the callable function
-      const mockApprovePaymentCallable = httpsCallable(mockApprovePayment);
+      const test = firebaseFunctionsTest();
+      const mockApprovePaymentCallable = test.wrap(mockApprovePayment);
 
       // Execute the function
       const result = await mockApprovePaymentCallable(mockRequest);
@@ -196,7 +197,8 @@ describe('Mock Payment Approval', () => {
       };
 
       // Create the callable function
-      const mockApprovePaymentCallable = httpsCallable(mockApprovePayment);
+      const test = firebaseFunctionsTest();
+      const mockApprovePaymentCallable = test.wrap(mockApprovePayment);
 
       // Execute the function
       const result = await mockApprovePaymentCallable(mockRequest);
@@ -228,7 +230,8 @@ describe('Mock Payment Approval', () => {
       };
 
       // Create the callable function
-      const mockApprovePaymentCallable = httpsCallable(mockApprovePayment);
+      const test = firebaseFunctionsTest();
+      const mockApprovePaymentCallable = test.wrap(mockApprovePayment);
 
       // Execute and expect failure
       await expect(mockApprovePaymentCallable(mockRequest)).rejects.toThrow(
@@ -246,7 +249,8 @@ describe('Mock Payment Approval', () => {
       };
 
       // Create the callable function
-      const mockApprovePaymentCallable = httpsCallable(mockApprovePayment);
+      const test = firebaseFunctionsTest();
+      const mockApprovePaymentCallable = test.wrap(mockApprovePayment);
 
       // Execute and expect failure
       await expect(mockApprovePaymentCallable(mockRequest)).rejects.toThrow(
@@ -289,7 +293,8 @@ describe('Mock Payment Approval', () => {
       };
 
       // Create the callable function
-      const mockApprovePaymentCallable = httpsCallable(mockApprovePayment);
+      const test = firebaseFunctionsTest();
+      const mockApprovePaymentCallable = test.wrap(mockApprovePayment);
 
       // Execute and expect failure
       await expect(mockApprovePaymentCallable(mockRequest)).rejects.toThrow(
@@ -332,7 +337,8 @@ describe('Mock Payment Approval', () => {
       };
 
       // Create the callable function
-      const mockApprovePaymentCallable = httpsCallable(mockApprovePayment);
+      const test = firebaseFunctionsTest();
+      const mockApprovePaymentCallable = test.wrap(mockApprovePayment);
 
       // Execute and expect failure
       await expect(mockApprovePaymentCallable(mockRequest)).rejects.toThrow(
@@ -352,7 +358,8 @@ describe('Mock Payment Approval', () => {
       };
 
       // Create the callable function
-      const mockApprovePaymentCallable = httpsCallable(mockApprovePayment);
+      const test = firebaseFunctionsTest();
+      const mockApprovePaymentCallable = test.wrap(mockApprovePayment);
 
       // Execute and expect failure
       await expect(mockApprovePaymentCallable(mockRequest)).rejects.toThrow(
@@ -407,7 +414,8 @@ describe('Mock Payment Approval', () => {
       };
 
       // Create the callable function
-      const mockApprovePaymentCallable = httpsCallable(mockApprovePayment);
+      const test = firebaseFunctionsTest();
+      const mockApprovePaymentCallable = test.wrap(mockApprovePayment);
 
       // Execute the function
       const result = await mockApprovePaymentCallable(mockRequest);
@@ -466,7 +474,8 @@ describe('Mock Payment Approval', () => {
       };
 
       // Create the callable function
-      const mockApprovePaymentCallable = httpsCallable(mockApprovePayment);
+      const test = firebaseFunctionsTest();
+      const mockApprovePaymentCallable = test.wrap(mockApprovePayment);
 
       // Execute the function
       const result = await mockApprovePaymentCallable(mockRequest);

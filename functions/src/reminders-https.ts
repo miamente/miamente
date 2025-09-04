@@ -1,7 +1,8 @@
+import "./firebase-admin"; // Initialize Firebase Admin first
 import { onRequest } from 'firebase-functions/v2/https';
 import { getFirestore, FieldValue } from 'firebase-admin/firestore';
 import { sendEmailHandler, generateReminderEmailHtml } from './email';
-import * as functions from 'firebase-functions';
+import { logger } from 'firebase-functions/v2';
 
 const db = getFirestore();
 
@@ -13,6 +14,19 @@ interface ReminderResult {
   };
   errors: string[];
   timestamp: string;
+}
+
+interface AppointmentData {
+  id: string;
+  slot: {
+    date: string;
+    time: string;
+  };
+  professionalId: string;
+  professionalName?: string;
+  sent24h?: boolean;
+  sent1h?: boolean;
+  [key: string]: any;
 }
 
 /**
@@ -42,7 +56,7 @@ async function sendReminderEmail(
     // Get user details
     const userDoc = await db.collection('users').doc(appointment.userId).get();
     if (!userDoc.exists) {
-      functions.logger.warn(`User not found for appointment ${appointment.id}`);
+      logger.warn(`User not found for appointment ${appointment.id}`);
       return false;
     }
 
@@ -50,7 +64,7 @@ async function sendReminderEmail(
     const userEmail = userData?.email;
 
     if (!userEmail) {
-      functions.logger.warn(`User email not found for appointment ${appointment.id}`);
+      logger.warn(`User email not found for appointment ${appointment.id}`);
       return false;
     }
 
@@ -76,14 +90,14 @@ async function sendReminderEmail(
     );
 
     if (result.success) {
-      functions.logger.info(`Reminder email sent for appointment ${appointment.id} (${hoursUntil}h)`);
+      logger.info(`Reminder email sent for appointment ${appointment.id} (${hoursUntil}h)`);
       return true;
     } else {
-      functions.logger.error(`Failed to send reminder email for appointment ${appointment.id}:`, result.error);
+      logger.error(`Failed to send reminder email for appointment ${appointment.id}:`, result.error);
       return false;
     }
   } catch (error) {
-    functions.logger.error(`Error sending reminder email for appointment ${appointment.id}:`, error);
+    logger.error(`Error sending reminder email for appointment ${appointment.id}:`, error);
     return false;
   }
 }
@@ -106,9 +120,9 @@ async function markReminderSent(appointmentId: string, reminderType: '24h' | '1h
     }
 
     await db.collection('appointments').doc(appointmentId).update(updateData);
-    functions.logger.info(`Marked ${reminderType} reminder as sent for appointment ${appointmentId}`);
+    logger.info(`Marked ${reminderType} reminder as sent for appointment ${appointmentId}`);
   } catch (error) {
-    functions.logger.error(`Error marking reminder as sent for appointment ${appointmentId}:`, error);
+    logger.error(`Error marking reminder as sent for appointment ${appointmentId}:`, error);
     throw error;
   }
 }
@@ -147,7 +161,7 @@ async function getAppointmentsForReminders(): Promise<{
 
     // Filter 1h appointments by time (within the next hour)
     const appointments1h = appointments1hSnapshot.docs
-      .map(doc => ({ id: doc.id, ...doc.data() }))
+      .map(doc => ({ id: doc.id, ...doc.data() } as AppointmentData))
       .filter(appointment => {
         const appointmentTime = new Date(`${appointment.slot.date}T${appointment.slot.time}:00`);
         const timeDiff = appointmentTime.getTime() - now.getTime();
@@ -155,14 +169,14 @@ async function getAppointmentsForReminders(): Promise<{
       });
 
     const appointments24h = appointments24hSnapshot.docs
-      .map(doc => ({ id: doc.id, ...doc.data() }));
+      .map(doc => ({ id: doc.id, ...doc.data() } as AppointmentData));
 
     return {
       '24h': appointments24h,
       '1h': appointments1h
     };
   } catch (error) {
-    functions.logger.error('Error fetching appointments for reminders:', error);
+    logger.error('Error fetching appointments for reminders:', error);
     throw error;
   }
 }
@@ -195,13 +209,13 @@ export const runReminders = onRequest(
     const expectedToken = process.env.REMINDERS_AUTH_TOKEN;
 
     if (!expectedToken) {
-      functions.logger.error('REMINDERS_AUTH_TOKEN not configured');
+      logger.error('REMINDERS_AUTH_TOKEN not configured');
       res.status(500).json({ error: 'Server configuration error' });
       return;
     }
 
     if (!authHeader || authHeader !== `Bearer ${expectedToken}`) {
-      functions.logger.warn('Unauthorized reminder request');
+      logger.warn('Unauthorized reminder request');
       res.status(401).json({ error: 'Unauthorized' });
       return;
     }
@@ -218,13 +232,13 @@ export const runReminders = onRequest(
     };
 
     try {
-      functions.logger.info('Starting reminder process...');
+      logger.info('Starting reminder process...');
 
       // Get appointments that need reminders
       const appointments = await getAppointmentsForReminders();
       
-      functions.logger.info(`Found ${appointments['24h'].length} appointments for 24h reminders`);
-      functions.logger.info(`Found ${appointments['1h'].length} appointments for 1h reminders`);
+      logger.info(`Found ${appointments['24h'].length} appointments for 24h reminders`);
+      logger.info(`Found ${appointments['1h'].length} appointments for 1h reminders`);
 
       // Process 24h reminders
       for (const appointment of appointments['24h']) {
@@ -238,7 +252,7 @@ export const runReminders = onRequest(
           }
         } catch (error) {
           const errorMsg = `Error processing 24h reminder for appointment ${appointment.id}: ${error}`;
-          functions.logger.error(errorMsg);
+          logger.error(errorMsg);
           result.errors.push(errorMsg);
         }
       }
@@ -255,17 +269,17 @@ export const runReminders = onRequest(
           }
         } catch (error) {
           const errorMsg = `Error processing 1h reminder for appointment ${appointment.id}: ${error}`;
-          functions.logger.error(errorMsg);
+          logger.error(errorMsg);
           result.errors.push(errorMsg);
         }
       }
 
       const duration = Date.now() - startTime;
-      functions.logger.info(`Reminder process completed in ${duration}ms`);
-      functions.logger.info(`Sent ${result.remindersSent['24h']} 24h reminders and ${result.remindersSent['1h']} 1h reminders`);
+      logger.info(`Reminder process completed in ${duration}ms`);
+      logger.info(`Sent ${result.remindersSent['24h']} 24h reminders and ${result.remindersSent['1h']} 1h reminders`);
 
       if (result.errors.length > 0) {
-        functions.logger.warn(`Reminder process completed with ${result.errors.length} errors`);
+        logger.warn(`Reminder process completed with ${result.errors.length} errors`);
         result.success = false;
       }
 
@@ -276,7 +290,7 @@ export const runReminders = onRequest(
       });
 
     } catch (error) {
-      functions.logger.error('Error in reminder process:', error);
+      logger.error('Error in reminder process:', error);
       res.status(500).json({
         success: false,
         error: error instanceof Error ? error.message : 'Unknown error',

@@ -1,5 +1,8 @@
-import * as admin from "firebase-admin";
-import * as functions from "firebase-functions";
+import "./firebase-admin"; // Initialize Firebase Admin first
+import { onCall, onRequest } from "firebase-functions/v2/https";
+import { onSchedule } from "firebase-functions/v2/scheduler";
+import { HttpsError } from "firebase-functions/v2/https";
+import { logger } from "firebase-functions/v2";
 
 import { bookAppointment, getAppointment, cancelAppointment } from "./appointments";
 import { mockApprovePayment } from "./mock-payment";
@@ -7,27 +10,20 @@ import { adminConfirmPayment, adminFailPayment } from "./admin-payments";
 import { cleanupHeldSlots } from "./cleanup";
 import { sendEmailHandler } from "./email";
 import { sendReminderEmails, sendPostSessionEmails } from "./reminders";
-import { runRemindersHandler } from "./reminders-https";
-import { runReminders } from "./reminders-https";
+import { runReminders as runRemindersHandler } from "./reminders-https";
 import type { SendEmailRequest } from "./types";
 
-admin.initializeApp();
-
-export const sendEmail = functions
-  .region("us-central1")
-  .https.onCall(async (data: SendEmailRequest, context) => {
-    if (!context.app) {
-      throw new functions.https.HttpsError("failed-precondition", "App Check required");
-    }
-
-    if (!context.auth) {
-      throw new functions.https.HttpsError("unauthenticated", "Auth required");
+export const sendEmail = onCall(async (request) => {
+    const { data, auth } = request;
+    
+    if (!auth) {
+      throw new HttpsError("unauthenticated", "Auth required");
     }
 
     const { to, subject, html } = data;
 
     if (!to || !subject || !html) {
-      throw new functions.https.HttpsError(
+      throw new HttpsError(
         "invalid-argument",
         "to, subject, and html are required",
       );
@@ -46,34 +42,23 @@ export { mockApprovePayment };
 export { adminConfirmPayment, adminFailPayment };
 
 // Export reminders HTTPS function
-export { runReminders };
 
-export const wompiWebhook = functions.region("us-central1").https.onRequest(async (req, res) => {
+export const wompiWebhook = onRequest(async (req, res) => {
   res.status(200).send("ok");
 });
 
-export const runReminders = functions
-  .region("us-central1")
-  .pubsub.schedule("every 1 hours")
-  .onRun(async () => {
+export const runReminders = onSchedule("every 1 hours", async () => {
     await sendReminderEmails();
     await sendPostSessionEmails();
-    return null;
   });
 
 // Cleanup job to release held slots without payment
-export const cleanupHeldSlotsJob = functions
-  .region("us-central1")
-  .pubsub.schedule("every 5 minutes")
-  .onRun(async () => {
+export const cleanupHeldSlotsJob = onSchedule("every 5 minutes", async () => {
     await cleanupHeldSlots();
-    return null;
   });
 
 // HTTPS function for running reminders (called by GitHub Actions)
-export const runRemindersHttps = functions
-  .region("us-central1")
-  .https.onRequest(async (req, res) => {
+export const runRemindersHttps = onRequest(async (req, res) => {
     // Set CORS headers
     res.set("Access-Control-Allow-Origin", "*");
     res.set("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
@@ -96,22 +81,22 @@ export const runRemindersHttps = functions
     const expectedToken = process.env.REMINDERS_AUTH_TOKEN;
 
     if (!expectedToken) {
-      functions.logger.error("REMINDERS_AUTH_TOKEN not configured");
+      logger.error("REMINDERS_AUTH_TOKEN not configured");
       res.status(500).json({ error: "Server configuration error" });
       return;
     }
 
     if (!authHeader || authHeader !== `Bearer ${expectedToken}`) {
-      functions.logger.warn("Unauthorized reminder request");
+      logger.warn("Unauthorized reminder request");
       res.status(401).json({ error: "Unauthorized" });
       return;
     }
 
     try {
-      const result = await runRemindersHandler();
+      const result = await runRemindersHandler(req, res);
       res.status(200).json(result);
     } catch (error) {
-      functions.logger.error("Error in runReminders HTTPS function:", error);
+      logger.error("Error in runReminders HTTPS function:", error);
       res.status(500).json({
         success: false,
         error: error instanceof Error ? error.message : "Unknown error",

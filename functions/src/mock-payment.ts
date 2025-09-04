@@ -1,3 +1,4 @@
+import "./firebase-admin"; // Initialize Firebase Admin first
 import { onCall, HttpsError } from 'firebase-functions/v2/https';
 import { getFirestore, FieldValue } from 'firebase-admin/firestore';
 import { getAuth } from 'firebase-admin/auth';

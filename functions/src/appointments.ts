@@ -1,3 +1,4 @@
+import "./firebase-admin"; // Initialize Firebase Admin first
 import { onCall, HttpsError } from 'firebase-functions/v2/https';
 import { getFirestore, FieldValue } from 'firebase-admin/firestore';
 import { getAuth } from 'firebase-admin/auth';
@@ -136,7 +137,7 @@ export const bookAppointment = onCall<BookAppointmentRequest, Promise<BookAppoin
       }
 
       // Handle specific error cases
-      if (error.code === 'failed-precondition') {
+      if (error instanceof Error && error.message.includes('failed-precondition')) {
         throw new HttpsError('failed-precondition', 'Slot is no longer available. Another user may have booked it.');
       }
 
