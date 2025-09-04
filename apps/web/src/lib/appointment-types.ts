@@ -13,6 +13,7 @@ export interface Appointment {
   end: Date;
   status: AppointmentStatus;
   paid: boolean;
+  jitsiUrl?: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -25,5 +26,17 @@ export interface BookAppointmentRequest {
 export interface BookAppointmentResponse {
   success: boolean;
   appointmentId?: string;
+  error?: string;
+}
+
+export interface SendEmailRequest {
+  to: string;
+  subject: string;
+  html: string;
+}
+
+export interface SendEmailResponse {
+  success: boolean;
+  messageId?: string;
   error?: string;
 }
