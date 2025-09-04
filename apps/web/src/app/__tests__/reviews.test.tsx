@@ -102,12 +102,12 @@ describe("Review System Tests", () => {
       expect(reviewsSnapshot.docs.length).toBe(1);
 
       const reviewDoc = reviewsSnapshot.docs[0];
-      const reviewData = reviewDoc.data();
-      expect(reviewData.appointmentId).toBe("test-appointment-1");
-      expect(reviewData.userId).toBe(user.user.uid);
-      expect(reviewData.proId).toBe(pro.user.uid);
-      expect(reviewData.rating).toBe(5);
-      expect(reviewData.comment).toBe("Excelente sesión, muy profesional");
+      const reviewDocData = reviewDoc.data();
+      expect(reviewDocData.appointmentId).toBe("test-appointment-1");
+      expect(reviewDocData.userId).toBe(user.user.uid);
+      expect(reviewDocData.proId).toBe(pro.user.uid);
+      expect(reviewDocData.rating).toBe(5);
+      expect(reviewDocData.comment).toBe("Excelente sesión, muy profesional");
     });
 
     it("should prevent duplicate reviews for the same appointment", async () => {
