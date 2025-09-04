@@ -1,305 +1,450 @@
-# Security Documentation - Miamente Platform
+# Security Policy
 
-## Overview
+This document outlines the security policies, procedures, and incident response protocols for the Miamente platform.
 
-This document outlines the comprehensive security measures implemented in the Miamente platform to protect user data, prevent abuse, and ensure system integrity.
+## 🔒 Security Overview
 
-## 🔐 Authentication & Authorization
+### Security Principles
+- **Defense in Depth**: Multiple layers of security controls
+- **Least Privilege**: Minimal necessary access permissions
+- **Zero Trust**: Verify everything, trust nothing
+- **Continuous Monitoring**: Real-time security monitoring
+- **Incident Response**: Rapid response to security threats
 
-### Firebase Authentication
+### Security Responsibilities
+- **Development Team**: Secure coding practices, vulnerability management
+- **DevOps Team**: Infrastructure security, access control
+- **Security Officer**: Policy enforcement, incident response
+- **Management**: Security governance, resource allocation
 
-- **Email/Password Authentication**: Secure user registration and login
-- **Email Verification**: Required for account activation
-- **Password Requirements**: Minimum 6 characters (configurable)
-- **Session Management**: Firebase handles secure session tokens
+## 🛡️ Access Control Policies
 
-### Role-Based Access Control (RBAC)
+### Authentication & Authorization
+- [ ] **Multi-Factor Authentication (MFA)**
+  - Required for all administrative accounts
+  - Required for production environment access
+  - Required for sensitive data access
+  - Biometric authentication where possible
 
-- **User Roles**: `user`, `pro` (professional), `admin`
-- **Role Gates**: Component-level access control
-- **API Protection**: Server-side role verification
-- **Admin Functions**: Restricted to admin users only
+- [ ] **Role-Based Access Control (RBAC)**
+  - **Admin**: Full system access, user management
+  - **Developer**: Development environment access
+  - **DevOps**: Infrastructure and deployment access
+  - **Support**: Limited user support access
+  - **Auditor**: Read-only access for compliance
 
-## 🛡️ App Check Integration
+- [ ] **Access Review Process**
+  - Quarterly access reviews
+  - Immediate revocation for terminated employees
+  - Regular privilege escalation reviews
+  - Documented approval process
 
-### reCAPTCHA Enterprise
+### Password Policies
+- [ ] **Password Requirements**
+  - Minimum 12 characters
+  - Mix of uppercase, lowercase, numbers, symbols
+  - No dictionary words or personal information
+  - Unique passwords for each system
 
-- **Implementation**: Integrated with Firebase App Check
-- **Protection**: Prevents automated abuse and bot attacks
-- **Token Validation**: Required for all client requests
-- **Environment Variable**: `NEXT_PUBLIC_RECAPTCHA_ENTERPRISE_SITE_KEY`
+- [ ] **Password Management**
+  - Password manager required
+  - No password sharing
+  - Regular password updates
+  - Secure password storage
 
-### Setup Instructions
+### API Security
+- [ ] **API Authentication**
+  - JWT tokens with expiration
+  - API key rotation
+  - Rate limiting
+  - Request signing
 
-1. Enable reCAPTCHA Enterprise in Google Cloud Console
-2. Create a new site key for your domain
-3. Configure the site key in environment variables
-4. Deploy with App Check enforcement enabled
+- [ ] **API Authorization**
+  - Role-based permissions
+  - Resource-level access control
+  - Audit logging
+  - Input validation
 
-## 🔒 Firestore Security Rules
+## 🔐 Secret Management
 
-### User Data Protection
+### Secret Rotation Schedule
+- [ ] **Quarterly Rotation (Every 3 months)**
+  - Database passwords
+  - API keys
+  - Service account keys
+  - SSL certificates
+  - Encryption keys
 
-```javascript
-// Users can only read their own private data
-match /users/{userId} {
-  allow read: if isSignedIn() && isAppCheckValid() && (
-    isOwner(userId) || isAdmin() ||
-    // Others can only read public fields
-    (resource.data.keys().hasAll(['role', 'fullName']) &&
-     !resource.data.keys().hasAny(['phone', 'email']))
-  );
-}
-```
+- [ ] **Annual Rotation**
+  - Root certificates
+  - Master encryption keys
+  - Domain registrar credentials
+  - DNS provider credentials
 
-### Appointment Security
+### Secret Storage
+- [ ] **Centralized Secret Management**
+  - Firebase Secret Manager
+  - GitHub Secrets
+  - Environment variables
+  - Encrypted configuration files
 
-```javascript
-// Users can only create appointments for themselves
-match /appointments/{appointmentId} {
-  allow create: if isSignedIn() && isAppCheckValid() && isWithinRateLimit() &&
-    request.auth.uid == request.resource.data.userId && isUser();
-}
-```
+- [ ] **Secret Access Control**
+  - Least privilege access
+  - Audit logging
+  - Regular access reviews
+  - Secure transmission
 
-### Review System Protection
+### Secret Rotation Procedures
+1. **Preparation Phase**
+   - Identify all systems using the secret
+   - Prepare new secret
+   - Test new secret in staging
+   - Schedule rotation window
 
-```javascript
-// Users can only create one review per appointment
-match /reviews/{reviewId} {
-  allow create: if isSignedIn() &&
-    request.auth.uid == request.resource.data.userId &&
-    request.resource.data.rating >= 1 &&
-    request.resource.data.rating <= 5;
-  allow update: if false; // No editing reviews
-  allow delete: if false; // No deleting reviews
-}
-```
+2. **Rotation Phase**
+   - Deploy new secret
+   - Update all systems
+   - Verify functionality
+   - Monitor for issues
 
-## 📁 Storage Security Rules
-
-### File Access Control
-
-```javascript
-// Public photos - anyone can read, only owner can write
-match /public/{userId}/{allPaths=**} {
-  allow read: if isSignedIn() && isAppCheckValid();
-  allow write: if isSignedIn() && isAppCheckValid() && isOwner(userId);
-}
-
-// Private credentials - only owner and admins can read
-match /private/{userId}/{allPaths=**} {
-  allow read: if isSignedIn() && isAppCheckValid() && (isOwner(userId) || isAdmin());
-  allow write: if isSignedIn() && isAppCheckValid() && isOwner(userId);
-}
-```
-
-### File Upload Security
-
-- **File Type Validation**: Only allowed file types accepted
-- **Size Limits**: Maximum file size restrictions
-- **Virus Scanning**: Implemented at storage level
-- **Access Logging**: All file access attempts logged
-
-## ⚡ Rate Limiting
-
-### Implementation
-
-- **Firebase Functions**: Rate limiting on server-side operations
-- **Per-User Limits**: Based on user ID and IP address
-- **Time Windows**: Sliding window rate limiting
-- **Configurable Limits**: Different limits for different operations
-
-### Rate Limit Configurations
-
-```typescript
-const RATE_LIMITS = {
-  APPOINTMENT_CREATION: {
-    maxRequests: 5,
-    windowMs: 60 * 60 * 1000, // 1 hour
-  },
-  EMAIL_SENDING: {
-    maxRequests: 10,
-    windowMs: 60 * 60 * 1000, // 1 hour
-  },
-  PROFILE_UPDATES: {
-    maxRequests: 20,
-    windowMs: 60 * 60 * 1000, // 1 hour
-  },
-};
-```
-
-### Rate Limit Storage
-
-- **Firestore Collection**: `rate_limits` for tracking
-- **Automatic Cleanup**: Old entries removed daily
-- **IP Fallback**: Rate limiting by IP when user ID unavailable
-
-## 🧪 Security Testing
-
-### Negative Test Cases
-
-- **Cross-User Access**: Users cannot access other users' data
-- **Unauthorized Operations**: Prevented unauthorized CRUD operations
-- **File Access Control**: Users cannot read private files of others
-- **Rate Limit Enforcement**: Excessive requests blocked
-- **Role Bypass Attempts**: Role-based restrictions enforced
-
-### Test Implementation
-
-```typescript
-// Example negative test
-it("should prevent users from reading other users' private data", async () => {
-  const user1 = await createUser("user1@example.com");
-  const user2 = await createUser("user2@example.com");
-
-  // User2 tries to read User1's private data - should fail
-  try {
-    await getDoc(doc(firestore, "users", user1.uid));
-    expect.fail("Should not be able to read other user's data");
-  } catch (error) {
-    expect(error).toBeDefined();
-  }
-});
-```
-
-## 🔍 Monitoring & Logging
-
-### Event Logging
-
-- **User Actions**: All user actions logged with metadata
-- **Security Events**: Failed authentication attempts, rate limit violations
-- **Admin Access**: All admin operations logged
-- **Data Access**: Sensitive data access tracked
-
-### Analytics Events
-
-```typescript
-// Security-relevant events tracked
--signup -
-  profile_complete -
-  appointment_confirmed -
-  payment_attempt -
-  payment_success -
-  payment_failed;
-```
-
-### Error Handling
-
-- **Graceful Degradation**: System continues functioning on errors
-- **Error Logging**: All errors logged for analysis
-- **User Feedback**: Appropriate error messages without exposing internals
+3. **Cleanup Phase**
+   - Revoke old secret
+   - Update documentation
+   - Verify old secret is invalid
+   - Complete rotation log
 
 ## 🚨 Incident Response
 
-### Security Incident Procedures
+### Incident Classification
+- [ ] **Critical (P1)**
+  - Data breach
+  - System compromise
+  - Unauthorized access
+  - Service disruption
 
-1. **Detection**: Automated monitoring alerts
-2. **Assessment**: Evaluate severity and impact
-3. **Containment**: Isolate affected systems
-4. **Eradication**: Remove threat vectors
-5. **Recovery**: Restore normal operations
-6. **Lessons Learned**: Update security measures
+- [ ] **High (P2)**
+  - Security vulnerability
+  - Unauthorized access attempt
+  - Malware detection
+  - Policy violation
 
-### Contact Information
+- [ ] **Medium (P3)**
+  - Security warning
+  - Configuration issue
+  - Access control problem
+  - Compliance violation
 
-- **Security Team**: security@miamente.com
-- **Emergency Contact**: +1-XXX-XXX-XXXX
-- **Bug Bounty**: security@miamente.com
+- [ ] **Low (P4)**
+  - Security recommendation
+  - Minor policy violation
+  - Documentation update
+  - Training need
 
-## 🔧 Security Configuration
+### Incident Response Team
+- [ ] **Incident Commander**
+  - Overall incident coordination
+  - Decision making authority
+  - External communication
+  - Resource allocation
 
-### Environment Variables
+- [ ] **Technical Lead**
+  - Technical investigation
+  - System analysis
+  - Remediation planning
+  - Technical communication
 
-```bash
-# Required for App Check
-NEXT_PUBLIC_RECAPTCHA_ENTERPRISE_SITE_KEY=your_site_key
+- [ ] **Security Officer**
+  - Security assessment
+  - Compliance review
+  - Policy enforcement
+  - Legal coordination
 
-# Firebase Configuration
-NEXT_PUBLIC_FB_API_KEY=your_api_key
-NEXT_PUBLIC_FB_AUTH_DOMAIN=your_domain
-NEXT_PUBLIC_FB_PROJECT_ID=your_project_id
+- [ ] **Communications Lead**
+  - Internal communication
+  - External communication
+  - Stakeholder updates
+  - Public relations
 
-# Security Settings
-RATE_LIMIT_ENABLED=true
-APP_CHECK_ENFORCEMENT=true
-```
+### Incident Response Process
+1. **Detection & Analysis (0-15 minutes)**
+   - Incident detection
+   - Initial assessment
+   - Severity classification
+   - Team notification
 
-### Firebase Security Rules Deployment
+2. **Containment (15-60 minutes)**
+   - Immediate containment
+   - System isolation
+   - Access restriction
+   - Evidence preservation
 
-```bash
-# Deploy Firestore rules
-firebase deploy --only firestore:rules
+3. **Eradication (1-4 hours)**
+   - Root cause analysis
+   - Vulnerability remediation
+   - System hardening
+   - Security updates
 
-# Deploy Storage rules
-firebase deploy --only storage
-```
+4. **Recovery (4-24 hours)**
+   - System restoration
+   - Service validation
+   - Monitoring enhancement
+   - User notification
+
+5. **Post-Incident (24-72 hours)**
+   - Incident documentation
+   - Lessons learned
+   - Process improvement
+   - Training updates
+
+## 🔍 Security Monitoring
+
+### Monitoring Tools
+- [ ] **Application Security**
+  - Firebase App Check
+  - reCAPTCHA Enterprise
+  - Security headers monitoring
+  - Input validation monitoring
+
+- [ ] **Infrastructure Security**
+  - Firebase Security Rules
+  - Network monitoring
+  - Access log analysis
+  - Intrusion detection
+
+- [ ] **Data Security**
+  - Data encryption monitoring
+  - Access pattern analysis
+  - Anomaly detection
+  - Compliance monitoring
+
+### Security Metrics
+- [ ] **Key Performance Indicators**
+  - Security incident count
+  - Mean time to detection (MTTD)
+  - Mean time to resolution (MTTR)
+  - Vulnerability remediation time
+  - Access control compliance rate
+
+- [ ] **Alert Thresholds**
+  - Failed login attempts > 5 per minute
+  - Unauthorized access attempts > 3 per hour
+  - Data access anomalies > 2 per day
+  - Security policy violations > 1 per week
+
+## 🛡️ Security Controls
+
+### Application Security
+- [ ] **Input Validation**
+  - Server-side validation
+  - Client-side validation
+  - SQL injection prevention
+  - XSS protection
+
+- [ ] **Authentication Security**
+  - Secure session management
+  - Password hashing
+  - Account lockout policies
+  - Brute force protection
+
+- [ ] **Data Protection**
+  - Encryption at rest
+  - Encryption in transit
+  - Data masking
+  - Secure data disposal
+
+### Infrastructure Security
+- [ ] **Network Security**
+  - Firewall configuration
+  - Network segmentation
+  - VPN access
+  - DDoS protection
+
+- [ ] **Server Security**
+  - Operating system hardening
+  - Security updates
+  - Antivirus protection
+  - Log monitoring
+
+- [ ] **Database Security**
+  - Access control
+  - Encryption
+  - Backup security
+  - Audit logging
+
+## 📋 Compliance & Auditing
+
+### Compliance Requirements
+- [ ] **Data Protection**
+  - GDPR compliance
+  - Data minimization
+  - Consent management
+  - Right to erasure
+
+- [ ] **Security Standards**
+  - ISO 27001
+  - SOC 2 Type II
+  - PCI DSS (if applicable)
+  - Industry best practices
+
+### Audit Procedures
+- [ ] **Internal Audits**
+  - Quarterly security reviews
+  - Access control audits
+  - Configuration audits
+  - Policy compliance audits
+
+- [ ] **External Audits**
+  - Annual security assessment
+  - Penetration testing
+  - Vulnerability scanning
+  - Compliance certification
+
+### Audit Documentation
+- [ ] **Required Documentation**
+  - Security policies
+  - Incident reports
+  - Access control logs
+  - Compliance certificates
+  - Audit findings
+  - Remediation plans
+
+## 🚨 Emergency Procedures
+
+### Security Breach Response
+1. **Immediate Actions**
+   - Isolate affected systems
+   - Preserve evidence
+   - Notify incident response team
+   - Activate emergency procedures
+
+2. **Investigation**
+   - Forensic analysis
+   - Impact assessment
+   - Root cause analysis
+   - Evidence collection
+
+3. **Remediation**
+   - Vulnerability patching
+   - System hardening
+   - Access control updates
+   - Security monitoring enhancement
+
+4. **Recovery**
+   - System restoration
+   - Service validation
+   - User notification
+   - Business continuity
+
+### Communication Procedures
+- [ ] **Internal Communication**
+  - Incident response team
+  - Management notification
+  - Employee communication
+  - Stakeholder updates
+
+- [ ] **External Communication**
+  - Customer notification
+  - Regulatory reporting
+  - Law enforcement
+  - Media relations
+
+## 📚 Security Training
+
+### Training Requirements
+- [ ] **Mandatory Training**
+  - Security awareness
+  - Incident response
+  - Data protection
+  - Access control
+
+- [ ] **Role-Specific Training**
+  - Developer security
+  - DevOps security
+  - Admin security
+  - Support security
+
+### Training Schedule
+- [ ] **Annual Training**
+  - Security awareness
+  - Policy updates
+  - Incident response
+  - Compliance training
+
+- [ ] **Quarterly Training**
+  - Security updates
+  - Threat intelligence
+  - Best practices
+  - Case studies
+
+## 🔧 Security Tools
+
+### Security Software
+- [ ] **Vulnerability Scanning**
+  - OWASP ZAP
+  - Nessus
+  - OpenVAS
+  - Custom scripts
+
+- [ ] **Security Monitoring**
+  - Firebase App Check
+  - Security headers
+  - Access logging
+  - Anomaly detection
+
+- [ ] **Incident Response**
+  - SIEM system
+  - Log aggregation
+  - Alert management
+  - Forensic tools
+
+## 📞 Contact Information
+
+### Security Team
+- **Security Officer**: security@miamente.com
+- **Incident Response**: incident@miamente.com
+- **Security Hotline**: +57 1 234-5678
+
+### External Contacts
+- **Law Enforcement**: [Local Police Contact]
+- **Legal Counsel**: [Legal Team Contact]
+- **Insurance**: [Cyber Insurance Contact]
+- **Forensic Services**: [Forensic Company Contact]
 
 ## 📋 Security Checklist
 
-### Pre-Deployment
+### Daily
+- [ ] Review security alerts
+- [ ] Check access logs
+- [ ] Monitor system health
+- [ ] Verify backup status
 
-- [ ] App Check configured with reCAPTCHA Enterprise
-- [ ] Firestore security rules tested and deployed
-- [ ] Storage security rules tested and deployed
-- [ ] Rate limiting configured and tested
-- [ ] Security tests passing
-- [ ] Environment variables secured
-- [ ] HTTPS enforced
-- [ ] CORS configured properly
+### Weekly
+- [ ] Review security metrics
+- [ ] Check for security updates
+- [ ] Review access permissions
+- [ ] Update threat intelligence
 
-### Post-Deployment
+### Monthly
+- [ ] Security policy review
+- [ ] Access control audit
+- [ ] Vulnerability assessment
+- [ ] Incident response drill
 
-- [ ] Monitor security logs
-- [ ] Verify rate limiting is working
-- [ ] Check App Check token validation
-- [ ] Monitor for suspicious activity
-- [ ] Regular security rule reviews
-- [ ] User access pattern analysis
+### Quarterly
+- [ ] Security training
+- [ ] Policy updates
+- [ ] Compliance review
+- [ ] Security assessment
 
-### Regular Maintenance
-
-- [ ] Security rule updates
-- [ ] Rate limit adjustments
-- [ ] Log analysis and cleanup
-- [ ] Security test updates
-- [ ] Dependency updates
-- [ ] Security audit reviews
-
-## 🛠️ Development Security
-
-### Code Security Practices
-
-- **Input Validation**: All inputs validated and sanitized
-- **SQL Injection Prevention**: Parameterized queries only
-- **XSS Prevention**: Content sanitization
-- **CSRF Protection**: Token-based protection
-- **Secure Headers**: Security headers implemented
-
-### Dependency Management
-
-- **Regular Updates**: Dependencies updated regularly
-- **Vulnerability Scanning**: Automated vulnerability detection
-- **License Compliance**: Open source license compliance
-- **Minimal Dependencies**: Only necessary dependencies included
-
-## 📚 Additional Resources
-
-### Documentation
-
-- [Firebase Security Rules](https://firebase.google.com/docs/rules)
-- [App Check Documentation](https://firebase.google.com/docs/app-check)
-- [reCAPTCHA Enterprise](https://cloud.google.com/recaptcha-enterprise)
-- [OWASP Security Guidelines](https://owasp.org/)
-
-### Tools
-
-- [Firebase Emulator Suite](https://firebase.google.com/docs/emulator-suite)
-- [Firebase Security Rules Playground](https://firebase.google.com/docs/rules/playground)
-- [OWASP ZAP](https://owasp.org/www-project-zap/)
+### Annually
+- [ ] Security audit
+- [ ] Penetration testing
+- [ ] Disaster recovery test
+- [ ] Security strategy review
 
 ---
 
-**Last Updated**: 2024-01-15  
-**Version**: 1.0  
-**Review Schedule**: Quarterly
+**Last Updated**: [Current Date]
+**Next Review**: [Next Review Date]
+**Version**: 1.0.0
+**Classification**: Internal Use Only
