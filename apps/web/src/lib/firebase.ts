@@ -76,13 +76,17 @@ export function getFirebaseAuth(): Auth {
     auth = getAuth(app);
     
     // Connect to emulator in development
-    if (process.env.NODE_ENV === 'development' && !emulatorsConnected.auth) {
+    const isDevelopment = process.env.NODE_ENV === 'development' || 
+                         process.env.NEXT_PUBLIC_NODE_ENV === 'development' ||
+                         window.location.hostname === 'localhost';
+    
+    if (isDevelopment && !emulatorsConnected.auth) {
       try {
         connectAuthEmulator(auth, "http://localhost:9099");
         emulatorsConnected.auth = true;
-        console.log('Connected to Auth emulator');
+        console.log('✅ Connected to Auth emulator at http://localhost:9099');
       } catch (error) {
-        console.log('Auth emulator already connected or not available');
+        console.log('⚠️ Auth emulator already connected or not available:', error.message);
       }
     }
   }
@@ -95,13 +99,17 @@ export function getFirebaseFirestore(): Firestore {
     firestore = getFirestore(app);
     
     // Connect to emulator in development
-    if (process.env.NODE_ENV === 'development' && !emulatorsConnected.firestore) {
+    const isDevelopment = process.env.NODE_ENV === 'development' || 
+                         process.env.NEXT_PUBLIC_NODE_ENV === 'development' ||
+                         window.location.hostname === 'localhost';
+    
+    if (isDevelopment && !emulatorsConnected.firestore) {
       try {
         connectFirestoreEmulator(firestore, 'localhost', 8080);
         emulatorsConnected.firestore = true;
-        console.log('Connected to Firestore emulator');
+        console.log('✅ Connected to Firestore emulator at localhost:8080');
       } catch (error) {
-        console.log('Firestore emulator already connected or not available');
+        console.log('⚠️ Firestore emulator already connected or not available:', error.message);
       }
     }
   }
@@ -114,13 +122,17 @@ export function getFirebaseFunctions(): Functions {
     functions = getFunctions(app);
     
     // Connect to emulator in development
-    if (process.env.NODE_ENV === 'development' && !emulatorsConnected.functions) {
+    const isDevelopment = process.env.NODE_ENV === 'development' || 
+                         process.env.NEXT_PUBLIC_NODE_ENV === 'development' ||
+                         window.location.hostname === 'localhost';
+    
+    if (isDevelopment && !emulatorsConnected.functions) {
       try {
         connectFunctionsEmulator(functions, 'localhost', 5001);
         emulatorsConnected.functions = true;
-        console.log('Connected to Functions emulator');
+        console.log('✅ Connected to Functions emulator at localhost:5001');
       } catch (error) {
-        console.log('Functions emulator already connected or not available');
+        console.log('⚠️ Functions emulator already connected or not available:', error.message);
       }
     }
   }
