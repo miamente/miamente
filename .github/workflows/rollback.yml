@@ -1,0 +1,254 @@
+name: Emergency Rollback
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to rollback'
+        required: true
+        type: choice
+        options:
+          - staging
+          - production
+      version:
+        description: 'Version to rollback to (optional, leave empty for previous version)'
+        required: false
+        type: string
+      confirm_rollback:
+        description: 'Type "ROLLBACK" to confirm (case sensitive)'
+        required: true
+        type: string
+
+env:
+  NODE_VERSION: '20'
+
+jobs:
+  validate-inputs:
+    name: Validate Rollback Inputs
+    runs-on: ubuntu-latest
+    outputs:
+      environment: ${{ steps.validate.outputs.environment }}
+      version: ${{ steps.validate.outputs.version }}
+      project_id: ${{ steps.validate.outputs.project_id }}
+    steps:
+      - name: Validate inputs
+        id: validate
+        run: |
+          # Check confirmation
+          if [[ "${{ github.event.inputs.confirm_rollback }}" != "ROLLBACK" ]]; then
+            echo "❌ Rollback confirmation failed. You must type 'ROLLBACK' to confirm."
+            exit 1
+          fi
+          
+          # Set environment
+          echo "environment=${{ github.event.inputs.environment }}" >> $GITHUB_OUTPUT
+          
+          # Set version (empty if not provided)
+          if [[ -n "${{ github.event.inputs.version }}" ]]; then
+            echo "version=${{ github.event.inputs.version }}" >> $GITHUB_OUTPUT
+          else
+            echo "version=" >> $GITHUB_OUTPUT
+          fi
+          
+          # Set project ID
+          if [[ "${{ github.event.inputs.environment }}" == "production" ]]; then
+            echo "project_id=miamente-prod" >> $GITHUB_OUTPUT
+          else
+            echo "project_id=miamente-staging" >> $GITHUB_OUTPUT
+          fi
+          
+          echo "✅ Input validation passed"
+          echo "Environment: ${{ github.event.inputs.environment }}"
+          echo "Project ID: ${{ steps.validate.outputs.project_id }}"
+          if [[ -n "${{ github.event.inputs.version }}" ]]; then
+            echo "Version: ${{ github.event.inputs.version }}"
+          else
+            echo "Version: Previous version"
+          fi
+
+  rollback:
+    name: Execute Rollback
+    runs-on: ubuntu-latest
+    needs: validate-inputs
+    environment: ${{ needs.validate-inputs.outputs.environment }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Need full history for rollback
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Authenticate to Firebase
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Rollback Firebase Hosting
+        run: |
+          echo "🔄 Rolling back Firebase Hosting..."
+          
+          # List recent releases
+          echo "Recent hosting releases:"
+          firebase hosting:releases --project=${{ needs.validate-inputs.outputs.project_id }} --limit 5
+          
+          # Rollback hosting
+          if [[ -n "${{ needs.validate-inputs.outputs.version }}" ]]; then
+            echo "Rolling back to version: ${{ needs.validate-inputs.outputs.version }}"
+            firebase hosting:rollback "${{ needs.validate-inputs.outputs.version }}" --project=${{ needs.validate-inputs.outputs.project_id }}
+          else
+            echo "Rolling back to previous version..."
+            firebase hosting:rollback --project=${{ needs.validate-inputs.outputs.project_id }}
+          fi
+          
+          echo "✅ Hosting rollback completed"
+        env:
+          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
+
+      - name: Rollback Firebase Functions
+        run: |
+          echo "🔄 Rolling back Firebase Functions..."
+          
+          # List current functions
+          echo "Current functions:"
+          firebase functions:list --project=${{ needs.validate-inputs.outputs.project_id }}
+          
+          # Checkout target version
+          if [[ -n "${{ needs.validate-inputs.outputs.version }}" ]]; then
+            echo "Checking out version: ${{ needs.validate-inputs.outputs.version }}"
+            git checkout "${{ needs.validate-inputs.outputs.version }}"
+          else
+            echo "Checking out previous commit..."
+            git checkout HEAD~1
+          fi
+          
+          # Build and deploy functions
+          echo "Building functions..."
+          cd functions
+          npm ci
+          npm run build
+          
+          echo "Deploying functions..."
+          firebase deploy --only functions --project=${{ needs.validate-inputs.outputs.project_id }}
+          
+          # Return to original commit
+          git checkout -
+          cd ..
+          
+          echo "✅ Functions rollback completed"
+        env:
+          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
+          SENDGRID_API_KEY: ${{ secrets.SENDGRID_API_KEY }}
+          WOMPI_SECRET: ${{ secrets.WOMPI_SECRET }}
+          JITSI_BASE_URL: ${{ secrets.JITSI_BASE_URL }}
+
+      - name: Rollback Security Rules
+        run: |
+          echo "🔄 Rolling back Firestore and Storage rules..."
+          
+          # Checkout target version of rules
+          if [[ -n "${{ needs.validate-inputs.outputs.version }}" ]]; then
+            echo "Checking out rules from version: ${{ needs.validate-inputs.outputs.version }}"
+            git checkout "${{ needs.validate-inputs.outputs.version }}" -- firestore.rules storage.rules
+          else
+            echo "Checking out previous rules..."
+            git checkout HEAD~1 -- firestore.rules storage.rules
+          fi
+          
+          # Deploy rules
+          echo "Deploying Firestore rules..."
+          firebase deploy --only firestore:rules --project=${{ needs.validate-inputs.outputs.project_id }}
+          
+          echo "Deploying Storage rules..."
+          firebase deploy --only storage --project=${{ needs.validate-inputs.outputs.project_id }}
+          
+          # Restore current rules
+          git checkout HEAD -- firestore.rules storage.rules
+          
+          echo "✅ Security rules rollback completed"
+        env:
+          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
+
+      - name: Verify Rollback
+        run: |
+          echo "🔍 Verifying rollback..."
+          
+          # Get the hosting URL
+          if [[ "${{ needs.validate-inputs.outputs.environment }}" == "staging" ]]; then
+            URL="https://miamente-staging.web.app"
+          else
+            URL="https://miamente-prod.web.app"
+          fi
+          
+          echo "Checking if $URL is accessible..."
+          
+          # Check if the site is accessible
+          HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" "$URL" || echo "000")
+          
+          if [[ "$HTTP_STATUS" == "200" ]]; then
+            echo "✅ Rollback verification successful - Site is accessible"
+          else
+            echo "❌ Rollback verification failed - Site returned HTTP $HTTP_STATUS"
+            exit 1
+          fi
+
+      - name: Create Rollback Summary
+        run: |
+          echo "## 🚨 Emergency Rollback Completed" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Environment:** ${{ needs.validate-inputs.outputs.environment }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Project ID:** ${{ needs.validate-inputs.outputs.project_id }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Rollback Version:** ${{ needs.validate-inputs.outputs.version || 'Previous version' }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Timestamp:** $(date -u)" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### ✅ Rollback Actions Completed" >> $GITHUB_STEP_SUMMARY
+          echo "- Firebase Hosting rolled back" >> $GITHUB_STEP_SUMMARY
+          echo "- Firebase Functions rolled back" >> $GITHUB_STEP_SUMMARY
+          echo "- Firestore Security Rules rolled back" >> $GITHUB_STEP_SUMMARY
+          echo "- Storage Security Rules rolled back" >> $GITHUB_STEP_SUMMARY
+          echo "- Rollback verification passed" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 🌐 URLs" >> $GITHUB_STEP_SUMMARY
+          if [[ "${{ needs.validate-inputs.outputs.environment }}" == "staging" ]]; then
+            echo "- **Hosting:** https://miamente-staging.web.app" >> $GITHUB_STEP_SUMMARY
+            echo "- **Functions:** https://us-central1-miamente-staging.cloudfunctions.net" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "- **Hosting:** https://miamente-prod.web.app" >> $GITHUB_STEP_SUMMARY
+            echo "- **Functions:** https://us-central1-miamente-prod.cloudfunctions.net" >> $GITHUB_STEP_SUMMARY
+          fi
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 📋 Next Steps" >> $GITHUB_STEP_SUMMARY
+          echo "1. Verify the application is working correctly" >> $GITHUB_STEP_SUMMARY
+          echo "2. Check error logs in Firebase Console" >> $GITHUB_STEP_SUMMARY
+          echo "3. Notify the team about the rollback" >> $GITHUB_STEP_SUMMARY
+          echo "4. Investigate the issue that caused the rollback" >> $GITHUB_STEP_SUMMARY
+          echo "5. Plan the fix and redeployment" >> $GITHUB_STEP_SUMMARY
+
+  notify:
+    name: Notify Rollback Status
+    runs-on: ubuntu-latest
+    needs: [validate-inputs, rollback]
+    if: always()
+    steps:
+      - name: Rollback Success Notification
+        if: needs.rollback.result == 'success'
+        run: |
+          echo "🎉 Rollback to ${{ needs.validate-inputs.outputs.environment }} completed successfully!"
+          echo "Version: ${{ needs.validate-inputs.outputs.version || 'Previous version' }}"
+          echo "Project: ${{ needs.validate-inputs.outputs.project_id }}"
+
+      - name: Rollback Failure Notification
+        if: needs.rollback.result == 'failure'
+        run: |
+          echo "❌ Rollback to ${{ needs.validate-inputs.outputs.environment }} failed!"
+          echo "Please check the logs for details and consider manual intervention."

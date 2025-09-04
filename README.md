@@ -78,6 +78,39 @@ NEXT_PUBLIC_FB_MEASUREMENT_ID=your_measurement_id
 - [ ] HTTPS habilitado
 - [ ] CORS configurado correctamente
 
+## 🚀 Deployment
+
+### Environments
+
+- **Staging**: `miamente-staging` - Auto-deploy on push to `dev` branch
+- **Production**: `miamente-prod` - Auto-deploy on release tags `v*`
+
+### Manual Deployment
+
+```bash
+# Go to Actions tab in GitHub
+# Click "Deploy to Firebase" workflow
+# Click "Run workflow"
+# Select environment and run
+```
+
+### Emergency Rollback
+
+```bash
+# Using GitHub Actions (Recommended)
+# Go to Actions > Emergency Rollback
+# Select environment and version
+# Type "ROLLBACK" to confirm
+
+# Using local script
+./scripts/rollback.sh staging
+./scripts/rollback.sh production v1.0.0
+```
+
+### Setup Documentation
+
+📖 **[Complete Deployment Setup Guide](docs/DEPLOYMENT_SETUP.md)**
+
 ## Contribución
 
 - Usa la plantilla de PR en `.github/pull_request_template.md`
