@@ -21,6 +21,23 @@ interface AdminPaymentResponse {
   jitsiUrl?: string;
 }
 
+interface AppointmentData {
+  userId: string;
+  professionalId: string;
+  slotId?: string;
+  slot: {
+    date: string;
+    time: string;
+  };
+  professional?: {
+    fullName: string;
+  };
+  payment: {
+    status: string;
+    [key: string]: unknown;
+  };
+}
+
 /**
  * Check if user is admin
  */
@@ -88,7 +105,7 @@ function generateJitsiUrl(appointmentId: string, professionalId: string): string
 async function sendConfirmationEmail(
   appointmentId: string,
   jitsiUrl: string,
-  appointmentData: any,
+  appointmentData: AppointmentData,
 ): Promise<void> {
   try {
     // Get user details

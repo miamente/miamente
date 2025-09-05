@@ -1,5 +1,6 @@
 import { initializeTestEnvironment, RulesTestEnvironment } from "@firebase/rules-unit-testing";
-import firebaseFunctionsTest from "firebase-functions-test";
+import * as sgMail from "@sendgrid/mail";
+import * as sgMail from "@sendgrid/mail";
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 
 import {
@@ -8,6 +9,19 @@ import {
   generateReminderEmailHtml,
 } from "../email";
 import { runReminders } from "../reminders-https";
+
+// Import for mocking
+
+// Types for mocks
+type MockRequest = {
+  query: Record<string, unknown>;
+  headers: Record<string, unknown>;
+};
+
+type MockResponse = {
+  status: ReturnType<typeof vi.fn>;
+  json: ReturnType<typeof vi.fn>;
+};
 
 // Mock Firebase Admin
 vi.mock("firebase-admin/firestore", () => ({
@@ -33,7 +47,10 @@ vi.mock("@sendgrid/mail", () => ({
 
 describe("Email and Reminder System", () => {
   let testEnv: RulesTestEnvironment;
-  let mockDb: any;
+  let mockDb: {
+    collection: ReturnType<typeof vi.fn>;
+    [key: string]: unknown;
+  };
 
   beforeEach(async () => {
     // Mock database (always available)
@@ -77,7 +94,7 @@ describe("Email and Reminder System", () => {
       });
     } catch (error) {
       console.warn("Failed to initialize test environment:", error);
-      testEnv = null as any;
+      testEnv = null as unknown as RulesTestEnvironment;
     }
   });
 
@@ -148,7 +165,7 @@ describe("Email and Reminder System", () => {
 
   describe("SendGrid Email Handler", () => {
     it("should send email successfully", async () => {
-      const mockSendGrid = require("@sendgrid/mail");
+      const mockSendGrid = sgMail;
       mockSendGrid.send.mockResolvedValue([
         {
           headers: { "x-message-id": "test-message-id" },
@@ -171,7 +188,7 @@ describe("Email and Reminder System", () => {
     });
 
     it("should handle SendGrid errors gracefully", async () => {
-      const mockSendGrid = require("@sendgrid/mail");
+      const mockSendGrid = sgMail;
       mockSendGrid.send.mockRejectedValue(new Error("SendGrid API error"));
 
       const result = await sendEmailHandler("test@example.com", "Test Subject", "<p>Test HTML</p>");
@@ -199,10 +216,6 @@ describe("Email and Reminder System", () => {
             }),
           },
         ],
-      };
-
-      const mockAppointments1h = {
-        docs: [],
       };
 
       // Mock user data
@@ -236,7 +249,7 @@ describe("Email and Reminder System", () => {
       });
 
       // Mock SendGrid
-      const mockSendGrid = require("@sendgrid/mail");
+      const mockSendGrid = sgMail;
       mockSendGrid.send.mockResolvedValue([
         {
           headers: { "x-message-id": "test-message-id" },
@@ -258,7 +271,7 @@ describe("Email and Reminder System", () => {
       };
 
       // Execute the function
-      await runReminders(mockRequest as any, mockResponse as any);
+      await runReminders(mockRequest as MockRequest, mockResponse as MockResponse);
 
       // Verify response
       expect(mockResponse.status).toHaveBeenCalledWith(200);
@@ -287,7 +300,7 @@ describe("Email and Reminder System", () => {
         json: vi.fn(),
       };
 
-      await runReminders(mockRequest as any, mockResponse as any);
+      await runReminders(mockRequest as MockRequest, mockResponse as MockResponse);
 
       expect(mockResponse.status).toHaveBeenCalledWith(401);
       expect(mockResponse.json).toHaveBeenCalledWith({
@@ -307,7 +320,7 @@ describe("Email and Reminder System", () => {
         json: vi.fn(),
       };
 
-      await runReminders(mockRequest as any, mockResponse as any);
+      await runReminders(mockRequest as MockRequest, mockResponse as MockResponse);
 
       expect(mockResponse.status).toHaveBeenCalledWith(401);
       expect(mockResponse.json).toHaveBeenCalledWith({
@@ -329,7 +342,7 @@ describe("Email and Reminder System", () => {
         json: vi.fn(),
       };
 
-      await runReminders(mockRequest as any, mockResponse as any);
+      await runReminders(mockRequest as MockRequest, mockResponse as MockResponse);
 
       expect(mockResponse.status).toHaveBeenCalledWith(405);
       expect(mockResponse.json).toHaveBeenCalledWith({
@@ -349,7 +362,7 @@ describe("Email and Reminder System", () => {
         send: vi.fn(),
       };
 
-      await runReminders(mockRequest as any, mockResponse as any);
+      await runReminders(mockRequest as MockRequest, mockResponse as MockResponse);
 
       expect(mockResponse.status).toHaveBeenCalledWith(204);
       expect(mockResponse.send).toHaveBeenCalledWith("");
@@ -385,7 +398,7 @@ describe("Email and Reminder System", () => {
         json: vi.fn(),
       };
 
-      await runReminders(mockRequest as any, mockResponse as any);
+      await runReminders(mockRequest as MockRequest, mockResponse as MockResponse);
 
       expect(mockResponse.status).toHaveBeenCalledWith(500);
       expect(mockResponse.json).toHaveBeenCalledWith(
