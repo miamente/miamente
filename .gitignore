@@ -25,4 +25,4 @@ storage_debug.log
 
 test-results
 playwright-report
-.lighthouseci
+.lighthouseci/
