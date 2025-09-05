@@ -1,10 +1,11 @@
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { initializeTestEnvironment, RulesTestEnvironment } from '@firebase/rules-unit-testing';
-import firebaseFunctionsTest from 'firebase-functions-test';
-import { bookAppointment } from '../appointments';
+import { initializeTestEnvironment, RulesTestEnvironment } from "@firebase/rules-unit-testing";
+import firebaseFunctionsTest from "firebase-functions-test";
+import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
+
+import { bookAppointment } from "../appointments";
 
 // Mock Firebase Admin
-vi.mock('firebase-admin/firestore', () => ({
+vi.mock("firebase-admin/firestore", () => ({
   getFirestore: vi.fn(() => ({
     runTransaction: vi.fn(),
     collection: vi.fn(() => ({
@@ -17,16 +18,16 @@ vi.mock('firebase-admin/firestore', () => ({
   })),
 }));
 
-vi.mock('firebase-admin/auth', () => ({
+vi.mock("firebase-admin/auth", () => ({
   getAuth: vi.fn(() => ({
     verifyIdToken: vi.fn(),
   })),
 }));
 
-describe('Appointment Booking', () => {
+describe("Appointment Booking", () => {
   let testEnv: RulesTestEnvironment;
-  let mockDb: any;
-  let mockTransaction: any;
+  let mockDb: Record<string, unknown>;
+  let mockTransaction: Record<string, unknown>;
 
   beforeEach(async () => {
     // Mock database and transaction (always available)
@@ -47,16 +48,18 @@ describe('Appointment Booking', () => {
       update: vi.fn(),
     };
 
-    mockDb.runTransaction.mockImplementation(async (callback: any) => {
-      return await callback(mockTransaction);
-    });
+    mockDb.runTransaction.mockImplementation(
+      async (callback: (transaction: Record<string, unknown>) => Promise<unknown>) => {
+        return await callback(mockTransaction);
+      },
+    );
 
     // Try to initialize test environment (optional for Firebase rule testing)
     try {
       testEnv = await initializeTestEnvironment({
-        projectId: 'test-project',
+        projectId: "test-project",
         firestore: {
-          host: '127.0.0.1',
+          host: "127.0.0.1",
           port: 8080,
           rules: `
             rules_version = '2';
@@ -71,32 +74,32 @@ describe('Appointment Booking', () => {
         },
       });
     } catch (error) {
-      console.warn('Failed to initialize test environment:', error);
-      testEnv = null as any;
+      console.warn("Failed to initialize test environment:", error);
+      testEnv = null as unknown as RulesTestEnvironment;
     }
   });
 
   afterEach(async () => {
-    if (testEnv && typeof testEnv.cleanup === 'function') {
+    if (testEnv && typeof testEnv.cleanup === "function") {
       await testEnv.cleanup();
     }
   });
 
-  describe('bookAppointment', () => {
-    it('should successfully book an appointment when slot is available', async () => {
+  describe("bookAppointment", () => {
+    it("should successfully book an appointment when slot is available", async () => {
       // Mock data
       const mockSlotData = {
-        professionalId: 'pro-123',
-        status: 'free',
-        date: '2024-01-15',
-        time: '10:00',
+        professionalId: "pro-123",
+        status: "free",
+        date: "2024-01-15",
+        time: "10:00",
         duration: 60,
-        timezone: 'America/Bogota',
+        timezone: "America/Bogota",
       };
 
       const mockProData = {
-        fullName: 'Dr. Test Professional',
-        specialty: 'Psicología Clínica',
+        fullName: "Dr. Test Professional",
+        specialty: "Psicología Clínica",
         rateCents: 80000,
       };
 
@@ -118,11 +121,11 @@ describe('Appointment Booking', () => {
       // Mock request
       const mockRequest = {
         data: {
-          proId: 'pro-123',
-          slotId: 'slot-123',
+          proId: "pro-123",
+          slotId: "slot-123",
         },
         auth: {
-          uid: 'user-123',
+          uid: "user-123",
         },
       };
 
@@ -134,22 +137,22 @@ describe('Appointment Booking', () => {
       const result = await bookAppointmentCallable(mockRequest);
 
       // Verify the result
-      expect(result.data).toHaveProperty('appointmentId');
-      expect(typeof result.data.appointmentId).toBe('string');
+      expect(result.data).toHaveProperty("appointmentId");
+      expect(typeof result.data.appointmentId).toBe("string");
 
       // Verify transaction was called
       expect(mockDb.runTransaction).toHaveBeenCalledTimes(1);
     });
 
-    it('should fail when slot is not available (already booked)', async () => {
+    it("should fail when slot is not available (already booked)", async () => {
       // Mock data for already booked slot
       const mockSlotData = {
-        professionalId: 'pro-123',
-        status: 'held', // Already held
-        date: '2024-01-15',
-        time: '10:00',
+        professionalId: "pro-123",
+        status: "held", // Already held
+        date: "2024-01-15",
+        time: "10:00",
         duration: 60,
-        timezone: 'America/Bogota',
+        timezone: "America/Bogota",
       };
 
       const mockSlotDoc = {
@@ -163,11 +166,11 @@ describe('Appointment Booking', () => {
       // Mock request
       const mockRequest = {
         data: {
-          proId: 'pro-123',
-          slotId: 'slot-123',
+          proId: "pro-123",
+          slotId: "slot-123",
         },
         auth: {
-          uid: 'user-123',
+          uid: "user-123",
         },
       };
 
@@ -177,11 +180,11 @@ describe('Appointment Booking', () => {
 
       // Execute and expect failure
       await expect(bookAppointmentCallable(mockRequest)).rejects.toThrow(
-        'Slot is no longer available'
+        "Slot is no longer available",
       );
     });
 
-    it('should fail when slot does not exist', async () => {
+    it("should fail when slot does not exist", async () => {
       // Mock non-existent slot
       const mockSlotDoc = {
         exists: false,
@@ -194,11 +197,11 @@ describe('Appointment Booking', () => {
       // Mock request
       const mockRequest = {
         data: {
-          proId: 'pro-123',
-          slotId: 'non-existent-slot',
+          proId: "pro-123",
+          slotId: "non-existent-slot",
         },
         auth: {
-          uid: 'user-123',
+          uid: "user-123",
         },
       };
 
@@ -207,20 +210,18 @@ describe('Appointment Booking', () => {
       const bookAppointmentCallable = test.wrap(bookAppointment);
 
       // Execute and expect failure
-      await expect(bookAppointmentCallable(mockRequest)).rejects.toThrow(
-        'Slot not found'
-      );
+      await expect(bookAppointmentCallable(mockRequest)).rejects.toThrow("Slot not found");
     });
 
-    it('should fail when professional does not exist', async () => {
+    it("should fail when professional does not exist", async () => {
       // Mock slot data
       const mockSlotData = {
-        professionalId: 'pro-123',
-        status: 'free',
-        date: '2024-01-15',
-        time: '10:00',
+        professionalId: "pro-123",
+        status: "free",
+        date: "2024-01-15",
+        time: "10:00",
         duration: 60,
-        timezone: 'America/Bogota',
+        timezone: "America/Bogota",
       };
 
       const mockSlotDoc = {
@@ -242,11 +243,11 @@ describe('Appointment Booking', () => {
       // Mock request
       const mockRequest = {
         data: {
-          proId: 'pro-123',
-          slotId: 'slot-123',
+          proId: "pro-123",
+          slotId: "slot-123",
         },
         auth: {
-          uid: 'user-123',
+          uid: "user-123",
         },
       };
 
@@ -255,17 +256,15 @@ describe('Appointment Booking', () => {
       const bookAppointmentCallable = test.wrap(bookAppointment);
 
       // Execute and expect failure
-      await expect(bookAppointmentCallable(mockRequest)).rejects.toThrow(
-        'Professional not found'
-      );
+      await expect(bookAppointmentCallable(mockRequest)).rejects.toThrow("Professional not found");
     });
 
-    it('should fail when user is not authenticated', async () => {
+    it("should fail when user is not authenticated", async () => {
       // Mock request without authentication
       const mockRequest = {
         data: {
-          proId: 'pro-123',
-          slotId: 'slot-123',
+          proId: "pro-123",
+          slotId: "slot-123",
         },
         auth: null,
       };
@@ -276,19 +275,19 @@ describe('Appointment Booking', () => {
 
       // Execute and expect failure
       await expect(bookAppointmentCallable(mockRequest)).rejects.toThrow(
-        'User must be authenticated'
+        "User must be authenticated",
       );
     });
 
-    it('should fail when required parameters are missing', async () => {
+    it("should fail when required parameters are missing", async () => {
       // Mock request with missing parameters
       const mockRequest = {
         data: {
-          proId: 'pro-123',
+          proId: "pro-123",
           // slotId missing
         },
         auth: {
-          uid: 'user-123',
+          uid: "user-123",
         },
       };
 
@@ -298,26 +297,26 @@ describe('Appointment Booking', () => {
 
       // Execute and expect failure
       await expect(bookAppointmentCallable(mockRequest)).rejects.toThrow(
-        'proId and slotId are required'
+        "proId and slotId are required",
       );
     });
   });
 
-  describe('Slot Competition Scenarios', () => {
-    it('should handle concurrent booking attempts for the same slot', async () => {
+  describe("Slot Competition Scenarios", () => {
+    it("should handle concurrent booking attempts for the same slot", async () => {
       // Mock data
       const mockSlotData = {
-        professionalId: 'pro-123',
-        status: 'free',
-        date: '2024-01-15',
-        time: '10:00',
+        professionalId: "pro-123",
+        status: "free",
+        date: "2024-01-15",
+        time: "10:00",
         duration: 60,
-        timezone: 'America/Bogota',
+        timezone: "America/Bogota",
       };
 
       const mockProData = {
-        fullName: 'Dr. Test Professional',
-        specialty: 'Psicología Clínica',
+        fullName: "Dr. Test Professional",
+        specialty: "Psicología Clínica",
         rateCents: 80000,
       };
 
@@ -339,11 +338,11 @@ describe('Appointment Booking', () => {
       // Mock request for first user
       const mockRequest1 = {
         data: {
-          proId: 'pro-123',
-          slotId: 'slot-123',
+          proId: "pro-123",
+          slotId: "slot-123",
         },
         auth: {
-          uid: 'user-1',
+          uid: "user-1",
         },
       };
 
@@ -353,13 +352,13 @@ describe('Appointment Booking', () => {
 
       // First user should succeed
       const result1 = await bookAppointmentCallable(mockRequest1);
-      expect(result1.data).toHaveProperty('appointmentId');
+      expect(result1.data).toHaveProperty("appointmentId");
 
       // Now mock the slot as already held for second user
       const mockSlotDataHeld = {
         ...mockSlotData,
-        status: 'held',
-        heldBy: 'user-1',
+        status: "held",
+        heldBy: "user-1",
       };
 
       const mockSlotDocHeld = {
@@ -373,61 +372,35 @@ describe('Appointment Booking', () => {
       // Mock request for second user
       const mockRequest2 = {
         data: {
-          proId: 'pro-123',
-          slotId: 'slot-123',
+          proId: "pro-123",
+          slotId: "slot-123",
         },
         auth: {
-          uid: 'user-2',
+          uid: "user-2",
         },
       };
 
       // Second user should fail
       await expect(bookAppointmentCallable(mockRequest2)).rejects.toThrow(
-        'Slot is no longer available'
+        "Slot is no longer available",
       );
     });
 
-    it('should handle race condition where slot becomes unavailable during transaction', async () => {
-      // Mock data
-      const mockSlotData = {
-        professionalId: 'pro-123',
-        status: 'free',
-        date: '2024-01-15',
-        time: '10:00',
-        duration: 60,
-        timezone: 'America/Bogota',
-      };
-
-      const mockProData = {
-        fullName: 'Dr. Test Professional',
-        specialty: 'Psicología Clínica',
-        rateCents: 80000,
-      };
-
-      const mockSlotDoc = {
-        exists: true,
-        data: () => mockSlotData,
-      };
-
-      const mockProDoc = {
-        exists: true,
-        data: () => mockProData,
-      };
-
+    it("should handle race condition where slot becomes unavailable during transaction", async () => {
       // Mock transaction that fails due to race condition
-      mockDb.runTransaction.mockImplementation(async (callback: any) => {
+      mockDb.runTransaction.mockImplementation(async () => {
         // Simulate race condition by throwing an error
-        throw new Error('Transaction failed due to race condition');
+        throw new Error("Transaction failed due to race condition");
       });
 
       // Mock request
       const mockRequest = {
         data: {
-          proId: 'pro-123',
-          slotId: 'slot-123',
+          proId: "pro-123",
+          slotId: "slot-123",
         },
         auth: {
-          uid: 'user-123',
+          uid: "user-123",
         },
       };
 
@@ -437,26 +410,26 @@ describe('Appointment Booking', () => {
 
       // Execute and expect failure
       await expect(bookAppointmentCallable(mockRequest)).rejects.toThrow(
-        'Failed to book appointment'
+        "Failed to book appointment",
       );
     });
   });
 
-  describe('Data Validation', () => {
-    it('should validate professional rate is configured', async () => {
+  describe("Data Validation", () => {
+    it("should validate professional rate is configured", async () => {
       // Mock data with missing rate
       const mockSlotData = {
-        professionalId: 'pro-123',
-        status: 'free',
-        date: '2024-01-15',
-        time: '10:00',
+        professionalId: "pro-123",
+        status: "free",
+        date: "2024-01-15",
+        time: "10:00",
         duration: 60,
-        timezone: 'America/Bogota',
+        timezone: "America/Bogota",
       };
 
       const mockProData = {
-        fullName: 'Dr. Test Professional',
-        specialty: 'Psicología Clínica',
+        fullName: "Dr. Test Professional",
+        specialty: "Psicología Clínica",
         // rateCents missing
       };
 
@@ -478,11 +451,11 @@ describe('Appointment Booking', () => {
       // Mock request
       const mockRequest = {
         data: {
-          proId: 'pro-123',
-          slotId: 'slot-123',
+          proId: "pro-123",
+          slotId: "slot-123",
         },
         auth: {
-          uid: 'user-123',
+          uid: "user-123",
         },
       };
 
@@ -492,19 +465,19 @@ describe('Appointment Booking', () => {
 
       // Execute and expect failure
       await expect(bookAppointmentCallable(mockRequest)).rejects.toThrow(
-        'Professional rate not configured'
+        "Professional rate not configured",
       );
     });
 
-    it('should validate slot belongs to specified professional', async () => {
+    it("should validate slot belongs to specified professional", async () => {
       // Mock data with mismatched professional ID
       const mockSlotData = {
-        professionalId: 'pro-456', // Different from request
-        status: 'free',
-        date: '2024-01-15',
-        time: '10:00',
+        professionalId: "pro-456", // Different from request
+        status: "free",
+        date: "2024-01-15",
+        time: "10:00",
         duration: 60,
-        timezone: 'America/Bogota',
+        timezone: "America/Bogota",
       };
 
       const mockSlotDoc = {
@@ -518,11 +491,11 @@ describe('Appointment Booking', () => {
       // Mock request
       const mockRequest = {
         data: {
-          proId: 'pro-123', // Different from slot
-          slotId: 'slot-123',
+          proId: "pro-123", // Different from slot
+          slotId: "slot-123",
         },
         auth: {
-          uid: 'user-123',
+          uid: "user-123",
         },
       };
 
@@ -532,7 +505,7 @@ describe('Appointment Booking', () => {
 
       // Execute and expect failure
       await expect(bookAppointmentCallable(mockRequest)).rejects.toThrow(
-        'Slot does not belong to the specified professional'
+        "Slot does not belong to the specified professional",
       );
     });
   });
