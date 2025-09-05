@@ -25,6 +25,9 @@
     "test:e2e:ui": "playwright test --ui",
     "test:e2e:headed": "playwright test --headed",
     "test:e2e:staging": "E2E_BASE_URL=https://miamente-staging.web.app playwright test",
+    "lighthouse": "lhci autorun",
+    "lighthouse:collect": "lhci collect",
+    "lighthouse:assert": "lhci assert",
     "backup:firestore": "node scripts/backup-firestore.js",
     "backup:firestore:staging": "node scripts/backup-firestore.js --project=miamente-staging",
     "backup:firestore:dry-run": "node scripts/backup-firestore.js --dry-run",
@@ -36,6 +39,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.34.0",
+    "@lhci/cli": "^0.15.1",
     "@playwright/test": "^1.55.0",
     "actionlint": "^2.0.6",
     "eslint": "^9.10.0",
