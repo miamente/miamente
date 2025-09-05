@@ -52,25 +52,10 @@ export const USER_NAVIGATION_ITEMS: NavigationItem[] = [
     href: "/professionals",
     roles: ["user", "pro"],
   },
-  {
-    label: "Dashboard",
-    href: "/dashboard/user",
-    roles: ["user"],
-  },
-  {
-    label: "Dashboard",
-    href: "/dashboard/pro",
-    roles: ["pro"],
-  },
 ];
 
 // Navigation items for admin users
 export const ADMIN_NAVIGATION_ITEMS: NavigationItem[] = [
-  {
-    label: "Dashboard",
-    href: "/admin",
-    roles: ["admin"],
-  },
   {
     label: "Profesionales",
     href: "/admin/professionals",
