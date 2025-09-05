@@ -11,7 +11,7 @@ import { UserMenu } from "./user-menu";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import { useRole } from "@/hooks/useRole";
-import { signOut } from "@/lib/auth";
+import { logout } from "@/lib/auth";
 import {
   DEFAULT_HEADER_CONFIG,
   USER_NAVIGATION_ITEMS,
@@ -36,7 +36,7 @@ export function Header({ config = {}, className }: HeaderProps) {
   const handleUserMenuAction = async (action: string) => {
     if (action === "logout") {
       try {
-        await signOut();
+        await logout();
       } catch (error) {
         console.error("Error signing out:", error);
       }
@@ -47,7 +47,7 @@ export function Header({ config = {}, className }: HeaderProps) {
   const isAuthenticated = !!user && !authLoading;
   const userRole = userProfile?.role;
   const userName = userProfile?.fullName || profile?.fullName;
-  const userEmail = user?.email || profile?.email;
+  const userEmail = user?.email || undefined;
 
   // Show loading state
   if (!mounted || authLoading || roleLoading) {

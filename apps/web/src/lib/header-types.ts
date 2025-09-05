@@ -11,7 +11,7 @@ export interface NavigationItem {
 export interface UserMenuOption {
   label: string;
   href?: string;
-  action?: () => void;
+  action?: string;
   icon?: React.ComponentType<{ className?: string }>;
   roles?: UserRole[];
   divider?: boolean;
