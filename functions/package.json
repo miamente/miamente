@@ -12,6 +12,7 @@
     "lint": "tsc --noEmit",
     "test": "vitest run",
     "test:ci": "vitest run --coverage --reporter=verbose",
+    "test:integration": "echo \"Integration tests require Firebase emulators. Use 'npm run test:emulator' instead.\" && exit 0",
     "test:emulator": "vitest run emulator.test.ts",
     "typecheck": "tsc --noEmit",
     "deploy": "npx firebase deploy --only functions",
