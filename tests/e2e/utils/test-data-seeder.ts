@@ -40,7 +40,7 @@ export const TEST_DATA = {
 /**
  * Seed test data for E2E tests
  */
-export async function seedTestData(page: Page): Promise<void> {
+export async function seedTestData(page: Page, baseURL?: string): Promise<void> {
   console.log("🌱 Seeding test data...");
 
   try {
@@ -48,7 +48,8 @@ export async function seedTestData(page: Page): Promise<void> {
     // For now, we'll just ensure the test environment is ready
 
     // Check if we can access the application
-    await page.goto("/");
+    const url = baseURL ? `${baseURL}/` : "/";
+    await page.goto(url);
     await page.waitForLoadState("networkidle");
 
     // Verify the landing page loads

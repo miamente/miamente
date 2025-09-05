@@ -29,7 +29,7 @@ async function globalSetup(config: FullConfig) {
 
     // Seed test data if needed
     console.log("🌱 Seeding test data...");
-    await seedTestData(page);
+    await seedTestData(page, baseURL);
 
     console.log("✅ Global setup completed successfully");
   } catch (error) {

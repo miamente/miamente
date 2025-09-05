@@ -1,7 +1,7 @@
 import "./firebase-admin"; // Initialize Firebase Admin first
-import { onCall, HttpsError } from "firebase-functions/v2/https";
 import { getFirestore, FieldValue } from "firebase-admin/firestore";
-import { getAuth } from "firebase-admin/auth";
+import { onCall, HttpsError } from "firebase-functions/v2/https";
+
 import { sendEmailHandler, generateConfirmationEmailHtml } from "./email";
 
 const db = getFirestore();
@@ -191,14 +191,14 @@ export const adminConfirmPayment = onCall<
       }
 
       // Generate Jitsi URL
-      const jitsiUrl = generateJitsiUrl(appointmentId, appointmentData!.professionalId);
+      const jitsiUrl = generateJitsiUrl(appointmentId, appointmentData.professionalId);
 
       // Update appointment status to confirmed and mark as paid
       transaction.update(appointmentRef, {
         status: "confirmed",
         paid: true,
         payment: {
-          ...appointmentData!.payment,
+          ...appointmentData.payment,
           status: "approved",
           approvedAt: FieldValue.serverTimestamp(),
         },
@@ -305,7 +305,7 @@ export const adminFailPayment = onCall<AdminFailPaymentRequest, Promise<AdminPay
         transaction.update(appointmentRef, {
           status: "payment_failed",
           payment: {
-            ...appointmentData!.payment,
+            ...appointmentData.payment,
             status: "failed",
             failedAt: FieldValue.serverTimestamp(),
           },

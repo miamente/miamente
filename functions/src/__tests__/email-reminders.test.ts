@@ -1,12 +1,13 @@
-import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { initializeTestEnvironment, RulesTestEnvironment } from "@firebase/rules-unit-testing";
 import firebaseFunctionsTest from "firebase-functions-test";
-import { runReminders } from "../reminders-https";
+import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
+
 import {
   sendEmailHandler,
   generateConfirmationEmailHtml,
   generateReminderEmailHtml,
 } from "../email";
+import { runReminders } from "../reminders-https";
 
 // Mock Firebase Admin
 vi.mock("firebase-admin/firestore", () => ({
