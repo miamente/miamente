@@ -7,7 +7,18 @@ import jsxA11y from "eslint-plugin-jsx-a11y";
 import importPlugin from "eslint-plugin-import";
 
 export default [
-  { ignores: ["**/node_modules/**", "**/.next/**", "**/dist/**", "**/out/**", "**/functions/lib/**"] },
+  { 
+    ignores: [
+      "**/node_modules/**", 
+      "**/.next/**", 
+      "**/dist/**", 
+      "**/out/**", 
+      "**/build/**",
+      "**/functions/lib/**",
+      "**/scripts/**",
+      "**/*.min.js"
+    ] 
+  },
   js.configs.recommended,
   ...tseslint.configs.strict,
   {

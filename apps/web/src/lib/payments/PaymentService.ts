@@ -74,7 +74,6 @@ export type PaymentProvider = "mock" | "wompi" | "stripe";
  * Payment Service Factory
  * Creates the appropriate payment service based on provider and feature flags
  */
-// eslint-disable-next-line @typescript-eslint/no-extraneous-class
 export class PaymentServiceFactory {
   private static instance: PaymentService | null = null;
 
