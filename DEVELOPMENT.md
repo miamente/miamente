@@ -10,6 +10,7 @@
 ## 🛠️ Quick Start
 
 ### Option 1: Automated Setup
+
 ```bash
 # Run the development startup script
 ./dev-start.sh full
@@ -18,6 +19,7 @@
 ### Option 2: Manual Setup
 
 #### 1. Install Dependencies
+
 ```bash
 # Root dependencies
 npm install
@@ -30,6 +32,7 @@ cd functions && npm install && cd ..
 ```
 
 #### 2. Configure Environment Variables
+
 ```bash
 # Copy example environment file
 cp apps/web/.env.example apps/web/.env.local
@@ -41,17 +44,20 @@ nano apps/web/.env.local
 #### 3. Start Development Environment
 
 **Web App Only:**
+
 ```bash
 cd apps/web
 npm run dev
 ```
 
 **Firebase Emulators Only:**
+
 ```bash
 firebase emulators:start --project=demo-test
 ```
 
 **Both (Recommended):**
+
 ```bash
 # Terminal 1: Start Firebase Emulators
 firebase emulators:start --project=demo-test
@@ -74,16 +80,19 @@ Once running, you can access:
 ## 🧪 Testing
 
 ### Unit Tests
+
 ```bash
 npm run test
 ```
 
 ### E2E Tests
+
 ```bash
 npm run test:e2e
 ```
 
 ### Integration Tests
+
 ```bash
 npm run test:integration
 ```
@@ -136,18 +145,21 @@ npm run test:integration
 ## 🎯 Testing Scenarios
 
 ### 1. User Registration Flow
+
 1. Go to http://localhost:3000/register
 2. Fill out registration form
 3. Verify email (simulated)
 4. Complete profile setup
 
 ### 2. Professional Onboarding
+
 1. Register as professional
 2. Complete verification process
 3. Set up availability slots
 4. Wait for admin approval
 
 ### 3. Appointment Booking
+
 1. Browse available professionals
 2. Select time slot
 3. Complete booking process
@@ -155,6 +167,7 @@ npm run test:integration
 5. Receive confirmation
 
 ### 4. Admin Operations
+
 1. Access admin dashboard
 2. Verify professionals
 3. Manage appointments
@@ -162,6 +175,7 @@ npm run test:integration
 5. View analytics
 
 ### 5. Email & Reminders
+
 1. Trigger confirmation emails
 2. Test reminder system
 3. Verify email delivery
@@ -171,6 +185,7 @@ npm run test:integration
 ### Common Issues
 
 **Port Already in Use:**
+
 ```bash
 # Kill processes on specific ports
 lsof -ti:3000 | xargs kill -9
@@ -179,6 +194,7 @@ lsof -ti:8080 | xargs kill -9
 ```
 
 **Firebase Authentication Issues:**
+
 ```bash
 # Re-authenticate with Firebase
 firebase logout
@@ -186,6 +202,7 @@ firebase login --no-localhost
 ```
 
 **Environment Variables Not Loading:**
+
 ```bash
 # Check if .env.local exists
 ls -la apps/web/.env.local
@@ -195,6 +212,7 @@ cd apps/web && npm run dev
 ```
 
 **Dependencies Issues:**
+
 ```bash
 # Clear cache and reinstall
 rm -rf node_modules package-lock.json

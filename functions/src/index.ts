@@ -14,23 +14,20 @@ import { runReminders as runRemindersHandler } from "./reminders-https";
 import type { SendEmailRequest } from "./types";
 
 export const sendEmail = onCall(async (request) => {
-    const { data, auth } = request;
-    
-    if (!auth) {
-      throw new HttpsError("unauthenticated", "Auth required");
-    }
+  const { data, auth } = request;
 
-    const { to, subject, html } = data;
+  if (!auth) {
+    throw new HttpsError("unauthenticated", "Auth required");
+  }
 
-    if (!to || !subject || !html) {
-      throw new HttpsError(
-        "invalid-argument",
-        "to, subject, and html are required",
-      );
-    }
+  const { to, subject, html } = data;
 
-    return await sendEmailHandler(to, subject, html);
-  });
+  if (!to || !subject || !html) {
+    throw new HttpsError("invalid-argument", "to, subject, and html are required");
+  }
+
+  return await sendEmailHandler(to, subject, html);
+});
 
 // Export the new appointment functions
 export { bookAppointment, getAppointment, cancelAppointment };
@@ -48,58 +45,58 @@ export const wompiWebhook = onRequest(async (req, res) => {
 });
 
 export const runReminders = onSchedule("every 1 hours", async () => {
-    await sendReminderEmails();
-    await sendPostSessionEmails();
-  });
+  await sendReminderEmails();
+  await sendPostSessionEmails();
+});
 
 // Cleanup job to release held slots without payment
 export const cleanupHeldSlotsJob = onSchedule("every 5 minutes", async () => {
-    await cleanupHeldSlots();
-  });
+  await cleanupHeldSlots();
+});
 
 // HTTPS function for running reminders (called by GitHub Actions)
 export const runRemindersHttps = onRequest(async (req, res) => {
-    // Set CORS headers
-    res.set("Access-Control-Allow-Origin", "*");
-    res.set("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
-    res.set("Access-Control-Allow-Headers", "Content-Type, Authorization");
+  // Set CORS headers
+  res.set("Access-Control-Allow-Origin", "*");
+  res.set("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+  res.set("Access-Control-Allow-Headers", "Content-Type, Authorization");
 
-    // Handle preflight requests
-    if (req.method === "OPTIONS") {
-      res.status(204).send("");
-      return;
-    }
+  // Handle preflight requests
+  if (req.method === "OPTIONS") {
+    res.status(204).send("");
+    return;
+  }
 
-    // Only allow GET requests
-    if (req.method !== "GET") {
-      res.status(405).json({ error: "Method not allowed" });
-      return;
-    }
+  // Only allow GET requests
+  if (req.method !== "GET") {
+    res.status(405).json({ error: "Method not allowed" });
+    return;
+  }
 
-    // Verify authorization token
-    const authHeader = req.headers.authorization;
-    const expectedToken = process.env.REMINDERS_AUTH_TOKEN;
+  // Verify authorization token
+  const authHeader = req.headers.authorization;
+  const expectedToken = process.env.REMINDERS_AUTH_TOKEN;
 
-    if (!expectedToken) {
-      logger.error("REMINDERS_AUTH_TOKEN not configured");
-      res.status(500).json({ error: "Server configuration error" });
-      return;
-    }
+  if (!expectedToken) {
+    logger.error("REMINDERS_AUTH_TOKEN not configured");
+    res.status(500).json({ error: "Server configuration error" });
+    return;
+  }
 
-    if (!authHeader || authHeader !== `Bearer ${expectedToken}`) {
-      logger.warn("Unauthorized reminder request");
-      res.status(401).json({ error: "Unauthorized" });
-      return;
-    }
+  if (!authHeader || authHeader !== `Bearer ${expectedToken}`) {
+    logger.warn("Unauthorized reminder request");
+    res.status(401).json({ error: "Unauthorized" });
+    return;
+  }
 
-    try {
-      const result = await runRemindersHandler(req, res);
-      res.status(200).json(result);
-    } catch (error) {
-      logger.error("Error in runReminders HTTPS function:", error);
-      res.status(500).json({
-        success: false,
-        error: error instanceof Error ? error.message : "Unknown error",
-      });
-    }
-  });
+  try {
+    const result = await runRemindersHandler(req, res);
+    res.status(200).json(result);
+  } catch (error) {
+    logger.error("Error in runReminders HTTPS function:", error);
+    res.status(500).json({
+      success: false,
+      error: error instanceof Error ? error.message : "Unknown error",
+    });
+  }
+});

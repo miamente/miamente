@@ -16,9 +16,9 @@ exports.generateReminderSubject = generateReminderSubject;
  * @returns Jitsi Meet URL
  */
 function createJitsiUrl(appointmentId, baseUrl) {
-    const jitsiBase = baseUrl || process.env.JITSI_BASE_URL || "https://meet.jit.si";
-    const roomName = `miamente-${appointmentId}`;
-    return `${jitsiBase}/${roomName}`;
+  const jitsiBase = baseUrl || process.env.JITSI_BASE_URL || "https://meet.jit.si";
+  const roomName = `miamente-${appointmentId}`;
+  return `${jitsiBase}/${roomName}`;
 }
 /**
  * Generate a secure room name for Jitsi
@@ -26,8 +26,8 @@ function createJitsiUrl(appointmentId, baseUrl) {
  * @returns Secure room name
  */
 function generateJitsiRoomName(appointmentId) {
-    // Use appointment ID with prefix for easy identification
-    return `miamente-${appointmentId}`;
+  // Use appointment ID with prefix for easy identification
+  return `miamente-${appointmentId}`;
 }
 /**
  * Validate email address format
@@ -35,8 +35,8 @@ function generateJitsiRoomName(appointmentId) {
  * @returns True if valid email format
  */
 function isValidEmail(email) {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailRegex.test(email);
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return emailRegex.test(email);
 }
 /**
  * Format date for email display in Bogotá timezone
@@ -44,15 +44,15 @@ function isValidEmail(email) {
  * @returns Formatted date string
  */
 function formatEmailDate(date) {
-    return date.toLocaleString("es-CO", {
-        timeZone: "America/Bogota",
-        year: "numeric",
-        month: "long",
-        day: "numeric",
-        hour: "2-digit",
-        minute: "2-digit",
-        hour12: false,
-    });
+  return date.toLocaleString("es-CO", {
+    timeZone: "America/Bogota",
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  });
 }
 /**
  * Generate appointment confirmation email subject
@@ -60,8 +60,8 @@ function formatEmailDate(date) {
  * @returns Email subject
  */
 function generateConfirmationSubject(appointmentDate) {
-    const formattedDate = formatEmailDate(appointmentDate);
-    return `Confirmación de cita - ${formattedDate}`;
+  const formattedDate = formatEmailDate(appointmentDate);
+  return `Confirmación de cita - ${formattedDate}`;
 }
 /**
  * Generate reminder email subject
@@ -70,12 +70,11 @@ function generateConfirmationSubject(appointmentDate) {
  * @returns Email subject
  */
 function generateReminderSubject(appointmentDate, hoursUntil) {
-    const formattedDate = formatEmailDate(appointmentDate);
-    if (hoursUntil === 24) {
-        return `Recordatorio: Tu cita es mañana - ${formattedDate}`;
-    }
-    else if (hoursUntil === 1) {
-        return `Recordatorio: Tu cita es en 1 hora - ${formattedDate}`;
-    }
-    return `Recordatorio: Tu cita es en ${hoursUntil} horas - ${formattedDate}`;
+  const formattedDate = formatEmailDate(appointmentDate);
+  if (hoursUntil === 24) {
+    return `Recordatorio: Tu cita es mañana - ${formattedDate}`;
+  } else if (hoursUntil === 1) {
+    return `Recordatorio: Tu cita es en 1 hora - ${formattedDate}`;
+  }
+  return `Recordatorio: Tu cita es en ${hoursUntil} horas - ${formattedDate}`;
 }

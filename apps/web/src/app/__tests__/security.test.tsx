@@ -44,7 +44,7 @@ describe("Security Rules Tests", () => {
         firestore: {
           host: "127.0.0.1",
           port: 8080,
-        rules: `
+          rules: `
           rules_version = '2';
           service cloud.firestore {
             match /databases/{database}/documents {
@@ -73,11 +73,11 @@ describe("Security Rules Tests", () => {
             }
           }
         `,
-      },
-      storage: {
-        host: "localhost",
-        port: 9199,
-        rules: `
+        },
+        storage: {
+          host: "localhost",
+          port: 9199,
+          rules: `
           rules_version = '2';
           service firebase.storage {
             match /b/{bucket}/o {
@@ -95,19 +95,19 @@ describe("Security Rules Tests", () => {
             }
           }
         `,
-      },
-    });
+        },
+      });
 
-    // Initialize Firebase app
-    app = initializeApp({
-      projectId: "demo-miamente",
-      apiKey: "test-api-key",
-      authDomain: "demo-miamente.firebaseapp.com",
-    });
+      // Initialize Firebase app
+      app = initializeApp({
+        projectId: "demo-miamente",
+        apiKey: "test-api-key",
+        authDomain: "demo-miamente.firebaseapp.com",
+      });
 
-    auth = getAuth(app);
-    firestore = getFirestore(app);
-    storage = getStorage(app);
+      auth = getAuth(app);
+      firestore = getFirestore(app);
+      storage = getStorage(app);
 
       // Connect to emulators
       connectAuthEmulator(auth, "http://127.0.0.1:9099", { disableWarnings: true });
@@ -121,7 +121,7 @@ describe("Security Rules Tests", () => {
   });
 
   afterEach(async () => {
-    if (testEnv && typeof testEnv.cleanup === 'function') {
+    if (testEnv && typeof testEnv.cleanup === "function") {
       await testEnv.cleanup();
     }
   });

@@ -4,14 +4,14 @@ on:
   workflow_dispatch:
     inputs:
       environment:
-        description: 'Environment to rollback'
+        description: "Environment to rollback"
         required: true
         type: choice
         options:
           - staging
           - production
       version:
-        description: 'Version to rollback to (optional, leave empty for previous version)'
+        description: "Version to rollback to (optional, leave empty for previous version)"
         required: false
         type: string
       confirm_rollback:
@@ -20,7 +20,7 @@ on:
         type: string
 
 env:
-  NODE_VERSION: '22'
+  NODE_VERSION: "22"
 
 jobs:
   validate-inputs:
@@ -39,24 +39,24 @@ jobs:
             echo "❌ Rollback confirmation failed. You must type 'ROLLBACK' to confirm."
             exit 1
           fi
-          
+
           # Set environment
           echo "environment=${{ github.event.inputs.environment }}" >> $GITHUB_OUTPUT
-          
+
           # Set version (empty if not provided)
           if [[ -n "${{ github.event.inputs.version }}" ]]; then
             echo "version=${{ github.event.inputs.version }}" >> $GITHUB_OUTPUT
           else
             echo "version=" >> $GITHUB_OUTPUT
           fi
-          
+
           # Set project ID
           if [[ "${{ github.event.inputs.environment }}" == "production" ]]; then
             echo "project_id=miamente-prod" >> $GITHUB_OUTPUT
           else
             echo "project_id=miamente-staging" >> $GITHUB_OUTPUT
           fi
-          
+
           echo "✅ Input validation passed"
           echo "Environment: ${{ github.event.inputs.environment }}"
           echo "Project ID: ${{ steps.validate.outputs.project_id }}"
@@ -75,13 +75,13 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # Need full history for rollback
+          fetch-depth: 0 # Need full history for rollback
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
+          cache: "npm"
 
       - name: Install dependencies
         run: npm ci
@@ -100,11 +100,11 @@ jobs:
       - name: Rollback Firebase Hosting
         run: |
           echo "🔄 Rolling back Firebase Hosting..."
-          
+
           # List recent releases
           echo "Recent hosting releases:"
           firebase hosting:releases --project=${{ needs.validate-inputs.outputs.project_id }} --limit 5
-          
+
           # Rollback hosting
           if [[ -n "${{ needs.validate-inputs.outputs.version }}" ]]; then
             echo "Rolling back to version: ${{ needs.validate-inputs.outputs.version }}"
@@ -113,7 +113,7 @@ jobs:
             echo "Rolling back to previous version..."
             firebase hosting:rollback --project=${{ needs.validate-inputs.outputs.project_id }}
           fi
-          
+
           echo "✅ Hosting rollback completed"
         env:
           FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
@@ -121,11 +121,11 @@ jobs:
       - name: Rollback Firebase Functions
         run: |
           echo "🔄 Rolling back Firebase Functions..."
-          
+
           # List current functions
           echo "Current functions:"
           firebase functions:list --project=${{ needs.validate-inputs.outputs.project_id }}
-          
+
           # Checkout target version
           if [[ -n "${{ needs.validate-inputs.outputs.version }}" ]]; then
             echo "Checking out version: ${{ needs.validate-inputs.outputs.version }}"
@@ -134,20 +134,20 @@ jobs:
             echo "Checking out previous commit..."
             git checkout HEAD~1
           fi
-          
+
           # Build and deploy functions
           echo "Building functions..."
           cd functions
           npm ci
           npm run build
-          
+
           echo "Deploying functions..."
           firebase deploy --only functions --project=${{ needs.validate-inputs.outputs.project_id }}
-          
+
           # Return to original commit
           git checkout -
           cd ..
-          
+
           echo "✅ Functions rollback completed"
         env:
           FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
@@ -159,7 +159,7 @@ jobs:
       - name: Rollback Security Rules
         run: |
           echo "🔄 Rolling back Firestore and Storage rules..."
-          
+
           # Checkout target version of rules
           if [[ -n "${{ needs.validate-inputs.outputs.version }}" ]]; then
             echo "Checking out rules from version: ${{ needs.validate-inputs.outputs.version }}"
@@ -168,17 +168,17 @@ jobs:
             echo "Checking out previous rules..."
             git checkout HEAD~1 -- firestore.rules storage.rules
           fi
-          
+
           # Deploy rules
           echo "Deploying Firestore rules..."
           firebase deploy --only firestore:rules --project=${{ needs.validate-inputs.outputs.project_id }}
-          
+
           echo "Deploying Storage rules..."
           firebase deploy --only storage --project=${{ needs.validate-inputs.outputs.project_id }}
-          
+
           # Restore current rules
           git checkout HEAD -- firestore.rules storage.rules
-          
+
           echo "✅ Security rules rollback completed"
         env:
           FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
@@ -186,19 +186,19 @@ jobs:
       - name: Verify Rollback
         run: |
           echo "🔍 Verifying rollback..."
-          
+
           # Get the hosting URL
           if [[ "${{ needs.validate-inputs.outputs.environment }}" == "staging" ]]; then
             URL="https://miamente-staging.web.app"
           else
             URL="https://miamente-prod.web.app"
           fi
-          
+
           echo "Checking if $URL is accessible..."
-          
+
           # Check if the site is accessible
           HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" "$URL" || echo "000")
-          
+
           if [[ "$HTTP_STATUS" == "200" ]]; then
             echo "✅ Rollback verification successful - Site is accessible"
           else

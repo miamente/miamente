@@ -43,7 +43,7 @@ describe("Security Negative Tests", () => {
         firestore: {
           host: "127.0.0.1",
           port: 8080,
-        rules: `
+          rules: `
           rules_version = '2';
           service cloud.firestore {
             match /databases/{database}/documents {
@@ -94,11 +94,11 @@ describe("Security Negative Tests", () => {
             }
           }
         `,
-      },
-      storage: {
-        host: "localhost",
-        port: 9199,
-        rules: `
+        },
+        storage: {
+          host: "localhost",
+          port: 9199,
+          rules: `
           rules_version = '2';
           service firebase.storage {
             match /b/{bucket}/o {
@@ -122,8 +122,8 @@ describe("Security Negative Tests", () => {
             }
           }
         `,
-      },
-    });
+        },
+      });
 
       // Initialize Firebase app
       app = initializeApp({
@@ -148,7 +148,7 @@ describe("Security Negative Tests", () => {
   });
 
   afterEach(async () => {
-    if (testEnv && typeof testEnv.cleanup === 'function') {
+    if (testEnv && typeof testEnv.cleanup === "function") {
       await testEnv.cleanup();
     }
   });

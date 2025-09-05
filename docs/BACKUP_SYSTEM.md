@@ -5,6 +5,7 @@ This document describes the comprehensive backup system for Miamente's Firestore
 ## Overview
 
 The backup system provides:
+
 - **Automated weekly backups** of all Firestore collections
 - **JSON export** of collections with metadata
 - **Firebase Storage upload** with organized folder structure
@@ -17,16 +18,16 @@ The backup system provides:
 
 The following Firestore collections are included in each backup:
 
-| Collection | Description | Critical Fields |
-|------------|-------------|-----------------|
-| `users` | User accounts and profiles | email, fullName, createdAt |
-| `professionals` | Professional profiles | email, fullName, specialty, rateCents |
-| `availability` | Professional availability slots | professionalId, date, time, duration |
-| `appointments` | Booked appointments | userId, professionalId, date, time, status |
-| `payments` | Payment transactions | appointmentId, amount, currency, status |
-| `reviews` | User reviews and ratings | appointmentId, userId, professionalId, rating, comment |
-| `event_log` | System event logs | eventType, timestamp, userId |
-| `feature_flags` | Feature flag configurations | name, enabled, description |
+| Collection      | Description                     | Critical Fields                                        |
+| --------------- | ------------------------------- | ------------------------------------------------------ |
+| `users`         | User accounts and profiles      | email, fullName, createdAt                             |
+| `professionals` | Professional profiles           | email, fullName, specialty, rateCents                  |
+| `availability`  | Professional availability slots | professionalId, date, time, duration                   |
+| `appointments`  | Booked appointments             | userId, professionalId, date, time, status             |
+| `payments`      | Payment transactions            | appointmentId, amount, currency, status                |
+| `reviews`       | User reviews and ratings        | appointmentId, userId, professionalId, rating, comment |
+| `event_log`     | System event logs               | eventType, timestamp, userId                           |
+| `feature_flags` | Feature flag configurations     | name, enabled, description                             |
 
 ## Backup Structure
 
@@ -52,6 +53,7 @@ gs://PROJECT_ID.appspot.com/backups/
 ### Backup ID Format
 
 Backup IDs follow the format: `YYYY-MM-DD/HHMMSS`
+
 - Example: `2024-01-15/143022` (January 15, 2024 at 14:30:22)
 
 ### JSON File Format
@@ -106,6 +108,7 @@ Each backup includes a `metadata.json` file with:
 Main backup script that exports collections and uploads to storage.
 
 **Usage:**
+
 ```bash
 # Production backup
 npm run backup:firestore
@@ -121,6 +124,7 @@ node scripts/backup-firestore.js --project=miamente-prod
 ```
 
 **Features:**
+
 - Batch processing (500 documents per batch)
 - Retry logic with exponential backoff
 - Progress reporting
@@ -133,6 +137,7 @@ node scripts/backup-firestore.js --project=miamente-prod
 Validates backup integrity and completeness.
 
 **Usage:**
+
 ```bash
 # Validate specific backup
 npm run backup:validate -- --backup-id=2024-01-15/143022
@@ -142,6 +147,7 @@ node scripts/validate-backup.js --backup-id=2024-01-15/143022 --project=miamente
 ```
 
 **Validation Checks:**
+
 - File existence and readability
 - JSON validity
 - Document count consistency
@@ -154,6 +160,7 @@ node scripts/validate-backup.js --backup-id=2024-01-15/143022 --project=miamente
 Sends notifications about backup status.
 
 **Usage:**
+
 ```bash
 # Send success notification
 npm run backup:notify -- --status=success --backup-id=2024-01-15/143022
@@ -163,6 +170,7 @@ npm run backup:notify -- --status=failure --backup-id=2024-01-15/143022
 ```
 
 **Notification Channels:**
+
 - **Slack**: Webhook integration with detailed status
 - **Email**: HTML email via SendGrid with full report
 - **GitHub**: Commit status updates
@@ -174,10 +182,12 @@ npm run backup:notify -- --status=failure --backup-id=2024-01-15/143022
 Automated weekly backup execution every Sunday at 2:00 AM UTC.
 
 **Triggers:**
+
 - **Schedule**: `0 2 * * 0` (Every Sunday at 2:00 AM UTC)
 - **Manual**: Via GitHub Actions UI with project selection
 
 **Jobs:**
+
 1. **Setup**: Environment preparation and dependency installation
 2. **Backup**: Firestore export and storage upload
 3. **Cleanup**: Remove old backups (30-day retention)
@@ -185,6 +195,7 @@ Automated weekly backup execution every Sunday at 2:00 AM UTC.
 5. **Notifications**: Send status notifications
 
 **Manual Execution:**
+
 1. Go to GitHub Actions → "Weekly Firestore Backup"
 2. Click "Run workflow"
 3. Select project (miamente-prod or miamente-staging)
@@ -194,31 +205,32 @@ Automated weekly backup execution every Sunday at 2:00 AM UTC.
 
 ### Environment Variables
 
-| Variable | Description | Required |
-|----------|-------------|----------|
-| `GOOGLE_APPLICATION_CREDENTIALS` | Path to service account key file | Yes |
-| `FIREBASE_PROJECT_ID` | Firebase project ID | Yes |
-| `BACKUP_BUCKET` | Storage bucket for backups | No (defaults to project.appspot.com) |
-| `SLACK_WEBHOOK_URL` | Slack webhook for notifications | No |
-| `SENDGRID_API_KEY` | SendGrid API key for emails | No |
-| `GITHUB_TOKEN` | GitHub token for status updates | No |
-| `BACKUP_NOTIFICATION_EMAIL` | Email for notifications | No |
+| Variable                         | Description                      | Required                             |
+| -------------------------------- | -------------------------------- | ------------------------------------ |
+| `GOOGLE_APPLICATION_CREDENTIALS` | Path to service account key file | Yes                                  |
+| `FIREBASE_PROJECT_ID`            | Firebase project ID              | Yes                                  |
+| `BACKUP_BUCKET`                  | Storage bucket for backups       | No (defaults to project.appspot.com) |
+| `SLACK_WEBHOOK_URL`              | Slack webhook for notifications  | No                                   |
+| `SENDGRID_API_KEY`               | SendGrid API key for emails      | No                                   |
+| `GITHUB_TOKEN`                   | GitHub token for status updates  | No                                   |
+| `BACKUP_NOTIFICATION_EMAIL`      | Email for notifications          | No                                   |
 
 ### GitHub Secrets
 
 Configure the following secrets in your GitHub repository:
 
-| Secret | Description |
-|--------|-------------|
-| `FIREBASE_SERVICE_ACCOUNT` | Service account JSON (entire file content) |
-| `SLACK_WEBHOOK_URL` | Slack webhook URL |
-| `SENDGRID_API_KEY` | SendGrid API key |
-| `GITHUB_TOKEN` | GitHub personal access token |
-| `BACKUP_NOTIFICATION_EMAIL` | Email address for notifications |
+| Secret                      | Description                                |
+| --------------------------- | ------------------------------------------ |
+| `FIREBASE_SERVICE_ACCOUNT`  | Service account JSON (entire file content) |
+| `SLACK_WEBHOOK_URL`         | Slack webhook URL                          |
+| `SENDGRID_API_KEY`          | SendGrid API key                           |
+| `GITHUB_TOKEN`              | GitHub personal access token               |
+| `BACKUP_NOTIFICATION_EMAIL` | Email address for notifications            |
 
 ### Service Account Permissions
 
 The service account requires the following roles:
+
 - **Firebase Admin** (for Firestore access)
 - **Storage Admin** (for backup uploads)
 - **Storage Object Admin** (for cleanup operations)
@@ -228,6 +240,7 @@ The service account requires the following roles:
 ### Backup Status Monitoring
 
 Monitor backup status through:
+
 - **GitHub Actions**: Workflow execution history
 - **Slack Notifications**: Real-time status updates
 - **Email Reports**: Detailed backup summaries
@@ -236,6 +249,7 @@ Monitor backup status through:
 ### Alert Conditions
 
 Alerts are triggered for:
+
 - Backup failures
 - Validation errors
 - Storage upload failures
@@ -289,25 +303,25 @@ To restore data from a backup:
 ### Example Restore Script
 
 ```javascript
-const { initializeApp, cert } = require('firebase-admin/app');
-const { getFirestore } = require('firebase-admin/firestore');
-const fs = require('fs').promises;
+const { initializeApp, cert } = require("firebase-admin/app");
+const { getFirestore } = require("firebase-admin/firestore");
+const fs = require("fs").promises;
 
 async function restoreCollection(collectionName, backupPath) {
   const app = initializeApp({
     credential: cert(serviceAccount),
-    projectId: 'target-project'
+    projectId: "target-project",
   });
-  
+
   const db = getFirestore(app);
-  const data = JSON.parse(await fs.readFile(`${backupPath}/${collectionName}.json`, 'utf8'));
-  
+  const data = JSON.parse(await fs.readFile(`${backupPath}/${collectionName}.json`, "utf8"));
+
   const batch = db.batch();
-  data.forEach(doc => {
+  data.forEach((doc) => {
     const ref = db.collection(collectionName).doc(doc.id);
     batch.set(ref, doc.data);
   });
-  
+
   await batch.commit();
   console.log(`Restored ${data.length} documents to ${collectionName}`);
 }
@@ -318,21 +332,25 @@ async function restoreCollection(collectionName, backupPath) {
 ### Common Issues
 
 **1. Permission Denied**
+
 - Verify service account has required roles
 - Check Firebase project access
 - Ensure service account key is valid
 
 **2. Storage Upload Failed**
+
 - Check storage bucket permissions
 - Verify bucket exists and is accessible
 - Check network connectivity
 
 **3. Collection Export Failed**
+
 - Verify collection exists in Firestore
 - Check for large collections (consider pagination)
 - Review Firestore security rules
 
 **4. Validation Errors**
+
 - Check JSON file integrity
 - Verify required fields in documents
 - Compare with live data for consistency
@@ -348,6 +366,7 @@ DEBUG=* node scripts/backup-firestore.js
 ### Log Analysis
 
 Check logs for:
+
 - Batch processing progress
 - Error details and stack traces
 - Performance metrics
@@ -380,6 +399,7 @@ Check logs for:
 ## Support
 
 For backup system support:
+
 - **Documentation**: This file and inline code comments
 - **GitHub Issues**: Report bugs and feature requests
 - **DevOps Team**: devops@miamente.com
@@ -388,6 +408,7 @@ For backup system support:
 ## Changelog
 
 ### Version 1.0.0
+
 - Initial backup system implementation
 - Weekly automated backups
 - Multi-channel notifications

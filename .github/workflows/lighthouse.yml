@@ -7,7 +7,7 @@ on:
     branches: [main]
 
 env:
-  NODE_VERSION: '22'
+  NODE_VERSION: "22"
 
 jobs:
   lighthouse:
@@ -21,7 +21,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
+          cache: "npm"
 
       - name: Install dependencies
         run: npm ci
@@ -50,7 +50,7 @@ jobs:
       - name: Run Lighthouse CI
         uses: treosh/lighthouse-ci-action@v10
         with:
-          configPath: './apps/web/.lighthouserc.json'
+          configPath: "./apps/web/.lighthouserc.json"
           uploadArtifacts: true
           temporaryPublicStorage: true
 
@@ -61,7 +61,7 @@ jobs:
           script: |
             const fs = require('fs');
             const path = require('path');
-            
+
             // Read lighthouse results
             const resultsPath = path.join(process.cwd(), 'lighthouse-results.json');
             if (fs.existsSync(resultsPath)) {

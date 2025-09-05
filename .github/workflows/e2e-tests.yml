@@ -8,16 +8,16 @@ on:
   workflow_dispatch:
     inputs:
       environment:
-        description: 'Environment to test against'
+        description: "Environment to test against"
         required: true
-        default: 'staging'
+        default: "staging"
         type: choice
         options:
           - staging
           - production
 
 env:
-  NODE_VERSION: '22'
+  NODE_VERSION: "22"
 
 jobs:
   # Job 1: Setup and Install Dependencies
@@ -32,7 +32,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
+          cache: "npm"
 
       - name: Install dependencies
         run: npm ci
@@ -61,7 +61,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
+          cache: "npm"
 
       - name: Install dependencies
         run: npm ci
@@ -99,7 +99,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
+          cache: "npm"
 
       - name: Install dependencies
         run: npm ci
@@ -166,7 +166,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
+          cache: "npm"
 
       - name: Install dependencies
         run: npm ci
@@ -204,7 +204,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
+          cache: "npm"
 
       - name: Install dependencies
         run: npm ci
@@ -216,7 +216,7 @@ jobs:
         run: |
           echo "Waiting for staging deployment to be ready..."
           sleep 60
-          
+
           # Check if staging is accessible
           for i in {1..10}; do
             if curl -f -s https://miamente-staging.web.app > /dev/null; then
@@ -260,7 +260,7 @@ jobs:
         run: |
           echo "## 🧪 E2E Test Results" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          
+
           if [ -f "test-results/e2e-results.json" ]; then
             echo "### Test Summary" >> $GITHUB_STEP_SUMMARY
             echo "- **Total Tests**: $(jq '.stats.total' test-results/e2e-results.json)" >> $GITHUB_STEP_SUMMARY
@@ -269,13 +269,13 @@ jobs:
             echo "- **Skipped**: $(jq '.stats.skipped' test-results/e2e-results.json)" >> $GITHUB_STEP_SUMMARY
             echo "" >> $GITHUB_STEP_SUMMARY
           fi
-          
+
           if [ -d "playwright-report" ]; then
             echo "### 📊 Test Report" >> $GITHUB_STEP_SUMMARY
             echo "Detailed test report is available in the artifacts." >> $GITHUB_STEP_SUMMARY
             echo "" >> $GITHUB_STEP_SUMMARY
           fi
-          
+
           echo "### 🔍 Test Coverage" >> $GITHUB_STEP_SUMMARY
           echo "- ✅ User Registration and Email Verification" >> $GITHUB_STEP_SUMMARY
           echo "- ✅ Professional Slot Creation and User Booking" >> $GITHUB_STEP_SUMMARY

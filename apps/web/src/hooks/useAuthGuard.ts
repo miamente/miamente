@@ -17,21 +17,25 @@ export function useAuthGuard(options: AuthGuardOptions = {}) {
   const router = useRouter();
 
   // In development mode (emulator), disable email verification requirement by default
-  const isDevelopment = typeof window !== 'undefined' && window.location.hostname === 'localhost';
+  const isDevelopment = typeof window !== "undefined" && window.location.hostname === "localhost";
   const defaultEmailVerification = isDevelopment ? false : true;
-  
-  const { requiredRole, requireEmailVerification = defaultEmailVerification, redirectTo = "/login" } = options;
+
+  const {
+    requiredRole,
+    requireEmailVerification = defaultEmailVerification,
+    redirectTo = "/login",
+  } = options;
 
   useEffect(() => {
     if (loading) return;
 
     // Debug logging in development
     if (isDevelopment) {
-      console.log('useAuthGuard - Development mode:', {
+      console.log("useAuthGuard - Development mode:", {
         user: user?.email,
         emailVerified: user?.emailVerified,
         requireEmailVerification,
-        profile: profile?.role
+        profile: profile?.role,
       });
     }
 
@@ -44,7 +48,7 @@ export function useAuthGuard(options: AuthGuardOptions = {}) {
     // Email verification required but not verified
     if (requireEmailVerification && !user.emailVerified) {
       if (isDevelopment) {
-        console.log('useAuthGuard - Redirecting to /verify (email not verified)');
+        console.log("useAuthGuard - Redirecting to /verify (email not verified)");
       }
       router.push("/verify");
       return;
@@ -57,7 +61,16 @@ export function useAuthGuard(options: AuthGuardOptions = {}) {
       router.push(roleDashboard);
       return;
     }
-  }, [user, profile, loading, requiredRole, requireEmailVerification, redirectTo, router, isDevelopment]);
+  }, [
+    user,
+    profile,
+    loading,
+    requiredRole,
+    requireEmailVerification,
+    redirectTo,
+    router,
+    isDevelopment,
+  ]);
 
   return {
     user,

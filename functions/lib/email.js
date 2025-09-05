@@ -1,7 +1,9 @@
 "use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
+var __importDefault =
+  (this && this.__importDefault) ||
+  function (mod) {
+    return mod && mod.__esModule ? mod : { default: mod };
+  };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.sendEmailHandler = sendEmailHandler;
 exports.generateConfirmationEmailHtml = generateConfirmationEmailHtml;
@@ -13,55 +15,53 @@ const utils_1 = require("./utils");
 // Initialize SendGrid
 const sendGridApiKey = process.env.SENDGRID_API_KEY;
 if (sendGridApiKey) {
-    mail_1.default.setApiKey(sendGridApiKey);
-}
-else {
-    v2_1.logger.warn("SENDGRID_API_KEY not configured. Email functionality will be disabled.");
+  mail_1.default.setApiKey(sendGridApiKey);
+} else {
+  v2_1.logger.warn("SENDGRID_API_KEY not configured. Email functionality will be disabled.");
 }
 /**
  * Send email using SendGrid
  */
 async function sendEmailHandler(to, subject, html) {
-    // Check if SendGrid is configured
-    if (!sendGridApiKey) {
-        v2_1.logger.warn(`Email not sent - SendGrid not configured. To: ${to}, Subject: ${subject}`);
-        return {
-            success: false,
-            error: "SendGrid not configured",
-        };
-    }
-    try {
-        const msg = {
-            to,
-            from: {
-                email: process.env.SENDGRID_FROM_EMAIL || "noreply@miamente.com",
-                name: "Miamente",
-            },
-            subject,
-            html,
-        };
-        const response = await mail_1.default.send(msg);
-        const messageId = response[0].headers["x-message-id"];
-        return {
-            success: true,
-            messageId,
-        };
-    }
-    catch (error) {
-        v2_1.logger.error("Error sending email:", error);
-        return {
-            success: false,
-            error: error instanceof Error ? error.message : "Unknown error",
-        };
-    }
+  // Check if SendGrid is configured
+  if (!sendGridApiKey) {
+    v2_1.logger.warn(`Email not sent - SendGrid not configured. To: ${to}, Subject: ${subject}`);
+    return {
+      success: false,
+      error: "SendGrid not configured",
+    };
+  }
+  try {
+    const msg = {
+      to,
+      from: {
+        email: process.env.SENDGRID_FROM_EMAIL || "noreply@miamente.com",
+        name: "Miamente",
+      },
+      subject,
+      html,
+    };
+    const response = await mail_1.default.send(msg);
+    const messageId = response[0].headers["x-message-id"];
+    return {
+      success: true,
+      messageId,
+    };
+  } catch (error) {
+    v2_1.logger.error("Error sending email:", error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Unknown error",
+    };
+  }
 }
 /**
  * Generate appointment confirmation email HTML
  */
 function generateConfirmationEmailHtml(appointmentDate, jitsiUrl, professionalName) {
-    const formattedDate = (0, utils_1.formatEmailDate)(appointmentDate);
-    const professionalInfo = professionalName ? ` con ${professionalName}` : "";
-    return `
+  const formattedDate = (0, utils_1.formatEmailDate)(appointmentDate);
+  const professionalInfo = professionalName ? ` con ${professionalName}` : "";
+  return `
     <!DOCTYPE html>
     <html>
     <head>
@@ -131,10 +131,10 @@ function generateConfirmationEmailHtml(appointmentDate, jitsiUrl, professionalNa
  * Generate reminder email HTML
  */
 function generateReminderEmailHtml(appointmentDate, jitsiUrl, hoursUntil, professionalName) {
-    const formattedDate = (0, utils_1.formatEmailDate)(appointmentDate);
-    const professionalInfo = professionalName ? ` con ${professionalName}` : "";
-    const timeMessage = hoursUntil === 1 ? "en 1 hora" : `en ${hoursUntil} horas`;
-    return `
+  const formattedDate = (0, utils_1.formatEmailDate)(appointmentDate);
+  const professionalInfo = professionalName ? ` con ${professionalName}` : "";
+  const timeMessage = hoursUntil === 1 ? "en 1 hora" : `en ${hoursUntil} horas`;
+  return `
     <!DOCTYPE html>
     <html>
     <head>
@@ -198,8 +198,8 @@ function generateReminderEmailHtml(appointmentDate, jitsiUrl, hoursUntil, profes
  * Generate post-session email HTML
  */
 function generatePostSessionEmailHtml(professionalName) {
-    const professionalInfo = professionalName ? ` con ${professionalName}` : "";
-    return `
+  const professionalInfo = professionalName ? ` con ${professionalName}` : "";
+  return `
     <!DOCTYPE html>
     <html>
     <head>

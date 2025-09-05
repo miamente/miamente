@@ -58,10 +58,7 @@ export async function sendConfirmationEmail(appointmentId: string): Promise<void
       );
     }
   } catch (error) {
-    logger.error(
-      `Error sending confirmation email for appointment ${appointmentId}:`,
-      error,
-    );
+    logger.error(`Error sending confirmation email for appointment ${appointmentId}:`, error);
   }
 }
 
@@ -179,14 +176,9 @@ async function sendReminderEmail(
     const result = await sendEmailHandler(userData.email, subject, html);
 
     if (result.success) {
-      logger.info(
-        `Reminder email sent for appointment ${appointmentId} (${hoursUntil}h)`,
-      );
+      logger.info(`Reminder email sent for appointment ${appointmentId} (${hoursUntil}h)`);
     } else {
-      logger.error(
-        `Failed to send reminder email for appointment ${appointmentId}:`,
-        result.error,
-      );
+      logger.error(`Failed to send reminder email for appointment ${appointmentId}:`, result.error);
     }
   } catch (error) {
     logger.error(`Error sending reminder email for appointment ${appointmentId}:`, error);
@@ -231,10 +223,7 @@ async function sendPostSessionEmail(
       );
     }
   } catch (error) {
-    logger.error(
-      `Error sending post-session email for appointment ${appointmentId}:`,
-      error,
-    );
+    logger.error(`Error sending post-session email for appointment ${appointmentId}:`, error);
   }
 }
 
