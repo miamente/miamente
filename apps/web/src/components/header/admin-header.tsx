@@ -116,28 +116,32 @@ export function AdminHeader({ config = {}, className }: HeaderProps) {
 
           {/* Right Side Actions */}
           <div className="flex items-center gap-2">
-            {/* Theme Toggle */}
+            {/* Theme Toggle - Hidden on mobile */}
             {finalConfig.showThemeToggle && (
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => setTheme(isDark ? "light" : "dark")}
-                aria-label="Toggle theme"
-              >
-                {isDark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-              </Button>
+              <div className="hidden lg:block">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setTheme(isDark ? "light" : "dark")}
+                  aria-label="Toggle theme"
+                >
+                  {isDark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+                </Button>
+              </div>
             )}
 
-            {/* User Menu */}
+            {/* User Menu - Hidden on mobile */}
             {finalConfig.showUserMenu && (
-              <UserMenu
-                userRole={userRole}
-                userName={userName}
-                userEmail={userEmail}
-                userMenuOptions={ADMIN_MENU_OPTIONS}
-                onUserMenuAction={handleUserMenuAction}
-                isAuthenticated={isAuthenticated}
-              />
+              <div className="hidden lg:block">
+                <UserMenu
+                  userRole={userRole}
+                  userName={userName}
+                  userEmail={userEmail}
+                  userMenuOptions={ADMIN_MENU_OPTIONS}
+                  onUserMenuAction={handleUserMenuAction}
+                  isAuthenticated={isAuthenticated}
+                />
+              </div>
             )}
 
             {/* Mobile Menu Button */}
@@ -165,6 +169,7 @@ export function AdminHeader({ config = {}, className }: HeaderProps) {
           userMenuOptions={ADMIN_MENU_OPTIONS}
           onUserMenuAction={handleUserMenuAction}
           userRole={userRole}
+          userName={userName}
           isAuthenticated={isAuthenticated}
         />
       )}

@@ -14,6 +14,7 @@ interface MobileMenuProps {
   userMenuOptions: UserMenuOption[];
   onUserMenuAction: (action: string) => void;
   userRole?: string;
+  userName?: string;
   isAuthenticated: boolean;
 }
 
@@ -24,6 +25,7 @@ export function MobileMenu({
   userMenuOptions,
   onUserMenuAction,
   userRole,
+  userName,
   isAuthenticated,
 }: MobileMenuProps) {
   const pathname = usePathname();
@@ -77,9 +79,17 @@ export function MobileMenu({
             </nav>
           </div>
 
-          {/* User Menu */}
+          {/* User Info */}
           {isAuthenticated && (
             <div className="border-b p-4">
+              <div className="mb-3 px-3 py-2">
+                <div className="text-sm font-medium">{userName || "Usuario"}</div>
+                {userRole && (
+                  <div className="text-muted-foreground text-xs capitalize">
+                    {userRole === "pro" ? "Profesional" : userRole}
+                  </div>
+                )}
+              </div>
               <div className="space-y-2">
                 {filteredUserOptions.map((option, index) => (
                   <div key={index}>
