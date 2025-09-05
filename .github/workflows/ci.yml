@@ -302,6 +302,31 @@ jobs:
           name: build-artifacts
           path: .
 
+      - name: Verify build artifacts
+        run: |
+          echo "Checking build artifacts..."
+          ls -la apps/web/.next/ || echo "No .next directory found"
+          ls -la functions/lib/ || echo "No functions/lib directory found"
+
+          # Verify Next.js build
+          if [ ! -d "apps/web/.next" ]; then
+            echo "❌ Next.js build not found, rebuilding..."
+            cd apps/web
+            npm run build
+            cd ../..
+          else
+            echo "✅ Next.js build found"
+          fi
+        env:
+          NEXT_PUBLIC_FB_API_KEY: ${{ secrets.NEXT_PUBLIC_FB_API_KEY }}
+          NEXT_PUBLIC_FB_AUTH_DOMAIN: ${{ secrets.NEXT_PUBLIC_FB_AUTH_DOMAIN }}
+          NEXT_PUBLIC_FB_PROJECT_ID: ${{ secrets.NEXT_PUBLIC_FB_PROJECT_ID }}
+          NEXT_PUBLIC_FB_STORAGE_BUCKET: ${{ secrets.NEXT_PUBLIC_FB_STORAGE_BUCKET }}
+          NEXT_PUBLIC_FB_MESSAGING_SENDER_ID: ${{ secrets.NEXT_PUBLIC_FB_MESSAGING_SENDER_ID }}
+          NEXT_PUBLIC_FB_APP_ID: ${{ secrets.NEXT_PUBLIC_FB_APP_ID }}
+          NEXT_PUBLIC_FB_MEASUREMENT_ID: ${{ secrets.NEXT_PUBLIC_FB_MEASUREMENT_ID }}
+          NEXT_PUBLIC_RECAPTCHA_ENTERPRISE_SITE_KEY: ${{ secrets.NEXT_PUBLIC_RECAPTCHA_ENTERPRISE_SITE_KEY }}
+
       - name: Start Next.js server
         run: |
           cd apps/web

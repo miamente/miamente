@@ -112,7 +112,7 @@ jobs:
           script: |
             const environment = '${{ steps.env.outputs.environment }}';
             const reason = '${{ github.event.inputs.reason }}' || 'Auto rollback triggered by deployment failure';
-            
+
             const issue = await github.rest.issues.create({
               owner: context.repo.owner,
               repo: context.repo.repo,
