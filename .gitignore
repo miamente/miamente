@@ -22,6 +22,7 @@ functions/lib
 # Firebase
 .firebase
 firebase-debug.log
+firestore-debug.log
 storage_debug.log
 
 test-results

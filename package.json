@@ -58,8 +58,18 @@
     "@lhci/cli": "^0.15.1",
     "@playwright/test": "^1.55.0",
     "actionlint": "^2.0.6",
+    "lint-staged": "^16.1.6",
     "prettier": "^3.4.2",
     "prettier-plugin-tailwindcss": "^0.6.8",
     "vitest": "^3.2.4"
+  },
+  "lint-staged": {
+    "*.{js,jsx,ts,tsx}": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "*.{json,md,yml,yaml}": [
+      "prettier --write"
+    ]
   }
 }
