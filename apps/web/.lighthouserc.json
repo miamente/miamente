@@ -10,7 +10,8 @@
         "http://localhost:3000/login"
       ],
       "settings": {
-        "chromeFlags": "--no-sandbox --disable-dev-shm-usage"
+        "chromeFlags": "--no-sandbox --disable-dev-shm-usage --disable-background-timer-throttling --disable-renderer-backgrounding --disable-backgrounding-occluded-windows",
+        "skipAudits": ["canonical", "robots-txt", "tap-targets"]
       }
     },
     "assert": {

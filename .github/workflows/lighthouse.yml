@@ -42,10 +42,33 @@ jobs:
         run: |
           cd apps/web
           npm start &
-          sleep 30
+          
+          # Wait for server to be ready with health check
+          echo "Waiting for server to start..."
+          for i in {1..60}; do
+            if curl -f http://localhost:3000 >/dev/null 2>&1; then
+              echo "Server is ready!"
+              break
+            fi
+            echo "Waiting... (${i}/60)"
+            sleep 2
+          done
+          
+          # Final check
+          if ! curl -f http://localhost:3000 >/dev/null 2>&1; then
+            echo "Server failed to start within 120 seconds"
+            exit 1
+          fi
         env:
           NODE_ENV: production
           PORT: 3000
+
+      - name: Debug server status
+        run: |
+          echo "Checking server status before Lighthouse..."
+          curl -v http://localhost:3000 || echo "Server check failed"
+          ps aux | grep node || echo "No node processes found"
+          netstat -tlnp | grep :3000 || echo "Port 3000 not listening"
 
       - name: Run Lighthouse CI
         uses: treosh/lighthouse-ci-action@v10
@@ -53,6 +76,8 @@ jobs:
           configPath: "./apps/web/.lighthouserc.json"
           uploadArtifacts: true
           temporaryPublicStorage: true
+        env:
+          LHCI_GITHUB_APP_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Comment PR with Lighthouse results
         if: github.event_name == 'pull_request'
