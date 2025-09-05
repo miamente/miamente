@@ -42,7 +42,7 @@ jobs:
         run: |
           cd apps/web
           npm start &
-          
+
           # Wait for server to be ready with health check
           echo "Waiting for server to start..."
           for i in {1..60}; do
@@ -53,7 +53,7 @@ jobs:
             echo "Waiting... (${i}/60)"
             sleep 2
           done
-          
+
           # Final check
           if ! curl -f http://localhost:3000 >/dev/null 2>&1; then
             echo "Server failed to start within 120 seconds"
