@@ -1,0 +1,196 @@
+name: Auto Rollback System
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to rollback'
+        required: true
+        default: 'staging'
+        type: choice
+        options:
+        - staging
+        - production
+      reason:
+        description: 'Reason for rollback'
+        required: true
+        type: string
+      action:
+        description: 'Action to perform'
+        required: true
+        default: 'rollback'
+        type: choice
+        options:
+        - rollback
+        - monitor
+        - health
+
+  # Auto-trigger on deployment failures
+  workflow_run:
+    workflows: ["CI/CD Pipeline", "Deploy to Staging (Develop Branch)"]
+    types: [completed]
+    branches: [main, develop]
+
+env:
+  NODE_VERSION: "22"
+
+jobs:
+  health-check:
+    name: Health Check
+    runs-on: ubuntu-latest
+    if: github.event.workflow_run.conclusion == 'failure' || github.event.inputs.action == 'health'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Install Firebase CLI
+        run: npm install -g firebase-tools
+      
+      - name: Check deployment health
+        run: |
+          chmod +x scripts/deployment/auto-rollback.sh
+          ./scripts/deployment/auto-rollback.sh health
+        env:
+          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
+
+  auto-rollback:
+    name: Execute Auto Rollback
+    runs-on: ubuntu-latest
+    needs: health-check
+    if: |
+      (github.event.workflow_run.conclusion == 'failure' && 
+       (github.event.workflow_run.head_branch == 'main' || github.event.workflow_run.head_branch == 'develop')) ||
+      github.event.inputs.action == 'rollback'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Install Firebase CLI
+        run: npm install -g firebase-tools
+      
+      - name: Determine environment
+        id: env
+        run: |
+          if [ "${{ github.event.workflow_run.head_branch }}" = "main" ]; then
+            echo "environment=production" >> $GITHUB_OUTPUT
+          elif [ "${{ github.event.workflow_run.head_branch }}" = "develop" ]; then
+            echo "environment=staging" >> $GITHUB_OUTPUT
+          else
+            echo "environment=${{ github.event.inputs.environment }}" >> $GITHUB_OUTPUT
+          fi
+      
+      - name: Execute Auto Rollback
+        run: |
+          chmod +x scripts/deployment/auto-rollback.sh
+          ./scripts/deployment/auto-rollback.sh rollback ${{ steps.env.outputs.environment }} "Auto rollback triggered by deployment failure"
+        env:
+          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          GITHUB_SHA: ${{ github.sha }}
+          GITHUB_ACTOR: ${{ github.actor }}
+      
+      - name: Create Rollback Issue
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const environment = '${{ steps.env.outputs.environment }}';
+            const reason = '${{ github.event.inputs.reason || "Auto rollback triggered by deployment failure" }}';
+            
+            const issue = await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: `🚨 Auto Rollback Executed - ${environment}`,
+              body: `
+              ## Auto Rollback Details
+              
+              **Environment**: ${environment}
+              **Reason**: ${reason}
+              **Triggered by**: ${{ github.event.workflow_run.conclusion == 'failure' ? 'Deployment failure' : 'Manual trigger' }}
+              **Executed by**: ${{ github.actor }}
+              **Timestamp**: ${new Date().toISOString()}
+              **Commit**: ${{ github.sha }}
+              
+              ## Next Steps
+              
+              1. ✅ Verify the rollback was successful
+              2. 🔍 Investigate the root cause
+              3. �� Create a fix and test in staging
+              4. 📋 Plan re-deployment
+              
+              ## Monitoring Checklist
+              
+              - [ ] Health check passed
+              - [ ] Critical endpoints responding
+              - [ ] Functions operational
+              - [ ] Database accessible
+              - [ ] User authentication working
+              - [ ] Payment processing functional
+              
+              ## Investigation
+              
+              - [ ] Check deployment logs
+              - [ ] Review error messages
+              - [ ] Test locally
+              - [ ] Identify breaking changes
+              
+              ## Fix Plan
+              
+              - [ ] Create feature branch
+              - [ ] Implement fix
+              - [ ] Test in staging
+              - [ ] Create PR to develop
+              - [ ] Deploy to staging
+              - [ ] Create PR to main
+              - [ ] Deploy to production
+              `,
+              labels: ['rollback', 'critical', environment]
+            });
+            
+            console.log(`Created rollback issue: ${issue.data.html_url}`);
+
+  monitor:
+    name: Start Monitoring
+    runs-on: ubuntu-latest
+    if: github.event.inputs.action == 'monitor'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Install Firebase CLI
+        run: npm install -g firebase-tools
+      
+      - name: Start Monitoring
+        run: |
+          chmod +x scripts/deployment/auto-rollback.sh
+          ./scripts/deployment/auto-rollback.sh monitor ${{ github.event.inputs.environment }}
+        env:
+          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          GITHUB_SHA: ${{ github.sha }}
+          GITHUB_ACTOR: ${{ github.actor }}

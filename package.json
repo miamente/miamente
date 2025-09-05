@@ -50,3 +50,14 @@
     "vitest": "^3.2.4"
   }
 }
+    "branch:feature": "./scripts/deployment/branch-management.sh feature",
+    "branch:release": "./scripts/deployment/branch-management.sh release",
+    "branch:hotfix": "./scripts/deployment/branch-management.sh hotfix",
+    "branch:finish-feature": "./scripts/deployment/branch-management.sh finish-feature",
+    "branch:finish-release": "./scripts/deployment/branch-management.sh finish-release",
+    "branch:finish-hotfix": "./scripts/deployment/branch-management.sh finish-hotfix",
+    "branch:status": "./scripts/deployment/branch-management.sh status",
+    "rollback:monitor": "./scripts/deployment/auto-rollback.sh monitor",
+    "rollback:health": "./scripts/deployment/auto-rollback.sh health",
+    "rollback:production": "./scripts/deployment/auto-rollback.sh rollback production",
+    "rollback:staging": "./scripts/deployment/auto-rollback.sh rollback staging",
