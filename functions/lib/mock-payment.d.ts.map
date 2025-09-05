@@ -1,1 +1,0 @@
-{"version":3,"file":"mock-payment.d.ts","sourceRoot":"","sources":["../src/mock-payment.ts"],"names":[],"mappings":"AAAA,OAAO,kBAAkB,CAAC;AAQ1B,UAAU,yBAAyB;IACjC,aAAa,EAAE,MAAM,CAAC;CACvB;AAED,UAAU,0BAA0B;IAClC,OAAO,EAAE,OAAO,CAAC;IACjB,OAAO,EAAE,MAAM,CAAC;IAChB,aAAa,EAAE,MAAM,CAAC;IACtB,QAAQ,CAAC,EAAE,MAAM,CAAC;CACnB;AAED;;;;;;;GAOG;AACH,eAAO,MAAM,kBAAkB,iIAkG7B,CAAC"}
