@@ -24,6 +24,7 @@ interface AdminPaymentResponse {
 interface AppointmentData {
   userId: string;
   professionalId: string;
+  status: string;
   slotId?: string;
   slot: {
     date: string;
@@ -36,6 +37,11 @@ interface AppointmentData {
     status: string;
     [key: string]: unknown;
   };
+}
+
+interface TransactionResult {
+  appointmentData: AppointmentData;
+  jitsiUrl: string;
 }
 
 /**
@@ -188,7 +194,7 @@ export const adminConfirmPayment = onCall<
 
   try {
     // Use transaction to ensure atomicity
-    const result = await db.runTransaction(async (transaction) => {
+    const result = await db.runTransaction(async (transaction): Promise<TransactionResult> => {
       // Get the appointment document
       const appointmentRef = db.collection("appointments").doc(appointmentId);
       const appointmentDoc = await transaction.get(appointmentRef);
@@ -197,13 +203,17 @@ export const adminConfirmPayment = onCall<
         throw new HttpsError("not-found", "Appointment not found");
       }
 
-      const appointmentData = appointmentDoc.data();
+      const appointmentData = appointmentDoc.data() as AppointmentData | undefined;
+
+      if (!appointmentData) {
+        throw new HttpsError("internal", "Appointment data is missing");
+      }
 
       // Verify appointment is in a valid state for confirmation
-      if (!["pending_payment", "pending_confirmation"].includes(appointmentData?.status)) {
+      if (!["pending_payment", "pending_confirmation"].includes(appointmentData.status)) {
         throw new HttpsError(
           "failed-precondition",
-          `Appointment status '${appointmentData?.status}' cannot be confirmed`,
+          `Appointment status '${appointmentData.status}' cannot be confirmed`,
         );
       }
 
@@ -308,13 +318,17 @@ export const adminFailPayment = onCall<AdminFailPaymentRequest, Promise<AdminPay
           throw new HttpsError("not-found", "Appointment not found");
         }
 
-        const appointmentData = appointmentDoc.data();
+        const appointmentData = appointmentDoc.data() as AppointmentData | undefined;
+
+        if (!appointmentData) {
+          throw new HttpsError("internal", "Appointment data is missing");
+        }
 
         // Verify appointment is in a valid state for failure
-        if (!["pending_payment", "pending_confirmation"].includes(appointmentData?.status)) {
+        if (!["pending_payment", "pending_confirmation"].includes(appointmentData.status)) {
           throw new HttpsError(
             "failed-precondition",
-            `Appointment status '${appointmentData?.status}' cannot be marked as failed`,
+            `Appointment status '${appointmentData.status}' cannot be marked as failed`,
           );
         }
 
