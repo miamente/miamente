@@ -41,40 +41,66 @@ jobs:
       - name: Start Next.js server
         run: |
           cd apps/web
-          npm start &
+          
+          # Start server with verbose logging
+          echo "Starting Next.js server..."
+          npm start > server.log 2>&1 &
+          SERVER_PID=$!
+          echo "Server started with PID: $SERVER_PID"
+          
+          # Save PID for cleanup
+          echo $SERVER_PID > /tmp/nextjs.pid
 
-          # Wait for server to be ready with health check
+          # Wait for server to be ready with comprehensive health check
           echo "Waiting for server to start..."
-          for i in {1..60}; do
-            if curl -f http://localhost:3000 >/dev/null 2>&1; then
-              echo "Server is ready!"
+          for i in {1..90}; do
+            # Check if process is still running
+            if ! kill -0 $SERVER_PID 2>/dev/null; then
+              echo "Server process died!"
+              cat server.log
+              exit 1
+            fi
+            
+            # Check HTTP response
+            if curl -f -s -o /dev/null http://localhost:3000; then
+              echo "Server is ready after ${i} attempts!"
               break
             fi
-            echo "Waiting... (${i}/60)"
+            
+            if [ $i -eq 90 ]; then
+              echo "Server failed to start within 180 seconds"
+              echo "Server logs:"
+              cat server.log
+              echo "Process status:"
+              ps aux | grep node || echo "No node processes"
+              echo "Port status:"
+              netstat -tlnp 2>/dev/null | grep :3000 || echo "Port 3000 not listening"
+              exit 1
+            fi
+            
+            echo "Waiting... (${i}/90)"
             sleep 2
           done
 
-          # Final check
-          if ! curl -f http://localhost:3000 >/dev/null 2>&1; then
-            echo "Server failed to start within 120 seconds"
-            exit 1
-          fi
+          # Additional verification
+          echo "Final server verification..."
+          curl -v http://localhost:3000 2>&1 | head -20
         env:
           NODE_ENV: production
           PORT: 3000
 
-      - name: Debug server status
+      - name: Pre-Lighthouse verification
         run: |
-          echo "Checking server status before Lighthouse..."
-          curl -v http://localhost:3000 || echo "Server check failed"
-          ps aux | grep node || echo "No node processes found"
-          netstat -tlnp | grep :3000 || echo "Port 3000 not listening"
+          echo "Final verification before Lighthouse..."
+          curl -I http://localhost:3000
+          echo "Server logs (last 10 lines):"
+          cd apps/web && tail -10 server.log
 
       - name: Run Lighthouse CI
         uses: treosh/lighthouse-ci-action@v10
         with:
           configPath: "./apps/web/.lighthouserc.json"
-          uploadArtifacts: true
+          uploadArtifacts: false
           temporaryPublicStorage: true
         env:
           LHCI_GITHUB_APP_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -153,3 +179,17 @@ jobs:
             echo "No lighthouse results found"
             exit 1
           fi
+
+      - name: Cleanup
+        if: always()
+        run: |
+          echo "Cleaning up..."
+          if [ -f "/tmp/nextjs.pid" ]; then
+            SERVER_PID=$(cat /tmp/nextjs.pid)
+            if kill -0 $SERVER_PID 2>/dev/null; then
+              echo "Stopping Next.js server (PID: $SERVER_PID)"
+              kill $SERVER_PID
+            fi
+          fi
+          # Kill any remaining node processes
+          pkill -f "next start" || echo "No Next.js processes to kill"
