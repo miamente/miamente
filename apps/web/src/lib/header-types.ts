@@ -91,6 +91,16 @@ export const ADMIN_NAVIGATION_ITEMS: NavigationItem[] = [
 // User menu options for regular users (user and pro)
 export const USER_MENU_OPTIONS: UserMenuOption[] = [
   {
+    label: "Dashboard",
+    href: "/dashboard/user",
+    roles: ["user"],
+  },
+  {
+    label: "Dashboard",
+    href: "/dashboard/pro",
+    roles: ["pro"],
+  },
+  {
     label: "Mi Perfil",
     href: "/profile/user",
     roles: ["user"],
@@ -110,6 +120,11 @@ export const USER_MENU_OPTIONS: UserMenuOption[] = [
 
 // Admin menu options
 export const ADMIN_MENU_OPTIONS: UserMenuOption[] = [
+  {
+    label: "Dashboard",
+    href: "/admin",
+    roles: ["admin"],
+  },
   {
     label: "Configuración",
     href: "/admin/feature-flags",
