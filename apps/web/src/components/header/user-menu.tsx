@@ -89,7 +89,6 @@ export function UserMenu({
             {/* User Info */}
             <div className="px-3 py-2 text-sm">
               <div className="font-medium">{userName || "Usuario"}</div>
-              {userEmail && <div className="text-muted-foreground">{userEmail}</div>}
             </div>
 
             {/* Menu Options */}
