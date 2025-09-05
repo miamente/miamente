@@ -79,18 +79,14 @@ export function MobileMenu({
             </nav>
           </div>
 
-          {/* User Info */}
+          {/* User Menu */}
           {isAuthenticated && (
             <div className="border-b p-4">
-              <div className="mb-3 px-3 py-2">
-                <div className="text-sm font-medium">{userName || "Usuario"}</div>
-                {userRole && (
-                  <div className="text-muted-foreground text-xs capitalize">
-                    {userRole === "pro" ? "Profesional" : userRole}
-                  </div>
-                )}
-              </div>
               <div className="space-y-2">
+                {/* User Name as first item */}
+                <div className="px-3 py-2 text-sm font-medium text-neutral-900 dark:text-neutral-100">
+                  {userName || "Usuario"}
+                </div>
                 {filteredUserOptions.map((option, index) => (
                   <div key={index}>
                     {option.divider && index > 0 && <div className="border-border my-2 border-t" />}

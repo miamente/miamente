@@ -90,11 +90,6 @@ export function UserMenu({
             <div className="px-3 py-2 text-sm">
               <div className="font-medium">{userName || "Usuario"}</div>
               {userEmail && <div className="text-muted-foreground">{userEmail}</div>}
-              {userRole && (
-                <div className="text-muted-foreground text-xs capitalize">
-                  {userRole === "pro" ? "Profesional" : userRole}
-                </div>
-              )}
             </div>
 
             {/* Menu Options */}

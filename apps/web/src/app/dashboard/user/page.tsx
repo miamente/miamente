@@ -16,7 +16,9 @@ export default function UserDashboard() {
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold">Dashboard Usuario</h1>
-        <p className="text-neutral-600 dark:text-neutral-300">Bienvenido, {user?.email}</p>
+        <p className="text-neutral-600 dark:text-neutral-300">
+          Bienvenido, {profile?.fullName || user?.email}
+        </p>
       </div>
 
       <div className="grid gap-6 md:grid-cols-2">
