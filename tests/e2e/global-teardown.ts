@@ -1,19 +1,13 @@
-// import { FullConfig } from '@playwright/test';
-import { cleanupTestData } from "./utils/test-data-seeder";
+import { FullConfig } from "@playwright/test";
 
-async function globalTeardown() {
-  console.log("🧹 Starting E2E test global teardown...");
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+async function globalTeardown(_config: FullConfig) {
+  console.log("🧹 Starting E2E test teardown...");
 
-  try {
-    // Clean up test data
-    console.log("🗑️ Cleaning up test data...");
-    await cleanupTestData();
+  // Optional: Clean up any test data or services
+  // For now, we'll just log that teardown is complete
 
-    console.log("✅ Global teardown completed successfully");
-  } catch (error) {
-    console.error("❌ Global teardown failed:", error);
-    // Don't throw error in teardown to avoid masking test failures
-  }
+  console.log("✅ E2E test teardown completed");
 }
 
 export default globalTeardown;

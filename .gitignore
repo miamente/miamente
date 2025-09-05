@@ -23,3 +23,5 @@ coverage
 firebase-debug.log
 storage_debug.log
 
+test-results
+playwright-report
