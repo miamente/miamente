@@ -26,3 +26,12 @@ storage_debug.log
 test-results
 playwright-report
 .lighthouseci/
+# Deployment secrets
+secrets/
+*.service-account.json
+.env.staging
+.env.production
+
+# Firebase staging rules
+firestore.staging.rules
+storage.staging.rules

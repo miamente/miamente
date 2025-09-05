@@ -1,23 +1,21 @@
 {
-  "name": "miamente",
+  "name": "miamente-platform",
   "private": true,
-  "packageManager": "npm@10.8.2",
   "workspaces": [
     "apps/*",
     "functions"
   ],
-  "engines": {
-    "node": ">=22.0.0"
-  },
   "scripts": {
     "dev": "npm run dev -w apps/web",
-    "build": "npm run build -ws",
-    "lint": "npm run lint -ws",
+    "build": "npm run build -w apps/web && npm run build -w functions",
+    "start": "npm run start -w apps/web",
+    "lint": "npm run lint -w apps/web && npm run lint -w functions",
+    "lint:fix": "npm run lint:fix -w apps/web && npm run lint:fix -w functions",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "typecheck": "npm run typecheck -ws",
-    "test": "npm run test -ws",
-    "test:ci": "npm run test:ci -ws",
+    "typecheck": "npm run typecheck -w apps/web && npm run typecheck -w functions",
+    "test": "npm run test -w apps/web && npm run test -w functions",
+    "test:ci": "npm run test:ci -w apps/web && npm run test:ci -w functions",
     "test:emulator": "npm run test:emulator -w functions",
     "test:accessibility": "npm run test:accessibility -w apps/web",
     "test:integration": "npm run test:integration -ws",
@@ -33,34 +31,22 @@
     "backup:firestore:dry-run": "node scripts/backup-firestore.js --dry-run",
     "backup:validate": "node scripts/validate-backup.js",
     "backup:notify": "node scripts/backup-notifications.js",
-    "emulators": "npm run emulators -w functions",
-    "deploy": "npm run deploy -w functions",
-    "prepare": "husky"
+    "deploy:staging": "firebase use miamente-staging && firebase deploy",
+    "deploy:production": "firebase use miamente-prod && firebase deploy",
+    "deploy:functions:staging": "firebase use miamente-staging && firebase deploy --only functions",
+    "deploy:functions:production": "firebase use miamente-prod && firebase deploy --only functions",
+    "deploy:hosting:staging": "firebase use miamente-staging && firebase deploy --only hosting",
+    "deploy:hosting:production": "firebase use miamente-prod && firebase deploy --only hosting",
+    "setup:firebase": "./scripts/deployment/setup-firebase-projects.sh",
+    "setup:service-accounts": "./scripts/deployment/setup-service-accounts.sh",
+    "validate:deployment": "./scripts/deployment/validate-deployment-config.sh"
   },
   "devDependencies": {
     "@eslint/js": "^9.34.0",
     "@lhci/cli": "^0.15.1",
     "@playwright/test": "^1.55.0",
     "actionlint": "^2.0.6",
-    "eslint": "^9.10.0",
-    "eslint-config-prettier": "^9.1.0",
-    "eslint-plugin-import": "^2.32.0",
-    "eslint-plugin-jsx-a11y": "^6.10.2",
-    "eslint-plugin-react": "^7.37.5",
-    "eslint-plugin-react-hooks": "^5.2.0",
-    "husky": "^9.1.7",
-    "lint-staged": "^15.5.2",
-    "playwright": "^1.55.0",
-    "prettier": "^3.6.2",
-    "prettier-plugin-tailwindcss": "^0.6.14",
-    "typescript": "^5.5.4",
-    "typescript-eslint": "^8.42.0"
-  },
-  "lint-staged": {
-    "*.{js,jsx,ts,tsx}": [
-      "eslint --fix",
-      "prettier --write"
-    ],
-    "*.{json,md,css,scss,mdx}": "prettier --write"
+    "prettier": "^3.4.2",
+    "vitest": "^3.2.4"
   }
 }
