@@ -1,23 +1,33 @@
-import { initializeTestEnvironment, RulesTestEnvironment } from "@firebase/rules-unit-testing";
+import { RulesTestEnvironment } from "@firebase/rules-unit-testing";
 import firebaseFunctionsTest from "firebase-functions-test";
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 
 import { adminConfirmPayment, adminFailPayment } from "../admin-payments";
 
+// Create mock that can be modified externally
+const createMockDb = () => ({
+  runTransaction: vi.fn(),
+  collection: vi.fn(() => ({
+    doc: vi.fn(() => ({
+      get: vi.fn().mockResolvedValue({
+        exists: false,
+        data: () => ({}),
+      }),
+      set: vi.fn(),
+      update: vi.fn(),
+    })),
+    add: vi.fn(),
+  })),
+});
+
+let globalMockDb = createMockDb();
+
 // Mock Firebase Admin
 vi.mock("firebase-admin/firestore", () => ({
-  getFirestore: vi.fn(() => ({
-    runTransaction: vi.fn(),
-    collection: vi.fn(() => ({
-      doc: vi.fn(() => ({
-        get: vi.fn(),
-        set: vi.fn(),
-        update: vi.fn(),
-        add: vi.fn(),
-      })),
-      add: vi.fn(),
-    })),
-  })),
+  getFirestore: vi.fn(() => globalMockDb),
+  FieldValue: {
+    serverTimestamp: vi.fn(() => "timestamp"),
+  },
 }));
 
 vi.mock("firebase-admin/auth", () => ({
@@ -38,18 +48,9 @@ describe("Admin Payment Functions", () => {
   let mockTransaction: Record<string, unknown>;
 
   beforeEach(async () => {
-    // Mock database and transaction (always available)
-    mockDb = {
-      runTransaction: vi.fn(),
-      collection: vi.fn(() => ({
-        doc: vi.fn(() => ({
-          get: vi.fn(),
-          set: vi.fn(),
-          update: vi.fn(),
-        })),
-        add: vi.fn(),
-      })),
-    };
+    // Reset the mock to a fresh state
+    globalMockDb = createMockDb();
+    mockDb = globalMockDb;
 
     mockTransaction = {
       get: vi.fn(),
@@ -68,29 +69,9 @@ describe("Admin Payment Functions", () => {
     process.env.SENDGRID_API_KEY = "test-key";
     process.env.SENDGRID_FROM_EMAIL = "test@miamente.com";
 
-    // Try to initialize test environment (optional for Firebase rule testing)
-    try {
-      testEnv = await initializeTestEnvironment({
-        projectId: "test-project",
-        firestore: {
-          host: "127.0.0.1",
-          port: 8080,
-          rules: `
-            rules_version = '2';
-            service cloud.firestore {
-              match /databases/{database}/documents {
-                match /{document=**} {
-                  allow read, write: if true;
-                }
-              }
-            }
-          `,
-        },
-      });
-    } catch (error) {
-      console.warn("Failed to initialize test environment:", error);
-      testEnv = null as unknown as RulesTestEnvironment;
-    }
+    // Skip Firebase test environment initialization for unit tests
+    // These tests will use mocks instead of real Firebase connections
+    testEnv = null as unknown as RulesTestEnvironment;
   });
 
   afterEach(async () => {
@@ -102,10 +83,10 @@ describe("Admin Payment Functions", () => {
 
   describe("adminConfirmPayment", () => {
     it("should successfully confirm payment for admin user", async () => {
-      // Mock admin user
+      // Mock admin user document
       const mockUserDoc = {
         exists: true,
-        data: () => ({ role: "admin" }),
+        data: () => ({ role: "admin", isAdmin: true }),
       };
 
       // Mock appointment data
@@ -143,8 +124,8 @@ describe("Admin Payment Functions", () => {
       // Mock transaction behavior
       mockTransaction.get.mockResolvedValueOnce(mockAppointmentDoc); // Appointment document
 
-      // Mock user collection for admin check
-      mockDb.collection.mockImplementation((collectionName: string) => {
+      // Set up specific mock for users collection by modifying the global mock
+      globalMockDb.collection.mockImplementation((collectionName: string) => {
         if (collectionName === "users") {
           return {
             doc: vi.fn(() => ({
@@ -154,7 +135,10 @@ describe("Admin Payment Functions", () => {
         }
         return {
           doc: vi.fn(() => ({
-            get: vi.fn(),
+            get: vi.fn().mockResolvedValue({
+              exists: false,
+              data: () => ({}),
+            }),
             set: vi.fn(),
             update: vi.fn(),
           })),
