@@ -14,7 +14,7 @@ import {
   getDocs,
   collection,
 } from "firebase/firestore";
-import { describe, it, expect, beforeEach, afterEach } from "vitest";
+import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 
 import { generateSlots, type SlotGenerationParams } from "@/lib/availability";
 import { createBogotaDate } from "@/lib/timezone";
