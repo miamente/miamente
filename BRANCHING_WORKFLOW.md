@@ -5,12 +5,14 @@
 ### **Ramas Principales**
 
 #### `main` (Producción)
+
 - **Propósito**: Código estable y listo para producción
 - **Deploy**: Automático a producción cuando se hace push
 - **Protección**: Requiere PR + reviews + tests passing
 - **Rollback**: Automático en caso de fallos
 
 #### `develop` (Staging/Desarrollo)
+
 - **Propósito**: Integración de features para testing
 - **Deploy**: Automático a staging cuando se hace push
 - **Protección**: Requiere PR + tests passing
@@ -19,8 +21,9 @@
 ### **Ramas de Soporte**
 
 #### `feature/*` (Features)
+
 - **Formato**: `feature/descripcion-corta`
-- **Ejemplos**: 
+- **Ejemplos**:
   - `feature/user-authentication`
   - `feature/payment-integration`
   - `feature/appointment-booking`
@@ -28,12 +31,14 @@
 - **Destino**: `develop` (via PR)
 
 #### `release/*` (Releases)
+
 - **Formato**: `release/v1.0.0`
 - **Propósito**: Preparar nueva versión para producción
 - **Origen**: `develop`
 - **Destino**: `main` y `develop`
 
 #### `hotfix/*` (Hotfixes)
+
 - **Formato**: `hotfix/descripcion-corta`
 - **Ejemplos**: `hotfix/critical-security-fix`
 - **Origen**: `main`
@@ -131,12 +136,14 @@ git push origin v1.0.0
 ## 📊 Entornos y URLs
 
 ### **Development** (`develop`)
+
 - **URL**: https://miamente-staging.web.app
 - **Base de datos**: miamente-staging
 - **Deploy**: Automático en push a develop
 - **Rollback**: Automático en caso de fallos
 
 ### **Production** (`main`)
+
 - **URL**: https://miamente-prod.web.app
 - **Base de datos**: miamente-prod
 - **Deploy**: Automático en push a main o tag
@@ -145,6 +152,7 @@ git push origin v1.0.0
 ## 🛡️ Protección de Ramas
 
 ### **main**
+
 - Requiere Pull Request
 - Requiere 1+ review aprobado
 - Requiere que todos los tests pasen
@@ -152,6 +160,7 @@ git push origin v1.0.0
 - Rollback automático habilitado
 
 ### **develop**
+
 - Requiere Pull Request
 - Requiere que todos los tests pasen
 - No permite push directo
@@ -162,6 +171,7 @@ git push origin v1.0.0
 ### **Formato**: `tipo(scope): descripción`
 
 #### **Tipos**
+
 - `feat`: Nueva funcionalidad
 - `fix`: Corrección de bug
 - `docs`: Documentación
@@ -171,6 +181,7 @@ git push origin v1.0.0
 - `chore`: Tareas de mantenimiento
 
 #### **Ejemplos**
+
 ```bash
 git commit -m "feat(auth): add Google OAuth integration"
 git commit -m "fix(payment): resolve Wompi API timeout issue"
@@ -180,13 +191,16 @@ git commit -m "docs(api): update authentication endpoints"
 ## �� Casos de Emergencia
 
 ### **Rollback Automático**
+
 El sistema detecta automáticamente:
+
 - Fallos de HTTP (status != 200)
 - Fallos en endpoints críticos
 - Timeouts de respuesta
 - Errores de conectividad
 
 ### **Rollback Manual**
+
 ```bash
 # Rollback inmediato
 ./scripts/deployment/auto-rollback.sh rollback production "Emergency rollback"
@@ -196,6 +210,7 @@ El sistema detecta automáticamente:
 ```
 
 ### **Monitoreo Continuo**
+
 ```bash
 # Iniciar monitoreo
 ./scripts/deployment/auto-rollback.sh monitor production
@@ -204,18 +219,21 @@ El sistema detecta automáticamente:
 ## 📈 Métricas y Monitoreo
 
 ### **Health Checks**
+
 - **Intervalo**: 30 segundos
 - **Endpoints críticos**: /, /login, /register, /professionals
 - **Timeout**: 10 segundos por endpoint
 - **Umbral de fallos**: 3 fallos consecutivos
 
 ### **Rollback Metrics**
+
 - **Tiempo de detección**: < 2 minutos
 - **Tiempo de rollback**: < 5 minutos
 - **Verificación**: Automática
 - **Notificaciones**: Inmediatas
 
 ### **Release Metrics**
+
 - **Tiempo de build**: < 10 minutos
 - **Tiempo de deploy**: < 5 minutos
 - **Health check**: < 2 minutos
@@ -243,12 +261,14 @@ El sistema detecta automáticamente:
 ## 📞 Soporte
 
 ### **En caso de problemas:**
+
 1. Verificar logs de rollback: `logs/rollback.log`
 2. Revisar issues de GitHub con label `rollback`
 3. Ejecutar health checks: `./scripts/deployment/auto-rollback.sh health`
 4. Contactar al equipo de desarrollo
 
 ### **Comandos de Emergencia:**
+
 ```bash
 # Verificar salud
 ./scripts/deployment/auto-rollback.sh health
