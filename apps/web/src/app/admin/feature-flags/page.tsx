@@ -87,7 +87,8 @@ export default function AdminFeatureFlags() {
 
       const result = await toggleFeatureFlag(flagId);
       if (result.success && result.data) {
-        setFlags((prev) => prev.map((flag) => (flag.id === flagId ? result.data : flag)));
+        const updatedFlag = result.data;
+        setFlags((prev) => prev.map((flag) => (flag.id === flagId ? updatedFlag : flag)));
       } else {
         setError(result.error || "Error al cambiar el estado del flag");
       }
