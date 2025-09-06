@@ -3,9 +3,15 @@
 # Script para iniciar el frontend con Node.js 22
 echo "🚀 Iniciando frontend con Node.js 22..."
 
+# Cargar nvm si está disponible
+export NVM_DIR="$HOME/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
+[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
+
 # Verificar que nvm esté disponible
-if ! command -v nvm &> /dev/null; then
+if ! type nvm &> /dev/null; then
     echo "❌ nvm no está disponible. Por favor instala nvm primero."
+    echo "💡 Alternativa: ejecuta 'nvm use v22 && npm run dev' manualmente"
     exit 1
 fi
 

@@ -1,19 +1,18 @@
-import { doc, getDoc } from "firebase/firestore";
 import { useEffect, useState } from "react";
 
 import { useAuth } from "./useAuth";
 
-import { getFirebaseFirestore } from "@/lib/firebase";
+import { apiClient } from "@/lib/api";
 
 export type UserRole = "user" | "pro" | "admin";
 
 export interface UserProfile {
-  uid: string;
+  id: string;
   role: UserRole;
-  fullName?: string;
+  full_name?: string;
   email?: string;
   phone?: string;
-  isVerified?: boolean;
+  is_verified?: boolean;
 }
 
 export function useRole() {
@@ -34,22 +33,17 @@ export function useRole() {
         setLoading(true);
         setError(null);
 
-        const firestore = getFirebaseFirestore();
-        const userDoc = await getDoc(doc(firestore, "users", user.uid));
+        const response = await apiClient.get(`/users/me`);
+        const userData = response.data;
 
-        if (userDoc.exists()) {
-          const data = userDoc.data();
-          setUserProfile({
-            uid: user.uid,
-            role: data.role || "user",
-            fullName: data.fullName,
-            email: data.email,
-            phone: data.phone,
-            isVerified: data.isVerified,
-          });
-        } else {
-          setError("User profile not found");
-        }
+        setUserProfile({
+          id: userData.id,
+          role: userData.role || "user",
+          full_name: userData.full_name,
+          email: userData.email,
+          phone: userData.phone,
+          is_verified: userData.is_verified,
+        });
       } catch (err) {
         console.error("Error fetching user profile:", err);
         setError("Failed to load user profile");

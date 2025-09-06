@@ -1,33 +1,43 @@
-import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject } from "firebase/storage";
+// Simple file upload utility for the new backend
+import { apiClient } from "./api";
 
-import { getFirebaseApp } from "./firebase";
-
-export async function uploadFile(file: File, path: string): Promise<string> {
-  const app = getFirebaseApp();
-  const storage = getStorage(app);
-
-  const storageRef = ref(storage, path);
-  const snapshot = await uploadBytes(storageRef, file);
-  const downloadURL = await getDownloadURL(snapshot.ref);
-
-  return downloadURL;
+export interface UploadResponse {
+  url: string;
+  filename: string;
+  size: number;
+  content_type: string;
 }
 
-export async function deleteFile(path: string): Promise<void> {
-  const app = getFirebaseApp();
-  const storage = getStorage(app);
+export async function uploadFile(file: File): Promise<UploadResponse> {
+  try {
+    const formData = new FormData();
+    formData.append("file", file);
 
-  const storageRef = ref(storage, path);
-  await deleteObject(storageRef);
+    const response = await apiClient.post("/upload", formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
+
+    return response.data;
+  } catch (error) {
+    console.error("File upload error:", error);
+    throw error;
+  }
 }
 
-export function getStoragePath(
-  userId: string,
-  filename: string,
-  isPublic: boolean = false,
-): string {
-  const folder = isPublic ? "public_photos" : "private_credentials";
-  return `${folder}/${userId}/${filename}`;
+export async function deleteFile(filename: string): Promise<void> {
+  try {
+    await apiClient.delete(`/upload/${filename}`);
+  } catch (error) {
+    console.error("File deletion error:", error);
+    throw error;
+  }
+}
+
+// Legacy functions for compatibility
+export function getStoragePath(filename: string): string {
+  return `/uploads/${filename}`;
 }
 
 export function generateUniqueFilename(originalName: string): string {

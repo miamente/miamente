@@ -82,7 +82,7 @@ export default function ProAvailabilityPage() {
 
     setIsLoadingSlots(true);
     try {
-      const slots = await getNext14DaysFreeSlots(user.uid);
+      const slots = await getNext14DaysFreeSlots(user.id);
       setExistingSlots(slots);
     } catch (err) {
       console.error("Error loading slots:", err);

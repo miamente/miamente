@@ -159,7 +159,7 @@ export default function AdminProfessionals() {
                         </td>
                         <td className="p-4">
                           <div className="text-sm text-neutral-600 dark:text-neutral-400">
-                            {formatBogotaDate(pro.createdAt, {
+                            {formatBogotaDate(new Date(pro.createdAt), {
                               year: "numeric",
                               month: "short",
                               day: "numeric",
