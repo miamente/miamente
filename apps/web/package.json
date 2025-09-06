@@ -4,7 +4,6 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "dev:node22": "nvm use v22 && next dev",
     "build": "next build",
     "start": "next start",
     "lint": "eslint .",
