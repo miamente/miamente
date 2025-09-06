@@ -1,89 +1,180 @@
-# Miamente Monorepo (MVP)
+# Miamente Platform
 
 [![CI/CD Pipeline](https://github.com/manueljurado/miamente_platform/actions/workflows/ci.yml/badge.svg)](https://github.com/manueljurado/miamente_platform/actions/workflows/ci.yml)
 
-## Estructura
+## 🎉 ¡Migración Completada!
 
-- apps/web: Next.js App Router + Tailwind + shadcn/ui + next-intl (es/en)
-- functions: Firebase Functions (Node 20, TypeScript, ESM)
+Tu plataforma Miamente ha sido migrada exitosamente de Firebase a una arquitectura moderna con **FastAPI + PostgreSQL + Railway** para el backend y **Next.js + Vercel** para el frontend.
 
-## Requisitos
+## 📋 Estructura del Proyecto
 
-- nvm (Node v22)
-- Firebase CLI instalado
-
-## Instalación
-
-- Ejecuta: nvm use
-- Ejecuta: npm install
-
-## Desarrollo
-
-- Ejecuta la web: npm run dev
-- Lint: npm run lint
-- Typecheck: npm run typecheck
-- Build: npm run build
-
-## Emuladores Firebase
-
-- Inicia emuladores: npm run emulators
-- Incluye: Functions (5001), Firestore (8080), Storage (9199), Auth (9099) y UI
-
-## Entorno
-
-- Configura variables en `apps/web/.env.local` (claves públicas)
-- Secretos en CI/CD (Firebase service account y project id)
-
-### Variables de Seguridad Requeridas
-
-```bash
-# App Check con reCAPTCHA Enterprise
-NEXT_PUBLIC_RECAPTCHA_ENTERPRISE_SITE_KEY=your_site_key
-
-# Firebase Configuration
-NEXT_PUBLIC_FB_API_KEY=your_api_key
-NEXT_PUBLIC_FB_AUTH_DOMAIN=your_domain
-NEXT_PUBLIC_FB_PROJECT_ID=your_project_id
-NEXT_PUBLIC_FB_STORAGE_BUCKET=your_bucket
-NEXT_PUBLIC_FB_MESSAGING_SENDER_ID=your_sender_id
-NEXT_PUBLIC_FB_APP_ID=your_app_id
-NEXT_PUBLIC_FB_MEASUREMENT_ID=your_measurement_id
+```
+miamente_platform/
+├── backend/                 # FastAPI backend
+│   ├── app/
+│   │   ├── api/            # API endpoints
+│   │   ├── core/           # Configuración
+│   │   ├── models/         # Modelos de base de datos
+│   │   ├── schemas/        # Esquemas Pydantic
+│   │   └── services/       # Lógica de negocio
+│   ├── alembic/            # Migraciones de DB
+│   └── requirements.txt
+├── apps/web/               # Next.js frontend
+│   ├── src/
+│   │   ├── lib/           # Cliente API
+│   │   ├── hooks/         # React hooks
+│   │   ├── contexts/      # React contexts
+│   │   └── components/    # Componentes UI
+│   └── package.json
+└── scripts/               # Scripts de migración
 ```
 
-## Seguridad
+## 🚀 Inicio Rápido
 
-### Características de Seguridad Implementadas
+### Requisitos
 
-- **App Check**: Integración con reCAPTCHA Enterprise para prevenir abuso
-- **Reglas de Seguridad**: Firestore y Storage con control de acceso granular
-- **Rate Limiting**: Limitación de velocidad en Functions HTTPS
-- **RBAC**: Control de acceso basado en roles (user/pro/admin)
-- **Pruebas de Seguridad**: Tests negativos para validar restricciones
-- **Logging**: Registro completo de eventos de seguridad
+- **Node.js v22** (usar `nvm use v22`)
+- **Python 3.12+**
+- **PostgreSQL**
+- **Git**
 
-### Documentación de Seguridad
+### 1. Configuración del Backend (FastAPI + PostgreSQL)
 
-- [SECURITY.md](./SECURITY.md) - Documentación completa de seguridad
-- [APP_CHECK_SETUP.md](./docs/APP_CHECK_SETUP.md) - Guía de configuración de App Check
-- [Tests de Seguridad](./apps/web/src/app/__tests__/security-negative.test.tsx) - Pruebas negativas
+#### Variables de Entorno
 
-### Checklist de Seguridad Pre-Deployment
+Crea un archivo `.env` en el directorio `backend/`:
 
-- [ ] App Check configurado con reCAPTCHA Enterprise
-- [ ] Reglas de Firestore desplegadas y probadas
-- [ ] Reglas de Storage desplegadas y probadas
-- [ ] Rate limiting configurado y probado
-- [ ] Tests de seguridad pasando
-- [ ] Variables de entorno seguras
-- [ ] HTTPS habilitado
-- [ ] CORS configurado correctamente
+```bash
+# Database
+DATABASE_URL=postgresql://postgres:password@localhost:5432/miamente
+
+# JWT
+SECRET_KEY=your-secret-key-change-this-in-production
+ACCESS_TOKEN_EXPIRE_MINUTES=10080
+REFRESH_TOKEN_EXPIRE_MINUTES=43200
+
+# Email (SendGrid) - Optional for development
+SENDGRID_API_KEY=
+SENDGRID_FROM_EMAIL=noreply@miamente.com
+SENDGRID_FROM_NAME=Miamente
+
+# CORS
+BACKEND_CORS_ORIGINS=["http://localhost:3000", "http://localhost:3001", "https://miamente.vercel.app"]
+
+# Server
+DEBUG=true
+ALLOWED_HOSTS=["localhost", "127.0.0.1", "*.railway.app", "*.vercel.app"]
+```
+
+#### Configuración de Base de Datos
+
+1. **Instala PostgreSQL** en tu sistema
+2. **Crea la base de datos**:
+   ```bash
+   createdb miamente
+   ```
+3. **Ejecuta las migraciones**:
+   ```bash
+   cd backend
+   source venv/bin/activate
+   alembic upgrade head
+   ```
+
+#### Ejecutar el Backend
+
+```bash
+cd backend
+source venv/bin/activate
+uvicorn app.main:app --host 0.0.0.0 --port 8001 --reload
+```
+
+### 2. Configuración del Frontend (Next.js)
+
+#### Variables de Entorno
+
+Crea un archivo `.env.local` en el directorio `apps/web/`:
+
+```bash
+# API Configuration
+NEXT_PUBLIC_API_URL=http://localhost:8001
+
+# For production, use your Railway backend URL:
+# NEXT_PUBLIC_API_URL=https://your-app-name.railway.app
+```
+
+#### Ejecutar el Frontend
+
+```bash
+cd apps/web
+nvm use v22
+npm install
+npm run dev
+```
+
+## 🌐 URLs de Desarrollo
+
+- **Frontend**: http://localhost:3000
+- **Backend API**: http://localhost:8001
+- **Documentación API**: http://localhost:8001/docs
+- **ReDoc**: http://localhost:8001/redoc
+
+## 🔧 Comandos Útiles
+
+### Backend
+
+```bash
+# Instalar dependencias
+cd backend && pip install -r requirements.txt
+
+# Ejecutar migraciones
+alembic upgrade head
+
+# Crear nueva migración
+alembic revision --autogenerate -m "Description"
+
+# Ejecutar tests
+pytest
+
+# Formatear código
+black .
+isort .
+```
+
+### Frontend
+
+```bash
+# Instalar dependencias
+cd apps/web && npm install
+
+# Ejecutar tests
+npm test
+
+# Formatear código
+npm run format
+
+# Verificar tipos
+npm run typecheck
+
+# Lint
+npm run lint
+
+# Build
+npm run build
+```
 
 ## 🚀 Deployment
 
-### Environments
+### Railway (Backend)
 
-- **Staging**: `miamente-staging` - Auto-deploy on push to `dev` branch
-- **Production**: `miamente-prod` - Auto-deploy on release tags `v*`
+1. Conecta tu repositorio GitHub a Railway
+2. Configura las variables de entorno en Railway
+3. Railway detectará automáticamente el proyecto Python
+
+### Vercel (Frontend)
+
+1. Conecta tu repositorio GitHub a Vercel
+2. Configura la variable `NEXT_PUBLIC_API_URL` con tu URL de Railway
+3. Vercel detectará automáticamente el proyecto Next.js
 
 ### Manual Deployment
 
@@ -107,12 +198,70 @@ NEXT_PUBLIC_FB_MEASUREMENT_ID=your_measurement_id
 ./scripts/rollback.sh production v1.0.0
 ```
 
-### Setup Documentation
+## 🔒 Seguridad
 
-📖 **[Complete Deployment Setup Guide](docs/DEPLOYMENT_SETUP.md)**
+### Características de Seguridad Implementadas
 
-## Contribución
+- **JWT Authentication**: Autenticación basada en tokens JWT
+- **CORS Configuration**: Configuración de CORS para seguridad
+- **Rate Limiting**: Limitación de velocidad en endpoints
+- **RBAC**: Control de acceso basado en roles (user/pro/admin)
+- **Input Validation**: Validación de entrada con Pydantic
+- **SQL Injection Protection**: Protección con SQLAlchemy ORM
+
+### Checklist de Seguridad Pre-Deployment
+
+- [ ] Variables de entorno seguras configuradas
+- [ ] HTTPS habilitado en producción
+- [ ] CORS configurado correctamente
+- [ ] Rate limiting configurado y probado
+- [ ] Tests de seguridad pasando
+- [ ] Base de datos con credenciales seguras
+
+## 🆘 Solución de Problemas
+
+### Error de Base de Datos
+
+- Verifica que PostgreSQL esté ejecutándose
+- Confirma que la URL de la base de datos sea correcta
+- Asegúrate de que la base de datos `miamente` exista
+
+### Error de CORS
+
+- Verifica que `BACKEND_CORS_ORIGINS` incluya tu dominio frontend
+- Confirma que `NEXT_PUBLIC_API_URL` apunte al backend correcto
+
+### Error de Autenticación
+
+- Verifica que `SECRET_KEY` esté configurado
+- Confirma que los tokens JWT sean válidos
+
+### Error de Node.js
+
+- Asegúrate de usar Node.js v22: `nvm use v22`
+- Verifica que las dependencias estén instaladas: `npm install`
+
+## 📚 Documentación Adicional
+
+- **Guía de migración completa**: `MIGRATION_GUIDE.md`
+- **API Docs**: Disponible en `/docs` cuando ejecutes el backend
+- **Script de inicio rápido**: `./start-migration.sh`
+- **Setup detallado**: `SETUP_INSTRUCTIONS.md`
+
+## 🎯 Próximos Pasos
+
+1. **Configurar variables de entorno** según las instrucciones
+2. **Ejecutar las migraciones** de base de datos
+3. **Probar la aplicación** en desarrollo
+4. **Configurar deployment** en Railway y Vercel
+5. **Migrar datos existentes** (si aplica) usando el script de migración
+
+## 🤝 Contribución
 
 - Usa la plantilla de PR en `.github/pull_request_template.md`
 - CODEOWNERS en `.github/CODEOWNERS`
 - Issues con plantillas en `.github/ISSUE_TEMPLATE`
+
+---
+
+¡Tu plataforma está lista para funcionar con la nueva arquitectura! 🚀
