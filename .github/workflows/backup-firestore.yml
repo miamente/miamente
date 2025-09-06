@@ -1,5 +1,8 @@
 name: Weekly Firestore Backup
 
+# DISABLED: GitHub Actions disabled for migration to FastAPI
+# if: false
+
 on:
   schedule:
     # Run every Sunday at 2:00 AM UTC

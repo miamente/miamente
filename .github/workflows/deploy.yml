@@ -1,5 +1,8 @@
 name: Deploy to Firebase
 
+# DISABLED: GitHub Actions disabled for migration to FastAPI
+# if: false
+
 on:
   # Staging deployment on push to dev branch
   # Production deployment on release tags

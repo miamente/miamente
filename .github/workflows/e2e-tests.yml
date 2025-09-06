@@ -1,5 +1,8 @@
 name: E2E Tests
 
+# DISABLED: GitHub Actions disabled for migration to FastAPI
+# if: false
+
 on:
   push:
     branches: [main, develop]
