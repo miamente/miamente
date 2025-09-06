@@ -10,6 +10,7 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    if: false # Disabled
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4

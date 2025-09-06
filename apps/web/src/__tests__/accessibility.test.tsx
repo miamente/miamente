@@ -2,6 +2,8 @@ import { render } from "@testing-library/react";
 import { axe, toHaveNoViolations } from "jest-axe";
 import React from "react";
 import { describe, it, expect, vi } from "vitest";
+import Link from "next/link";
+import Image from "next/image";
 
 // Extend Jest matchers
 expect.extend(toHaveNoViolations);
@@ -68,13 +70,13 @@ const SampleNavigation = () => (
   <nav role="navigation" aria-label="Main navigation">
     <ul>
       <li>
-        <a href="/">Home</a>
+        <Link href="/">Home</Link>
       </li>
       <li>
-        <a href="/about">About</a>
+        <Link href="/about">About</Link>
       </li>
       <li>
-        <a href="/contact">Contact</a>
+        <Link href="/contact">Contact</Link>
       </li>
     </ul>
   </nav>
@@ -138,8 +140,8 @@ describe("Accessibility Tests", () => {
   it("should handle images with alt text properly", async () => {
     const { container } = render(
       <div>
-        <img src="/test-image.jpg" alt="Test image description" />
-        <img src="/decorative-image.jpg" alt="" role="presentation" />
+        <Image src="/test-image.jpg" alt="Test image description" width={100} height={100} />
+        <Image src="/decorative-image.jpg" alt="" role="presentation" width={100} height={100} />
       </div>,
     );
     const results = await axe(container);

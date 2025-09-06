@@ -14,6 +14,7 @@ yarn-error.log*
 dist
 out
 coverage
+functions/lib
 
 # Mac
 .DS_Store
@@ -21,6 +22,7 @@ coverage
 # Firebase
 .firebase
 firebase-debug.log
+firestore-debug.log
 storage_debug.log
 
 test-results

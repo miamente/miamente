@@ -109,7 +109,7 @@ jobs:
     name: Deploy to ${{ needs.determine-environment.outputs.environment }}
     runs-on: ubuntu-latest
     needs: [determine-environment, pre-deployment-tests]
-    if: always() && (needs.pre-deployment-tests.result == 'success' || needs.pre-deployment-tests.result == 'skipped')
+    if: false # Disabled: always() && (needs.pre-deployment-tests.result == 'success' || needs.pre-deployment-tests.result == 'skipped')
     environment: ${{ needs.determine-environment.outputs.environment }}
     steps:
       - name: Checkout code
