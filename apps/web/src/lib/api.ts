@@ -233,6 +233,39 @@ class ApiClient {
     return response.json();
   }
 
+  // Public HTTP methods
+  async get<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
+    return this.request<T>(endpoint, { ...options, method: "GET" });
+  }
+
+  async post<T>(endpoint: string, data?: unknown, options: RequestInit = {}): Promise<T> {
+    return this.request<T>(endpoint, {
+      ...options,
+      method: "POST",
+      body: data instanceof FormData ? data : JSON.stringify(data),
+    });
+  }
+
+  async put<T>(endpoint: string, data?: unknown, options: RequestInit = {}): Promise<T> {
+    return this.request<T>(endpoint, {
+      ...options,
+      method: "PUT",
+      body: data instanceof FormData ? data : JSON.stringify(data),
+    });
+  }
+
+  async patch<T>(endpoint: string, data?: unknown, options: RequestInit = {}): Promise<T> {
+    return this.request<T>(endpoint, {
+      ...options,
+      method: "PATCH",
+      body: data instanceof FormData ? data : JSON.stringify(data),
+    });
+  }
+
+  async delete<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
+    return this.request<T>(endpoint, { ...options, method: "DELETE" });
+  }
+
   private async refreshToken(): Promise<boolean> {
     if (typeof window === "undefined") return false;
 
@@ -263,10 +296,7 @@ class ApiClient {
 
   // Auth Methods
   async loginUser(credentials: LoginRequest): Promise<TokenResponse> {
-    const response = await this.request<TokenResponse>("/auth/login/user", {
-      method: "POST",
-      body: JSON.stringify(credentials),
-    });
+    const response = await this.post<TokenResponse>("/auth/login/user", credentials);
 
     this.setToken(response.access_token);
     if (typeof window !== "undefined") {
@@ -277,10 +307,7 @@ class ApiClient {
   }
 
   async loginProfessional(credentials: LoginRequest): Promise<TokenResponse> {
-    const response = await this.request<TokenResponse>("/auth/login/professional", {
-      method: "POST",
-      body: JSON.stringify(credentials),
-    });
+    const response = await this.post<TokenResponse>("/auth/login/professional", credentials);
 
     this.setToken(response.access_token);
     if (typeof window !== "undefined") {
@@ -291,21 +318,15 @@ class ApiClient {
   }
 
   async registerUser(userData: RegisterUserRequest): Promise<User> {
-    return this.request<User>("/auth/register/user", {
-      method: "POST",
-      body: JSON.stringify(userData),
-    });
+    return this.post<User>("/auth/register/user", userData);
   }
 
   async registerProfessional(professionalData: RegisterProfessionalRequest): Promise<Professional> {
-    return this.request<Professional>("/auth/register/professional", {
-      method: "POST",
-      body: JSON.stringify(professionalData),
-    });
+    return this.post<Professional>("/auth/register/professional", professionalData);
   }
 
   async getCurrentUser(): Promise<{ type: "user" | "professional"; data: User | Professional }> {
-    return this.request("/auth/me");
+    return this.get("/auth/me");
   }
 
   logout(): void {
