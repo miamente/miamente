@@ -26,7 +26,6 @@ miamente_platform/
 │   │   ├── contexts/      # React contexts
 │   │   └── components/    # Componentes UI
 │   └── package.json
-└── scripts/               # Scripts de migración
 ```
 
 ## 🚀 Inicio Rápido
@@ -193,9 +192,8 @@ npm run build
 # Select environment and version
 # Type "ROLLBACK" to confirm
 
-# Using local script
-./scripts/rollback.sh staging
-./scripts/rollback.sh production v1.0.0
+# Rollback functionality will be implemented for FastAPI/PostgreSQL architecture
+# when needed for production deployments
 ```
 
 ## 🔒 Seguridad
