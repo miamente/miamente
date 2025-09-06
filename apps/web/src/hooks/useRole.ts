@@ -33,12 +33,15 @@ export function useRole() {
         setLoading(true);
         setError(null);
 
-        const response = await apiClient.get(`/users/me`);
+        const response = await apiClient.get(`/auth/me`);
+
+        // The response has structure: {type: "user"|"professional", data: {...}}
         const userData = response.data;
+        const userType = response.type;
 
         setUserProfile({
           id: userData.id,
-          role: userData.role || "user",
+          role: userType === "professional" ? "pro" : "user",
           full_name: userData.full_name,
           email: userData.email,
           phone: userData.phone,
