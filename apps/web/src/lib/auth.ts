@@ -39,14 +39,9 @@ export async function registerWithEmail(data: RegisterRequest): Promise<UserProf
 
 export async function loginWithEmail(email: string, password: string): Promise<LoginResponse> {
   try {
-    const formData = new FormData();
-    formData.append("username", email);
-    formData.append("password", password);
-
-    const response = await apiClient.post("/auth/login/user", formData, {
-      headers: {
-        "Content-Type": "application/x-www-form-urlencoded",
-      },
+    const response = await apiClient.post("/auth/login/user", {
+      email,
+      password,
     });
 
     // Store the token
