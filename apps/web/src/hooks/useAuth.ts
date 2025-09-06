@@ -1,55 +1,158 @@
-"use client";
-import type { User } from "firebase/auth";
-import { useEffect, useState } from "react";
+/**
+ * Authentication hook for managing user state and authentication.
+ */
+import { useRouter } from "next/navigation";
+import { useState, useEffect, useCallback } from "react";
 
-import { onAuthStateChange, getUserProfile, type UserProfile } from "@/lib/auth";
+import {
+  apiClient,
+  type User,
+  type Professional,
+  type LoginRequest,
+  type RegisterUserRequest,
+  type RegisterProfessionalRequest,
+} from "@/lib/api";
 
-interface AuthState {
-  user: User | null;
-  profile: UserProfile | null;
-  loading: boolean;
-  error: string | null;
+export interface AuthUser {
+  type: "user" | "professional";
+  data: User | Professional;
+}
+
+export interface AuthState {
+  user: AuthUser | null;
+  isLoading: boolean;
+  isAuthenticated: boolean;
 }
 
 export function useAuth() {
-  const [state, setState] = useState<AuthState>({
+  const [authState, setAuthState] = useState<AuthState>({
     user: null,
-    profile: null,
-    loading: true,
-    error: null,
+    isLoading: true,
+    isAuthenticated: false,
   });
 
-  useEffect(() => {
-    const unsubscribe = onAuthStateChange(async (user) => {
-      try {
-        if (user) {
-          const profile = await getUserProfile(user.uid);
-          setState({
-            user,
-            profile,
-            loading: false,
-            error: null,
-          });
-        } else {
-          setState({
-            user: null,
-            profile: null,
-            loading: false,
-            error: null,
-          });
-        }
-      } catch (error) {
-        setState({
-          user: null,
-          profile: null,
-          loading: false,
-          error: error instanceof Error ? error.message : "Authentication error",
-        });
-      }
-    });
+  const router = useRouter();
 
-    return unsubscribe;
+  // Check if user is authenticated on mount
+  useEffect(() => {
+    checkAuth();
+  }, [checkAuth]);
+
+  const checkAuth = useCallback(async () => {
+    try {
+      const token = localStorage.getItem("access_token");
+      if (!token) {
+        setAuthState({
+          user: null,
+          isLoading: false,
+          isAuthenticated: false,
+        });
+        return;
+      }
+
+      const userData = await apiClient.getCurrentUser();
+      setAuthState({
+        user: userData,
+        isLoading: false,
+        isAuthenticated: true,
+      });
+    } catch (error) {
+      console.error("Auth check failed:", error);
+      setAuthState({
+        user: null,
+        isLoading: false,
+        isAuthenticated: false,
+      });
+      // Clear invalid token
+      apiClient.logout();
+    }
   }, []);
 
-  return state;
+  const loginUser = useCallback(
+    async (credentials: LoginRequest) => {
+      try {
+        await apiClient.loginUser(credentials);
+        await checkAuth();
+        router.push("/dashboard");
+      } catch (error) {
+        console.error("User login failed:", error);
+        throw error;
+      }
+    },
+    [checkAuth, router],
+  );
+
+  const loginProfessional = useCallback(
+    async (credentials: LoginRequest) => {
+      try {
+        await apiClient.loginProfessional(credentials);
+        await checkAuth();
+        router.push("/professional/dashboard");
+      } catch (error) {
+        console.error("Professional login failed:", error);
+        throw error;
+      }
+    },
+    [checkAuth, router],
+  );
+
+  const registerUser = useCallback(
+    async (userData: RegisterUserRequest) => {
+      try {
+        await apiClient.registerUser(userData);
+        // Auto-login after registration
+        await loginUser({
+          email: userData.email,
+          password: userData.password,
+        });
+      } catch (error) {
+        console.error("User registration failed:", error);
+        throw error;
+      }
+    },
+    [loginUser],
+  );
+
+  const registerProfessional = useCallback(
+    async (professionalData: RegisterProfessionalRequest) => {
+      try {
+        await apiClient.registerProfessional(professionalData);
+        // Auto-login after registration
+        await loginProfessional({
+          email: professionalData.email,
+          password: professionalData.password,
+        });
+      } catch (error) {
+        console.error("Professional registration failed:", error);
+        throw error;
+      }
+    },
+    [loginProfessional],
+  );
+
+  const logout = useCallback(() => {
+    apiClient.logout();
+    setAuthState({
+      user: null,
+      isLoading: false,
+      isAuthenticated: false,
+    });
+    router.push("/");
+  }, [router]);
+
+  const refreshUser = useCallback(async () => {
+    if (authState.isAuthenticated) {
+      await checkAuth();
+    }
+  }, [authState.isAuthenticated, checkAuth]);
+
+  return {
+    ...authState,
+    loginUser,
+    loginProfessional,
+    registerUser,
+    registerProfessional,
+    logout,
+    refreshUser,
+  };
 }

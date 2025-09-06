@@ -13,8 +13,7 @@
     "test": "vitest run",
     "test:ci": "vitest run --coverage --reporter=verbose",
     "test:accessibility": "vitest run accessibility.test.tsx",
-    "test:integration": "echo 'Integration tests are in tests/integration/ directory. Use npm run test:integration from root.' && exit 0",
-    "emulators": "npm run emulators -w functions -s"
+    "test:integration": "echo 'Integration tests are in tests/integration/ directory. Use npm run test:integration from root.' && exit 0"
   },
   "dependencies": {
     "@axe-core/react": "^4.10.2",
@@ -27,7 +26,6 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "date-fns": "^4.1.0",
-    "firebase": "^12.2.1",
     "jest-axe": "^10.0.0",
     "jsdom": "^26.1.0",
     "lucide-react": "^0.542.0",
@@ -44,7 +42,6 @@
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
-    "@firebase/rules-unit-testing": "^5.0.0",
     "@tailwindcss/postcss": "^4.1.13",
     "@types/jest-axe": "^3.5.9",
     "@types/node": "^20",
