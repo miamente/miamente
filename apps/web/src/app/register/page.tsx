@@ -45,7 +45,11 @@ export default function RegisterPage() {
     setError(null);
 
     try {
-      await registerWithEmail(data.email, data.password);
+      await registerWithEmail({
+        email: data.email,
+        password: data.password,
+        full_name: data.fullName,
+      });
       setSuccess(true);
 
       // Track signup event
@@ -99,6 +103,20 @@ export default function RegisterPage() {
                 {error}
               </div>
             )}
+
+            <div>
+              <Input
+                {...register("fullName")}
+                type="text"
+                placeholder="Nombre completo"
+                disabled={isLoading}
+              />
+              {errors.fullName && (
+                <p className="mt-1 text-sm text-red-600 dark:text-red-400">
+                  {errors.fullName.message}
+                </p>
+              )}
+            </div>
 
             <div>
               <Input {...register("email")} type="email" placeholder="Email" disabled={isLoading} />
