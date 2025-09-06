@@ -33,11 +33,6 @@ export function useAuth() {
 
   const router = useRouter();
 
-  // Check if user is authenticated on mount
-  useEffect(() => {
-    checkAuth();
-  }, [checkAuth]);
-
   const checkAuth = useCallback(async () => {
     try {
       const token = localStorage.getItem("access_token");
@@ -67,6 +62,11 @@ export function useAuth() {
       apiClient.logout();
     }
   }, []);
+
+  // Check if user is authenticated on mount
+  useEffect(() => {
+    checkAuth();
+  }, [checkAuth]);
 
   const loginUser = useCallback(
     async (credentials: LoginRequest) => {
