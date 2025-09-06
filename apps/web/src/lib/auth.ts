@@ -61,13 +61,11 @@ export async function loginWithEmail(email: string, password: string): Promise<L
 export async function logout(): Promise<void> {
   try {
     // Clear token from API client and localStorage
+    // In JWT-based authentication, logout is handled client-side by removing the token
     apiClient.clearToken();
-
-    // Optionally call logout endpoint
-    await apiClient.post("/auth/logout");
   } catch (error) {
     console.error("Logout error:", error);
-    // Even if the API call fails, we should still clear local storage
+    // Even if there's an error, we should still clear local storage
   }
 }
 
