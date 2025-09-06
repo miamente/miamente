@@ -49,7 +49,7 @@ export async function loginWithEmail(email: string, password: string): Promise<L
     localStorage.setItem("access_token", access_token);
 
     // Set the token in the API client for future requests
-    apiClient.defaults.headers.common["Authorization"] = `Bearer ${access_token}`;
+    apiClient.setToken(access_token);
 
     return response;
   } catch (error) {
@@ -60,11 +60,8 @@ export async function loginWithEmail(email: string, password: string): Promise<L
 
 export async function logout(): Promise<void> {
   try {
-    // Remove token from localStorage
-    localStorage.removeItem("access_token");
-
-    // Remove token from API client
-    delete apiClient.defaults.headers.common["Authorization"];
+    // Clear token from API client and localStorage
+    apiClient.clearToken();
 
     // Optionally call logout endpoint
     await apiClient.post("/auth/logout");

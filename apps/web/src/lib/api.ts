@@ -172,14 +172,14 @@ class ApiClient {
     return localStorage.getItem("access_token");
   }
 
-  private setToken(token: string): void {
+  setToken(token: string): void {
     this.token = token;
     if (typeof window !== "undefined") {
       localStorage.setItem("access_token", token);
     }
   }
 
-  private clearToken(): void {
+  clearToken(): void {
     this.token = null;
     if (typeof window !== "undefined") {
       localStorage.removeItem("access_token");
