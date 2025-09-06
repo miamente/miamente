@@ -29,8 +29,8 @@ export interface RegisterRequest {
 
 export async function registerWithEmail(data: RegisterRequest): Promise<UserProfile> {
   try {
-    const response = await apiClient.post("/auth/register", data);
-    return response.data.user;
+    const response = await apiClient.post("/auth/register/user", data);
+    return response;
   } catch (error) {
     console.error("Registration error:", error);
     throw error;
@@ -43,20 +43,20 @@ export async function loginWithEmail(email: string, password: string): Promise<L
     formData.append("username", email);
     formData.append("password", password);
 
-    const response = await apiClient.post("/auth/login", formData, {
+    const response = await apiClient.post("/auth/login/user", formData, {
       headers: {
         "Content-Type": "application/x-www-form-urlencoded",
       },
     });
 
     // Store the token
-    const { access_token } = response.data;
+    const { access_token } = response;
     localStorage.setItem("access_token", access_token);
 
     // Set the token in the API client for future requests
     apiClient.defaults.headers.common["Authorization"] = `Bearer ${access_token}`;
 
-    return response.data;
+    return response;
   } catch (error) {
     console.error("Login error:", error);
     throw error;

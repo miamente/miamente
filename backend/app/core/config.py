@@ -2,7 +2,7 @@
 Application configuration settings.
 """
 from typing import List, Union
-from pydantic import AnyHttpUrl, validator
+from pydantic import AnyHttpUrl, field_validator
 from pydantic_settings import BaseSettings
 import secrets
 
@@ -22,22 +22,28 @@ class Settings(BaseSettings):
     SERVER_HOST: AnyHttpUrl = "http://localhost:8000"
     
     # CORS settings
-    BACKEND_CORS_ORIGINS: List[AnyHttpUrl] = [
-        "http://localhost:3000",  # Next.js dev server
-        "http://localhost:3001",  # Alternative port
-        "https://miamente.vercel.app",  # Production frontend
-    ]
+    BACKEND_CORS_ORIGINS: List[str] = ["http://localhost:3000", "http://localhost:3001", "https://miamente.vercel.app"]
     
-    @validator("BACKEND_CORS_ORIGINS", pre=True)
-    def assemble_cors_origins(cls, v: Union[str, List[str]]) -> Union[List[str], str]:
-        if isinstance(v, str) and not v.startswith("["):
+    @field_validator("BACKEND_CORS_ORIGINS", mode="before")
+    @classmethod
+    def assemble_cors_origins(cls, v: Union[str, List[str]]) -> List[str]:
+        if isinstance(v, str):
             return [i.strip() for i in v.split(",")]
-        elif isinstance(v, (list, str)):
+        elif isinstance(v, list):
             return v
         raise ValueError(v)
     
     # Allowed hosts
     ALLOWED_HOSTS: List[str] = ["localhost", "127.0.0.1", "*.railway.app", "*.vercel.app"]
+    
+    @field_validator("ALLOWED_HOSTS", mode="before")
+    @classmethod
+    def assemble_allowed_hosts(cls, v: Union[str, List[str]]) -> List[str]:
+        if isinstance(v, str):
+            return [i.strip() for i in v.split(",")]
+        elif isinstance(v, list):
+            return v
+        raise ValueError(v)
     
     # Database settings
     DATABASE_URL: str = "postgresql://user:password@localhost:5432/miamente"
