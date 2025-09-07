@@ -8,7 +8,7 @@ import { useForm } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth, isUserVerified } from "@/hooks/useAuth";
 import { loginWithEmail } from "@/lib/auth";
 import { loginSchema, type LoginFormData } from "@/lib/validations";
 
@@ -29,7 +29,7 @@ export default function LoginPage() {
   // Redirect if already logged in
   React.useEffect(() => {
     if (user) {
-      if (user.emailVerified) {
+      if (isUserVerified(user)) {
         router.push("/dashboard/user");
       } else {
         router.push("/verify");

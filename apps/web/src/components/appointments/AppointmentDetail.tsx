@@ -9,11 +9,10 @@ import {
 } from "@heroicons/react/24/outline";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
-import { httpsCallable } from "firebase/functions";
 import { useRouter } from "next/router";
 import React, { useState, useEffect } from "react";
 
-import { getFirebaseFunctions } from "@/lib/firebase";
+import { apiClient } from "@/lib/api";
 import { PaymentManager } from "@/lib/payments/PaymentService";
 
 // Global gtag interface for Google Analytics
@@ -63,16 +62,14 @@ const AppointmentDetail: React.FC<AppointmentDetailProps> = ({ appointmentId }) 
   const [error, setError] = useState<string | null>(null);
   const [processingPayment, setProcessingPayment] = useState(false);
 
-  const getAppointment = httpsCallable(getFirebaseFunctions(), "getAppointment");
-
   useEffect(() => {
     const fetchAppointment = async () => {
       try {
         setLoading(true);
         setError(null);
 
-        const result = await getAppointment({ appointmentId });
-        setAppointment(result.data as Appointment);
+        const appointment = await apiClient.get(`/appointments/${appointmentId}`);
+        setAppointment(appointment);
       } catch (err: unknown) {
         console.error("Error fetching appointment:", err);
         setError(err instanceof Error ? err.message : "Error al cargar la cita");
@@ -84,7 +81,7 @@ const AppointmentDetail: React.FC<AppointmentDetailProps> = ({ appointmentId }) 
     if (appointmentId) {
       fetchAppointment();
     }
-  }, [appointmentId, getAppointment]);
+  }, [appointmentId]);
 
   const handlePayment = async () => {
     if (!appointment) return;

@@ -30,6 +30,7 @@ class UserUpdate(BaseModel):
     emergency_contact: Optional[str] = None
     emergency_phone: Optional[str] = None
     profile_picture: Optional[str] = None
+    is_verified: Optional[bool] = None
 
 
 class UserResponse(UserBase):

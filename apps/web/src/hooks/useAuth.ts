@@ -18,6 +18,27 @@ export interface AuthUser {
   data: User | Professional;
 }
 
+// Helper functions to access user properties
+export function getUserEmail(user: AuthUser | null): string | undefined {
+  if (!user) return undefined;
+  return user.data.email;
+}
+
+export function getUserId(user: AuthUser | null): string | undefined {
+  if (!user) return undefined;
+  return user.data.id;
+}
+
+export function getUserFullName(user: AuthUser | null): string | undefined {
+  if (!user) return undefined;
+  return user.data.full_name;
+}
+
+export function isUserVerified(user: AuthUser | null): boolean {
+  if (!user) return false;
+  return user.data.is_verified;
+}
+
 export interface AuthState {
   user: AuthUser | null;
   isLoading: boolean;

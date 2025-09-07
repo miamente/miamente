@@ -190,9 +190,9 @@ class ApiClient {
   private async request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
     const url = `${this.baseURL}${API_VERSION}${endpoint}`;
 
-    const headers: HeadersInit = {
+    const headers: Record<string, string> = {
       "Content-Type": "application/json",
-      ...options.headers,
+      ...(options.headers as Record<string, string>),
     };
 
     if (this.token) {
@@ -440,17 +440,4 @@ class ApiClient {
 // Export singleton instance
 export const apiClient = new ApiClient();
 
-// Export types
-export type {
-  ApiResponse,
-  PaginatedResponse,
-  LoginRequest,
-  RegisterUserRequest,
-  RegisterProfessionalRequest,
-  TokenResponse,
-  User,
-  Professional,
-  Availability,
-  Appointment,
-  PaymentIntent,
-};
+// Types are already exported above, no need to re-export

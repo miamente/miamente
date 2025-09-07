@@ -50,6 +50,7 @@ class ProfessionalUpdate(BaseModel):
     profile_picture: Optional[str] = None
     emergency_contact: Optional[str] = None
     emergency_phone: Optional[str] = None
+    is_verified: Optional[bool] = None
 
 
 class ProfessionalResponse(ProfessionalBase):

@@ -3,6 +3,7 @@ import React from "react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { getUserEmail, getUserFullName, isUserVerified } from "@/hooks/useAuth";
 import { useAuthGuard } from "@/hooks/useAuthGuard";
 
 export default function UserDashboard() {
@@ -17,7 +18,7 @@ export default function UserDashboard() {
       <div>
         <h1 className="text-3xl font-bold">Dashboard Usuario</h1>
         <p className="text-neutral-600 dark:text-neutral-300">
-          Bienvenido, {profile?.fullName || user?.email}
+          Bienvenido, {profile?.full_name || getUserFullName(user)}
         </p>
       </div>
 
@@ -29,13 +30,13 @@ export default function UserDashboard() {
           <CardContent>
             <div className="space-y-2">
               <p>
-                <strong>Email:</strong> {user?.email}
+                <strong>Email:</strong> {getUserEmail(user)}
               </p>
               <p>
                 <strong>Rol:</strong> {profile?.role}
               </p>
               <p>
-                <strong>Email Verificado:</strong> {user?.emailVerified ? "Sí" : "No"}
+                <strong>Email Verificado:</strong> {isUserVerified(user) ? "Sí" : "No"}
               </p>
               {profile?.fullName && (
                 <p>

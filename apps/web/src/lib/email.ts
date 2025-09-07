@@ -1,27 +1,37 @@
-import { httpsCallable } from "firebase/functions";
+import { apiClient } from "./api";
 
-import type { SendEmailRequest, SendEmailResponse } from "./appointment-types";
-import { getFirebaseFunctions } from "./firebase";
+export interface SendEmailRequest {
+  to: string;
+  subject: string;
+  html: string;
+}
+
+export interface SendEmailResponse {
+  success: boolean;
+  messageId?: string;
+  error?: string;
+}
 
 /**
- * Send email using the Firebase Function
+ * Send email using the FastAPI backend
  */
 export async function sendEmail(
   to: string,
   subject: string,
   html: string,
 ): Promise<SendEmailResponse> {
-  const functions = getFirebaseFunctions();
-  const sendEmailFunction = httpsCallable<SendEmailRequest, SendEmailResponse>(
-    functions,
-    "sendEmail",
-  );
-
   try {
-    const result = await sendEmailFunction({ to, subject, html });
-    return result.data;
-  } catch (error) {
+    const response = await apiClient.post("/email/send", {
+      to,
+      subject,
+      html,
+    });
+    return response;
+  } catch (error: unknown) {
     console.error("Error sending email:", error);
-    throw error;
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Error al enviar el email",
+    };
   }
 }

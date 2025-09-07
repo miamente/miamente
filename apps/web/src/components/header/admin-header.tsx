@@ -9,7 +9,7 @@ import { Navigation } from "./navigation";
 import { UserMenu } from "./user-menu";
 
 import { Button } from "@/components/ui/button";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth, getUserEmail, getUserFullName } from "@/hooks/useAuth";
 import { useRole } from "@/hooks/useRole";
 import { logout } from "@/lib/auth";
 import {
@@ -22,7 +22,7 @@ import { cn } from "@/lib/utils";
 
 export function AdminHeader({ config = {}, className }: HeaderProps) {
   const { theme, setTheme } = useTheme();
-  const { user, profile, loading: authLoading } = useAuth();
+  const { user, isLoading: authLoading } = useAuth();
   const { userProfile, loading: roleLoading } = useRole();
   const [mounted, setMounted] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -46,8 +46,8 @@ export function AdminHeader({ config = {}, className }: HeaderProps) {
   const isDark = theme === "dark";
   const isAuthenticated = !!user && !authLoading;
   const userRole = userProfile?.role;
-  const userName = userProfile?.fullName || profile?.fullName;
-  const userEmail = user?.email || undefined;
+  const userName = userProfile?.full_name || getUserFullName(user);
+  const userEmail = getUserEmail(user);
 
   // Show loading state
   if (!mounted || authLoading || roleLoading) {
