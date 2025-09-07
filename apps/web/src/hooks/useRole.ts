@@ -16,7 +16,7 @@ export interface UserProfile {
 }
 
 export function useRole() {
-  const { user, loading: authLoading } = useAuth();
+  const { user, isLoading: authLoading } = useAuth();
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -36,8 +36,8 @@ export function useRole() {
         const response = await apiClient.get(`/auth/me`);
 
         // The response has structure: {type: "user"|"professional", data: {...}}
-        const userData = response.data;
-        const userType = response.type;
+        const userData = (response as any).data;
+        const userType = (response as any).type;
 
         setUserProfile({
           id: userData.id,

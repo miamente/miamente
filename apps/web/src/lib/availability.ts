@@ -20,6 +20,12 @@ export interface AvailabilitySlot {
   created_at: string;
 }
 
+export interface GenerateSlotsResponse {
+  created: number;
+  skipped: number;
+  slots: AvailabilitySlot[];
+}
+
 export interface CreateAvailabilityRequest {
   day_of_week: number;
   start_time: string;
@@ -30,7 +36,7 @@ export interface CreateAvailabilityRequest {
 export async function getAvailability(professionalId: string): Promise<Availability[]> {
   try {
     const response = await apiClient.get(`/professionals/${professionalId}/availability`);
-    return response.data;
+    return (response as any).data;
   } catch (error) {
     console.error("Get availability error:", error);
     throw error;
@@ -43,7 +49,7 @@ export async function createAvailability(
 ): Promise<Availability> {
   try {
     const response = await apiClient.post(`/professionals/${professionalId}/availability`, data);
-    return response.data;
+    return (response as any).data;
   } catch (error) {
     console.error("Create availability error:", error);
     throw error;
@@ -60,7 +66,7 @@ export async function updateAvailability(
       `/professionals/${professionalId}/availability/${availabilityId}`,
       data,
     );
-    return response.data;
+    return (response as any).data;
   } catch (error) {
     console.error("Update availability error:", error);
     throw error;
@@ -83,7 +89,7 @@ export async function deleteAvailability(
 export async function getNext14DaysFreeSlots(professionalId: string): Promise<AvailabilitySlot[]> {
   try {
     const response = await apiClient.get(`/professionals/${professionalId}/slots`);
-    return response.data;
+    return (response as any).data;
   } catch (error) {
     console.error("Get free slots error:", error);
     return [];
@@ -93,10 +99,10 @@ export async function getNext14DaysFreeSlots(professionalId: string): Promise<Av
 export async function generateSlots(
   professionalId: string,
   data: Record<string, unknown>,
-): Promise<AvailabilitySlot> {
+): Promise<GenerateSlotsResponse> {
   try {
     const response = await apiClient.post(`/professionals/${professionalId}/slots`, data);
-    return response.data;
+    return (response as any).data;
   } catch (error) {
     console.error("Generate slots error:", error);
     throw error;

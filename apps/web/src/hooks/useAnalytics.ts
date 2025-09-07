@@ -1,6 +1,6 @@
 import { useCallback } from "react";
 
-import { useAuth } from "./useAuth";
+import { useAuth, getUserUid } from "./useAuth";
 
 import {
   logEvent,
@@ -25,7 +25,9 @@ export function useAnalytics() {
       }
 
       try {
-        const result = await logEvent(user.uid, action, entityId, metadata);
+        const userUid = getUserUid(user);
+        if (!userUid) return { success: false, error: "User not authenticated" };
+        const result = await logEvent(userUid, action, entityId, metadata);
         return result;
       } catch (error) {
         console.error("Error tracking event:", error);
@@ -43,7 +45,9 @@ export function useAnalytics() {
       }
 
       try {
-        const result = await logSignupEvent(user.uid, metadata);
+        const userUid = getUserUid(user);
+        if (!userUid) return { success: false, error: "User not authenticated" };
+        const result = await logSignupEvent(userUid, metadata);
         return result;
       } catch (error) {
         console.error("Error tracking signup:", error);
@@ -61,7 +65,9 @@ export function useAnalytics() {
       }
 
       try {
-        const result = await logProfileCompleteEvent(user.uid, metadata);
+        const userUid = getUserUid(user);
+        if (!userUid) return { success: false, error: "User not authenticated" };
+        const result = await logProfileCompleteEvent(userUid, metadata);
         return result;
       } catch (error) {
         console.error("Error tracking profile complete:", error);
@@ -79,7 +85,9 @@ export function useAnalytics() {
       }
 
       try {
-        const result = await logSlotCreatedEvent(user.uid, slotId, metadata);
+        const userUid = getUserUid(user);
+        if (!userUid) return { success: false, error: "User not authenticated" };
+        const result = await logSlotCreatedEvent(userUid, slotId, metadata);
         return result;
       } catch (error) {
         console.error("Error tracking slot created:", error);
@@ -97,7 +105,9 @@ export function useAnalytics() {
       }
 
       try {
-        const result = await logAppointmentConfirmedEvent(user.uid, appointmentId, metadata);
+        const userUid = getUserUid(user);
+        if (!userUid) return { success: false, error: "User not authenticated" };
+        const result = await logAppointmentConfirmedEvent(userUid, appointmentId, metadata);
         return result;
       } catch (error) {
         console.error("Error tracking appointment confirmed:", error);
@@ -115,7 +125,9 @@ export function useAnalytics() {
       }
 
       try {
-        const result = await logPaymentAttemptEvent(user.uid, appointmentId, metadata);
+        const userUid = getUserUid(user);
+        if (!userUid) return { success: false, error: "User not authenticated" };
+        const result = await logPaymentAttemptEvent(userUid, appointmentId, metadata);
         return result;
       } catch (error) {
         console.error("Error tracking payment attempt:", error);
@@ -133,7 +145,9 @@ export function useAnalytics() {
       }
 
       try {
-        const result = await logPaymentSuccessEvent(user.uid, appointmentId, metadata);
+        const userUid = getUserUid(user);
+        if (!userUid) return { success: false, error: "User not authenticated" };
+        const result = await logPaymentSuccessEvent(userUid, appointmentId, metadata);
         return result;
       } catch (error) {
         console.error("Error tracking payment success:", error);
@@ -151,7 +165,9 @@ export function useAnalytics() {
       }
 
       try {
-        const result = await logPaymentFailedEvent(user.uid, appointmentId, metadata);
+        const userUid = getUserUid(user);
+        if (!userUid) return { success: false, error: "User not authenticated" };
+        const result = await logPaymentFailedEvent(userUid, appointmentId, metadata);
         return result;
       } catch (error) {
         console.error("Error tracking payment failed:", error);
@@ -169,7 +185,9 @@ export function useAnalytics() {
       }
 
       try {
-        const result = await logEvent(user.uid, "cta_click", undefined, { ctaType, ...metadata });
+        const userUid = getUserUid(user);
+        if (!userUid) return { success: false, error: "User not authenticated" };
+        const result = await logEvent(userUid, "cta_click", undefined, { ctaType, ...metadata });
         return result;
       } catch (error) {
         console.error("Error tracking CTA click:", error);

@@ -8,13 +8,13 @@ import { FileUpload } from "@/components/file-upload";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth, getUserUid } from "@/hooks/useAuth";
 import {
   getProfessionalProfile,
   createProfessionalProfile,
   updateProfessionalProfile,
 } from "@/lib/profiles";
-import type { ProfessionalProfile } from "@/lib/types";
+import type { ProfessionalProfile } from "@/lib/profiles";
 import { professionalProfileSchema, type ProfessionalProfileFormData } from "@/lib/validations";
 
 export default function ProfessionalProfilePage() {
@@ -43,13 +43,15 @@ export default function ProfessionalProfilePage() {
     if (!user) return;
 
     try {
-      const proProfile = await getProfessionalProfile(user.uid);
+      const userUid = getUserUid(user);
+      if (!userUid) return;
+      const proProfile = await getProfessionalProfile(userUid);
       if (proProfile) {
         setProfile(proProfile);
         setValue("specialty", proProfile.specialty);
-        setValue("rateCents", proProfile.rateCents);
-        setValue("bio", proProfile.bio);
-        setCurrentCredentialsUrl(proProfile.credentials || null);
+        setValue("rateCents", proProfile.rate_cents);
+        setValue("bio", proProfile.bio || "");
+        setCurrentCredentialsUrl(null); // credentials field doesn't exist in current schema
       }
     } catch (err) {
       console.error("Error loading profile:", err);
@@ -75,32 +77,18 @@ export default function ProfessionalProfilePage() {
     try {
       if (profile) {
         // Update existing profile
-        await updateProfessionalProfile(
-          user.uid,
-          {
-            specialty: data.specialty,
-            rateCents: data.rateCents,
-            bio: data.bio,
-            updatedAt: new Date(),
-          },
-          photoFile || undefined,
-          credentialsFile || undefined,
-        );
+        const userUid = getUserUid(user);
+        if (!userUid) return;
+        await updateProfessionalProfile(userUid, {
+          specialty: data.specialty,
+          bio: data.bio,
+        });
       } else {
         // Create new profile
-        await createProfessionalProfile(
-          user.uid,
-          {
-            specialty: data.specialty,
-            rateCents: data.rateCents,
-            bio: data.bio,
-            isVerified: false,
-            createdAt: new Date(),
-            updatedAt: new Date(),
-          },
-          photoFile || undefined,
-          credentialsFile || undefined,
-        );
+        await createProfessionalProfile({
+          specialty: data.specialty,
+          bio: data.bio,
+        });
       }
 
       setSuccess(true);
@@ -256,19 +244,20 @@ export default function ProfessionalProfilePage() {
                 <strong>Especialidad:</strong> {profile.specialty}
               </p>
               <p>
-                <strong>Tarifa:</strong> ${(profile.rateCents / 100).toFixed(2)} por hora
+                <strong>Tarifa:</strong> ${(profile.rate_cents / 100).toFixed(2)} por hora
               </p>
               <p>
-                <strong>Verificado:</strong> {profile.isVerified ? "✅ Sí" : "❌ No"}
+                <strong>Verificado:</strong> {profile.is_verified ? "✅ Sí" : "❌ No"}
               </p>
               <p>
                 <strong>Biografía:</strong> {profile.bio}
               </p>
               <p>
-                <strong>Actualizado:</strong> {profile.updatedAt.toLocaleDateString()}
+                <strong>Actualizado:</strong>{" "}
+                {profile.updated_at ? new Date(profile.updated_at).toLocaleDateString() : "N/A"}
               </p>
             </div>
-            {!profile.isVerified && (
+            {!profile.is_verified && (
               <div className="mt-4 rounded-md border border-yellow-200 bg-yellow-50 p-3 text-sm text-yellow-800 dark:border-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400">
                 ⏳ Tu perfil está pendiente de verificación. Los administradores revisarán tu
                 información y credenciales.

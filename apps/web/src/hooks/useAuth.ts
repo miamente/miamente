@@ -29,6 +29,11 @@ export function getUserId(user: AuthUser | null): string | undefined {
   return user.data.id;
 }
 
+export function getUserUid(user: AuthUser | null): string | undefined {
+  if (!user) return undefined;
+  return user.data.id; // uid is the same as id
+}
+
 export function getUserFullName(user: AuthUser | null): string | undefined {
   if (!user) return undefined;
   return user.data.full_name;
@@ -37,6 +42,11 @@ export function getUserFullName(user: AuthUser | null): string | undefined {
 export function isUserVerified(user: AuthUser | null): boolean {
   if (!user) return false;
   return user.data.is_verified;
+}
+
+export function isEmailVerified(user: AuthUser | null): boolean {
+  if (!user) return false;
+  return user.data.is_verified; // email verification is the same as user verification
 }
 
 export interface AuthState {

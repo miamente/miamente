@@ -13,8 +13,20 @@ interface AuthContextType {
   isAuthenticated: boolean;
   loginUser: (credentials: { email: string; password: string }) => Promise<void>;
   loginProfessional: (credentials: { email: string; password: string }) => Promise<void>;
-  registerUser: (userData: Record<string, unknown>) => Promise<void>;
-  registerProfessional: (professionalData: Record<string, unknown>) => Promise<void>;
+  registerUser: (userData: {
+    email: string;
+    full_name: string;
+    password: string;
+    phone?: string;
+  }) => Promise<void>;
+  registerProfessional: (professionalData: {
+    email: string;
+    full_name: string;
+    password: string;
+    specialty: string;
+    rate_cents: number;
+    phone?: string;
+  }) => Promise<void>;
   logout: () => void;
   refreshUser: () => Promise<void>;
 }

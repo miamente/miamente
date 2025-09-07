@@ -13,6 +13,12 @@ export interface ApiResponse<T = unknown> {
   error?: string;
 }
 
+export interface TypedApiResponse<T> {
+  data: T;
+  message?: string;
+  error?: string;
+}
+
 export interface PaginatedResponse<T> {
   items: T[];
   total: number;

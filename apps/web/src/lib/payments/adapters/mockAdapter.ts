@@ -67,8 +67,8 @@ export class MockPaymentAdapter implements PaymentService {
           metadata: {
             provider: "mock",
             autoApproved: true,
-            amount: appointment.payment_amount_cents,
-            currency: appointment.payment_currency,
+            amount: (appointment as any).payment_amount_cents,
+            currency: (appointment as any).payment_currency,
           },
         };
       } else {
@@ -83,8 +83,8 @@ export class MockPaymentAdapter implements PaymentService {
           metadata: {
             provider: "mock",
             autoApproved: false,
-            amount: appointment.payment_amount_cents,
-            currency: appointment.payment_currency,
+            amount: (appointment as any).payment_amount_cents,
+            currency: (appointment as any).payment_currency,
           },
         };
       }
@@ -147,19 +147,19 @@ export class MockPaymentAdapter implements PaymentService {
 
       return {
         status:
-          appointment.status === "confirmed"
+          (appointment as any).status === "confirmed"
             ? "confirmed"
-            : appointment.status === "failed"
+            : (appointment as any).status === "failed"
               ? "failed"
-              : appointment.status === "cancelled"
+              : (appointment as any).status === "cancelled"
                 ? "cancelled"
                 : "pending",
-        amount: appointment.payment_amount_cents,
-        currency: appointment.payment_currency,
-        provider: appointment.payment_provider,
+        amount: (appointment as any).payment_amount_cents,
+        currency: (appointment as any).payment_currency,
+        provider: (appointment as any).payment_provider,
         metadata: {
           appointmentId,
-          lastUpdated: appointment.updated_at,
+          lastUpdated: (appointment as any).updated_at,
         },
       };
     } catch (error) {
@@ -245,7 +245,7 @@ export class MockPaymentAdapter implements PaymentService {
       // Get appointment details for email
       const appointment = await apiClient.get(`/appointments/${appointmentId}`);
 
-      await this.sendConfirmationEmail(appointment);
+      await this.sendConfirmationEmail(appointment as any);
 
       console.log(
         `[MockPaymentAdapter] Manual approval completed for appointment: ${appointmentId}`,

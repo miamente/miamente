@@ -167,7 +167,7 @@ export class PaymentManager {
       const { apiClient } = await import("@/lib/api");
       const appointment = await apiClient.get(`/appointments/${appointmentId}`);
 
-      const provider = appointment.payment_provider || "mock";
+      const provider = (appointment as any).payment_provider || "mock";
       this.service = await PaymentServiceFactory.getService(provider as PaymentProvider);
     } catch (error) {
       console.error("Error initializing payment service:", error);

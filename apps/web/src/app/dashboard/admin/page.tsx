@@ -6,9 +6,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuthGuard } from "@/hooks/useAuthGuard";
 
 export default function AdminDashboard() {
-  const { loading } = useAuthGuard({ requiredRole: "admin" });
+  const { isLoading } = useAuthGuard({ requiredRole: "admin" });
 
-  if (loading) {
+  if (isLoading) {
     return <div className="flex min-h-[50vh] items-center justify-center">Cargando...</div>;
   }
 

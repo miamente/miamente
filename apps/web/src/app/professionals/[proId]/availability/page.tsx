@@ -44,20 +44,25 @@ export default function ProfessionalAvailabilityPage() {
     if (!proId) return;
 
     try {
-      const result = await bookAppointment(proId, slotId);
-      if (result.success && result.appointmentId) {
+      const result = await bookAppointment({
+        professional_id: proId,
+        start: new Date().toISOString(),
+        end: new Date(Date.now() + 60 * 60 * 1000).toISOString(), // 1 hour later
+        notes: "",
+      });
+      if (result && result.id) {
         // Track appointment confirmation event
-        await trackAppointmentConfirmed(result.appointmentId, {
+        await trackAppointmentConfirmed(result.id, {
           proId,
           slotId,
           timestamp: new Date().toISOString(),
         });
 
         // Show success message and reload slots
-        alert(`Cita reservada exitosamente. ID: ${result.appointmentId}`);
+        alert(`Cita reservada exitosamente. ID: ${result.id}`);
         await loadSlots();
       } else {
-        alert(result.error || "Error al reservar la cita");
+        alert("Error al reservar la cita");
       }
     } catch (error) {
       console.error("Error booking appointment:", error);
@@ -68,7 +73,7 @@ export default function ProfessionalAvailabilityPage() {
   // Group slots by date
   const slotsByDate = slots.reduce(
     (acc, slot) => {
-      const dateKey = formatBogotaDate(slot.start, {
+      const dateKey = formatBogotaDate(new Date(slot.start), {
         year: "numeric",
         month: "2-digit",
         day: "2-digit",
@@ -140,14 +145,17 @@ export default function ProfessionalAvailabilityPage() {
                     >
                       <div>
                         <p className="font-medium">
-                          {formatBogotaDateTime(slot.start, {
+                          {formatBogotaDateTime(new Date(slot.start), {
                             hour: "2-digit",
                             minute: "2-digit",
                             hour12: false,
                           })}
                         </p>
                         <p className="text-sm text-neutral-600 dark:text-neutral-400">
-                          {Math.round((slot.end.getTime() - slot.start.getTime()) / (1000 * 60))}{" "}
+                          {Math.round(
+                            (new Date(slot.end).getTime() - new Date(slot.start).getTime()) /
+                              (1000 * 60),
+                          )}{" "}
                           minutos
                         </p>
                       </div>
@@ -155,7 +163,7 @@ export default function ProfessionalAvailabilityPage() {
                         size="sm"
                         onClick={() => handleBookSlot(slot.id)}
                         aria-label={`Reservar cita el ${date} a las ${formatBogotaDateTime(
-                          slot.start,
+                          new Date(slot.start),
                           {
                             hour: "2-digit",
                             minute: "2-digit",

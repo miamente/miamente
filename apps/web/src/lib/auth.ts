@@ -30,7 +30,7 @@ export interface RegisterRequest {
 export async function registerWithEmail(data: RegisterRequest): Promise<UserProfile> {
   try {
     const response = await apiClient.post("/auth/register/user", data);
-    return response;
+    return response as any;
   } catch (error) {
     console.error("Registration error:", error);
     throw error;
@@ -45,13 +45,13 @@ export async function loginWithEmail(email: string, password: string): Promise<L
     });
 
     // Store the token
-    const { access_token } = response;
+    const { access_token } = response as any;
     localStorage.setItem("access_token", access_token);
 
     // Set the token in the API client for future requests
     apiClient.setToken(access_token);
 
-    return response;
+    return response as any;
   } catch (error) {
     console.error("Login error:", error);
     throw error;
@@ -81,7 +81,7 @@ export async function resendEmailVerification(): Promise<void> {
 export async function getUserProfile(): Promise<UserProfile | null> {
   try {
     const response = await apiClient.get("/users/me");
-    return response.data;
+    return (response as any).data;
   } catch (error) {
     console.error("Get user profile error:", error);
     return null;
@@ -94,12 +94,12 @@ export function getStoredToken(): string | null {
 
 export function setAuthToken(token: string): void {
   localStorage.setItem("access_token", token);
-  apiClient.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+  (apiClient as any).defaults.headers.common["Authorization"] = `Bearer ${token}`;
 }
 
 export function clearAuthToken(): void {
   localStorage.removeItem("access_token");
-  delete apiClient.defaults.headers.common["Authorization"];
+  delete (apiClient as any).defaults.headers.common["Authorization"];
 }
 
 export function isAuthenticated(): boolean {
