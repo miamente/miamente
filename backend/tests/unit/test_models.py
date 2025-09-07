@@ -2,6 +2,7 @@
 Unit tests for database models.
 """
 import pytest
+import uuid
 from datetime import datetime, timezone
 from sqlalchemy.exc import IntegrityError
 
@@ -136,10 +137,12 @@ class TestAppointmentModel:
         appointment = AppointmentModel(
             professional_id=professional.id,
             user_id=user.id,
+            availability_id=uuid.uuid4(),  # Generate a temporary availability_id
             start_time=datetime(2024, 12, 1, 10, 0, 0, tzinfo=timezone.utc),
             end_time=datetime(2024, 12, 1, 11, 0, 0, tzinfo=timezone.utc),
-            status="scheduled",
-            notes="Test appointment"
+            status="pending_payment",
+            session_notes="Test appointment",
+            payment_amount_cents=50000
         )
         
         db_session.add(appointment)
@@ -149,8 +152,8 @@ class TestAppointmentModel:
         assert appointment.id is not None
         assert appointment.professional_id == professional.id
         assert appointment.user_id == user.id
-        assert appointment.status == "scheduled"
-        assert appointment.notes == "Test appointment"
+        assert appointment.status == "pending_payment"
+        assert appointment.session_notes == "Test appointment"
         assert appointment.created_at is not None
         # updated_at is None initially, only set on updates
     
@@ -169,9 +172,11 @@ class TestAppointmentModel:
         appointment = AppointmentModel(
             professional_id=professional.id,
             user_id=user.id,
+            availability_id=uuid.uuid4(),  # Generate a temporary availability_id
             start_time=datetime(2024, 12, 1, 10, 0, 0, tzinfo=timezone.utc),
             end_time=datetime(2024, 12, 1, 11, 0, 0, tzinfo=timezone.utc),
-            status="scheduled"
+            status="pending_payment",
+            payment_amount_cents=50000
         )
         
         db_session.add(appointment)
@@ -197,10 +202,10 @@ class TestAvailabilityModel:
         
         availability = AvailabilityModel(
             professional_id=professional.id,
-            day_of_week=1,  # Monday
-            start_time="09:00:00",
-            end_time="17:00:00",
-            is_available=True
+            date=datetime(2024, 12, 1, 10, 0, 0, tzinfo=timezone.utc),
+            time="10:00",
+            duration=60,
+            status="free"
         )
         
         db_session.add(availability)
@@ -209,10 +214,10 @@ class TestAvailabilityModel:
         
         assert availability.id is not None
         assert availability.professional_id == professional.id
-        assert availability.day_of_week == 1
-        assert availability.start_time == "09:00:00"
-        assert availability.end_time == "17:00:00"
-        assert availability.is_available is True
+        assert availability.date is not None
+        assert availability.time == "10:00"
+        assert availability.duration == 60
+        assert availability.status == "free"
     
     def test_availability_relationship(self, db_session, test_professional_data):
         """Test availability relationship with professional."""
@@ -223,9 +228,10 @@ class TestAvailabilityModel:
         
         availability = AvailabilityModel(
             professional_id=professional.id,
-            day_of_week=1,
-            start_time="09:00:00",
-            end_time="17:00:00"
+            date=datetime(2024, 12, 1, 10, 0, 0, tzinfo=timezone.utc),
+            time="10:00",
+            duration=60,
+            status="free"
         )
         
         db_session.add(availability)
@@ -250,14 +256,28 @@ class TestPaymentModel:
         db_session.refresh(user)
         db_session.refresh(professional)
         
+        # Create an appointment first
+        appointment = AppointmentModel(
+            professional_id=professional.id,
+            user_id=user.id,
+            availability_id=uuid.uuid4(),
+            start_time=datetime(2024, 12, 1, 10, 0, 0, tzinfo=timezone.utc),
+            end_time=datetime(2024, 12, 1, 11, 0, 0, tzinfo=timezone.utc),
+            status="pending_payment",
+            payment_amount_cents=50000
+        )
+        db_session.add(appointment)
+        db_session.commit()
+        db_session.refresh(appointment)
+        
         payment = PaymentModel(
             user_id=user.id,
-            professional_id=professional.id,
+            appointment_id=appointment.id,
             amount_cents=50000,
             currency="USD",
             status="pending",
-            payment_method="stripe",
-            external_payment_id="pi_test_123"
+            provider="stripe",
+            provider_payment_id="pi_test_123"
         )
         
         db_session.add(payment)
@@ -266,11 +286,11 @@ class TestPaymentModel:
         
         assert payment.id is not None
         assert payment.user_id == user.id
-        assert payment.professional_id == professional.id
+        assert payment.appointment_id == appointment.id
         assert payment.amount_cents == 50000
         assert payment.currency == "USD"
         assert payment.status == "pending"
-        assert payment.payment_method == "stripe"
-        assert payment.external_payment_id == "pi_test_123"
+        assert payment.provider == "stripe"
+        assert payment.provider_payment_id == "pi_test_123"
         assert payment.created_at is not None
         # updated_at is None initially, only set on updates

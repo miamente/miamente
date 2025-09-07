@@ -12,10 +12,44 @@ from app.schemas.appointment import (
     AppointmentResponse, 
     BookAppointmentRequest, 
     BookAppointmentResponse,
-    AppointmentUpdate
+    AppointmentUpdate,
+    AppointmentCreateDirect
 )
 
 router = APIRouter()
+
+
+@router.post("/", response_model=AppointmentResponse, status_code=status.HTTP_201_CREATED)
+async def create_appointment(
+    appointment_data: AppointmentCreateDirect,
+    current_user_id: str = Depends(get_current_user_id),
+    db: Session = Depends(get_db)
+):
+    """Create a new appointment."""
+    appointment_service = AppointmentService(db)
+    
+    try:
+        # Create appointment with the provided data
+        appointment = appointment_service.create_appointment(
+            user_id=current_user_id,
+            professional_id=appointment_data.professional_id,
+            start_time=appointment_data.start_time,
+            end_time=appointment_data.end_time,
+            notes=appointment_data.notes
+        )
+        
+        return appointment
+        
+    except HTTPException:
+        # Re-raise HTTP exceptions (like 400, 404) as they are
+        raise
+    except Exception as e:
+        # Log the actual error for debugging
+        print(f"Error creating appointment: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to create appointment: {str(e)}"
+        )
 
 
 @router.post("/book", response_model=BookAppointmentResponse)
@@ -109,6 +143,36 @@ async def update_appointment(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to update appointment"
+        )
+
+
+@router.patch("/{appointment_id}/cancel", response_model=AppointmentResponse)
+async def cancel_appointment_patch(
+    appointment_id: str,
+    current_user_id: str = Depends(get_current_user_id),
+    db: Session = Depends(get_db)
+):
+    """Cancel an appointment (PATCH method)."""
+    appointment_service = AppointmentService(db)
+    
+    try:
+        success = appointment_service.cancel_appointment(appointment_id, current_user_id)
+        if success:
+            # Get the updated appointment
+            appointment = appointment_service.get_appointment(appointment_id, current_user_id)
+            return appointment
+        else:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Failed to cancel appointment"
+            )
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"Error canceling appointment: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to cancel appointment: {str(e)}"
         )
 
 

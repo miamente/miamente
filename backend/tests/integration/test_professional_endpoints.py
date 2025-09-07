@@ -61,7 +61,9 @@ class TestProfessionalEndpoints:
     
     def test_get_professional_by_id_not_found(self, client: TestClient):
         """Test getting non-existent professional by ID."""
-        response = client.get("/api/v1/professionals/99999")
+        # Use a valid UUID that doesn't exist
+        non_existent_uuid = "00000000-0000-0000-0000-000000000000"
+        response = client.get(f"/api/v1/professionals/{non_existent_uuid}")
         assert response.status_code == 404
     
     def test_update_professional(self, client: TestClient):

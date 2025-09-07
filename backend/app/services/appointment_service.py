@@ -1,6 +1,7 @@
 """
 Appointment service.
 """
+import uuid
 from datetime import datetime, timedelta
 from typing import List, Optional
 from sqlalchemy.orm import Session
@@ -20,6 +21,68 @@ class AppointmentService:
     
     def __init__(self, db: Session):
         self.db = db
+    
+    def create_appointment(
+        self,
+        user_id: str,
+        professional_id: str,
+        start_time: str,
+        end_time: str,
+        notes: str = ""
+    ) -> Appointment:
+        """Create a new appointment."""
+        try:
+            user_uuid = uuid.UUID(user_id)
+            professional_uuid = uuid.UUID(professional_id)
+        except ValueError:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Invalid user or professional ID format"
+            )
+        
+        # Parse datetime strings
+        try:
+            start_dt = datetime.fromisoformat(start_time.replace('Z', '+00:00'))
+            end_dt = datetime.fromisoformat(end_time.replace('Z', '+00:00'))
+        except ValueError:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Invalid datetime format"
+            )
+        
+        # Verify user and professional exist
+        user = self.db.query(User).filter(User.id == user_uuid).first()
+        if not user:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="User not found"
+            )
+        
+        professional = self.db.query(Professional).filter(Professional.id == professional_uuid).first()
+        if not professional:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Professional not found"
+            )
+        
+        # Create appointment
+        appointment = Appointment(
+            user_id=user_uuid,
+            professional_id=professional_uuid,
+            availability_id=uuid.uuid4(),  # Generate a temporary availability_id
+            start_time=start_dt,
+            end_time=end_dt,
+            session_notes=notes,
+            status=AppointmentStatus.PENDING_PAYMENT,
+            payment_amount_cents=50000,  # Default amount
+            payment_currency="COP"
+        )
+        
+        self.db.add(appointment)
+        self.db.commit()
+        self.db.refresh(appointment)
+        
+        return appointment
     
     def book_appointment(
         self, 
@@ -105,24 +168,37 @@ class AppointmentService:
     
     def get_appointment(self, appointment_id: str, user_id: str) -> Optional[Appointment]:
         """Get appointment by ID for a specific user."""
+        try:
+            appointment_uuid = uuid.UUID(appointment_id)
+            user_uuid = uuid.UUID(user_id)
+        except ValueError:
+            return None
         appointment = self.db.query(Appointment).filter(
             and_(
-                Appointment.id == appointment_id,
-                Appointment.user_id == user_id
+                Appointment.id == appointment_uuid,
+                Appointment.user_id == user_uuid
             )
         ).first()
         return appointment
     
     def get_user_appointments(self, user_id: str) -> List[Appointment]:
         """Get all appointments for a user."""
+        try:
+            user_uuid = uuid.UUID(user_id)
+        except ValueError:
+            return []
         return self.db.query(Appointment).filter(
-            Appointment.user_id == user_id
+            Appointment.user_id == user_uuid
         ).order_by(Appointment.start_time.desc()).all()
     
     def get_professional_appointments(self, professional_id: str) -> List[Appointment]:
         """Get all appointments for a professional."""
+        try:
+            professional_uuid = uuid.UUID(professional_id)
+        except ValueError:
+            return []
         return self.db.query(Appointment).filter(
-            Appointment.professional_id == professional_id
+            Appointment.professional_id == professional_uuid
         ).order_by(Appointment.start_time.desc()).all()
     
     def cancel_appointment(self, appointment_id: str, user_id: str) -> bool:

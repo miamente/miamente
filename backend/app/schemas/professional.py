@@ -3,7 +3,7 @@ Professional schemas.
 """
 from datetime import datetime
 from typing import Optional, List
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, field_validator
 import uuid
 
 
@@ -15,7 +15,7 @@ class ProfessionalBase(BaseModel):
     specialty: str
     license_number: Optional[str] = None
     years_experience: int = 0
-    rate_cents: int
+    rate_cents: int = 50000  # Default rate in cents (500 COP)
     currency: str = "COP"
     bio: Optional[str] = None
     education: Optional[str] = None
@@ -30,6 +30,13 @@ class ProfessionalBase(BaseModel):
 class ProfessionalCreate(ProfessionalBase):
     """Professional creation schema."""
     password: str
+    
+    @field_validator('password')
+    @classmethod
+    def validate_password(cls, v):
+        if len(v) < 8:
+            raise ValueError('Password must be at least 8 characters long')
+        return v
 
 
 class ProfessionalUpdate(BaseModel):

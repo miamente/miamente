@@ -49,12 +49,12 @@ class TestPaymentEndpoints:
         assert response.status_code == 201
         data = response.json()
         assert data["user_id"] == user_id
-        assert data["professional_id"] == professional_id
         assert data["amount_cents"] == 50000
         assert data["currency"] == "USD"
-        assert data["payment_method"] == "stripe"
+        assert data["provider"] == "stripe"
         assert data["status"] == "pending"
         assert "id" in data
+        assert "appointment_id" in data
         assert "created_at" in data
     
     def test_create_payment_no_auth(self, client: TestClient):
@@ -144,8 +144,11 @@ class TestPaymentEndpoints:
         data = response.json()
         assert data["id"] == payment_id
         assert data["user_id"] == user_id
-        assert data["professional_id"] == professional_id
         assert data["amount_cents"] == 50000
+        assert data["currency"] == "USD"
+        assert data["provider"] == "stripe"
+        assert data["status"] == "pending"
+        assert "appointment_id" in data
     
     def test_get_payment_by_id_not_found(self, client: TestClient):
         """Test getting non-existent payment by ID."""
@@ -165,7 +168,9 @@ class TestPaymentEndpoints:
         token = login_response.json()["access_token"]
         
         headers = {"Authorization": f"Bearer {token}"}
-        response = client.get("/api/v1/payments/99999", headers=headers)
+        # Use a valid UUID that doesn't exist
+        non_existent_uuid = "00000000-0000-0000-0000-000000000000"
+        response = client.get(f"/api/v1/payments/{non_existent_uuid}", headers=headers)
         assert response.status_code == 404
     
     def test_update_payment_status(self, client: TestClient):
@@ -210,14 +215,14 @@ class TestPaymentEndpoints:
         # Update payment status
         update_data = {
             "status": "completed",
-            "external_payment_id": "pi_test_123"
+            "provider_payment_id": "pi_test_123"
         }
         response = client.patch(f"/api/v1/payments/{payment_id}", json=update_data, headers=headers)
         
         assert response.status_code == 200
         data = response.json()
         assert data["status"] == "completed"
-        assert data["external_payment_id"] == "pi_test_123"
+        assert data["provider_payment_id"] == "pi_test_123"
         assert data["id"] == payment_id
     
     def test_update_payment_status_no_auth(self, client: TestClient):

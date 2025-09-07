@@ -191,8 +191,8 @@ class TestAppointmentService:
         assert appointment is not None
         assert appointment.professional_id == professional.id
         assert appointment.user_id == user.id
-        assert appointment.notes == "Test appointment"
-        assert appointment.status == "scheduled"
+        assert appointment.session_notes == "Test appointment"
+        assert appointment.status == "pending_payment"
     
     def test_get_user_appointments(self, db_session, test_user_data, test_professional_data):
         """Test getting appointments for a user."""

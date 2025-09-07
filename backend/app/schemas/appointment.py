@@ -23,6 +23,14 @@ class AppointmentCreate(AppointmentBase):
     pass
 
 
+class AppointmentCreateDirect(BaseModel):
+    """Direct appointment creation schema (without availability)."""
+    professional_id: str
+    start_time: str
+    end_time: str
+    notes: str = ""
+
+
 class AppointmentUpdate(BaseModel):
     """Appointment update schema."""
     status: Optional[AppointmentStatus] = None

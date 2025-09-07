@@ -4,20 +4,27 @@ Authentication endpoints.
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlalchemy.orm import Session
+from typing import Optional
 
 from app.core.database import get_db
 from app.core.security import verify_token
 from app.services.auth_service import AuthService
-from app.schemas.auth import Token, UserLogin, RefreshToken
+from app.schemas.auth import Token, UserLogin, RefreshToken, UserTokenResponse, ProfessionalTokenResponse
 from app.schemas.user import UserCreate, UserResponse
 from app.schemas.professional import ProfessionalCreate, ProfessionalResponse, ProfessionalLogin
 
 router = APIRouter()
-security = HTTPBearer()
+security = HTTPBearer(auto_error=False)
 
 
-def get_current_user_id(credentials: HTTPAuthorizationCredentials = Depends(security)) -> str:
+def get_current_user_id(credentials: Optional[HTTPAuthorizationCredentials] = Depends(security)) -> str:
     """Get current user ID from token."""
+    if not credentials:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Not authenticated",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
     token = credentials.credentials
     user_id = verify_token(token)
     if user_id is None:
@@ -29,7 +36,7 @@ def get_current_user_id(credentials: HTTPAuthorizationCredentials = Depends(secu
     return user_id
 
 
-@router.post("/register/user", response_model=UserResponse)
+@router.post("/register/user", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
 async def register_user(user_data: UserCreate, db: Session = Depends(get_db)):
     """Register a new user."""
     auth_service = AuthService(db)
@@ -37,7 +44,7 @@ async def register_user(user_data: UserCreate, db: Session = Depends(get_db)):
     return user
 
 
-@router.post("/register/professional", response_model=ProfessionalResponse)
+@router.post("/register/professional", response_model=ProfessionalResponse, status_code=status.HTTP_201_CREATED)
 async def register_professional(professional_data: ProfessionalCreate, db: Session = Depends(get_db)):
     """Register a new professional."""
     auth_service = AuthService(db)
@@ -45,7 +52,7 @@ async def register_professional(professional_data: ProfessionalCreate, db: Sessi
     return professional
 
 
-@router.post("/login/user", response_model=Token)
+@router.post("/login/user", response_model=UserTokenResponse)
 async def login_user(user_login: UserLogin, db: Session = Depends(get_db)):
     """Login user."""
     auth_service = AuthService(db)
@@ -65,10 +72,16 @@ async def login_user(user_login: UserLogin, db: Session = Depends(get_db)):
         )
     
     from app.core.security import create_token_response
-    return create_token_response(str(user.id))
+    token_response = create_token_response(str(user.id))
+    return UserTokenResponse(
+        access_token=token_response["access_token"],
+        refresh_token=token_response["refresh_token"],
+        token_type=token_response["token_type"],
+        user=user
+    )
 
 
-@router.post("/login/professional", response_model=Token)
+@router.post("/login/professional", response_model=ProfessionalTokenResponse)
 async def login_professional(professional_login: ProfessionalLogin, db: Session = Depends(get_db)):
     """Login professional."""
     auth_service = AuthService(db)
@@ -91,7 +104,13 @@ async def login_professional(professional_login: ProfessionalLogin, db: Session 
         )
     
     from app.core.security import create_token_response
-    return create_token_response(str(professional.id))
+    token_response = create_token_response(str(professional.id))
+    return ProfessionalTokenResponse(
+        access_token=token_response["access_token"],
+        refresh_token=token_response["refresh_token"],
+        token_type=token_response["token_type"],
+        professional=professional
+    )
 
 
 @router.post("/refresh", response_model=Token)

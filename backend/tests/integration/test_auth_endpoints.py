@@ -208,6 +208,6 @@ class TestAuthEndpoints:
         data = response.json()
         assert "access_token" in data
         assert data["token_type"] == "bearer"
-        assert "user" in data
-        assert data["user"]["email"] == "professional@example.com"
-        assert data["user"]["specialty"] == "Psychology"
+        assert "professional" in data
+        assert data["professional"]["email"] == "professional@example.com"
+        assert data["professional"]["specialty"] == "Psychology"

@@ -51,8 +51,8 @@ class TestAppointmentEndpoints:
         data = response.json()
         assert data["professional_id"] == professional_id
         assert data["user_id"] == user_id
-        assert data["status"] == "scheduled"
-        assert data["notes"] == "Test appointment"
+        assert data["status"] == "pending_payment"
+        assert data["session_notes"] == "Test appointment"
         assert "id" in data
         assert "created_at" in data
     

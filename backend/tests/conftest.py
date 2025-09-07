@@ -17,10 +17,50 @@ import uuid
 from app.main import app
 from app.core.database import get_db
 from app.core.config import settings
+from test_config import test_settings
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+from app.api.v1.api import api_router
 
 # Create a separate Base for tests to avoid conflicts
 from sqlalchemy.orm import declarative_base
 TestBase = declarative_base()
+
+# Override settings for testing
+import app.core.config
+app.core.config.settings = test_settings
+
+# Create test app without TrustedHostMiddleware
+test_app = FastAPI(
+    title=test_settings.PROJECT_NAME,
+    version=test_settings.VERSION,
+    description="Test Backend API for Miamente mental health platform",
+    openapi_url=f"{test_settings.API_V1_STR}/openapi.json",
+    docs_url="/docs",
+    redoc_url="/redoc",
+)
+
+# Set up CORS for test app
+test_app.add_middleware(
+    CORSMiddleware,
+    allow_origins=test_settings.BACKEND_CORS_ORIGINS,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# Include API router in test app
+test_app.include_router(api_router, prefix=test_settings.API_V1_STR)
+
+@test_app.get("/")
+async def root():
+    """Root endpoint."""
+    return {"message": "Miamente Test Backend API", "version": test_settings.VERSION}
+
+@test_app.get("/health")
+async def health_check():
+    """Health check endpoint."""
+    return {"status": "healthy"}
 
 # Test database URL
 SQLALCHEMY_DATABASE_URL = "sqlite:///./test.db"
@@ -48,11 +88,18 @@ class UserModel(TestBase):
     hashed_password = Column(String(255), nullable=False)
     is_active = Column(Boolean, default=True)
     is_verified = Column(Boolean, default=False)
+    profile_picture = Column(Text, nullable=True)
+    date_of_birth = Column(DateTime, nullable=True)
+    emergency_contact = Column(String(255), nullable=True)
+    emergency_phone = Column(String(20), nullable=True)
+    preferences = Column(Text, nullable=True)  # JSON string for user preferences
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
     
     # Relationships
     appointments = relationship("AppointmentModel", back_populates="user")
+    payments = relationship("PaymentModel", back_populates="user")
+    held_slots = relationship("AvailabilityModel", back_populates="user")
 
 
 class ProfessionalModel(TestBase):
@@ -103,18 +150,44 @@ class AppointmentModel(TestBase):
     __tablename__ = "appointments"
     
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    professional_id = Column(UUID(as_uuid=True), ForeignKey("professionals.id"), nullable=False)
     user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
+    professional_id = Column(UUID(as_uuid=True), ForeignKey("professionals.id"), nullable=False)
+    availability_id = Column(UUID(as_uuid=True), ForeignKey("availability.id"), nullable=False)
+    
+    # Appointment details
+    status = Column(String(50), default="pending_payment")
+    paid = Column(Boolean, default=False)
+    
+    # Time information
     start_time = Column(DateTime(timezone=True), nullable=False)
     end_time = Column(DateTime(timezone=True), nullable=False)
-    status = Column(String(50), default="scheduled")
-    notes = Column(Text, nullable=True)
+    duration = Column(Integer, default=60)  # Duration in minutes
+    timezone = Column(String(50), default="America/Bogota")
+    
+    # Session information
+    jitsi_url = Column(Text, nullable=True)
+    session_notes = Column(Text, nullable=True)
+    session_rating = Column(Integer, nullable=True)  # 1-5 rating
+    session_feedback = Column(Text, nullable=True)
+    
+    # Payment information
+    payment_amount_cents = Column(Integer, nullable=False)
+    payment_currency = Column(String(3), default="COP")
+    payment_provider = Column(String(50), default="mock")
+    payment_status = Column(String(50), default="pending")
+    payment_id = Column(String(255), nullable=True)
+    
+    # Metadata
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+    cancelled_at = Column(DateTime(timezone=True), nullable=True)
+    completed_at = Column(DateTime(timezone=True), nullable=True)
     
     # Relationships
-    professional = relationship("ProfessionalModel", back_populates="appointments")
     user = relationship("UserModel", back_populates="appointments")
+    professional = relationship("ProfessionalModel", back_populates="appointments")
+    availability = relationship("AvailabilityModel")
+    payment = relationship("PaymentModel", back_populates="appointment", uselist=False)
 
 
 class AvailabilityModel(TestBase):
@@ -124,15 +197,25 @@ class AvailabilityModel(TestBase):
     
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     professional_id = Column(UUID(as_uuid=True), ForeignKey("professionals.id"), nullable=False)
-    day_of_week = Column(Integer, nullable=False)  # 0-6 (Monday-Sunday)
-    start_time = Column(String(8), nullable=False)  # HH:MM:SS format
-    end_time = Column(String(8), nullable=False)  # HH:MM:SS format
-    is_available = Column(Boolean, default=True)
+    
+    # Time information
+    date = Column(DateTime(timezone=True), nullable=False)
+    time = Column(String(10), nullable=False)  # HH:MM format
+    duration = Column(Integer, default=60)  # Duration in minutes
+    timezone = Column(String(50), default="America/Bogota")
+    
+    # Slot management
+    status = Column(String(50), default="free")
+    held_by = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=True)
+    held_at = Column(DateTime(timezone=True), nullable=True)
+    
+    # Metadata
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
     
     # Relationships
     professional = relationship("ProfessionalModel", back_populates="availability")
+    user = relationship("UserModel", back_populates="held_slots")
 
 
 class PaymentModel(TestBase):
@@ -141,15 +224,33 @@ class PaymentModel(TestBase):
     __tablename__ = "payments"
     
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    appointment_id = Column(UUID(as_uuid=True), ForeignKey("appointments.id"), nullable=False)
     user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
-    professional_id = Column(UUID(as_uuid=True), ForeignKey("professionals.id"), nullable=False)
+    
+    # Payment details
     amount_cents = Column(Integer, nullable=False)
-    currency = Column(String(3), default="USD")
+    currency = Column(String(3), default="COP")
+    provider = Column(String(50), default="mock")
     status = Column(String(50), default="pending")
-    payment_method = Column(String(50), nullable=False)
-    external_payment_id = Column(String(255), nullable=True)
+    
+    # Provider specific information
+    provider_payment_id = Column(String(255), nullable=True)
+    provider_transaction_id = Column(String(255), nullable=True)
+    provider_response = Column(Text, nullable=True)  # JSON string instead of JSONB
+    
+    # Payment metadata
+    description = Column(Text, nullable=True)
+    payment_metadata = Column(Text, nullable=True)  # JSON string instead of JSONB
+    
+    # Timestamps
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+    processed_at = Column(DateTime(timezone=True), nullable=True)
+    failed_at = Column(DateTime(timezone=True), nullable=True)
+    
+    # Relationships
+    appointment = relationship("AppointmentModel", back_populates="payment")
+    user = relationship("UserModel", back_populates="payments")
 
 
 def override_get_db():
@@ -188,12 +289,13 @@ def db_session():
 @pytest.fixture(scope="function")
 def client(db_session):
     """Create a test client with database override."""
-    app.dependency_overrides[get_db] = override_get_db
+    # Override database dependency for test app
+    test_app.dependency_overrides[get_db] = override_get_db
     
-    with TestClient(app) as test_client:
+    with TestClient(test_app) as test_client:
         yield test_client
     
-    app.dependency_overrides.clear()
+    test_app.dependency_overrides.clear()
 
 
 @pytest.fixture

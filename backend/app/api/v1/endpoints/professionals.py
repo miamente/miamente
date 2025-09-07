@@ -1,6 +1,7 @@
 """
 Professional endpoints.
 """
+import uuid
 from typing import List
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
@@ -34,8 +35,16 @@ async def get_professional(
     db: Session = Depends(get_db)
 ):
     """Get professional by ID."""
+    try:
+        professional_uuid = uuid.UUID(professional_id)
+    except ValueError:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid ID format"
+        )
+    
     professional = db.query(Professional).filter(
-        Professional.id == professional_id,
+        Professional.id == professional_uuid,
         Professional.is_active == True
     ).first()
     
@@ -46,6 +55,37 @@ async def get_professional(
         )
     
     return professional
+
+
+@router.get("/{professional_id}/availability")
+async def get_professional_availability(
+    professional_id: str,
+    db: Session = Depends(get_db)
+):
+    """Get professional availability."""
+    try:
+        professional_uuid = uuid.UUID(professional_id)
+    except ValueError:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid professional ID format"
+        )
+    
+    # Check if professional exists
+    professional = db.query(Professional).filter(
+        Professional.id == professional_uuid,
+        Professional.is_active == True
+    ).first()
+    
+    if not professional:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Professional not found"
+        )
+    
+    # For now, return empty availability list
+    # In a real app, this would query the availability table
+    return []
 
 
 @router.get("/me/profile", response_model=ProfessionalResponse)
@@ -64,6 +104,55 @@ async def get_current_professional(
         )
     
     return professional
+
+
+@router.get("/me/appointments")
+async def get_current_professional_appointments(
+    current_user_id: str = Depends(get_current_user_id),
+    db: Session = Depends(get_db)
+):
+    """Get current professional appointments."""
+    from app.services.appointment_service import AppointmentService
+    
+    appointment_service = AppointmentService(db)
+    appointments = appointment_service.get_professional_appointments(current_user_id)
+    
+    return appointments
+
+
+@router.put("/me", response_model=ProfessionalResponse)
+async def update_current_professional(
+    update_data: ProfessionalUpdate,
+    current_user_id: str = Depends(get_current_user_id),
+    db: Session = Depends(get_db)
+):
+    """Update current professional information."""
+    auth_service = AuthService(db)
+    professional = auth_service.get_professional_by_id(current_user_id)
+    
+    if not professional:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Professional not found"
+        )
+    
+    try:
+        # Update professional fields
+        for field, value in update_data.dict(exclude_unset=True).items():
+            if hasattr(professional, field):
+                setattr(professional, field, value)
+        
+        db.commit()
+        db.refresh(professional)
+        
+        return professional
+        
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to update professional"
+        )
 
 
 @router.put("/me/profile", response_model=ProfessionalResponse)

@@ -1,6 +1,7 @@
 """
 Authentication service.
 """
+import uuid
 from datetime import timedelta
 from typing import Optional
 from sqlalchemy.orm import Session
@@ -111,11 +112,19 @@ class AuthService:
     
     def get_user_by_id(self, user_id: str) -> Optional[User]:
         """Get user by ID."""
-        return self.db.query(User).filter(User.id == user_id).first()
+        try:
+            user_uuid = uuid.UUID(user_id)
+        except ValueError:
+            return None
+        return self.db.query(User).filter(User.id == user_uuid).first()
     
     def get_professional_by_id(self, professional_id: str) -> Optional[Professional]:
         """Get professional by ID."""
-        return self.db.query(Professional).filter(Professional.id == professional_id).first()
+        try:
+            professional_uuid = uuid.UUID(professional_id)
+        except ValueError:
+            return None
+        return self.db.query(Professional).filter(Professional.id == professional_uuid).first()
     
     def get_current_user(self, token: str) -> Optional[User]:
         """Get current user from token."""

@@ -17,13 +17,16 @@ class TestAppointmentService:
     
     def create_appointment(self, appointment_data: TestAppointmentCreate) -> AppointmentModel:
         """Create new appointment."""
+        import uuid
         db_appointment = AppointmentModel(
             professional_id=appointment_data.professional_id,
             user_id=appointment_data.user_id,
+            availability_id=uuid.uuid4(),  # Generate a temporary availability_id
             start_time=appointment_data.start_time,
             end_time=appointment_data.end_time,
-            notes=appointment_data.notes,
-            status="scheduled"
+            session_notes=appointment_data.notes,
+            status="pending_payment",
+            payment_amount_cents=50000
         )
         
         self.db.add(db_appointment)
