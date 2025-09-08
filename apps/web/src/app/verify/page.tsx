@@ -4,16 +4,15 @@ import React, { useState, useEffect } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth, isUserVerified, getUserEmail } from "@/hooks/useAuth";
 import { resendEmailVerification, logout } from "@/lib/auth";
-import { getFirebaseAuth } from "@/lib/firebase";
 
 export default function VerifyPage() {
   const [isResending, setIsResending] = useState(false);
   const [resendSuccess, setResendSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
-  const { user, loading } = useAuth();
+  const { user, isLoading: loading } = useAuth();
 
   useEffect(() => {
     if (!loading) {
@@ -25,10 +24,10 @@ export default function VerifyPage() {
       // In development mode (emulator), allow bypassing email verification
       const isDevelopment = window.location.hostname === "localhost";
 
-      if (user.emailVerified || isDevelopment) {
+      if (isUserVerified(user) || isDevelopment) {
         // Only auto-redirect if email is actually verified
         // In development, we let the user manually proceed
-        if (user.emailVerified) {
+        if (isUserVerified(user)) {
           router.push("/dashboard/user");
           return;
         }
@@ -63,32 +62,19 @@ export default function VerifyPage() {
 
   const handleSimulateVerification = async () => {
     try {
-      const auth = getFirebaseAuth();
-      const currentUser = auth.currentUser;
+      // Check if we're running in development
+      const isDevelopment = window.location.hostname === "localhost";
 
-      if (currentUser) {
-        // Check if we're running in development (emulator)
-        const isDevelopment = window.location.hostname === "localhost";
-
-        if (isDevelopment) {
-          // In development mode, we can directly call the Firebase Admin API via emulator
-          // or simply redirect since emulator doesn't enforce email verification
-          console.log("Development mode: Simulating email verification");
-
-          // Force reload the user to check current state
-          await currentUser.reload();
-
-          // For emulator, we can proceed even if not verified
+      if (isDevelopment) {
+        // In development mode, we can simulate email verification
+        console.log("Development mode: Simulating email verification");
+        router.push("/dashboard/user");
+      } else {
+        // In production, we would need actual email verification
+        if (isUserVerified(user)) {
           router.push("/dashboard/user");
         } else {
-          // In production, we would need actual email verification
-          await currentUser.reload();
-
-          if (currentUser.emailVerified) {
-            router.push("/dashboard/user");
-          } else {
-            setError("El email aún no ha sido verificado. Por favor revisa tu bandeja de entrada.");
-          }
+          setError("El email aún no ha sido verificado. Por favor revisa tu bandeja de entrada.");
         }
       }
     } catch (err) {
@@ -113,8 +99,8 @@ export default function VerifyPage() {
         </CardHeader>
         <CardContent className="space-y-4">
           <p className="text-sm text-neutral-600 dark:text-neutral-400">
-            Te hemos enviado un email de verificación a <strong>{user.email}</strong>. Por favor
-            revisa tu bandeja de entrada y haz clic en el enlace para verificar tu cuenta.
+            Te hemos enviado un email de verificación a <strong>{getUserEmail(user)}</strong>. Por
+            favor revisa tu bandeja de entrada y haz clic en el enlace para verificar tu cuenta.
           </p>
 
           {window.location.hostname === "localhost" && (

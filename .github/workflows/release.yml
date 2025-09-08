@@ -1,5 +1,8 @@
 name: Release Management
 
+# DISABLED: GitHub Actions disabled for migration to FastAPI
+# if: false
+
 on:
   push:
     tags:

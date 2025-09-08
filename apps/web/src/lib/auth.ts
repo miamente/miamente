@@ -1,86 +1,117 @@
-import {
-  createUserWithEmailAndPassword,
-  signInWithEmailAndPassword,
-  signOut,
-  sendEmailVerification,
-  onAuthStateChanged,
-  type User,
-} from "firebase/auth";
-import { doc, setDoc, getDoc } from "firebase/firestore";
-
-import { getFirebaseAuth, getFirebaseFirestore } from "./firebase";
+import { apiClient } from "./api";
 
 export type UserRole = "user" | "pro" | "admin";
 
 export interface UserProfile {
+  id: string;
   role: UserRole;
-  fullName?: string;
+  full_name?: string;
   phone?: string;
-  emailVerified: boolean;
-  createdAt: Date;
-  updatedAt: Date;
+  email: string;
+  is_verified: boolean;
+  created_at: string;
+  updated_at: string;
 }
 
-export async function registerWithEmail(email: string, password: string) {
-  const auth = getFirebaseAuth();
-  const firestore = getFirebaseFirestore();
-
-  const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-  const user = userCredential.user;
-
-  // Send email verification
-  await sendEmailVerification(user);
-
-  // Create user profile
-  const userProfile: UserProfile = {
-    role: "user",
-    emailVerified: false,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  };
-
-  await setDoc(doc(firestore, "users", user.uid), userProfile);
-
-  return user;
+export interface LoginResponse {
+  access_token: string;
+  token_type: string;
+  user: UserProfile;
 }
 
-export async function loginWithEmail(email: string, password: string) {
-  const auth = getFirebaseAuth();
-  const userCredential = await signInWithEmailAndPassword(auth, email, password);
-  return userCredential.user;
+export interface RegisterRequest {
+  email: string;
+  password: string;
+  full_name?: string;
+  phone?: string;
+  role?: UserRole;
 }
 
-export async function logout() {
-  const auth = getFirebaseAuth();
-  await signOut(auth);
+export async function registerWithEmail(data: RegisterRequest): Promise<UserProfile> {
+  try {
+    const response = await apiClient.post("/auth/register/user", data);
+    return response as any;
+  } catch (error) {
+    console.error("Registration error:", error);
+    throw error;
+  }
 }
 
-export async function resendEmailVerification() {
-  const auth = getFirebaseAuth();
-  const user = auth.currentUser;
-  if (!user) throw new Error("No user logged in");
+export async function loginWithEmail(email: string, password: string): Promise<LoginResponse> {
+  try {
+    const response = await apiClient.post("/auth/login/user", {
+      email,
+      password,
+    });
 
-  await sendEmailVerification(user);
+    // Store the token
+    const { access_token } = response as any;
+    localStorage.setItem("access_token", access_token);
+
+    // Set the token in the API client for future requests
+    apiClient.setToken(access_token);
+
+    return response as any;
+  } catch (error) {
+    console.error("Login error:", error);
+    throw error;
+  }
 }
 
-export async function getUserProfile(uid: string): Promise<UserProfile | null> {
-  const firestore = getFirebaseFirestore();
-  const userDoc = await getDoc(doc(firestore, "users", uid));
-
-  if (!userDoc.exists()) return null;
-
-  const data = userDoc.data();
-  return {
-    role: data.role,
-    fullName: data.fullName,
-    phone: data.phone,
-    emailVerified: data.emailVerified,
-    createdAt: data.createdAt?.toDate() ?? new Date(),
-    updatedAt: data.updatedAt?.toDate() ?? new Date(),
-  };
+export async function logout(): Promise<void> {
+  try {
+    // Clear token from API client and localStorage
+    // In JWT-based authentication, logout is handled client-side by removing the token
+    apiClient.clearToken();
+  } catch (error) {
+    console.error("Logout error:", error);
+    // Even if there's an error, we should still clear local storage
+  }
 }
 
-export function onAuthStateChange(callback: (user: User | null) => void) {
-  const auth = getFirebaseAuth();
-  return onAuthStateChanged(auth, callback);
+export async function resendEmailVerification(): Promise<void> {
+  try {
+    await apiClient.post("/auth/resend-verification");
+  } catch (error) {
+    console.error("Resend verification error:", error);
+    throw error;
+  }
+}
+
+export async function getUserProfile(): Promise<UserProfile | null> {
+  try {
+    const response = await apiClient.get("/users/me");
+    return (response as any).data;
+  } catch (error) {
+    console.error("Get user profile error:", error);
+    return null;
+  }
+}
+
+export function getStoredToken(): string | null {
+  return localStorage.getItem("access_token");
+}
+
+export function setAuthToken(token: string): void {
+  localStorage.setItem("access_token", token);
+  (apiClient as any).defaults.headers.common["Authorization"] = `Bearer ${token}`;
+}
+
+export function clearAuthToken(): void {
+  localStorage.removeItem("access_token");
+  delete (apiClient as any).defaults.headers.common["Authorization"];
+}
+
+export function isAuthenticated(): boolean {
+  const token = getStoredToken();
+  if (!token) return false;
+
+  // Check if token is expired (basic check)
+  try {
+    const payload = JSON.parse(atob(token.split(".")[1]));
+    const now = Date.now() / 1000;
+    return payload.exp > now;
+  } catch {
+    return false;
+  }
 }

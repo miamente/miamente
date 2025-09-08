@@ -1,5 +1,8 @@
 name: Auto Rollback System
 
+# DISABLED: GitHub Actions disabled for migration to FastAPI
+# if: false
+
 on:
   workflow_dispatch:
     inputs:

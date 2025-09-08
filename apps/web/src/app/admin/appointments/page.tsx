@@ -104,11 +104,15 @@ export default function AdminAppointments() {
       ["ID", "Usuario", "Profesional", "Especialidad", "Fecha", "Hora", "Estado", "Pagado"],
       ...filteredAppointments.map((appointment) => [
         appointment.id,
-        appointment.userFullName || "N/A",
-        appointment.proFullName || "N/A",
-        appointment.proSpecialty || "N/A",
-        formatBogotaDate(appointment.start, { year: "numeric", month: "2-digit", day: "2-digit" }),
-        formatBogotaDate(appointment.start, { hour: "2-digit", minute: "2-digit" }),
+        appointment.user_full_name || "N/A",
+        appointment.professional_full_name || "N/A",
+        appointment.professional_specialty || "N/A",
+        formatBogotaDate(new Date(appointment.start), {
+          year: "numeric",
+          month: "2-digit",
+          day: "2-digit",
+        }),
+        formatBogotaDate(new Date(appointment.start), { hour: "2-digit", minute: "2-digit" }),
         getStatusText(appointment.status),
         appointment.paid ? "Sí" : "No",
       ]),
@@ -228,16 +232,18 @@ export default function AdminAppointments() {
                           <div className="font-mono text-sm">{appointment.id.slice(0, 8)}...</div>
                         </td>
                         <td className="p-4">
-                          <div className="font-medium">{appointment.userFullName}</div>
+                          <div className="font-medium">{appointment.user_full_name}</div>
                         </td>
                         <td className="p-4">
-                          <div className="font-medium">{appointment.proFullName}</div>
+                          <div className="font-medium">{appointment.professional_full_name}</div>
                         </td>
                         <td className="p-4">
-                          <div className="text-sm">{appointment.proSpecialty}</div>
+                          <div className="text-sm">{appointment.professional_specialty}</div>
                         </td>
                         <td className="p-4">
-                          <div className="text-sm">{formatBogotaDateTime(appointment.start)}</div>
+                          <div className="text-sm">
+                            {formatBogotaDateTime(new Date(appointment.start))}
+                          </div>
                         </td>
                         <td className="p-4">
                           <span

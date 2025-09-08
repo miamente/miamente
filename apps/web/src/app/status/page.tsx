@@ -3,7 +3,7 @@ import React, { useCallback, useEffect, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useFirebaseApp } from "@/hooks/useFirebaseApp";
+import { apiClient } from "@/lib/api";
 
 interface StatusItem {
   name: string;
@@ -12,82 +12,89 @@ interface StatusItem {
 }
 
 export default function StatusPage() {
-  const { firestore, functions, isInitialized } = useFirebaseApp();
   const [statuses, setStatuses] = useState<StatusItem[]>([
-    { name: "Firebase App", status: "loading" },
-    { name: "App Check", status: "loading" },
-    { name: "Firestore", status: "loading" },
-    { name: "Functions", status: "loading" },
+    { name: "Backend API", status: "loading" },
+    { name: "Database", status: "loading" },
+    { name: "Authentication", status: "loading" },
   ]);
 
-  const checkAppCheck = async (): Promise<StatusItem> => {
+  const checkBackendAPI = async (): Promise<StatusItem> => {
     try {
-      // Check if App Check is configured
-      const hasRecaptchaKey = !!process.env.NEXT_PUBLIC_RECAPTCHA_V3_SITE_KEY;
-      if (!hasRecaptchaKey) {
-        return { name: "App Check", status: "error", message: "No reCAPTCHA site key configured" };
+      const response = await apiClient.get("/health");
+      if ((response as any).status === 200) {
+        return { name: "Backend API", status: "connected", message: "API is responding" };
+      } else {
+        return {
+          name: "Backend API",
+          status: "error",
+          message: `Unexpected status: ${(response as any).status}`,
+        };
       }
-
-      // In a real app, you'd check the App Check token
-      // For now, we'll just check if the key exists
-      return { name: "App Check", status: "connected", message: "reCAPTCHA key configured" };
     } catch (error) {
-      return { name: "App Check", status: "error", message: `Error: ${error}` };
+      return { name: "Backend API", status: "error", message: `Connection failed: ${error}` };
     }
   };
 
-  const checkFirestore = useCallback(async (): Promise<StatusItem> => {
+  const checkDatabase = async (): Promise<StatusItem> => {
     try {
-      if (!firestore) {
-        return { name: "Firestore", status: "error", message: "Firestore not initialized" };
+      const response = await apiClient.get("/health");
+      if ((response as any).status === 200) {
+        return { name: "Database", status: "connected", message: "Database connection successful" };
+      } else {
+        return { name: "Database", status: "error", message: "Database connection failed" };
       }
-
-      // Try to read from a test collection
-      const { doc, getDoc } = await import("firebase/firestore");
-      const testDoc = doc(firestore, "test", "connection");
-      await getDoc(testDoc);
-
-      return { name: "Firestore", status: "connected", message: "Connection successful" };
     } catch (error) {
-      return { name: "Firestore", status: "error", message: `Connection failed: ${error}` };
+      return { name: "Database", status: "error", message: `Database error: ${error}` };
     }
-  }, [firestore]);
+  };
 
-  const checkFunctions = useCallback(async (): Promise<StatusItem> => {
+  const checkAuthentication = async (): Promise<StatusItem> => {
     try {
-      if (!functions) {
-        return { name: "Functions", status: "error", message: "Functions not initialized" };
+      // Try to access a protected endpoint to test auth
+      const response = await apiClient.get("/users/me");
+      if ((response as any).status === 200) {
+        return { name: "Authentication", status: "connected", message: "Auth service working" };
+      } else if ((response as any).status === 401) {
+        return {
+          name: "Authentication",
+          status: "connected",
+          message: "Auth service working (not authenticated)",
+        };
+      } else {
+        return {
+          name: "Authentication",
+          status: "error",
+          message: `Unexpected status: ${(response as any).status}`,
+        };
       }
-
-      // Functions are initialized, but we can't easily test without calling one
-      return { name: "Functions", status: "connected", message: "Functions initialized" };
     } catch (error) {
-      return { name: "Functions", status: "error", message: `Error: ${error}` };
+      // 401 is expected if not authenticated
+      if ((error as any).response?.status === 401) {
+        return {
+          name: "Authentication",
+          status: "connected",
+          message: "Auth service working (not authenticated)",
+        };
+      }
+      return { name: "Authentication", status: "error", message: `Auth error: ${error}` };
     }
-  }, [functions]);
+  };
 
   const runChecks = useCallback(async () => {
     setStatuses((prev) => prev.map((item) => ({ ...item, status: "loading" as const })));
 
     const newStatuses: StatusItem[] = [
-      {
-        name: "Firebase App",
-        status: isInitialized ? "connected" : "error",
-        message: isInitialized ? "App initialized" : "App not initialized",
-      },
-      await checkAppCheck(),
-      await checkFirestore(),
-      await checkFunctions(),
+      await checkBackendAPI(),
+      await checkDatabase(),
+      await checkAuthentication(),
     ];
 
     setStatuses(newStatuses);
-  }, [isInitialized, checkFirestore, checkFunctions]);
+  }, []);
 
   useEffect(() => {
-    if (isInitialized) {
-      runChecks();
-    }
-  }, [isInitialized, runChecks]);
+    runChecks();
+  }, [runChecks]);
 
   const getStatusColor = (status: StatusItem["status"]) => {
     switch (status) {
@@ -114,16 +121,14 @@ export default function StatusPage() {
   return (
     <div className="space-y-6">
       <div className="text-center">
-        <h1 className="text-3xl font-bold">Firebase Status</h1>
+        <h1 className="text-3xl font-bold">System Status</h1>
         <p className="mt-2 text-neutral-600 dark:text-neutral-300">
-          Check the status of Firebase services and App Check
+          Check the status of backend services and database
         </p>
       </div>
 
       <div className="flex justify-center">
-        <Button onClick={runChecks} disabled={!isInitialized}>
-          Refresh Status
-        </Button>
+        <Button onClick={runChecks}>Refresh Status</Button>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2">
@@ -156,16 +161,12 @@ export default function StatusPage() {
         <CardContent>
           <div className="space-y-2 text-sm">
             <div>
-              <span className="font-medium">API Key:</span>{" "}
-              {process.env.NEXT_PUBLIC_FB_API_KEY ? "✅ Set" : "❌ Missing"}
+              <span className="font-medium">Backend URL:</span>{" "}
+              {process.env.NEXT_PUBLIC_API_URL ? "✅ Set" : "❌ Missing"}
             </div>
             <div>
-              <span className="font-medium">Project ID:</span>{" "}
-              {process.env.NEXT_PUBLIC_FB_PROJECT_ID ? "✅ Set" : "❌ Missing"}
-            </div>
-            <div>
-              <span className="font-medium">reCAPTCHA Key:</span>{" "}
-              {process.env.NEXT_PUBLIC_RECAPTCHA_V3_SITE_KEY ? "✅ Set" : "❌ Missing"}
+              <span className="font-medium">Environment:</span>{" "}
+              {process.env.NODE_ENV || "development"}
             </div>
           </div>
         </CardContent>

@@ -1,5 +1,8 @@
 name: Deploy to Staging (Develop Branch)
 
+# DISABLED: GitHub Actions disabled for migration to FastAPI
+# if: false
+
 on:
   push:
     branches: [develop]

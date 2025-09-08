@@ -9,9 +9,9 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { useAnalytics } from "@/hooks/useAnalytics";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth, getUserUid, getUserEmail } from "@/hooks/useAuth";
 import { getUserProfile, updateUserProfile } from "@/lib/profiles";
-import { uploadFile, getStoragePath, generateUniqueFilename } from "@/lib/storage";
+import { uploadFile } from "@/lib/storage";
 import type { UserProfile } from "@/lib/types";
 import { userProfileSchema, type UserProfileFormData } from "@/lib/validations";
 
@@ -40,11 +40,13 @@ export default function UserProfilePage() {
     if (!user) return;
 
     try {
-      const userProfile = await getUserProfile(user.uid);
+      const userUid = getUserUid(user);
+      if (!userUid) return;
+      const userProfile = await getUserProfile(userUid);
       if (userProfile) {
-        setProfile(userProfile);
-        setValue("fullName", userProfile.fullName);
-        setValue("phone", userProfile.phone || "");
+        setProfile(userProfile as unknown as UserProfile);
+        setValue("fullName", (userProfile as any).fullName || "");
+        setValue("phone", (userProfile as any).phone || "");
       }
     } catch (err) {
       console.error("Error loading profile:", err);
@@ -70,12 +72,14 @@ export default function UserProfilePage() {
     try {
       // Upload new photo if selected
       if (photoFile) {
-        const photoPath = getStoragePath(user.uid, generateUniqueFilename(photoFile.name), true);
-        await uploadFile(photoFile, photoPath);
+        // const photoPath = getStoragePath(generateUniqueFilename(photoFile.name));
+        await uploadFile(photoFile);
       }
 
       // Update profile
-      await updateUserProfile(user.uid, {
+      const userUid = getUserUid(user);
+      if (!userUid) return;
+      await updateUserProfile(userUid, {
         fullName: data.fullName,
         phone: data.phone,
         updatedAt: new Date(),
@@ -192,10 +196,10 @@ export default function UserProfilePage() {
           <CardContent>
             <div className="space-y-2">
               <p>
-                <strong>Email:</strong> {user.email}
+                <strong>Email:</strong> {getUserEmail(user)}
               </p>
               <p>
-                <strong>Nombre:</strong> {profile.fullName}
+                <strong>Nombre:</strong> {(profile as any).fullName}
               </p>
               <p>
                 <strong>Teléfono:</strong> {profile.phone || "No especificado"}

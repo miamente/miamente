@@ -74,59 +74,59 @@ export type PaymentProvider = "mock" | "wompi" | "stripe";
  * Payment Service Factory
  * Creates the appropriate payment service based on provider and feature flags
  */
-export class PaymentServiceFactory {
-  private static instance: PaymentService | null = null;
+export const PaymentServiceFactory = {
+  instance: null as PaymentService | null,
 
   /**
    * Get the payment service instance
    * @param provider - The payment provider to use
    * @returns PaymentService instance
    */
-  static async getService(provider: PaymentProvider): Promise<PaymentService> {
-    if (this.instance) {
-      return this.instance;
+  getService: async (provider: PaymentProvider): Promise<PaymentService> => {
+    if (PaymentServiceFactory.instance) {
+      return PaymentServiceFactory.instance;
     }
 
     // Check feature flags
-    const paymentsEnabled = await this.getFeatureFlag("payments_enabled");
+    const paymentsEnabled = await PaymentServiceFactory.getFeatureFlag("payments_enabled");
 
     if (!paymentsEnabled) {
       // Always use mock adapter when payments are disabled
       const { MockPaymentAdapter } = await import("./adapters/mockAdapter");
-      this.instance = new MockPaymentAdapter();
-      return this.instance;
+      PaymentServiceFactory.instance = new MockPaymentAdapter();
+      return PaymentServiceFactory.instance;
     }
 
     // Select adapter based on provider
     switch (provider) {
       case "mock": {
         const { MockPaymentAdapter } = await import("./adapters/mockAdapter");
-        this.instance = new MockPaymentAdapter();
+        PaymentServiceFactory.instance = new MockPaymentAdapter();
         break;
       }
       case "wompi": {
         const { WompiPaymentAdapter } = await import("./adapters/wompiAdapter");
-        this.instance = new WompiPaymentAdapter();
+        PaymentServiceFactory.instance = new WompiPaymentAdapter();
         break;
       }
       case "stripe": {
         const { StripePaymentAdapter } = await import("./adapters/stripeAdapter");
-        this.instance = new StripePaymentAdapter();
+        PaymentServiceFactory.instance = new StripePaymentAdapter();
         break;
       }
       default:
         throw new Error(`Unsupported payment provider: ${provider}`);
     }
 
-    return this.instance;
-  }
+    return PaymentServiceFactory.instance;
+  },
 
   /**
    * Get feature flag value
    * @param flagName - The feature flag name
    * @returns Promise with feature flag value
    */
-  private static async getFeatureFlag(flagName: string): Promise<boolean> {
+  getFeatureFlag: async (flagName: string): Promise<boolean> => {
     try {
       // In a real implementation, this would fetch from Firebase Remote Config
       // or your feature flag service
@@ -140,15 +140,15 @@ export class PaymentServiceFactory {
       console.error("Error fetching feature flag:", error);
       return false;
     }
-  }
+  },
 
   /**
    * Reset the service instance (useful for testing)
    */
-  static reset(): void {
-    this.instance = null;
-  }
-}
+  reset: (): void => {
+    PaymentServiceFactory.instance = null;
+  },
+};
 
 /**
  * Payment Service Manager
@@ -163,19 +163,11 @@ export class PaymentManager {
    */
   async initialize(appointmentId: string): Promise<void> {
     try {
-      // Get appointment to determine provider
-      const { httpsCallable } = await import("firebase/functions");
-      const { getFirebaseFunctions } = await import("@/lib/firebase");
+      // Get appointment to determine provider using FastAPI
+      const { apiClient } = await import("@/lib/api");
+      const appointment = await apiClient.get(`/appointments/${appointmentId}`);
 
-      const getAppointment = httpsCallable(getFirebaseFunctions(), "getAppointment");
-      const result = await getAppointment({ appointmentId });
-      const appointment = result.data as {
-        payment?: {
-          provider?: string;
-        };
-      } & Record<string, unknown>;
-
-      const provider = appointment.payment?.provider || "mock";
+      const provider = (appointment as any).payment_provider || "mock";
       this.service = await PaymentServiceFactory.getService(provider as PaymentProvider);
     } catch (error) {
       console.error("Error initializing payment service:", error);

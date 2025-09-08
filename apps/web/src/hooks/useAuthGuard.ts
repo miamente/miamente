@@ -2,7 +2,7 @@
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 
-import { useAuth } from "./useAuth";
+import { useAuth, getUserEmail, isEmailVerified } from "./useAuth";
 
 import type { UserRole } from "@/lib/auth";
 
@@ -13,7 +13,7 @@ interface AuthGuardOptions {
 }
 
 export function useAuthGuard(options: AuthGuardOptions = {}) {
-  const { user, profile, loading } = useAuth();
+  const { user, isLoading } = useAuth();
   const router = useRouter();
 
   // In development mode (emulator), disable email verification requirement by default
@@ -27,15 +27,15 @@ export function useAuthGuard(options: AuthGuardOptions = {}) {
   } = options;
 
   useEffect(() => {
-    if (loading) return;
+    if (isLoading) return;
 
     // Debug logging in development
     if (isDevelopment) {
       console.log("useAuthGuard - Development mode:", {
-        user: user?.email,
-        emailVerified: user?.emailVerified,
+        user: getUserEmail(user),
+        emailVerified: isEmailVerified(user),
         requireEmailVerification,
-        profile: profile?.role,
+        userType: user?.type,
       });
     }
 
@@ -46,7 +46,7 @@ export function useAuthGuard(options: AuthGuardOptions = {}) {
     }
 
     // Email verification required but not verified
-    if (requireEmailVerification && !user.emailVerified) {
+    if (requireEmailVerification && !isEmailVerified(user)) {
       if (isDevelopment) {
         console.log("useAuthGuard - Redirecting to /verify (email not verified)");
       }
@@ -55,31 +55,21 @@ export function useAuthGuard(options: AuthGuardOptions = {}) {
     }
 
     // Role-based access control
-    if (requiredRole && profile?.role !== requiredRole) {
+    if (requiredRole && user?.type !== requiredRole) {
       // Redirect to appropriate dashboard based on user's role
-      const roleDashboard = profile?.role ? `/dashboard/${profile.role}` : "/dashboard/user";
+      const roleDashboard = user?.type ? `/dashboard/${user.type}` : "/dashboard/user";
       router.push(roleDashboard);
       return;
     }
-  }, [
-    user,
-    profile,
-    loading,
-    requiredRole,
-    requireEmailVerification,
-    redirectTo,
-    router,
-    isDevelopment,
-  ]);
+  }, [user, isLoading, requiredRole, requireEmailVerification, redirectTo, router, isDevelopment]);
 
   return {
     user,
-    profile,
-    loading,
+    isLoading,
     isAuthorized:
-      !loading &&
+      !isLoading &&
       !!user &&
-      (!requireEmailVerification || user?.emailVerified) &&
-      (!requiredRole || profile?.role === requiredRole),
+      (!requireEmailVerification || isEmailVerified(user)) &&
+      (!requiredRole || user?.type === requiredRole),
   };
 }

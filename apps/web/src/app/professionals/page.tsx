@@ -184,9 +184,10 @@ export default function ProfessionalsPage() {
         {items.map((pro) => (
           <Card key={pro.id} className="flex flex-col">
             <CardHeader>
-              <CardTitle className="text-xl">{pro.specialty}</CardTitle>
+              <CardTitle className="text-xl">{pro.full_name}</CardTitle>
+              <p className="text-sm text-neutral-600 dark:text-neutral-400">{pro.specialty}</p>
               <p className="text-sm text-neutral-600 dark:text-neutral-400">
-                {(pro.rateCents / 100).toLocaleString("es-CO", {
+                {(pro.rate_cents / 100).toLocaleString("es-CO", {
                   style: "currency",
                   currency: "COP",
                 })}{" "}
@@ -194,10 +195,10 @@ export default function ProfessionalsPage() {
               </p>
             </CardHeader>
             <CardContent className="flex flex-1 flex-col gap-3">
-              {pro.photoUrl ? (
+              {pro.profile_picture ? (
                 <Image
-                  src={pro.photoUrl}
-                  alt={`Foto del profesional en ${pro.specialty}`}
+                  src={pro.profile_picture}
+                  alt={`Foto del profesional ${pro.full_name}`}
                   width={400}
                   height={160}
                   className="h-40 w-full rounded-md object-cover"
@@ -215,7 +216,7 @@ export default function ProfessionalsPage() {
                 <Button
                   className="w-full"
                   variant="outline"
-                  aria-label={`Ver horarios de ${pro.specialty}`}
+                  aria-label={`Ver horarios de ${pro.full_name}`}
                 >
                   Ver horarios
                 </Button>
