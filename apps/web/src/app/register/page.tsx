@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { useAnalytics } from "@/hooks/useAnalytics";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth, isUserVerified } from "@/hooks/useAuth";
 import { registerWithEmail } from "@/lib/auth";
 import { registerSchema, type RegisterFormData } from "@/lib/validations";
 
@@ -32,7 +32,7 @@ export default function RegisterPage() {
   // Redirect if already logged in
   React.useEffect(() => {
     if (user) {
-      if (user.emailVerified) {
+      if (isUserVerified(user)) {
         router.push("/dashboard/user");
       } else {
         router.push("/verify");
@@ -45,7 +45,11 @@ export default function RegisterPage() {
     setError(null);
 
     try {
-      await registerWithEmail(data.email, data.password);
+      await registerWithEmail({
+        email: data.email,
+        password: data.password,
+        full_name: data.fullName,
+      });
       setSuccess(true);
 
       // Track signup event
@@ -99,6 +103,20 @@ export default function RegisterPage() {
                 {error}
               </div>
             )}
+
+            <div>
+              <Input
+                {...register("fullName")}
+                type="text"
+                placeholder="Nombre completo"
+                disabled={isLoading}
+              />
+              {errors.fullName && (
+                <p className="mt-1 text-sm text-red-600 dark:text-red-400">
+                  {errors.fullName.message}
+                </p>
+              )}
+            </div>
 
             <div>
               <Input {...register("email")} type="email" placeholder="Email" disabled={isLoading} />

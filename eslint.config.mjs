@@ -14,7 +14,6 @@ export default [
       "**/dist/**",
       "**/out/**",
       "**/build/**",
-      "**/functions/lib/**",
       "**/scripts/**",
       "**/*.min.js",
     ],

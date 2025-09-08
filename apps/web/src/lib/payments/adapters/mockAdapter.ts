@@ -1,8 +1,6 @@
-import { httpsCallable } from "firebase/functions";
-
 import type { PaymentService, PaymentCheckoutResult, PaymentReturnParams } from "../PaymentService";
 
-import { getFirebaseFunctions } from "@/lib/firebase";
+import { apiClient } from "@/lib/api";
 
 /**
  * Mock Payment Adapter
@@ -34,17 +32,8 @@ export class MockPaymentAdapter implements PaymentService {
     try {
       console.log(`[MockPaymentAdapter] Starting checkout for appointment: ${appointmentId}`);
 
-      // Get appointment details
-      const getAppointment = httpsCallable(getFirebaseFunctions(), "getAppointment");
-      const result = await getAppointment({ appointmentId });
-      const appointment = result.data as {
-        id: string;
-        payment: {
-          amountCents: number;
-          currency: string;
-          provider: string;
-        };
-      } & Record<string, unknown>;
+      // Get appointment details using FastAPI
+      const appointment = await apiClient.get(`/appointments/${appointmentId}`);
 
       if (!appointment) {
         throw new Error("Appointment not found");
@@ -61,10 +50,9 @@ export class MockPaymentAdapter implements PaymentService {
       if (autoApprove) {
         console.log(`[MockPaymentAdapter] Auto-approve enabled, redirecting to success`);
 
-        // Call mockApprovePayment function for immediate approval
+        // Call mock approve payment endpoint for immediate approval
         try {
-          const mockApprovePayment = httpsCallable(getFirebaseFunctions(), "mockApprovePayment");
-          await mockApprovePayment({ appointmentId });
+          await apiClient.post(`/payments/mock/approve`, { appointment_id: appointmentId });
           console.log(
             `[MockPaymentAdapter] Mock payment approved automatically for appointment: ${appointmentId}`,
           );
@@ -79,8 +67,8 @@ export class MockPaymentAdapter implements PaymentService {
           metadata: {
             provider: "mock",
             autoApproved: true,
-            amount: appointment.payment.amountCents,
-            currency: appointment.payment.currency,
+            amount: (appointment as any).payment_amount_cents,
+            currency: (appointment as any).payment_currency,
           },
         };
       } else {
@@ -95,8 +83,8 @@ export class MockPaymentAdapter implements PaymentService {
           metadata: {
             provider: "mock",
             autoApproved: false,
-            amount: appointment.payment.amountCents,
-            currency: appointment.payment.currency,
+            amount: (appointment as any).payment_amount_cents,
+            currency: (appointment as any).payment_currency,
           },
         };
       }
@@ -151,18 +139,7 @@ export class MockPaymentAdapter implements PaymentService {
     metadata?: Record<string, unknown>;
   }> {
     try {
-      const getAppointment = httpsCallable(getFirebaseFunctions(), "getAppointment");
-      const result = await getAppointment({ appointmentId });
-      const appointment = result.data as {
-        id: string;
-        status: string;
-        payment?: {
-          amountCents: number;
-          currency: string;
-          provider: string;
-        };
-        updatedAt: string;
-      } & Record<string, unknown>;
+      const appointment = await apiClient.get(`/appointments/${appointmentId}`);
 
       if (!appointment) {
         throw new Error("Appointment not found");
@@ -170,19 +147,19 @@ export class MockPaymentAdapter implements PaymentService {
 
       return {
         status:
-          appointment.status === "confirmed"
+          (appointment as any).status === "confirmed"
             ? "confirmed"
-            : appointment.status === "failed"
+            : (appointment as any).status === "failed"
               ? "failed"
-              : appointment.status === "cancelled"
+              : (appointment as any).status === "cancelled"
                 ? "cancelled"
                 : "pending",
-        amount: appointment.payment?.amountCents,
-        currency: appointment.payment?.currency,
-        provider: appointment.payment?.provider,
+        amount: (appointment as any).payment_amount_cents,
+        currency: (appointment as any).payment_currency,
+        provider: (appointment as any).payment_provider,
         metadata: {
           appointmentId,
-          lastUpdated: appointment.updatedAt,
+          lastUpdated: (appointment as any).updated_at,
         },
       };
     } catch (error) {
@@ -219,15 +196,12 @@ export class MockPaymentAdapter implements PaymentService {
    */
   private async updateAppointmentStatus(appointmentId: string, status: string): Promise<void> {
     try {
-      // In a real implementation, this would call a Firebase function
-      // For now, we'll simulate the update
       console.log(
         `[MockPaymentAdapter] Updating appointment ${appointmentId} status to: ${status}`,
       );
 
-      // TODO: Implement actual Firebase function call to update appointment status
-      // const updateAppointment = httpsCallable(functions, 'updateAppointment');
-      // await updateAppointment({ appointmentId, status });
+      // Update appointment status using FastAPI
+      await apiClient.patch(`/appointments/${appointmentId}`, { status });
     } catch (error) {
       console.error("[MockPaymentAdapter] Error updating appointment status:", error);
       throw error;
@@ -269,13 +243,9 @@ export class MockPaymentAdapter implements PaymentService {
       await this.updateAppointmentStatus(appointmentId, "confirmed");
 
       // Get appointment details for email
-      const getAppointment = httpsCallable(getFirebaseFunctions(), "getAppointment");
-      const result = await getAppointment({ appointmentId });
-      const appointment = result.data as {
-        id: string;
-      } & Record<string, unknown>;
+      const appointment = await apiClient.get(`/appointments/${appointmentId}`);
 
-      await this.sendConfirmationEmail(appointment);
+      await this.sendConfirmationEmail(appointment as any);
 
       console.log(
         `[MockPaymentAdapter] Manual approval completed for appointment: ${appointmentId}`,

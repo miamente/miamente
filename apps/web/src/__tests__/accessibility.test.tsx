@@ -1,9 +1,9 @@
 import { render } from "@testing-library/react";
 import { axe, toHaveNoViolations } from "jest-axe";
+import Image from "next/image";
+import Link from "next/link";
 import React from "react";
 import { describe, it, expect, vi } from "vitest";
-import Link from "next/link";
-import Image from "next/image";
 
 // Extend Jest matchers
 expect.extend(toHaveNoViolations);
@@ -37,11 +37,17 @@ vi.mock("next/navigation", () => ({
   usePathname: () => "/",
 }));
 
-// Mock Firebase
-vi.mock("@/lib/firebase/client", () => ({
-  auth: {},
-  db: {},
-  storage: {},
+// Mock API client for FastAPI backend
+vi.mock("@/lib/api", () => ({
+  apiClient: {
+    get: vi.fn(),
+    post: vi.fn(),
+    put: vi.fn(),
+    patch: vi.fn(),
+    delete: vi.fn(),
+    setToken: vi.fn(),
+    clearToken: vi.fn(),
+  },
 }));
 
 // Sample components for accessibility testing

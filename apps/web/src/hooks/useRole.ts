@@ -1,23 +1,22 @@
-import { doc, getDoc } from "firebase/firestore";
 import { useEffect, useState } from "react";
 
 import { useAuth } from "./useAuth";
 
-import { getFirebaseFirestore } from "@/lib/firebase";
+import { apiClient } from "@/lib/api";
 
 export type UserRole = "user" | "pro" | "admin";
 
 export interface UserProfile {
-  uid: string;
+  id: string;
   role: UserRole;
-  fullName?: string;
+  full_name?: string;
   email?: string;
   phone?: string;
-  isVerified?: boolean;
+  is_verified?: boolean;
 }
 
 export function useRole() {
-  const { user, loading: authLoading } = useAuth();
+  const { user, isLoading: authLoading } = useAuth();
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -34,22 +33,20 @@ export function useRole() {
         setLoading(true);
         setError(null);
 
-        const firestore = getFirebaseFirestore();
-        const userDoc = await getDoc(doc(firestore, "users", user.uid));
+        const response = await apiClient.get(`/auth/me`);
 
-        if (userDoc.exists()) {
-          const data = userDoc.data();
-          setUserProfile({
-            uid: user.uid,
-            role: data.role || "user",
-            fullName: data.fullName,
-            email: data.email,
-            phone: data.phone,
-            isVerified: data.isVerified,
-          });
-        } else {
-          setError("User profile not found");
-        }
+        // The response has structure: {type: "user"|"professional", data: {...}}
+        const userData = (response as any).data;
+        const userType = (response as any).type;
+
+        setUserProfile({
+          id: userData.id,
+          role: userType === "professional" ? "pro" : "user",
+          full_name: userData.full_name,
+          email: userData.email,
+          phone: userData.phone,
+          is_verified: userData.is_verified,
+        });
       } catch (err) {
         console.error("Error fetching user profile:", err);
         setError("Failed to load user profile");

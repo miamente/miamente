@@ -1,6 +1,4 @@
-import { collection, addDoc } from "firebase/firestore";
-
-import { getFirebaseFirestore } from "./firebase";
+import { apiClient } from "./api";
 
 export type AnalyticsEvent =
   | "signup"
@@ -13,15 +11,15 @@ export type AnalyticsEvent =
   | "cta_click";
 
 export interface EventLogEntry {
-  userId: string;
+  user_id: string;
   action: AnalyticsEvent;
-  entityId?: string;
-  timestamp: Date;
+  entity_id?: string;
+  timestamp: string;
   metadata?: Record<string, unknown>;
 }
 
 /**
- * Log an analytics event to Firestore
+ * Log an analytics event to the backend
  */
 export async function logEvent(
   userId: string,
@@ -29,19 +27,12 @@ export async function logEvent(
   entityId?: string,
   metadata?: Record<string, unknown>,
 ): Promise<{ success: boolean; error?: string }> {
-  const firestore = getFirebaseFirestore();
-
   try {
-    const eventData: Omit<EventLogEntry, "timestamp"> = {
-      userId,
+    await apiClient.post("/analytics/events", {
+      user_id: userId,
       action,
-      entityId,
+      entity_id: entityId,
       metadata,
-    };
-
-    await addDoc(collection(firestore, "event_log"), {
-      ...eventData,
-      timestamp: new Date(),
     });
 
     return { success: true };
@@ -58,40 +49,14 @@ export async function logEvent(
  * Log signup event
  */
 export async function logSignupEvent(userId: string, metadata?: Record<string, unknown>) {
-  const firestore = getFirebaseFirestore();
-
-  try {
-    await addDoc(collection(firestore, "event_log"), {
-      userId,
-      action: "signup",
-      timestamp: new Date(),
-      metadata,
-    });
-    return { success: true };
-  } catch (error) {
-    console.error("Error logging signup event:", error);
-    return { success: false, error: "Failed to log signup event" };
-  }
+  return logEvent(userId, "signup", undefined, metadata);
 }
 
 /**
  * Log profile completion event
  */
 export async function logProfileCompleteEvent(userId: string, metadata?: Record<string, unknown>) {
-  const firestore = getFirebaseFirestore();
-
-  try {
-    await addDoc(collection(firestore, "event_log"), {
-      userId,
-      action: "profile_complete",
-      timestamp: new Date(),
-      metadata,
-    });
-    return { success: true };
-  } catch (error) {
-    console.error("Error logging profile complete event:", error);
-    return { success: false, error: "Failed to log profile complete event" };
-  }
+  return logEvent(userId, "profile_complete", undefined, metadata);
 }
 
 /**
@@ -102,21 +67,7 @@ export async function logSlotCreatedEvent(
   slotId: string,
   metadata?: Record<string, unknown>,
 ) {
-  const firestore = getFirebaseFirestore();
-
-  try {
-    await addDoc(collection(firestore, "event_log"), {
-      userId,
-      action: "slot_created",
-      entityId: slotId,
-      timestamp: new Date(),
-      metadata,
-    });
-    return { success: true };
-  } catch (error) {
-    console.error("Error logging slot created event:", error);
-    return { success: false, error: "Failed to log slot created event" };
-  }
+  return logEvent(userId, "slot_created", slotId, metadata);
 }
 
 /**
@@ -127,21 +78,7 @@ export async function logAppointmentConfirmedEvent(
   appointmentId: string,
   metadata?: Record<string, unknown>,
 ) {
-  const firestore = getFirebaseFirestore();
-
-  try {
-    await addDoc(collection(firestore, "event_log"), {
-      userId,
-      action: "appointment_confirmed",
-      entityId: appointmentId,
-      timestamp: new Date(),
-      metadata,
-    });
-    return { success: true };
-  } catch (error) {
-    console.error("Error logging appointment confirmed event:", error);
-    return { success: false, error: "Failed to log appointment confirmed event" };
-  }
+  return logEvent(userId, "appointment_confirmed", appointmentId, metadata);
 }
 
 /**
@@ -152,21 +89,7 @@ export async function logPaymentAttemptEvent(
   appointmentId: string,
   metadata?: Record<string, unknown>,
 ) {
-  const firestore = getFirebaseFirestore();
-
-  try {
-    await addDoc(collection(firestore, "event_log"), {
-      userId,
-      action: "payment_attempt",
-      entityId: appointmentId,
-      timestamp: new Date(),
-      metadata,
-    });
-    return { success: true };
-  } catch (error) {
-    console.error("Error logging payment attempt event:", error);
-    return { success: false, error: "Failed to log payment attempt event" };
-  }
+  return logEvent(userId, "payment_attempt", appointmentId, metadata);
 }
 
 /**
@@ -177,21 +100,7 @@ export async function logPaymentSuccessEvent(
   appointmentId: string,
   metadata?: Record<string, unknown>,
 ) {
-  const firestore = getFirebaseFirestore();
-
-  try {
-    await addDoc(collection(firestore, "event_log"), {
-      userId,
-      action: "payment_success",
-      entityId: appointmentId,
-      timestamp: new Date(),
-      metadata,
-    });
-    return { success: true };
-  } catch (error) {
-    console.error("Error logging payment success event:", error);
-    return { success: false, error: "Failed to log payment success event" };
-  }
+  return logEvent(userId, "payment_success", appointmentId, metadata);
 }
 
 /**
@@ -202,19 +111,5 @@ export async function logPaymentFailedEvent(
   appointmentId: string,
   metadata?: Record<string, unknown>,
 ) {
-  const firestore = getFirebaseFirestore();
-
-  try {
-    await addDoc(collection(firestore, "event_log"), {
-      userId,
-      action: "payment_failed",
-      entityId: appointmentId,
-      timestamp: new Date(),
-      metadata,
-    });
-    return { success: true };
-  } catch (error) {
-    console.error("Error logging payment failed event:", error);
-    return { success: false, error: "Failed to log payment failed event" };
-  }
+  return logEvent(userId, "payment_failed", appointmentId, metadata);
 }

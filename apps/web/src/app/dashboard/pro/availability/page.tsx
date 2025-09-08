@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { useAnalytics } from "@/hooks/useAnalytics";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth, getUserUid, getUserId } from "@/hooks/useAuth";
 import {
   generateSlots,
   getNext14DaysFreeSlots,
@@ -82,7 +82,9 @@ export default function ProAvailabilityPage() {
 
     setIsLoadingSlots(true);
     try {
-      const slots = await getNext14DaysFreeSlots(user.uid);
+      const userId = getUserId(user);
+      if (!userId) return;
+      const slots = await getNext14DaysFreeSlots(userId);
       setExistingSlots(slots);
     } catch (err) {
       console.error("Error loading slots:", err);
@@ -106,7 +108,9 @@ export default function ProAvailabilityPage() {
       const startDate = new Date(data.startDate);
       const endDate = new Date(data.endDate);
 
-      const result = await generateSlots(user.uid, {
+      const userUid = getUserUid(user);
+      if (!userUid) return;
+      const result = await generateSlots(userUid, {
         startDate,
         endDate,
         startTime: data.startTime,
@@ -142,7 +146,9 @@ export default function ProAvailabilityPage() {
     if (!user) return;
 
     try {
-      await deleteSlot(user.uid, slotId);
+      const userUid = getUserUid(user);
+      if (!userUid) return;
+      await deleteSlot(userUid, slotId);
       await loadExistingSlots();
     } catch (err) {
       console.error("Error deleting slot:", err);
@@ -337,10 +343,14 @@ export default function ProAvailabilityPage() {
                     className="flex items-center justify-between rounded-md border p-3"
                   >
                     <div>
-                      <p className="font-medium">{formatBogotaDateTime(slot.start)}</p>
+                      <p className="font-medium">{formatBogotaDateTime(new Date(slot.start))}</p>
                       <p className="text-sm text-neutral-600 dark:text-neutral-400">
                         Duración:{" "}
-                        {Math.round((slot.end.getTime() - slot.start.getTime()) / (1000 * 60))} min
+                        {Math.round(
+                          (new Date(slot.end).getTime() - new Date(slot.start).getTime()) /
+                            (1000 * 60),
+                        )}{" "}
+                        min
                       </p>
                     </div>
                     <Button size="sm" variant="outline" onClick={() => handleDeleteSlot(slot.id)}>

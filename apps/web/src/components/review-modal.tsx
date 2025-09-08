@@ -7,7 +7,7 @@ import { z } from "zod";
 import { StarRating } from "@/components/star-rating";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth, getUserUid } from "@/hooks/useAuth";
 import { createReview, type CreateReviewRequest } from "@/lib/reviews";
 
 const reviewSchema = z.object({
@@ -74,7 +74,9 @@ export function ReviewModal({
         comment: data.comment || "",
       };
 
-      const result = await createReview(user.uid, proId, reviewData);
+      const userUid = getUserUid(user);
+      if (!userUid) return;
+      const result = await createReview(userUid, proId, reviewData);
 
       if (result.success) {
         setSuccess(true);

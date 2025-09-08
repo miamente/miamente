@@ -1,5 +1,8 @@
 name: CD Functions
 
+# DISABLED: GitHub Actions disabled for migration to FastAPI
+# if: false
+
 on:
   push:
     branches: [main]
