@@ -11,7 +11,7 @@ import { formatBogotaDateTime, formatBogotaDate } from "@/lib/timezone";
 
 export default function ProfessionalAvailabilityPage() {
   const params = useParams();
-  const proId = params.proId as string;
+  const proId = params.id as string;
 
   const [slots, setSlots] = useState<Array<AvailabilitySlot & { id: string }>>([]);
   const [loading, setLoading] = useState(true);
