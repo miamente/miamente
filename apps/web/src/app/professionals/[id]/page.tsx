@@ -22,15 +22,20 @@ import { Breadcrumbs } from "@/components/ui/breadcrumbs";
 import { AcademicExperienceSection } from "@/components/academic-experience";
 import { WorkExperienceSection } from "@/components/work-experience";
 import { getProfessionalProfile, type ProfessionalProfile } from "@/lib/profiles";
+import { useAuth, getUserUid } from "@/hooks/useAuth";
 
 export default function ProfessionalProfilePage() {
   const params = useParams();
   const router = useRouter();
+  const { user, isLoading: authLoading } = useAuth();
   const [professional, setProfessional] = useState<ProfessionalProfile | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
   const professionalId = params.id as string;
+
+  // Check if the logged-in user is the same as the professional being viewed
+  const isOwnProfile = user && professional && getUserUid(user) === professional.id;
 
   useEffect(() => {
     const fetchProfessional = async () => {
@@ -52,7 +57,7 @@ export default function ProfessionalProfilePage() {
     fetchProfessional();
   }, [professionalId]);
 
-  if (loading) {
+  if (loading || authLoading) {
     return (
       <div className="container mx-auto px-4 py-8">
         <div className="mb-6">
@@ -141,12 +146,14 @@ export default function ProfessionalProfilePage() {
           <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">
             Perfil del Profesional
           </h1>
-          <Button asChild>
-            <Link href="/professionals/edit">
-              <User className="mr-2 h-4 w-4" />
-              Editar Perfil
-            </Link>
-          </Button>
+          {isOwnProfile && (
+            <Button asChild>
+              <Link href="/professionals/edit">
+                <User className="mr-2 h-4 w-4" />
+                Editar Perfil
+              </Link>
+            </Button>
+          )}
         </div>
       </div>
 
