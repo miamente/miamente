@@ -153,6 +153,52 @@ async def get_current_professional(
     return professional
 
 
+@router.put("/me", response_model=ProfessionalResponse)
+async def update_current_professional(
+    professional_update: ProfessionalUpdate,
+    current_user_id: str = Depends(get_current_user_id),
+    db: Session = Depends(get_db)
+):
+    """Update current professional profile."""
+    auth_service = AuthService(db)
+    professional = auth_service.get_professional_by_id(current_user_id)
+    
+    if not professional:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Professional not found"
+        )
+    
+    # Update professional fields
+    update_data = professional_update.dict(exclude_unset=True)
+    
+    # Handle JSON fields
+    if "academic_experience" in update_data:
+        professional.academic_experience = json.dumps(update_data["academic_experience"])
+    if "work_experience" in update_data:
+        professional.work_experience = json.dumps(update_data["work_experience"])
+    
+    # Update other fields
+    for field, value in update_data.items():
+        if field not in ["academic_experience", "work_experience"] and hasattr(professional, field):
+            # Map hourly_rate_cents to rate_cents
+            if field == "hourly_rate_cents":
+                professional.rate_cents = value
+            else:
+                setattr(professional, field, value)
+    
+    try:
+        db.commit()
+        db.refresh(professional)
+        return professional
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error updating professional: {str(e)}"
+        )
+
+
 @router.get("/me/appointments")
 async def get_current_professional_appointments(
     current_user_id: str = Depends(get_current_user_id),
