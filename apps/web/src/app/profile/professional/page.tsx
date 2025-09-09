@@ -12,7 +12,7 @@ import { useAuth, getUserUid } from "@/hooks/useAuth";
 import {
   getProfessionalProfile,
   createProfessionalProfile,
-  updateProfessionalProfile,
+  updateProfessionalProfileById,
 } from "@/lib/profiles";
 import type { ProfessionalProfile } from "@/lib/profiles";
 import { professionalProfileSchema, type ProfessionalProfileFormData } from "@/lib/validations";
@@ -79,7 +79,7 @@ export default function ProfessionalProfilePage() {
         // Update existing profile
         const userUid = getUserUid(user);
         if (!userUid) return;
-        await updateProfessionalProfile(userUid, {
+        await updateProfessionalProfileById(userUid, {
           specialty: data.specialty,
           bio: data.bio,
         });

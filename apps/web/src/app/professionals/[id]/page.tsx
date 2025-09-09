@@ -7,7 +7,6 @@ import {
   Calendar,
   Clock,
   DollarSign,
-  MapPin,
   Phone,
   Star,
   User,

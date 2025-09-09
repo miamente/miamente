@@ -64,7 +64,7 @@ export async function getProfessionalProfile(professionalId: string): Promise<Pr
   }
 }
 
-export async function updateProfessionalProfile(
+export async function updateProfessionalProfileById(
   professionalId: string,
   data: UpdateProfessionalProfileRequest,
 ): Promise<ProfessionalProfile> {

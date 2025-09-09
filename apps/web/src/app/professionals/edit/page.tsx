@@ -2,17 +2,7 @@
 import { useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
 import { useForm, useFieldArray } from "react-hook-form";
-import {
-  Save,
-  Plus,
-  Trash2,
-  Calendar,
-  MapPin,
-  Building,
-  GraduationCap,
-  Briefcase,
-  Award,
-} from "lucide-react";
+import { Save, Plus, Trash2, GraduationCap, Briefcase } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -24,24 +14,9 @@ import {
   getMyProfessionalProfile,
   updateProfessionalProfile,
   type ProfessionalProfile,
+  type AcademicExperience,
+  type WorkExperience,
 } from "@/lib/profiles";
-
-interface AcademicExperience {
-  degree: string;
-  institution: string;
-  start_year: string;
-  end_year?: string;
-  description?: string;
-}
-
-interface WorkExperience {
-  position: string;
-  company: string;
-  start_date: string;
-  end_date?: string;
-  description?: string;
-  achievements?: string[];
-}
 
 interface ProfessionalFormData {
   full_name: string;
@@ -57,7 +32,7 @@ interface ProfessionalFormData {
 
 export default function EditProfessionalProfilePage() {
   const router = useRouter();
-  const [professional, setProfessional] = useState<ProfessionalProfile | null>(null);
+  const [, setProfessional] = useState<ProfessionalProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -99,15 +74,20 @@ export default function EditProfessionalProfilePage() {
         const data = await getMyProfessionalProfile();
         setProfessional(data);
 
+        if (!data) {
+          setError("No se pudo cargar el perfil del profesional");
+          return;
+        }
+
         // Transform data for form
         const formData: ProfessionalFormData = {
           full_name: data.full_name || "",
           specialty: data.specialty || "",
           bio: data.bio || "",
-          hourly_rate_cents: data.hourly_rate_cents || 0,
+          hourly_rate_cents: data.rate_cents || 0,
           phone: data.phone || "",
           email: data.email || "",
-          location: data.location || "",
+          location: "",
           academic_experience: data.academic_experience || [],
           work_experience: data.work_experience || [],
         };
@@ -143,8 +123,8 @@ export default function EditProfessionalProfilePage() {
     appendAcademic({
       degree: "",
       institution: "",
-      start_year: "",
-      end_year: "",
+      start_year: new Date().getFullYear(),
+      end_year: new Date().getFullYear(),
       description: "",
     });
   };
@@ -158,22 +138,6 @@ export default function EditProfessionalProfilePage() {
       description: "",
       achievements: [],
     });
-  };
-
-  const addAchievement = (workIndex: number) => {
-    const currentWork = workFields[workIndex];
-    if (currentWork) {
-      const currentAchievements = currentWork.achievements || [];
-      const newAchievements = [...currentAchievements, ""];
-
-      // Update the work experience with new achievements
-      const updatedWork = {
-        ...currentWork,
-        achievements: newAchievements,
-      };
-
-      // This is a bit complex with react-hook-form, so we'll handle it in the form submission
-    }
   };
 
   if (loading) {
@@ -363,7 +327,10 @@ export default function EditProfessionalProfilePage() {
                         Año de Inicio
                       </Label>
                       <Input
-                        {...register(`academic_experience.${index}.start_year`)}
+                        {...register(`academic_experience.${index}.start_year`, {
+                          valueAsNumber: true,
+                        })}
+                        type="number"
                         className="mt-1"
                         placeholder="2020"
                       />
@@ -373,7 +340,10 @@ export default function EditProfessionalProfilePage() {
                         Año de Finalización
                       </Label>
                       <Input
-                        {...register(`academic_experience.${index}.end_year`)}
+                        {...register(`academic_experience.${index}.end_year`, {
+                          valueAsNumber: true,
+                        })}
+                        type="number"
                         className="mt-1"
                         placeholder="2024 (dejar vacío si está en curso)"
                       />
@@ -397,7 +367,7 @@ export default function EditProfessionalProfilePage() {
               <div className="py-8 text-center text-gray-500">
                 <GraduationCap className="mx-auto mb-4 h-12 w-12 text-gray-300" />
                 <p>No hay experiencia académica agregada</p>
-                <p className="text-sm">Haz clic en "Agregar" para comenzar</p>
+                <p className="text-sm">Haz clic en &quot;Agregar&quot; para comenzar</p>
               </div>
             )}
           </CardContent>
@@ -491,7 +461,7 @@ export default function EditProfessionalProfilePage() {
               <div className="py-8 text-center text-gray-500">
                 <Briefcase className="mx-auto mb-4 h-12 w-12 text-gray-300" />
                 <p>No hay experiencia laboral agregada</p>
-                <p className="text-sm">Haz clic en "Agregar" para comenzar</p>
+                <p className="text-sm">Haz clic en &quot;Agregar&quot; para comenzar</p>
               </div>
             )}
           </CardContent>
