@@ -31,7 +31,7 @@ body {
 
 /* Inputs should have light background */
 input,
-select,
+select:not([data-custom-select]),
 textarea {
   background-color: rgb(249 250 251);
 }

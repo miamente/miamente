@@ -110,6 +110,7 @@ const Select = React.forwardRef<HTMLDivElement, SelectProps>(
       <div ref={ref} className="relative" {...props}>
         <div
           ref={selectRef}
+          data-custom-select="true"
           className={cn(
             "border-input bg-background flex h-9 w-full items-center justify-between rounded-md border px-3 py-1 text-sm shadow-xs transition-[color,box-shadow] outline-none",
             "focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]",
@@ -124,7 +125,13 @@ const Select = React.forwardRef<HTMLDivElement, SelectProps>(
           aria-haspopup="listbox"
           aria-label={ariaLabel}
           aria-describedby={ariaDescribedBy}
-          onClick={() => !disabled && setIsOpen(!isOpen)}
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            if (!disabled) {
+              setIsOpen(!isOpen);
+            }
+          }}
           onKeyDown={handleKeyDown}
         >
           <span className={cn("truncate", !selectedOption && "text-muted-foreground")}>
@@ -152,7 +159,11 @@ const Select = React.forwardRef<HTMLDivElement, SelectProps>(
                 )}
                 role="option"
                 aria-selected={value === option.value}
-                onClick={() => handleOptionClick(option)}
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  handleOptionClick(option);
+                }}
               >
                 {option.label}
               </div>
