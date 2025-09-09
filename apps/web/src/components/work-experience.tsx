@@ -13,20 +13,20 @@ export function WorkExperienceSection({ experiences }: WorkExperienceProps) {
   }
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-2">
       <div className="flex items-center gap-2">
         <Briefcase className="h-6 w-6 text-green-600" />
         <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Experiencia Laboral</h2>
       </div>
 
-      <div className="space-y-2">
+      <div className="space-y-1.5">
         {experiences.map((experience, index) => (
           <Card
             key={index}
             className="border-l-4 border-l-green-500"
             data-testid="work-experience-card"
           >
-            <CardHeader className="px-4 pt-4 pb-1">
+            <CardHeader className="px-3 pt-3 pb-1">
               <div className="flex items-start justify-between">
                 <div className="space-y-0.5">
                   <CardTitle className="text-lg text-gray-900 dark:text-white">
@@ -54,7 +54,7 @@ export function WorkExperienceSection({ experiences }: WorkExperienceProps) {
                 </div>
               </div>
             </CardHeader>
-            <CardContent className="space-y-1.5 px-4 pt-0 pb-3">
+            <CardContent className="space-y-1 px-3 pt-0 pb-2">
               {experience.description && (
                 <p className="text-sm text-gray-700 dark:text-gray-300">{experience.description}</p>
               )}
