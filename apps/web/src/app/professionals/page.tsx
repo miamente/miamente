@@ -21,9 +21,7 @@ const SPECIALTY_OPTIONS: SelectOption[] = [
 export default function ProfessionalsPage() {
   const [specialty, setSpecialty] = useState<string>("");
 
-  // Debug function
   const handleSpecialtyChange = (value: string) => {
-    console.log("Specialty changed to:", value);
     setSpecialty(value);
   };
   const [minPrice, setMinPrice] = useState<string>("");

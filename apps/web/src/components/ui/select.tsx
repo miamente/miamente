@@ -45,16 +45,13 @@ const Select = React.forwardRef<HTMLDivElement, SelectProps>(
     const selectRef = React.useRef<HTMLDivElement>(null);
 
     React.useEffect(() => {
-      console.log("Select useEffect - value:", value, "options:", options);
       const option = options.find((opt) => opt.value === value);
-      console.log("Found option:", option);
       setSelectedOption(option || null);
     }, [value, options]);
 
     React.useEffect(() => {
       const handleClickOutside = (event: MouseEvent) => {
         if (selectRef.current && !selectRef.current.contains(event.target as Node)) {
-          console.log("Click outside detected, closing dropdown");
           setIsOpen(false);
         }
       };
@@ -71,7 +68,6 @@ const Select = React.forwardRef<HTMLDivElement, SelectProps>(
     }, []);
 
     const handleOptionClick = (option: SelectOption) => {
-      console.log("Option clicked:", option);
       setSelectedOption(option);
       onValueChange?.(option.value);
       setIsOpen(false);
@@ -132,7 +128,6 @@ const Select = React.forwardRef<HTMLDivElement, SelectProps>(
           aria-label={ariaLabel}
           aria-describedby={ariaDescribedBy}
           onClick={(e) => {
-            console.log("Select trigger clicked, isOpen:", isOpen);
             e.preventDefault();
             e.stopPropagation();
             if (!disabled) {
@@ -164,7 +159,6 @@ const Select = React.forwardRef<HTMLDivElement, SelectProps>(
               width: selectRef.current ? selectRef.current.getBoundingClientRect().width : "auto",
             }}
             onClick={(e) => {
-              console.log("Dropdown container clicked");
               // Don't stop propagation here, let option clicks work
             }}
           >
@@ -180,7 +174,11 @@ const Select = React.forwardRef<HTMLDivElement, SelectProps>(
                 role="option"
                 aria-selected={value === option.value}
                 onMouseDown={(e) => {
-                  console.log("Option mousedown:", option);
+                  e.preventDefault();
+                  e.stopPropagation();
+                  handleOptionClick(option);
+                }}
+                onTouchEnd={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
                   handleOptionClick(option);
