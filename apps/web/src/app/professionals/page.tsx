@@ -5,18 +5,21 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { Select, type SelectOption } from "@/components/ui/select";
 import { queryProfessionals, type ProfessionalsQueryResult } from "@/lib/profiles";
 
-type SpecialtyOption =
-  | "Psicología Clínica"
-  | "Psiquiatría"
-  | "Terapia Ocupacional"
-  | "Trabajo Social"
-  | "Coaching"
-  | "Otra";
+const SPECIALTY_OPTIONS: SelectOption[] = [
+  { value: "", label: "Todas las especialidades" },
+  { value: "Psicología Clínica", label: "Psicología Clínica" },
+  { value: "Psiquiatría", label: "Psiquiatría" },
+  { value: "Terapia Ocupacional", label: "Terapia Ocupacional" },
+  { value: "Trabajo Social", label: "Trabajo Social" },
+  { value: "Coaching", label: "Coaching" },
+  { value: "Otra", label: "Otra" },
+];
 
 export default function ProfessionalsPage() {
-  const [specialty, setSpecialty] = useState<SpecialtyOption | "">("");
+  const [specialty, setSpecialty] = useState<string>("");
   const [minPrice, setMinPrice] = useState<string>("");
   const [maxPrice, setMaxPrice] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
@@ -87,22 +90,14 @@ export default function ProfessionalsPage() {
           <label htmlFor="specialty" className="mb-1 block text-sm font-medium">
             Especialidad
           </label>
-          <Input
+          <Select
             id="specialty"
-            list="specialty-options"
-            placeholder="Ej: Psicología Clínica"
+            options={SPECIALTY_OPTIONS}
             value={specialty}
-            onChange={(e) => setSpecialty(e.target.value as SpecialtyOption | "")}
+            onValueChange={setSpecialty}
+            placeholder="Selecciona una especialidad"
             aria-describedby="specialty-help"
           />
-          <datalist id="specialty-options">
-            <option value="Psicología Clínica" />
-            <option value="Psiquiatría" />
-            <option value="Terapia Ocupacional" />
-            <option value="Trabajo Social" />
-            <option value="Coaching" />
-            <option value="Otra" />
-          </datalist>
           <p id="specialty-help" className="mt-1 text-xs text-neutral-500 dark:text-neutral-400">
             Filtra por especialidad
           </p>

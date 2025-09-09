@@ -19,12 +19,26 @@ router = APIRouter()
 async def get_professionals(
     skip: int = 0,
     limit: int = 100,
+    specialty: str = None,
+    min_rate_cents: int = None,
+    max_rate_cents: int = None,
     db: Session = Depends(get_db)
 ):
-    """Get all active professionals."""
-    professionals = db.query(Professional).filter(
-        Professional.is_active == True
-    ).offset(skip).limit(limit).all()
+    """Get all active professionals with optional filtering."""
+    query = db.query(Professional).filter(Professional.is_active == True)
+    
+    # Filter by specialty if provided
+    if specialty:
+        query = query.filter(Professional.specialty.ilike(f"%{specialty}%"))
+    
+    # Filter by rate range if provided
+    if min_rate_cents is not None:
+        query = query.filter(Professional.rate_cents >= min_rate_cents)
+    
+    if max_rate_cents is not None:
+        query = query.filter(Professional.rate_cents <= max_rate_cents)
+    
+    professionals = query.offset(skip).limit(limit).all()
     
     return professionals
 
