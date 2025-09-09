@@ -180,15 +180,9 @@ const Select = React.forwardRef<HTMLDivElement, SelectProps>(
                 role="option"
                 aria-selected={value === option.value}
                 onMouseDown={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
                   console.log("Option mousedown:", option);
-                  handleOptionClick(option);
-                }}
-                onClick={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
-                  console.log("Option clicked:", option);
                   handleOptionClick(option);
                 }}
               >
