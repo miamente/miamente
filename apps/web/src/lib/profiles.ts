@@ -1,5 +1,22 @@
 import { apiClient } from "./api";
 
+export interface AcademicExperience {
+  institution: string;
+  degree: string;
+  start_year: number;
+  end_year?: number;
+  description?: string;
+}
+
+export interface WorkExperience {
+  company: string;
+  position: string;
+  start_date: string;
+  end_date?: string;
+  description?: string;
+  achievements?: string[];
+}
+
 export interface ProfessionalProfile {
   id: string;
   email: string;
@@ -12,6 +29,8 @@ export interface ProfessionalProfile {
   currency: string;
   bio?: string;
   education?: string;
+  academic_experience?: AcademicExperience[];
+  work_experience?: WorkExperience[];
   certifications?: string[];
   languages?: string[];
   therapy_approaches?: string[];

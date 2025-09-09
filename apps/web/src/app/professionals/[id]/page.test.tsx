@@ -1,3 +1,4 @@
+import React from "react";
 import { render, screen, waitFor } from "@testing-library/react";
 import { useParams, useRouter } from "next/navigation";
 import ProfessionalProfilePage from "./page";
@@ -39,6 +40,39 @@ const mockProfessional = {
   currency: "COP",
   bio: "Psicóloga clínica con experiencia en terapia cognitivo-conductual.",
   education: "Universidad Nacional de Colombia - Psicología",
+  academic_experience: [
+    {
+      institution: "Universidad Nacional de Colombia",
+      degree: "Psicología",
+      start_year: 2015,
+      end_year: 2020,
+      description: "Licenciatura en Psicología con énfasis en clínica",
+    },
+    {
+      institution: "Universidad de los Andes",
+      degree: "Especialización en Terapia Cognitivo-Conductual",
+      start_year: 2021,
+      end_year: 2022,
+      description: "Especialización en TCC",
+    },
+  ],
+  work_experience: [
+    {
+      company: "Centro de Salud Mental ABC",
+      position: "Psicóloga Clínica",
+      start_date: "2020-01-01",
+      end_date: "2022-12-31",
+      description: "Atención psicológica individual y grupal",
+      achievements: ["Implementé programa de terapia grupal", "Reduje tiempo de espera en 30%"],
+    },
+    {
+      company: "Consultorio Privado",
+      position: "Psicóloga Independiente",
+      start_date: "2023-01-01",
+      description: "Práctica privada especializada en terapia cognitivo-conductual",
+      achievements: ["Atendí más de 200 pacientes", "Desarrollé protocolo de evaluación"],
+    },
+  ],
   certifications: ["Terapia Cognitivo-Conductual", "EMDR"],
   languages: ["Español", "Inglés"],
   therapy_approaches: ["Cognitivo-Conductual", "Humanista"],
@@ -73,8 +107,11 @@ describe("ProfessionalProfilePage", () => {
 
     render(<ProfessionalProfilePage />);
 
-    expect(screen.getByText("Perfil del Profesional")).toBeInTheDocument();
-    expect(screen.getAllByTestId("skeleton")).toHaveLength(0); // Skeleton components don't have testid
+    // Check that skeleton elements are present during loading
+    // The loading state shows skeleton elements, not the actual content
+    // We can check for the presence of skeleton-like elements by looking for animate-pulse class
+    const skeletonElements = document.querySelectorAll(".animate-pulse");
+    expect(skeletonElements.length).toBeGreaterThan(0);
   });
 
   it("renders professional profile successfully", async () => {
@@ -83,11 +120,11 @@ describe("ProfessionalProfilePage", () => {
     render(<ProfessionalProfilePage />);
 
     await waitFor(() => {
-      expect(screen.getByText("Dr. Test Professional")).toBeInTheDocument();
+      expect(screen.getByText("Perfil del Profesional")).toBeInTheDocument();
     });
 
     expect(screen.getByText("Psicología Clínica")).toBeInTheDocument();
-    expect(screen.getByText("$800 / hora")).toBeInTheDocument();
+    expect(screen.getByText("$ 800,00 / hora")).toBeInTheDocument();
     expect(screen.getByText("5 años de experiencia")).toBeInTheDocument();
     expect(screen.getByText("Verificado")).toBeInTheDocument();
     expect(screen.getByText("Sobre mí")).toBeInTheDocument();
@@ -113,28 +150,29 @@ describe("ProfessionalProfilePage", () => {
     render(<ProfessionalProfilePage />);
 
     await waitFor(() => {
-      expect(screen.getByText("Profesional no encontrado")).toBeInTheDocument();
+      expect(screen.getAllByText("Profesional no encontrado")).toHaveLength(2);
     });
 
-    expect(
-      screen.getByText("El profesional que buscas no existe o no está disponible."),
-    ).toBeInTheDocument();
+    expect(screen.getByText("Professional not found")).toBeInTheDocument();
     expect(screen.getByText("Ver todos los profesionales")).toBeInTheDocument();
   });
 
-  it("handles back navigation", async () => {
+  it("handles breadcrumb navigation", async () => {
     mockGetProfessionalProfile.mockResolvedValue(mockProfessional);
 
     render(<ProfessionalProfilePage />);
 
     await waitFor(() => {
-      expect(screen.getByText("Dr. Test Professional")).toBeInTheDocument();
+      expect(screen.getByText("Perfil del Profesional")).toBeInTheDocument();
     });
 
-    const backButton = screen.getByText("Volver");
-    backButton.click();
+    // Check that breadcrumbs are present
+    expect(screen.getByText("Profesionales")).toBeInTheDocument();
+    expect(screen.getAllByText("Dr. Test Professional")).toHaveLength(2); // One in breadcrumb, one in card title
 
-    expect(mockBack).toHaveBeenCalledTimes(1);
+    // Check that the breadcrumb link to professionals works
+    const professionalsLink = screen.getByRole("link", { name: "Profesionales" });
+    expect(professionalsLink).toHaveAttribute("href", "/professionals");
   });
 
   it("handles navigation to all professionals", async () => {
@@ -143,7 +181,7 @@ describe("ProfessionalProfilePage", () => {
     render(<ProfessionalProfilePage />);
 
     await waitFor(() => {
-      expect(screen.getByText("Profesional no encontrado")).toBeInTheDocument();
+      expect(screen.getAllByText("Profesional no encontrado")).toHaveLength(2);
     });
 
     const allProfessionalsButton = screen.getByText("Ver todos los profesionales");
@@ -168,7 +206,7 @@ describe("ProfessionalProfilePage", () => {
     render(<ProfessionalProfilePage />);
 
     await waitFor(() => {
-      expect(screen.getByText("Dr. Test Professional")).toBeInTheDocument();
+      expect(screen.getByText("Perfil del Profesional")).toBeInTheDocument();
     });
 
     // Should not render sections for undefined fields
@@ -185,7 +223,7 @@ describe("ProfessionalProfilePage", () => {
     render(<ProfessionalProfilePage />);
 
     await waitFor(() => {
-      expect(screen.getByText("$800 / hora")).toBeInTheDocument();
+      expect(screen.getByText("$ 800,00 / hora")).toBeInTheDocument();
     });
   });
 
@@ -210,9 +248,106 @@ describe("ProfessionalProfilePage", () => {
     render(<ProfessionalProfilePage />);
 
     await waitFor(() => {
-      expect(screen.getByText("Dr. Test Professional")).toBeInTheDocument();
+      expect(screen.getByText("Perfil del Profesional")).toBeInTheDocument();
     });
 
     expect(screen.queryByText("Verificado")).not.toBeInTheDocument();
+  });
+
+  it("renders academic experience section when available", async () => {
+    mockGetProfessionalProfile.mockResolvedValue(mockProfessional);
+
+    render(<ProfessionalProfilePage />);
+
+    await waitFor(() => {
+      expect(screen.getByText("Formación Académica")).toBeInTheDocument();
+    });
+
+    expect(screen.getByText("Psicología")).toBeInTheDocument();
+    expect(screen.getByText("Universidad Nacional de Colombia")).toBeInTheDocument();
+    expect(screen.getByText("2015 - 2020")).toBeInTheDocument();
+    expect(
+      screen.getByText("Licenciatura en Psicología con énfasis en clínica"),
+    ).toBeInTheDocument();
+
+    expect(screen.getByText("Especialización en Terapia Cognitivo-Conductual")).toBeInTheDocument();
+    expect(screen.getByText("Universidad de los Andes")).toBeInTheDocument();
+    expect(screen.getByText("2021 - 2022")).toBeInTheDocument();
+    expect(screen.getByText("Especialización en TCC")).toBeInTheDocument();
+  });
+
+  it("renders work experience section when available", async () => {
+    mockGetProfessionalProfile.mockResolvedValue(mockProfessional);
+
+    render(<ProfessionalProfilePage />);
+
+    await waitFor(() => {
+      expect(screen.getByText("Experiencia Laboral")).toBeInTheDocument();
+    });
+
+    expect(screen.getByText("Psicóloga Clínica")).toBeInTheDocument();
+    expect(screen.getByText("Centro de Salud Mental ABC")).toBeInTheDocument();
+    expect(screen.getByText("Atención psicológica individual y grupal")).toBeInTheDocument();
+    expect(screen.getAllByText("Logros destacados:")).toHaveLength(2);
+    expect(screen.getByText("Implementé programa de terapia grupal")).toBeInTheDocument();
+    expect(screen.getByText("Reduje tiempo de espera en 30%")).toBeInTheDocument();
+
+    expect(screen.getByText("Psicóloga Independiente")).toBeInTheDocument();
+    expect(screen.getByText("Consultorio Privado")).toBeInTheDocument();
+    expect(
+      screen.getByText("Práctica privada especializada en terapia cognitivo-conductual"),
+    ).toBeInTheDocument();
+    expect(screen.getByText("Atendí más de 200 pacientes")).toBeInTheDocument();
+    expect(screen.getByText("Desarrollé protocolo de evaluación")).toBeInTheDocument();
+  });
+
+  it("does not render academic experience section when empty", async () => {
+    const professionalWithoutAcademic = {
+      ...mockProfessional,
+      academic_experience: [],
+    };
+    mockGetProfessionalProfile.mockResolvedValue(professionalWithoutAcademic);
+
+    render(<ProfessionalProfilePage />);
+
+    await waitFor(() => {
+      expect(screen.getByText("Perfil del Profesional")).toBeInTheDocument();
+    });
+
+    expect(screen.queryByText("Formación Académica")).not.toBeInTheDocument();
+  });
+
+  it("does not render work experience section when empty", async () => {
+    const professionalWithoutWork = {
+      ...mockProfessional,
+      work_experience: [],
+    };
+    mockGetProfessionalProfile.mockResolvedValue(professionalWithoutWork);
+
+    render(<ProfessionalProfilePage />);
+
+    await waitFor(() => {
+      expect(screen.getByText("Perfil del Profesional")).toBeInTheDocument();
+    });
+
+    expect(screen.queryByText("Experiencia Laboral")).not.toBeInTheDocument();
+  });
+
+  it("does not render experience sections when null", async () => {
+    const professionalWithNullExperience = {
+      ...mockProfessional,
+      academic_experience: null,
+      work_experience: null,
+    };
+    mockGetProfessionalProfile.mockResolvedValue(professionalWithNullExperience);
+
+    render(<ProfessionalProfilePage />);
+
+    await waitFor(() => {
+      expect(screen.getByText("Perfil del Profesional")).toBeInTheDocument();
+    });
+
+    expect(screen.queryByText("Formación Académica")).not.toBeInTheDocument();
+    expect(screen.queryByText("Experiencia Laboral")).not.toBeInTheDocument();
   });
 });

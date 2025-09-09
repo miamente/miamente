@@ -4,7 +4,6 @@ import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
 import {
-  ArrowLeft,
   Calendar,
   Clock,
   DollarSign,
@@ -20,6 +19,9 @@ import {
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Breadcrumbs } from "@/components/ui/breadcrumbs";
+import { AcademicExperienceSection } from "@/components/academic-experience";
+import { WorkExperienceSection } from "@/components/work-experience";
 import { getProfessionalProfile, type ProfessionalProfile } from "@/lib/profiles";
 
 export default function ProfessionalProfilePage() {
@@ -95,10 +97,13 @@ export default function ProfessionalProfilePage() {
     return (
       <div className="container mx-auto px-4 py-8">
         <div className="mb-6">
-          <Button variant="ghost" onClick={() => router.back()} className="mb-4">
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Volver
-          </Button>
+          <Breadcrumbs
+            items={[
+              { label: "Profesionales", href: "/professionals" },
+              { label: "Profesional no encontrado" },
+            ]}
+            className="mb-4"
+          />
         </div>
 
         <div className="py-12 text-center">
@@ -125,10 +130,13 @@ export default function ProfessionalProfilePage() {
     <div className="container mx-auto px-4 py-8">
       {/* Header */}
       <div className="mb-6">
-        <Button variant="ghost" onClick={() => router.back()} className="mb-4">
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          Volver
-        </Button>
+        <Breadcrumbs
+          items={[
+            { label: "Profesionales", href: "/professionals" },
+            { label: professional.full_name },
+          ]}
+          className="mb-4"
+        />
 
         <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">
           Perfil del Profesional
@@ -295,6 +303,16 @@ export default function ProfessionalProfilePage() {
                 </div>
               </CardContent>
             </Card>
+          )}
+
+          {/* Academic Experience */}
+          {professional.academic_experience && professional.academic_experience.length > 0 && (
+            <AcademicExperienceSection experiences={professional.academic_experience} />
+          )}
+
+          {/* Work Experience */}
+          {professional.work_experience && professional.work_experience.length > 0 && (
+            <WorkExperienceSection experiences={professional.work_experience} />
           )}
 
           {/* Action Buttons */}

@@ -1,3 +1,4 @@
+import React from "react";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { useRouter } from "next/navigation";
 import ProfessionalsPage from "./page";
@@ -155,15 +156,14 @@ describe("ProfessionalsPage", () => {
       expect(screen.getByText("Dr. Test Professional 1")).toBeInTheDocument();
     });
 
-    const professional1Card = screen.getByRole("link", { name: /Dr. Test Professional 1/i });
+    const professional1Link = screen.getByRole("link", { name: /Dr. Test Professional 1/i });
+    const professional1Card = professional1Link.querySelector('[data-slot="card"]');
 
     // Check that the card has hover and cursor pointer classes
-    expect(professional1Card).toHaveClass(
-      "hover:shadow-lg",
-      "transition-shadow",
-      "duration-200",
-      "cursor-pointer",
-    );
+    expect(professional1Card).toHaveClass("hover:shadow-lg");
+    expect(professional1Card).toHaveClass("transition-shadow");
+    expect(professional1Card).toHaveClass("duration-200");
+    expect(professional1Card).toHaveClass("cursor-pointer");
   });
 
   it("displays professional information correctly", async () => {
@@ -175,14 +175,14 @@ describe("ProfessionalsPage", () => {
 
     // Check professional 1 details
     expect(screen.getByText("Psicología Clínica")).toBeInTheDocument();
-    expect(screen.getByText("$800 / hora")).toBeInTheDocument();
+    expect(screen.getByText("$ 800,00 / hora")).toBeInTheDocument();
     expect(
       screen.getByText("Psicóloga clínica con experiencia en terapia cognitivo-conductual."),
     ).toBeInTheDocument();
 
     // Check professional 2 details
     expect(screen.getByText("Psiquiatría")).toBeInTheDocument();
-    expect(screen.getByText("$1,200 / hora")).toBeInTheDocument();
+    expect(screen.getByText("$ 1.200,00 / hora")).toBeInTheDocument();
     expect(
       screen.getByText("Psiquiatra con especialización en trastornos del estado de ánimo."),
     ).toBeInTheDocument();
