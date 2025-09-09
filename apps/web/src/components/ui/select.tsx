@@ -38,14 +38,16 @@ const Select = React.forwardRef<HTMLDivElement, SelectProps>(
     ref,
   ) => {
     const [isOpen, setIsOpen] = React.useState(false);
-    const [selectedOption, setSelectedOption] = React.useState<SelectOption | null>(
-      options.find((option) => option.value === value) || null,
-    );
+    const [selectedOption, setSelectedOption] = React.useState<SelectOption | null>(() => {
+      return options.find((option) => option.value === value) || null;
+    });
 
     const selectRef = React.useRef<HTMLDivElement>(null);
 
     React.useEffect(() => {
+      console.log("Select useEffect - value:", value, "options:", options);
       const option = options.find((opt) => opt.value === value);
+      console.log("Found option:", option);
       setSelectedOption(option || null);
     }, [value, options]);
 
@@ -63,6 +65,7 @@ const Select = React.forwardRef<HTMLDivElement, SelectProps>(
     }, []);
 
     const handleOptionClick = (option: SelectOption) => {
+      console.log("Option clicked:", option);
       setSelectedOption(option);
       onValueChange?.(option.value);
       setIsOpen(false);
@@ -136,6 +139,7 @@ const Select = React.forwardRef<HTMLDivElement, SelectProps>(
           <div
             className="bg-popover text-popover-foreground absolute z-50 mt-1 max-h-60 w-full overflow-auto rounded-md border shadow-md"
             role="listbox"
+            style={{ zIndex: 9999 }}
           >
             {options.map((option) => (
               <div
