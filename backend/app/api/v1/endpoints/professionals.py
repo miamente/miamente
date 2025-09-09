@@ -2,6 +2,7 @@
 Professional endpoints.
 """
 import uuid
+import json
 from typing import List
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
@@ -13,6 +14,37 @@ from app.schemas.professional import ProfessionalUpdate, ProfessionalResponse
 from app.models.professional import Professional
 
 router = APIRouter()
+
+
+def parse_professional_data(professional: Professional) -> dict:
+    """Parse professional data including JSON fields."""
+    return {
+        "id": professional.id,
+        "email": professional.email,
+        "full_name": professional.full_name,
+        "phone": professional.phone,
+        "specialty": professional.specialty,
+        "license_number": professional.license_number,
+        "years_experience": professional.years_experience,
+        "rate_cents": professional.rate_cents,
+        "currency": professional.currency,
+        "bio": professional.bio,
+        "education": professional.education,
+        "academic_experience": json.loads(professional.academic_experience) if professional.academic_experience else None,
+        "work_experience": json.loads(professional.work_experience) if professional.work_experience else None,
+        "certifications": professional.certifications,
+        "languages": professional.languages,
+        "therapy_approaches": professional.therapy_approaches,
+        "timezone": professional.timezone,
+        "working_hours": json.loads(professional.working_hours) if professional.working_hours else None,
+        "emergency_contact": professional.emergency_contact,
+        "emergency_phone": professional.emergency_phone,
+        "profile_picture": professional.profile_picture,
+        "is_active": professional.is_active,
+        "is_verified": professional.is_verified,
+        "created_at": professional.created_at,
+        "updated_at": professional.updated_at
+    }
 
 
 @router.get("/", response_model=List[ProfessionalResponse])
@@ -40,7 +72,8 @@ async def get_professionals(
     
     professionals = query.offset(skip).limit(limit).all()
     
-    return professionals
+    # Parse JSON fields for each professional
+    return [parse_professional_data(professional) for professional in professionals]
 
 
 @router.get("/{professional_id}", response_model=ProfessionalResponse)
@@ -68,7 +101,7 @@ async def get_professional(
             detail="Professional not found"
         )
     
-    return professional
+    return parse_professional_data(professional)
 
 
 @router.get("/{professional_id}/availability")
