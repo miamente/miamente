@@ -150,7 +150,7 @@ async def get_current_professional(
             detail="Professional not found"
         )
     
-    return professional
+    return parse_professional_data(professional)
 
 
 @router.put("/me", response_model=ProfessionalResponse)
