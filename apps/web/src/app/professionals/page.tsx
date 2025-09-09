@@ -87,11 +87,7 @@ export default function ProfessionalsPage() {
     <div className="container mx-auto px-4 py-8">
       <h1 className="mb-6 text-3xl font-bold">Profesionales</h1>
 
-      <form
-        onSubmit={handleApplyFilters}
-        className="mb-6 grid gap-4 sm:grid-cols-4"
-        aria-label="Filtros"
-      >
+      <div className="mb-6 grid gap-4 sm:grid-cols-4" aria-label="Filtros">
         <div className="sm:col-span-2">
           <label htmlFor="specialty" className="mb-1 block text-sm font-medium">
             Especialidad
@@ -158,7 +154,7 @@ export default function ProfessionalsPage() {
             Limpiar
           </Button>
         </div>
-      </form>
+      </div>
 
       {error && (
         <div
