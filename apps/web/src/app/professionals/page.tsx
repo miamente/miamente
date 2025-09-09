@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Select, type SelectOption } from "@/components/ui/select";
+import { ProfessionalCardSkeleton } from "@/components/professional-card-skeleton";
 import { queryProfessionals, type ProfessionalsQueryResult } from "@/lib/profiles";
 
 const SPECIALTY_OPTIONS: SelectOption[] = [
@@ -29,6 +30,7 @@ export default function ProfessionalsPage() {
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [items, setItems] = useState<ProfessionalsQueryResult["professionals"]>([]);
+  const [isInitialLoad, setIsInitialLoad] = useState<boolean>(true);
   const lastSnapshotRef = useRef<ProfessionalsQueryResult["lastSnapshot"]>(null);
 
   const parsedMin = useMemo(
@@ -56,8 +58,12 @@ export default function ProfessionalsPage() {
         });
         lastSnapshotRef.current = lastSnapshot;
         setItems((prev) => (isFirstPage ? professionals : [...prev, ...professionals]));
+        if (isFirstPage) {
+          setIsInitialLoad(false);
+        }
       } catch (err) {
         setError(err instanceof Error ? err.message : "Error al cargar profesionales");
+        setIsInitialLoad(false);
       } finally {
         setLoading(false);
       }
@@ -164,7 +170,13 @@ export default function ProfessionalsPage() {
         </div>
       )}
 
-      {!loading && items.length === 0 && (
+      {loading && isInitialLoad ? (
+        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          {Array.from({ length: 6 }).map((_, index) => (
+            <ProfessionalCardSkeleton key={index} />
+          ))}
+        </div>
+      ) : !loading && !isInitialLoad && items.length === 0 ? (
         <div role="status" aria-live="polite" className="rounded-md border p-6 text-center">
           <p className="text-neutral-700 dark:text-neutral-300">
             No encontramos profesionales con los filtros seleccionados.
@@ -173,55 +185,55 @@ export default function ProfessionalsPage() {
             Intenta ajustar los filtros.
           </p>
         </div>
+      ) : (
+        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          {items.map((pro) => (
+            <Card key={pro.id} className="flex flex-col">
+              <CardHeader>
+                <CardTitle className="text-xl">{pro.full_name}</CardTitle>
+                <p className="text-sm text-neutral-600 dark:text-neutral-400">{pro.specialty}</p>
+                <p className="text-sm text-neutral-600 dark:text-neutral-400">
+                  {(pro.rate_cents / 100).toLocaleString("es-CO", {
+                    style: "currency",
+                    currency: "COP",
+                  })}{" "}
+                  / hora
+                </p>
+              </CardHeader>
+              <CardContent className="flex flex-1 flex-col gap-3">
+                {pro.profile_picture ? (
+                  <Image
+                    src={pro.profile_picture}
+                    alt={`Foto del profesional ${pro.full_name}`}
+                    width={400}
+                    height={160}
+                    className="h-40 w-full rounded-md object-cover"
+                    priority={false}
+                  />
+                ) : (
+                  <div className="flex h-40 w-full items-center justify-center rounded-md bg-neutral-100 text-neutral-500 dark:bg-neutral-900 dark:text-neutral-400">
+                    Sin foto
+                  </div>
+                )}
+                <p className="line-clamp-3 text-sm text-neutral-700 dark:text-neutral-300">
+                  {pro.bio}
+                </p>
+                <div className="mt-auto">
+                  <Button
+                    className="w-full"
+                    variant="outline"
+                    aria-label={`Ver horarios de ${pro.full_name}`}
+                  >
+                    Ver horarios
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
       )}
 
-      <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-        {items.map((pro) => (
-          <Card key={pro.id} className="flex flex-col">
-            <CardHeader>
-              <CardTitle className="text-xl">{pro.full_name}</CardTitle>
-              <p className="text-sm text-neutral-600 dark:text-neutral-400">{pro.specialty}</p>
-              <p className="text-sm text-neutral-600 dark:text-neutral-400">
-                {(pro.rate_cents / 100).toLocaleString("es-CO", {
-                  style: "currency",
-                  currency: "COP",
-                })}{" "}
-                / hora
-              </p>
-            </CardHeader>
-            <CardContent className="flex flex-1 flex-col gap-3">
-              {pro.profile_picture ? (
-                <Image
-                  src={pro.profile_picture}
-                  alt={`Foto del profesional ${pro.full_name}`}
-                  width={400}
-                  height={160}
-                  className="h-40 w-full rounded-md object-cover"
-                  priority={false}
-                />
-              ) : (
-                <div className="flex h-40 w-full items-center justify-center rounded-md bg-neutral-100 text-neutral-500 dark:bg-neutral-900 dark:text-neutral-400">
-                  Sin foto
-                </div>
-              )}
-              <p className="line-clamp-3 text-sm text-neutral-700 dark:text-neutral-300">
-                {pro.bio}
-              </p>
-              <div className="mt-auto">
-                <Button
-                  className="w-full"
-                  variant="outline"
-                  aria-label={`Ver horarios de ${pro.full_name}`}
-                >
-                  Ver horarios
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-
-      {items.length > 0 && (
+      {items.length > 0 && !isInitialLoad && (
         <div className="mt-8 flex justify-center">
           <Button onClick={handleLoadMore} disabled={loading || !canLoadMore}>
             {loading ? "Cargando..." : canLoadMore ? "Cargar más" : "No hay más resultados"}
