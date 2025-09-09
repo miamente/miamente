@@ -126,6 +126,7 @@ const Select = React.forwardRef<HTMLDivElement, SelectProps>(
           aria-label={ariaLabel}
           aria-describedby={ariaDescribedBy}
           onClick={(e) => {
+            console.log("Select trigger clicked, isOpen:", isOpen);
             e.preventDefault();
             e.stopPropagation();
             if (!disabled) {
@@ -147,6 +148,10 @@ const Select = React.forwardRef<HTMLDivElement, SelectProps>(
             className="absolute z-50 mt-1 max-h-60 w-full overflow-auto rounded-md border border-gray-300 bg-white text-gray-900 shadow-lg"
             role="listbox"
             style={{ zIndex: 9999 }}
+            onClick={(e) => {
+              console.log("Dropdown container clicked");
+              e.stopPropagation();
+            }}
           >
             {options.map((option) => (
               <div

@@ -20,6 +20,12 @@ const SPECIALTY_OPTIONS: SelectOption[] = [
 
 export default function ProfessionalsPage() {
   const [specialty, setSpecialty] = useState<string>("");
+
+  // Debug function
+  const handleSpecialtyChange = (value: string) => {
+    console.log("Specialty changed to:", value);
+    setSpecialty(value);
+  };
   const [minPrice, setMinPrice] = useState<string>("");
   const [maxPrice, setMaxPrice] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
@@ -94,7 +100,7 @@ export default function ProfessionalsPage() {
             id="specialty"
             options={SPECIALTY_OPTIONS}
             value={specialty}
-            onValueChange={setSpecialty}
+            onValueChange={handleSpecialtyChange}
             placeholder="Selecciona una especialidad"
             aria-describedby="specialty-help"
           />
