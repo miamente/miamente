@@ -145,9 +145,18 @@ const Select = React.forwardRef<HTMLDivElement, SelectProps>(
 
         {isOpen && (
           <div
-            className="absolute z-50 mt-1 max-h-60 w-full overflow-auto rounded-md border border-gray-300 bg-white text-gray-900 shadow-lg"
+            className="fixed z-50 mt-1 max-h-60 w-full overflow-auto rounded-md border border-gray-300 bg-white text-gray-900 shadow-lg"
             role="listbox"
-            style={{ zIndex: 9999 }}
+            style={{
+              zIndex: 9999,
+              top: selectRef.current
+                ? selectRef.current.getBoundingClientRect().bottom + window.scrollY + 4
+                : 0,
+              left: selectRef.current
+                ? selectRef.current.getBoundingClientRect().left + window.scrollX
+                : 0,
+              width: selectRef.current ? selectRef.current.getBoundingClientRect().width : "auto",
+            }}
             onClick={(e) => {
               console.log("Dropdown container clicked");
               e.stopPropagation();
