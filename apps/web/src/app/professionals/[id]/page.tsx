@@ -138,9 +138,17 @@ export default function ProfessionalProfilePage() {
           className="mb-4"
         />
 
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">
-          Perfil del Profesional
-        </h1>
+        <div className="flex items-center justify-between">
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">
+            Perfil del Profesional
+          </h1>
+          <Button asChild>
+            <Link href="/professionals/edit">
+              <User className="mr-2 h-4 w-4" />
+              Editar Perfil
+            </Link>
+          </Button>
+        </div>
       </div>
 
       <div className="grid gap-6 lg:grid-cols-3">

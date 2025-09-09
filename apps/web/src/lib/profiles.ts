@@ -87,6 +87,18 @@ export async function getMyProfessionalProfile(): Promise<ProfessionalProfile | 
   }
 }
 
+export async function updateProfessionalProfile(
+  data: UpdateProfessionalProfileRequest,
+): Promise<ProfessionalProfile> {
+  try {
+    const response = await apiClient.put("/professionals/me", data);
+    return response as ProfessionalProfile;
+  } catch (error) {
+    console.error("Update professional profile error:", error);
+    throw error;
+  }
+}
+
 export async function createProfessionalProfile(
   data: UpdateProfessionalProfileRequest,
 ): Promise<ProfessionalProfile> {
