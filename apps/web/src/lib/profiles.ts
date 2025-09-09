@@ -1,5 +1,22 @@
 import { apiClient } from "./api";
 
+export interface AcademicExperience {
+  institution: string;
+  degree: string;
+  start_year: number;
+  end_year?: number;
+  description?: string;
+}
+
+export interface WorkExperience {
+  company: string;
+  position: string;
+  start_date: string;
+  end_date?: string;
+  description?: string;
+  achievements?: string[];
+}
+
 export interface ProfessionalProfile {
   id: string;
   email: string;
@@ -12,6 +29,8 @@ export interface ProfessionalProfile {
   currency: string;
   bio?: string;
   education?: string;
+  academic_experience?: AcademicExperience[];
+  work_experience?: WorkExperience[];
   certifications?: string[];
   languages?: string[];
   therapy_approaches?: string[];
@@ -38,20 +57,20 @@ export interface UpdateProfessionalProfileRequest {
 export async function getProfessionalProfile(professionalId: string): Promise<ProfessionalProfile> {
   try {
     const response = await apiClient.get(`/professionals/${professionalId}`);
-    return (response as any).data;
+    return response as ProfessionalProfile;
   } catch (error) {
     console.error("Get professional profile error:", error);
     throw error;
   }
 }
 
-export async function updateProfessionalProfile(
+export async function updateProfessionalProfileById(
   professionalId: string,
   data: UpdateProfessionalProfileRequest,
 ): Promise<ProfessionalProfile> {
   try {
     const response = await apiClient.patch(`/professionals/${professionalId}`, data);
-    return (response as any).data;
+    return response as ProfessionalProfile;
   } catch (error) {
     console.error("Update professional profile error:", error);
     throw error;
@@ -61,10 +80,22 @@ export async function updateProfessionalProfile(
 export async function getMyProfessionalProfile(): Promise<ProfessionalProfile | null> {
   try {
     const response = await apiClient.get("/professionals/me");
-    return (response as any).data;
+    return response as ProfessionalProfile;
   } catch (error) {
     console.error("Get my professional profile error:", error);
     return null;
+  }
+}
+
+export async function updateProfessionalProfile(
+  data: UpdateProfessionalProfileRequest,
+): Promise<ProfessionalProfile> {
+  try {
+    const response = await apiClient.put("/professionals/me", data);
+    return response as ProfessionalProfile;
+  } catch (error) {
+    console.error("Update professional profile error:", error);
+    throw error;
   }
 }
 
@@ -73,7 +104,7 @@ export async function createProfessionalProfile(
 ): Promise<ProfessionalProfile> {
   try {
     const response = await apiClient.post("/professionals", data);
-    return (response as any).data;
+    return response as ProfessionalProfile;
   } catch (error) {
     console.error("Create professional profile error:", error);
     throw error;
@@ -124,7 +155,7 @@ export async function queryProfessionals(
 export async function getUserProfile(userId: string): Promise<Record<string, unknown> | null> {
   try {
     const response = await apiClient.get(`/users/${userId}`);
-    return (response as any).data;
+    return response as Record<string, unknown>;
   } catch (error) {
     console.error("Get user profile error:", error);
     return null;
@@ -137,7 +168,7 @@ export async function updateUserProfile(
 ): Promise<Record<string, unknown>> {
   try {
     const response = await apiClient.patch(`/users/${userId}`, data);
-    return (response as any).data;
+    return response as Record<string, unknown>;
   } catch (error) {
     console.error("Update user profile error:", error);
     throw error;

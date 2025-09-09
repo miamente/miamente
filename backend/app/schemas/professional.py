@@ -19,6 +19,8 @@ class ProfessionalBase(BaseModel):
     currency: str = "COP"
     bio: Optional[str] = None
     education: Optional[str] = None
+    academic_experience: Optional[List[dict]] = None  # Structured academic experience
+    work_experience: Optional[List[dict]] = None  # Structured work experience
     certifications: Optional[List[str]] = None
     languages: Optional[List[str]] = None
     therapy_approaches: Optional[List[str]] = None
@@ -50,6 +52,8 @@ class ProfessionalUpdate(BaseModel):
     currency: Optional[str] = None
     bio: Optional[str] = None
     education: Optional[str] = None
+    academic_experience: Optional[List[dict]] = None
+    work_experience: Optional[List[dict]] = None
     certifications: Optional[List[str]] = None
     languages: Optional[List[str]] = None
     therapy_approaches: Optional[List[str]] = None

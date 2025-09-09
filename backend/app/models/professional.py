@@ -32,6 +32,8 @@ class Professional(Base):
     currency = Column(String(3), default="COP")
     bio = Column(Text, nullable=True)
     education = Column(Text, nullable=True)  # JSON string
+    academic_experience = Column(Text, nullable=True)  # JSON string for structured academic experience
+    work_experience = Column(Text, nullable=True)  # JSON string for structured work experience
     certifications = Column(ARRAY(String), nullable=True)
     languages = Column(ARRAY(String), nullable=True)
     therapy_approaches = Column(ARRAY(String), nullable=True)
