@@ -1,5 +1,6 @@
 "use client";
 import Image from "next/image";
+import Link from "next/link";
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { Button } from "@/components/ui/button";
@@ -188,47 +189,49 @@ export default function ProfessionalsPage() {
       ) : (
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {items.map((pro) => (
-            <Card key={pro.id} className="flex flex-col">
-              <CardHeader>
-                <CardTitle className="text-xl">{pro.full_name}</CardTitle>
-                <p className="text-sm text-neutral-600 dark:text-neutral-400">{pro.specialty}</p>
-                <p className="text-sm text-neutral-600 dark:text-neutral-400">
-                  {(pro.rate_cents / 100).toLocaleString("es-CO", {
-                    style: "currency",
-                    currency: "COP",
-                  })}{" "}
-                  / hora
-                </p>
-              </CardHeader>
-              <CardContent className="flex flex-1 flex-col gap-3">
-                {pro.profile_picture ? (
-                  <Image
-                    src={pro.profile_picture}
-                    alt={`Foto del profesional ${pro.full_name}`}
-                    width={400}
-                    height={160}
-                    className="h-40 w-full rounded-md object-cover"
-                    priority={false}
-                  />
-                ) : (
-                  <div className="flex h-40 w-full items-center justify-center rounded-md bg-neutral-100 text-neutral-500 dark:bg-neutral-900 dark:text-neutral-400">
-                    Sin foto
+            <Link key={pro.id} href={`/professionals/${pro.id}`}>
+              <Card className="flex cursor-pointer flex-col transition-shadow duration-200 hover:shadow-lg">
+                <CardHeader>
+                  <CardTitle className="text-xl">{pro.full_name}</CardTitle>
+                  <p className="text-sm text-neutral-600 dark:text-neutral-400">{pro.specialty}</p>
+                  <p className="text-sm text-neutral-600 dark:text-neutral-400">
+                    {(pro.rate_cents / 100).toLocaleString("es-CO", {
+                      style: "currency",
+                      currency: "COP",
+                    })}{" "}
+                    / hora
+                  </p>
+                </CardHeader>
+                <CardContent className="flex flex-1 flex-col gap-3">
+                  {pro.profile_picture ? (
+                    <Image
+                      src={pro.profile_picture}
+                      alt={`Foto del profesional ${pro.full_name}`}
+                      width={400}
+                      height={160}
+                      className="h-40 w-full rounded-md object-cover"
+                      priority={false}
+                    />
+                  ) : (
+                    <div className="flex h-40 w-full items-center justify-center rounded-md bg-neutral-100 text-neutral-500 dark:bg-neutral-900 dark:text-neutral-400">
+                      Sin foto
+                    </div>
+                  )}
+                  <p className="line-clamp-3 text-sm text-neutral-700 dark:text-neutral-300">
+                    {pro.bio}
+                  </p>
+                  <div className="mt-auto">
+                    <Button
+                      className="w-full"
+                      variant="outline"
+                      aria-label={`Ver perfil de ${pro.full_name}`}
+                    >
+                      Ver perfil
+                    </Button>
                   </div>
-                )}
-                <p className="line-clamp-3 text-sm text-neutral-700 dark:text-neutral-300">
-                  {pro.bio}
-                </p>
-                <div className="mt-auto">
-                  <Button
-                    className="w-full"
-                    variant="outline"
-                    aria-label={`Ver horarios de ${pro.full_name}`}
-                  >
-                    Ver horarios
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
+            </Link>
           ))}
         </div>
       )}
