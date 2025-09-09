@@ -54,12 +54,18 @@ const Select = React.forwardRef<HTMLDivElement, SelectProps>(
     React.useEffect(() => {
       const handleClickOutside = (event: MouseEvent) => {
         if (selectRef.current && !selectRef.current.contains(event.target as Node)) {
+          console.log("Click outside detected, closing dropdown");
           setIsOpen(false);
         }
       };
 
-      document.addEventListener("mousedown", handleClickOutside);
+      // Use a small delay to allow option clicks to complete
+      const timeoutId = setTimeout(() => {
+        document.addEventListener("mousedown", handleClickOutside);
+      }, 100);
+
       return () => {
+        clearTimeout(timeoutId);
         document.removeEventListener("mousedown", handleClickOutside);
       };
     }, []);
@@ -159,7 +165,7 @@ const Select = React.forwardRef<HTMLDivElement, SelectProps>(
             }}
             onClick={(e) => {
               console.log("Dropdown container clicked");
-              e.stopPropagation();
+              // Don't stop propagation here, let option clicks work
             }}
           >
             {options.map((option) => (
@@ -173,9 +179,16 @@ const Select = React.forwardRef<HTMLDivElement, SelectProps>(
                 )}
                 role="option"
                 aria-selected={value === option.value}
+                onMouseDown={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  console.log("Option mousedown:", option);
+                  handleOptionClick(option);
+                }}
                 onClick={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
+                  console.log("Option clicked:", option);
                   handleOptionClick(option);
                 }}
               >
