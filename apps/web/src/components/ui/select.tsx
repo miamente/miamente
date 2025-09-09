@@ -144,7 +144,7 @@ const Select = React.forwardRef<HTMLDivElement, SelectProps>(
 
         {isOpen && (
           <div
-            className="bg-popover text-popover-foreground absolute z-50 mt-1 max-h-60 w-full overflow-auto rounded-md border shadow-md"
+            className="absolute z-50 mt-1 max-h-60 w-full overflow-auto rounded-md border border-gray-300 bg-white text-gray-900 shadow-lg"
             role="listbox"
             style={{ zIndex: 9999 }}
           >
@@ -153,9 +153,9 @@ const Select = React.forwardRef<HTMLDivElement, SelectProps>(
                 key={option.value}
                 className={cn(
                   "relative flex cursor-pointer items-center rounded-sm px-2 py-1.5 text-sm outline-none select-none",
-                  "hover:bg-accent hover:text-accent-foreground",
-                  "focus:bg-accent focus:text-accent-foreground",
-                  value === option.value && "bg-accent text-accent-foreground",
+                  "hover:bg-blue-100 hover:text-blue-900",
+                  "focus:bg-blue-100 focus:text-blue-900",
+                  value === option.value && "bg-blue-100 text-blue-900",
                 )}
                 role="option"
                 aria-selected={value === option.value}
