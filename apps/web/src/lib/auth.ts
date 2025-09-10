@@ -16,7 +16,9 @@ export interface UserProfile {
 export interface LoginResponse {
   access_token: string;
   token_type: string;
-  user: UserProfile;
+  user_type: string;
+  user?: UserProfile;
+  professional?: UserProfile;
 }
 
 export interface RegisterRequest {
@@ -39,7 +41,7 @@ export async function registerWithEmail(data: RegisterRequest): Promise<UserProf
 
 export async function loginWithEmail(email: string, password: string): Promise<LoginResponse> {
   try {
-    const response = await apiClient.post("/auth/login/user", {
+    const response = await apiClient.post("/auth/login", {
       email,
       password,
     });

@@ -2,23 +2,27 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
 import React, { useState, useEffect, useCallback } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, FormProvider } from "react-hook-form";
 
 import { FileUpload } from "@/components/file-upload";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { AcademicExperienceEditor } from "@/components/academic-experience-editor";
+import { WorkExperienceEditor } from "@/components/work-experience-editor";
+import { ArrayFieldEditor } from "@/components/array-field-editor";
+import { Award, Languages, Brain } from "lucide-react";
 import { useAuth, getUserUid } from "@/hooks/useAuth";
 import {
-  getProfessionalProfile,
+  getMyProfessionalProfile,
   createProfessionalProfile,
-  updateProfessionalProfileById,
+  updateProfessionalProfile,
 } from "@/lib/profiles";
 import type { ProfessionalProfile } from "@/lib/profiles";
 import { professionalProfileSchema, type ProfessionalProfileFormData } from "@/lib/validations";
 
 export default function ProfessionalProfilePage() {
-  const [isLoading, setIsLoading] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
   const [profile, setProfile] = useState<ProfessionalProfile | null>(null);
@@ -27,67 +31,133 @@ export default function ProfessionalProfilePage() {
   const [currentPhotoUrl] = useState<string | null>(null);
   const [currentCredentialsUrl, setCurrentCredentialsUrl] = useState<string | null>(null);
 
-  const { user } = useAuth();
+  const { user, isLoading } = useAuth();
   const router = useRouter();
+
+  const methods = useForm<ProfessionalProfileFormData>({
+    resolver: zodResolver(professionalProfileSchema),
+  });
 
   const {
     register,
     handleSubmit,
     formState: { errors },
     setValue,
-  } = useForm<ProfessionalProfileFormData>({
-    resolver: zodResolver(professionalProfileSchema),
-  });
+    reset,
+  } = methods;
 
   const loadProfile = useCallback(async () => {
-    if (!user) return;
+    console.log("loadProfile called - user:", user);
+    if (!user) {
+      console.log("loadProfile: No user, returning");
+      return;
+    }
 
     try {
-      const userUid = getUserUid(user);
-      if (!userUid) return;
-      const proProfile = await getProfessionalProfile(userUid);
+      console.log("loadProfile: Calling getMyProfessionalProfile");
+      const proProfile = await getMyProfessionalProfile();
+      console.log("loadProfile: Profile loaded:", proProfile);
       if (proProfile) {
         setProfile(proProfile);
-        setValue("specialty", proProfile.specialty);
-        setValue("rateCents", proProfile.rate_cents);
-        setValue("bio", proProfile.bio || "");
+
+        // Reset form with all data at once
+        const formData: ProfessionalProfileFormData = {
+          fullName: proProfile.full_name || "",
+          phone: proProfile.phone || "",
+          specialty: proProfile.specialty || "",
+          licenseNumber: proProfile.license_number || "",
+          yearsExperience: proProfile.years_experience || 0,
+          rateCents: proProfile.rate_cents || 0,
+          currency: proProfile.currency || "COP",
+          bio: proProfile.bio || "",
+          academicExperience: (proProfile.academic_experience as any) || [],
+          workExperience: (proProfile.work_experience as any) || [],
+          certifications: proProfile.certifications || [],
+          languages: proProfile.languages || [],
+          therapyApproaches: proProfile.therapy_approaches || [],
+          timezone: proProfile.timezone || "America/Bogota",
+          emergencyContact: proProfile.emergency_contact || "",
+          emergencyPhone: proProfile.emergency_phone || "",
+        };
+
+        reset(formData);
         setCurrentCredentialsUrl(null); // credentials field doesn't exist in current schema
+        console.log("loadProfile: Profile set successfully");
       }
     } catch (err) {
       console.error("Error loading profile:", err);
     }
-  }, [user, setValue]);
+  }, [user, reset]);
 
   useEffect(() => {
+    console.log("ProfessionalProfilePage useEffect - user:", user);
+    console.log("ProfessionalProfilePage useEffect - isLoading:", isLoading);
+    console.log("ProfessionalProfilePage useEffect - user type:", user?.type);
+    console.log("ProfessionalProfilePage useEffect - user data:", user?.data);
+
+    // Don't redirect if still loading
+    if (isLoading) {
+      console.log("ProfessionalProfilePage: Still loading, waiting...");
+      return;
+    }
+
     if (!user) {
+      console.log("ProfessionalProfilePage: No user after loading, redirecting to login");
       router.push("/login");
       return;
     }
 
+    console.log("ProfessionalProfilePage: User exists, loading profile");
     loadProfile();
-  }, [user, router, loadProfile]);
+  }, [user, isLoading, router, loadProfile]);
 
   const onSubmit = async (data: ProfessionalProfileFormData) => {
     if (!user) return;
 
-    setIsLoading(true);
+    setIsSubmitting(true);
     setError(null);
     setSuccess(false);
 
     try {
       if (profile) {
         // Update existing profile
-        const userUid = getUserUid(user);
-        if (!userUid) return;
-        await updateProfessionalProfileById(userUid, {
+        await updateProfessionalProfile({
+          full_name: data.fullName,
+          phone: data.phone,
           specialty: data.specialty,
+          license_number: data.licenseNumber,
+          years_experience: data.yearsExperience,
+          rate_cents: data.rateCents,
+          currency: data.currency,
           bio: data.bio,
+          academic_experience: data.academicExperience,
+          work_experience: data.workExperience,
+          certifications: data.certifications,
+          languages: data.languages,
+          therapy_approaches: data.therapyApproaches,
+          timezone: data.timezone,
+          emergency_contact: data.emergencyContact,
+          emergency_phone: data.emergencyPhone,
         });
       } else {
         // Create new profile
         await createProfessionalProfile({
+          full_name: data.fullName,
+          phone: data.phone,
           specialty: data.specialty,
+          license_number: data.licenseNumber,
+          years_experience: data.yearsExperience,
+          rate_cents: data.rateCents,
+          currency: data.currency,
           bio: data.bio,
+          academic_experience: data.academicExperience,
+          work_experience: data.workExperience,
+          certifications: data.certifications,
+          languages: data.languages,
+          therapy_approaches: data.therapyApproaches,
+          timezone: data.timezone,
+          emergency_contact: data.emergencyContact,
+          emergency_phone: data.emergencyPhone,
         });
       }
 
@@ -99,9 +169,20 @@ export default function ProfessionalProfilePage() {
       const errorMessage = err instanceof Error ? err.message : "Error al actualizar el perfil";
       setError(errorMessage);
     } finally {
-      setIsLoading(false);
+      setIsSubmitting(false);
     }
   };
+
+  if (isLoading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <div className="text-center">
+          <div className="border-primary mx-auto mb-4 h-8 w-8 animate-spin rounded-full border-b-2"></div>
+          <p>Cargando perfil...</p>
+        </div>
+      </div>
+    );
+  }
 
   if (!user) {
     return <div className="flex min-h-[50vh] items-center justify-center">Cargando...</div>;
@@ -116,71 +197,304 @@ export default function ProfessionalProfilePage() {
         </p>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2">
+      <div className="space-y-6">
         <Card>
           <CardHeader>
             <CardTitle>Información Profesional</CardTitle>
           </CardHeader>
           <CardContent>
-            <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-              {error && (
-                <div className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-600 dark:border-red-800 dark:bg-red-900/20 dark:text-red-400">
-                  {error}
+            <FormProvider {...methods}>
+              <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+                {error && (
+                  <div className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-600 dark:border-red-800 dark:bg-red-900/20 dark:text-red-400">
+                    {error}
+                  </div>
+                )}
+
+                {success && (
+                  <div className="rounded-md border border-green-200 bg-green-50 p-3 text-sm text-green-600 dark:border-green-800 dark:bg-green-900/20 dark:text-green-400">
+                    Perfil actualizado exitosamente
+                  </div>
+                )}
+
+                {/* Basic Information */}
+                <div className="space-y-4">
+                  <h3 className="text-lg font-medium text-neutral-900 dark:text-neutral-100">
+                    Información Básica
+                  </h3>
+
+                  <div>
+                    <label
+                      htmlFor="fullName"
+                      className="block text-sm font-medium text-neutral-700 dark:text-neutral-300"
+                    >
+                      Nombre Completo
+                    </label>
+                    <Input
+                      id="fullName"
+                      {...register("fullName")}
+                      className="mt-1"
+                      placeholder="Dr. Juan Pérez"
+                      disabled={isSubmitting}
+                    />
+                    {errors.fullName && (
+                      <p className="mt-1 text-sm text-red-600 dark:text-red-400">
+                        {errors.fullName.message}
+                      </p>
+                    )}
+                  </div>
+
+                  <div>
+                    <label
+                      htmlFor="phone"
+                      className="block text-sm font-medium text-neutral-700 dark:text-neutral-300"
+                    >
+                      Teléfono
+                    </label>
+                    <Input
+                      id="phone"
+                      {...register("phone")}
+                      className="mt-1"
+                      placeholder="+573001234567"
+                      disabled={isSubmitting}
+                    />
+                    {errors.phone && (
+                      <p className="mt-1 text-sm text-red-600 dark:text-red-400">
+                        {errors.phone.message}
+                      </p>
+                    )}
+                  </div>
                 </div>
-              )}
 
-              {success && (
-                <div className="rounded-md border border-green-200 bg-green-50 p-3 text-sm text-green-600 dark:border-green-800 dark:bg-green-900/20 dark:text-green-400">
-                  Perfil actualizado exitosamente
+                {/* Professional Information */}
+                <div className="space-y-4">
+                  <h3 className="text-lg font-medium text-neutral-900 dark:text-neutral-100">
+                    Información Profesional
+                  </h3>
+
+                  <div>
+                    <label
+                      htmlFor="specialty"
+                      className="block text-sm font-medium text-neutral-700 dark:text-neutral-300"
+                    >
+                      Especialidad
+                    </label>
+                    <Input
+                      id="specialty"
+                      {...register("specialty")}
+                      className="mt-1"
+                      placeholder="Psicología Clínica"
+                      disabled={isSubmitting}
+                    />
+                    {errors.specialty && (
+                      <p className="mt-1 text-sm text-red-600 dark:text-red-400">
+                        {errors.specialty.message}
+                      </p>
+                    )}
+                  </div>
+
+                  <div>
+                    <label
+                      htmlFor="licenseNumber"
+                      className="block text-sm font-medium text-neutral-700 dark:text-neutral-300"
+                    >
+                      Número de Licencia
+                    </label>
+                    <Input
+                      id="licenseNumber"
+                      {...register("licenseNumber")}
+                      className="mt-1"
+                      placeholder="P-12345"
+                      disabled={isSubmitting}
+                    />
+                    {errors.licenseNumber && (
+                      <p className="mt-1 text-sm text-red-600 dark:text-red-400">
+                        {errors.licenseNumber.message}
+                      </p>
+                    )}
+                  </div>
+
+                  <div>
+                    <label
+                      htmlFor="yearsExperience"
+                      className="block text-sm font-medium text-neutral-700 dark:text-neutral-300"
+                    >
+                      Años de Experiencia
+                    </label>
+                    <Input
+                      id="yearsExperience"
+                      type="number"
+                      {...register("yearsExperience", { valueAsNumber: true })}
+                      className="mt-1"
+                      placeholder="5"
+                      disabled={isSubmitting}
+                    />
+                    {errors.yearsExperience && (
+                      <p className="mt-1 text-sm text-red-600 dark:text-red-400">
+                        {errors.yearsExperience.message}
+                      </p>
+                    )}
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label
+                        htmlFor="rateCents"
+                        className="block text-sm font-medium text-neutral-700 dark:text-neutral-300"
+                      >
+                        Tarifa por Hora (centavos)
+                      </label>
+                      <Input
+                        id="rateCents"
+                        type="number"
+                        {...register("rateCents", { valueAsNumber: true })}
+                        className="mt-1"
+                        placeholder="50000"
+                        disabled={isSubmitting}
+                      />
+                      {errors.rateCents && (
+                        <p className="mt-1 text-sm text-red-600 dark:text-red-400">
+                          {errors.rateCents.message}
+                        </p>
+                      )}
+                    </div>
+
+                    <div>
+                      <label
+                        htmlFor="currency"
+                        className="block text-sm font-medium text-neutral-700 dark:text-neutral-300"
+                      >
+                        Moneda
+                      </label>
+                      <Input
+                        id="currency"
+                        {...register("currency")}
+                        className="mt-1"
+                        placeholder="COP"
+                        disabled={isSubmitting}
+                      />
+                      {errors.currency && (
+                        <p className="mt-1 text-sm text-red-600 dark:text-red-400">
+                          {errors.currency.message}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+
+                  <div>
+                    <label
+                      htmlFor="bio"
+                      className="block text-sm font-medium text-neutral-700 dark:text-neutral-300"
+                    >
+                      Biografía
+                    </label>
+                    <textarea
+                      id="bio"
+                      {...register("bio")}
+                      className="focus:border-primary focus:ring-primary mt-1 block w-full rounded-md border border-neutral-300 px-3 py-2 text-sm placeholder-neutral-400 focus:ring-1 focus:outline-none dark:border-neutral-600 dark:bg-neutral-800 dark:text-neutral-100 dark:placeholder-neutral-500"
+                      rows={4}
+                      placeholder="Cuéntanos sobre tu experiencia y enfoque terapéutico..."
+                      disabled={isSubmitting}
+                    />
+                    {errors.bio && (
+                      <p className="mt-1 text-sm text-red-600 dark:text-red-400">
+                        {errors.bio.message}
+                      </p>
+                    )}
+                  </div>
                 </div>
-              )}
 
-              <div>
-                <Input
-                  {...register("specialty")}
-                  placeholder="Especialidad (ej: Psicología Clínica)"
-                  disabled={isLoading}
-                />
-                {errors.specialty && (
-                  <p className="mt-1 text-sm text-red-600 dark:text-red-400">
-                    {errors.specialty.message}
-                  </p>
-                )}
-              </div>
+                {/* Emergency Contact */}
+                <div className="space-y-4">
+                  <h3 className="text-lg font-medium text-neutral-900 dark:text-neutral-100">
+                    Contacto de Emergencia
+                  </h3>
 
-              <div>
-                <Input
-                  {...register("rateCents", { valueAsNumber: true })}
-                  type="number"
-                  placeholder="Tarifa por hora (en centavos, ej: 50000 = $500)"
-                  disabled={isLoading}
-                />
-                {errors.rateCents && (
-                  <p className="mt-1 text-sm text-red-600 dark:text-red-400">
-                    {errors.rateCents.message}
-                  </p>
-                )}
-              </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label
+                        htmlFor="emergencyContact"
+                        className="block text-sm font-medium text-neutral-700 dark:text-neutral-300"
+                      >
+                        Nombre del Contacto
+                      </label>
+                      <Input
+                        id="emergencyContact"
+                        {...register("emergencyContact")}
+                        className="mt-1"
+                        placeholder="María Pérez"
+                        disabled={isSubmitting}
+                      />
+                      {errors.emergencyContact && (
+                        <p className="mt-1 text-sm text-red-600 dark:text-red-400">
+                          {errors.emergencyContact.message}
+                        </p>
+                      )}
+                    </div>
 
-              <div>
-                <textarea
-                  {...register("bio")}
-                  placeholder="Biografía profesional (mínimo 50 caracteres)"
-                  className="w-full rounded-md border border-neutral-200 bg-white px-3 py-2 text-sm placeholder:text-neutral-500 focus:ring-2 focus:ring-blue-500 focus:outline-none dark:border-neutral-800 dark:bg-neutral-900 dark:text-white"
-                  rows={4}
-                  disabled={isLoading}
-                />
-                {errors.bio && (
-                  <p className="mt-1 text-sm text-red-600 dark:text-red-400">
-                    {errors.bio.message}
-                  </p>
-                )}
-              </div>
+                    <div>
+                      <label
+                        htmlFor="emergencyPhone"
+                        className="block text-sm font-medium text-neutral-700 dark:text-neutral-300"
+                      >
+                        Teléfono de Emergencia
+                      </label>
+                      <Input
+                        id="emergencyPhone"
+                        {...register("emergencyPhone")}
+                        className="mt-1"
+                        placeholder="+573001234567"
+                        disabled={isSubmitting}
+                      />
+                      {errors.emergencyPhone && (
+                        <p className="mt-1 text-sm text-red-600 dark:text-red-400">
+                          {errors.emergencyPhone.message}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                </div>
 
-              <Button type="submit" className="w-full" disabled={isLoading}>
-                {isLoading ? "Actualizando..." : profile ? "Actualizar Perfil" : "Crear Perfil"}
-              </Button>
-            </form>
+                <Button type="submit" className="w-full" disabled={isSubmitting}>
+                  {isSubmitting
+                    ? "Actualizando..."
+                    : profile
+                      ? "Actualizar Perfil"
+                      : "Crear Perfil"}
+                </Button>
+
+                {/* Experience Sections */}
+                <div className="grid gap-6 md:grid-cols-2">
+                  <AcademicExperienceEditor disabled={isSubmitting} />
+                  <WorkExperienceEditor disabled={isSubmitting} />
+                </div>
+
+                {/* Additional Information */}
+                <div className="grid gap-6 md:grid-cols-3">
+                  <ArrayFieldEditor
+                    name="certifications"
+                    title="Certificaciones"
+                    placeholder="Agregar certificación..."
+                    icon={<Award className="h-5 w-5 text-purple-600" />}
+                    disabled={isSubmitting}
+                  />
+                  <ArrayFieldEditor
+                    name="languages"
+                    title="Idiomas"
+                    placeholder="Agregar idioma..."
+                    icon={<Languages className="h-5 w-5 text-blue-600" />}
+                    disabled={isSubmitting}
+                  />
+                  <ArrayFieldEditor
+                    name="therapyApproaches"
+                    title="Enfoques Terapéuticos"
+                    placeholder="Agregar enfoque..."
+                    icon={<Brain className="h-5 w-5 text-green-600" />}
+                    disabled={isSubmitting}
+                  />
+                </div>
+              </form>
+            </FormProvider>
           </CardContent>
         </Card>
 
@@ -195,7 +509,7 @@ export default function ProfessionalProfilePage() {
                 accept="image/*"
                 maxSize={2 * 1024 * 1024} // 2MB
                 label="Foto profesional"
-                disabled={isLoading}
+                disabled={isSubmitting}
                 currentFile={currentPhotoUrl || undefined}
               />
               {photoFile && (
@@ -216,7 +530,7 @@ export default function ProfessionalProfilePage() {
                 accept=".pdf"
                 maxSize={10 * 1024 * 1024} // 10MB
                 label="Documentos de credenciales (PDF)"
-                disabled={isLoading}
+                disabled={isSubmitting}
                 currentFile={currentCredentialsUrl || undefined}
               />
               {credentialsFile && (

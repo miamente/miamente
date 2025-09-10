@@ -4,7 +4,7 @@ import { useAuth } from "./useAuth";
 
 import { apiClient } from "@/lib/api";
 
-export type UserRole = "user" | "pro" | "admin";
+export type UserRole = "user" | "professional" | "admin";
 
 export interface UserProfile {
   id: string;
@@ -41,7 +41,7 @@ export function useRole() {
 
         setUserProfile({
           id: userData.id,
-          role: userType === "professional" ? "pro" : "user",
+          role: userType === "professional" ? "professional" : "user",
           full_name: userData.full_name,
           email: userData.email,
           phone: userData.phone,
@@ -67,7 +67,7 @@ export function useRole() {
   };
 
   const isAdmin = (): boolean => hasRole("admin");
-  const isProfessional = (): boolean => hasRole("pro");
+  const isProfessional = (): boolean => hasRole("professional");
   const isUser = (): boolean => hasRole("user");
 
   return {

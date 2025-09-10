@@ -9,7 +9,7 @@ from typing import Optional
 from app.core.database import get_db
 from app.core.security import verify_token
 from app.services.auth_service import AuthService
-from app.schemas.auth import Token, UserLogin, RefreshToken, UserTokenResponse, ProfessionalTokenResponse
+from app.schemas.auth import Token, UserLogin, RefreshToken, UserTokenResponse, ProfessionalTokenResponse, UnifiedLogin, UnifiedLoginResponse
 from app.schemas.user import UserCreate, UserResponse
 from app.schemas.professional import ProfessionalCreate, ProfessionalResponse, ProfessionalLogin
 
@@ -110,6 +110,75 @@ async def login_professional(professional_login: ProfessionalLogin, db: Session 
         access_token=token_response["access_token"],
         refresh_token=token_response["refresh_token"],
         token_type=token_response["token_type"]
+    )
+
+
+@router.post("/login", response_model=UnifiedLoginResponse)
+async def login_unified(login_data: UnifiedLogin, db: Session = Depends(get_db)):
+    """Unified login for both users and professionals."""
+    auth_service = AuthService(db)
+    
+    # Try to authenticate as professional first
+    professional = auth_service.authenticate_professional(login_data.email, login_data.password)
+    if professional and professional.is_active:
+        from app.core.security import create_token_response
+        token_response = create_token_response(str(professional.id))
+        
+        return UnifiedLoginResponse(
+            access_token=token_response["access_token"],
+            refresh_token=token_response["refresh_token"],
+            token_type=token_response["token_type"],
+            user_type="professional",
+            professional_data=professional
+        )
+    
+    # Try to authenticate as regular user
+    user = auth_service.authenticate_user(login_data.email, login_data.password)
+    if user and user.is_active:
+        from app.core.security import create_token_response
+        token_response = create_token_response(str(user.id))
+        
+        return UnifiedLoginResponse(
+            access_token=token_response["access_token"],
+            refresh_token=token_response["refresh_token"],
+            token_type=token_response["token_type"],
+            user_type="user",
+            user_data=user
+        )
+    
+    # If neither worked, return authentication error
+    raise HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Incorrect email or password",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
+
+
+@router.post("/simulate-verification")
+async def simulate_email_verification(
+    user_id: str = Depends(get_current_user_id),
+    db: Session = Depends(get_db)
+):
+    """Simulate email verification for development purposes."""
+    auth_service = AuthService(db)
+    
+    # Try to update user first
+    user = auth_service.get_user_by_id(user_id)
+    if user:
+        user.is_verified = True
+        db.commit()
+        return {"message": "User email verification simulated", "user_type": "user"}
+    
+    # Try to update professional
+    professional = auth_service.get_professional_by_id(user_id)
+    if professional:
+        professional.is_verified = True
+        db.commit()
+        return {"message": "Professional email verification simulated", "user_type": "professional"}
+    
+    raise HTTPException(
+        status_code=status.HTTP_404_NOT_FOUND,
+        detail="User not found"
     )
 
 

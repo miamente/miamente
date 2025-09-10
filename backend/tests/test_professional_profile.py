@@ -20,7 +20,6 @@ def sample_professional(db_session) -> ProfessionalModel:
         rate_cents=80000,
         currency="COP",
         bio="Psicóloga clínica con experiencia en terapia cognitivo-conductual.",
-        education="Universidad Nacional de Colombia - Psicología",
         certifications=json.dumps(["Terapia Cognitivo-Conductual", "EMDR"]),
         languages=json.dumps(["Español", "Inglés"]),
         therapy_approaches=json.dumps(["Cognitivo-Conductual", "Humanista"]),
@@ -57,7 +56,6 @@ class TestProfessionalProfile:
         assert data["rate_cents"] == sample_professional.rate_cents
         assert data["currency"] == sample_professional.currency
         assert data["bio"] == sample_professional.bio
-        assert data["education"] == sample_professional.education
         # Note: JSON fields are parsed by the API
         assert data["certifications"] == ["Terapia Cognitivo-Conductual", "EMDR"]
         assert data["languages"] == ["Español", "Inglés"]

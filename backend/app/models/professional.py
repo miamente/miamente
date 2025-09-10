@@ -31,7 +31,6 @@ class Professional(Base):
     rate_cents = Column(Integer, nullable=False)  # Rate in cents
     currency = Column(String(3), default="COP")
     bio = Column(Text, nullable=True)
-    education = Column(Text, nullable=True)  # JSON string
     academic_experience = Column(Text, nullable=True)  # JSON string for structured academic experience
     work_experience = Column(Text, nullable=True)  # JSON string for structured work experience
     certifications = Column(ARRAY(String), nullable=True)

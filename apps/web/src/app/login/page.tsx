@@ -30,7 +30,8 @@ export default function LoginPage() {
   React.useEffect(() => {
     if (user) {
       if (isUserVerified(user)) {
-        router.push("/dashboard/user");
+        // Redirect to unified dashboard
+        router.push("/dashboard");
       } else {
         router.push("/verify");
       }
@@ -42,8 +43,10 @@ export default function LoginPage() {
     setError(null);
 
     try {
-      await loginWithEmail(data.email, data.password);
-      // Redirect will happen in useEffect
+      const response = await loginWithEmail(data.email, data.password);
+
+      // Redirect to unified dashboard
+      router.push("/dashboard");
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : "Error al iniciar sesión";
       setError(errorMessage);

@@ -3,16 +3,17 @@ import { apiClient } from "./api";
 export interface AcademicExperience {
   institution: string;
   degree: string;
-  start_year: number;
-  end_year?: number;
+  field: string;
+  startDate: string;
+  endDate?: string;
   description?: string;
 }
 
 export interface WorkExperience {
   company: string;
   position: string;
-  start_date: string;
-  end_date?: string;
+  startDate: string;
+  endDate?: string;
   description?: string;
   achievements?: string[];
 }
@@ -28,7 +29,6 @@ export interface ProfessionalProfile {
   rate_cents: number;
   currency: string;
   bio?: string;
-  education?: string;
   academic_experience?: AcademicExperience[];
   work_experience?: WorkExperience[];
   certifications?: string[];
@@ -45,13 +45,47 @@ export interface ProfessionalProfile {
 }
 
 export interface UpdateProfessionalProfileRequest {
+  // Basic info
+  full_name?: string;
+  phone?: string;
+
+  // Professional info
   specialty?: string;
+  license_number?: string;
+  years_experience?: number;
+  rate_cents?: number;
+  currency?: string;
   bio?: string;
-  experience_years?: number;
-  education?: string;
+
+  // Experience arrays
+  academic_experience?: Array<{
+    institution: string;
+    degree: string;
+    field: string;
+    startDate: string;
+    endDate?: string;
+    description?: string;
+  }>;
+
+  work_experience?: Array<{
+    company: string;
+    position: string;
+    startDate: string;
+    endDate?: string;
+    description?: string;
+  }>;
+
+  // Arrays
   certifications?: string[];
   languages?: string[];
-  consultation_fee?: number;
+  therapy_approaches?: string[];
+
+  // Settings
+  timezone?: string;
+
+  // Emergency contact
+  emergency_contact?: string;
+  emergency_phone?: string;
 }
 
 export async function getProfessionalProfile(professionalId: string): Promise<ProfessionalProfile> {
@@ -79,7 +113,7 @@ export async function updateProfessionalProfileById(
 
 export async function getMyProfessionalProfile(): Promise<ProfessionalProfile | null> {
   try {
-    const response = await apiClient.get("/professionals/me");
+    const response = await apiClient.get("/professionals/me/profile");
     return response as ProfessionalProfile;
   } catch (error) {
     console.error("Get my professional profile error:", error);

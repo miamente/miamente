@@ -6,13 +6,14 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuth, isUserVerified, getUserEmail } from "@/hooks/useAuth";
 import { resendEmailVerification, logout } from "@/lib/auth";
+import { apiClient } from "@/lib/api";
 
 export default function VerifyPage() {
   const [isResending, setIsResending] = useState(false);
   const [resendSuccess, setResendSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
-  const { user, isLoading: loading } = useAuth();
+  const { user, isLoading: loading, refreshUser } = useAuth();
 
   useEffect(() => {
     if (!loading) {
@@ -28,7 +29,7 @@ export default function VerifyPage() {
         // Only auto-redirect if email is actually verified
         // In development, we let the user manually proceed
         if (isUserVerified(user)) {
-          router.push("/dashboard/user");
+          router.push("/dashboard");
           return;
         }
       }
@@ -68,11 +69,22 @@ export default function VerifyPage() {
       if (isDevelopment) {
         // In development mode, we can simulate email verification
         console.log("Development mode: Simulating email verification");
-        router.push("/dashboard/user");
+
+        try {
+          // Call the backend endpoint to simulate verification
+          await apiClient.post("/auth/simulate-verification");
+
+          // Refresh user data to get updated verification status
+          await refreshUser();
+          router.push("/dashboard");
+        } catch (apiError) {
+          console.error("API error:", apiError);
+          setError("Error al simular la verificación del email");
+        }
       } else {
         // In production, we would need actual email verification
         if (isUserVerified(user)) {
-          router.push("/dashboard/user");
+          router.push("/dashboard");
         } else {
           setError("El email aún no ha sido verificado. Por favor revisa tu bandeja de entrada.");
         }

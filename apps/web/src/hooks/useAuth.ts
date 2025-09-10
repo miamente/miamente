@@ -65,9 +65,12 @@ export function useAuth() {
   const router = useRouter();
 
   const checkAuth = useCallback(async () => {
+    console.log("checkAuth called");
     try {
       const token = localStorage.getItem("access_token");
+      console.log("checkAuth - token exists:", !!token);
       if (!token) {
+        console.log("checkAuth - no token, setting user to null");
         setAuthState({
           user: null,
           isLoading: false,
@@ -76,7 +79,9 @@ export function useAuth() {
         return;
       }
 
+      console.log("checkAuth - calling getCurrentUser");
       const userData = await apiClient.getCurrentUser();
+      console.log("checkAuth - userData received:", userData);
       setAuthState({
         user: userData,
         isLoading: false,
@@ -84,6 +89,7 @@ export function useAuth() {
       });
     } catch (error) {
       console.error("Auth check failed:", error);
+      console.error("Auth check error details:", error);
       setAuthState({
         user: null,
         isLoading: false,
@@ -96,8 +102,9 @@ export function useAuth() {
 
   // Check if user is authenticated on mount
   useEffect(() => {
+    console.log("useAuth useEffect - calling checkAuth");
     checkAuth();
-  }, [checkAuth]);
+  }, []); // Remove checkAuth dependency to prevent infinite loop
 
   const loginUser = useCallback(
     async (credentials: LoginRequest) => {
@@ -118,7 +125,7 @@ export function useAuth() {
       try {
         await apiClient.loginProfessional(credentials);
         await checkAuth();
-        router.push("/professional/dashboard");
+        router.push("/dashboard");
       } catch (error) {
         console.error("Professional login failed:", error);
         throw error;

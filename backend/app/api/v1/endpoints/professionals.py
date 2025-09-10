@@ -29,7 +29,6 @@ def parse_professional_data(professional: Professional) -> dict:
         "rate_cents": professional.rate_cents,
         "currency": professional.currency,
         "bio": professional.bio,
-        "education": professional.education,
         "academic_experience": json.loads(professional.academic_experience) if professional.academic_experience else None,
         "work_experience": json.loads(professional.work_experience) if professional.work_experience else None,
         "certifications": professional.certifications,
@@ -213,69 +212,3 @@ async def get_current_professional_appointments(
     return appointments
 
 
-@router.put("/me", response_model=ProfessionalResponse)
-async def update_current_professional(
-    update_data: ProfessionalUpdate,
-    current_user_id: str = Depends(get_current_user_id),
-    db: Session = Depends(get_db)
-):
-    """Update current professional information."""
-    auth_service = AuthService(db)
-    professional = auth_service.get_professional_by_id(current_user_id)
-    
-    if not professional:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Professional not found"
-        )
-    
-    try:
-        # Update professional fields
-        for field, value in update_data.dict(exclude_unset=True).items():
-            if hasattr(professional, field):
-                setattr(professional, field, value)
-        
-        db.commit()
-        db.refresh(professional)
-        
-        return professional
-        
-    except Exception as e:
-        db.rollback()
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to update professional"
-        )
-
-
-@router.put("/me/profile", response_model=ProfessionalResponse)
-async def update_current_professional(
-    update_data: ProfessionalUpdate,
-    current_user_id: str = Depends(get_current_user_id),
-    db: Session = Depends(get_db)
-):
-    """Update current professional profile."""
-    auth_service = AuthService(db)
-    professional = auth_service.get_professional_by_id(current_user_id)
-    
-    if not professional:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Professional not found"
-        )
-    
-    try:
-        # Update fields
-        for field, value in update_data.dict(exclude_unset=True).items():
-            setattr(professional, field, value)
-        
-        db.commit()
-        db.refresh(professional)
-        return professional
-        
-    except Exception as e:
-        db.rollback()
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to update professional"
-        )

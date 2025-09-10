@@ -148,7 +148,7 @@ export default function ProfessionalProfilePage() {
           </h1>
           {isOwnProfile && (
             <Button asChild>
-              <Link href="/professionals/edit">
+              <Link href="/profile/professional">
                 <User className="mr-2 h-4 w-4" />
                 Editar Perfil
               </Link>

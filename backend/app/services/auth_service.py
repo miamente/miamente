@@ -95,7 +95,6 @@ class AuthService:
             rate_cents=professional_data.rate_cents,
             currency=professional_data.currency,
             bio=professional_data.bio,
-            education=professional_data.education,
             certifications=professional_data.certifications,
             languages=professional_data.languages,
             therapy_approaches=professional_data.therapy_approaches,
