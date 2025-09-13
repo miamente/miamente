@@ -57,14 +57,15 @@ export function UserMenu({
 
   const filteredUserOptions = userMenuOptions.filter(
     (option) =>
-      !option.roles || (userRole && option.roles.includes(userRole as "user" | "pro" | "admin")),
+      !option.roles ||
+      (userRole && option.roles.includes(userRole as "user" | "professional" | "admin")),
   );
 
   const getRoleIcon = (role?: string) => {
     switch (role) {
       case "admin":
         return <Settings className="h-4 w-4" />;
-      case "pro":
+      case "professional":
         return <User className="h-4 w-4" />;
       default:
         return <User className="h-4 w-4" />;

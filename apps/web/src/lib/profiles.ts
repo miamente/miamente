@@ -18,6 +18,12 @@ export interface WorkExperience {
   achievements?: string[];
 }
 
+export interface Certification {
+  name: string;
+  documentUrl: string;
+  fileName?: string;
+}
+
 export interface ProfessionalProfile {
   id: string;
   email: string;
@@ -31,13 +37,11 @@ export interface ProfessionalProfile {
   bio?: string;
   academic_experience?: AcademicExperience[];
   work_experience?: WorkExperience[];
-  certifications?: string[];
+  certifications?: Certification[];
   languages?: string[];
   therapy_approaches?: string[];
   timezone: string;
   profile_picture?: string;
-  emergency_contact?: string;
-  emergency_phone?: string;
   is_active: boolean;
   is_verified: boolean;
   created_at: string;
@@ -76,16 +80,13 @@ export interface UpdateProfessionalProfileRequest {
   }>;
 
   // Arrays
-  certifications?: string[];
+  certifications?: Certification[];
   languages?: string[];
   therapy_approaches?: string[];
 
   // Settings
   timezone?: string;
-
-  // Emergency contact
-  emergency_contact?: string;
-  emergency_phone?: string;
+  profile_picture?: string;
 }
 
 export async function getProfessionalProfile(professionalId: string): Promise<ProfessionalProfile> {

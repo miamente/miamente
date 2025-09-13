@@ -24,14 +24,28 @@ def parse_professional_data(professional: Professional) -> dict:
         "full_name": professional.full_name,
         "phone": professional.phone,
         "specialty": professional.specialty,
+        "specialty_id": str(professional.specialty_id) if professional.specialty_id else None,
         "license_number": professional.license_number,
         "years_experience": professional.years_experience,
         "rate_cents": professional.rate_cents,
+        "custom_rate_cents": professional.custom_rate_cents,
         "currency": professional.currency,
+        "professional_specialties": [
+            {
+                "id": str(ps.id),
+                "name": ps.name,
+                "description": ps.description,
+                "price_cents": ps.price_cents,
+                "currency": ps.currency,
+                "is_default": ps.is_default,
+                "is_active": ps.is_active
+            }
+            for ps in professional.professional_specialties if ps.is_active
+        ],
         "bio": professional.bio,
         "academic_experience": json.loads(professional.academic_experience) if professional.academic_experience else None,
         "work_experience": json.loads(professional.work_experience) if professional.work_experience else None,
-        "certifications": professional.certifications,
+        "certifications": json.loads(professional.certifications) if professional.certifications else None,
         "languages": professional.languages,
         "therapy_approaches": professional.therapy_approaches,
         "timezone": professional.timezone,
@@ -176,10 +190,12 @@ async def update_current_professional(
         professional.academic_experience = json.dumps(update_data["academic_experience"])
     if "work_experience" in update_data:
         professional.work_experience = json.dumps(update_data["work_experience"])
+    if "certifications" in update_data:
+        professional.certifications = json.dumps(update_data["certifications"])
     
     # Update other fields
     for field, value in update_data.items():
-        if field not in ["academic_experience", "work_experience"] and hasattr(professional, field):
+        if field not in ["academic_experience", "work_experience", "certifications"] and hasattr(professional, field):
             # Map hourly_rate_cents to rate_cents
             if field == "hourly_rate_cents":
                 professional.rate_cents = value

@@ -1,7 +1,7 @@
 """
 Professional model for the Miamente platform.
 """
-from sqlalchemy import Column, String, DateTime, Boolean, Text, Integer, ARRAY
+from sqlalchemy import Column, String, DateTime, Boolean, Text, Integer, ARRAY, ForeignKey
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.sql import func
 from sqlalchemy.orm import relationship
@@ -25,15 +25,17 @@ class Professional(Base):
     profile_picture = Column(Text, nullable=True)
     
     # Professional specific fields
-    specialty = Column(String(255), nullable=False)
+    specialty_id = Column(UUID(as_uuid=True), ForeignKey("specialties.id"), nullable=True)
+    specialty = Column(String(255), nullable=False)  # Keep for backward compatibility
     license_number = Column(String(100), nullable=True)
     years_experience = Column(Integer, default=0)
     rate_cents = Column(Integer, nullable=False)  # Rate in cents
+    custom_rate_cents = Column(Integer, nullable=True)  # Custom rate override
     currency = Column(String(3), default="COP")
     bio = Column(Text, nullable=True)
     academic_experience = Column(Text, nullable=True)  # JSON string for structured academic experience
     work_experience = Column(Text, nullable=True)  # JSON string for structured work experience
-    certifications = Column(ARRAY(String), nullable=True)
+    certifications = Column(Text, nullable=True)  # JSON string for structured certifications
     languages = Column(ARRAY(String), nullable=True)
     therapy_approaches = Column(ARRAY(String), nullable=True)
     
@@ -49,6 +51,8 @@ class Professional(Base):
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
     
     # Relationships
+    specialty_rel = relationship("Specialty", foreign_keys=[specialty_id])
+    professional_specialties = relationship("ProfessionalSpecialty", back_populates="professional")
     appointments = relationship("Appointment", back_populates="professional")
     availability = relationship("Availability", back_populates="professional")
     

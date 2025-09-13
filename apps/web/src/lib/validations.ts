@@ -31,20 +31,11 @@ export const professionalProfileSchema = z.object({
   phone: z.string().min(10, "El teléfono debe tener al menos 10 dígitos").optional(),
 
   // Professional info
-  specialty: z.string().min(2, "La especialidad debe tener al menos 2 caracteres"),
   licenseNumber: z.string().optional(),
   yearsExperience: z
     .number()
     .min(0, "Los años de experiencia no pueden ser negativos")
     .max(50, "Los años de experiencia no pueden exceder 50"),
-  rateCents: z
-    .number()
-    .min(1000, "La tarifa debe ser al menos $10.00")
-    .max(1000000, "La tarifa no puede exceder $10,000.00"),
-  currency: z
-    .string()
-    .min(3, "La moneda debe tener 3 caracteres")
-    .max(3, "La moneda debe tener 3 caracteres"),
   bio: z
     .string()
     .min(50, "La biografía debe tener al menos 50 caracteres")
@@ -78,16 +69,21 @@ export const professionalProfileSchema = z.object({
     .optional(),
 
   // Arrays
-  certifications: z.array(z.string()).optional(),
+  certifications: z
+    .array(
+      z.object({
+        name: z.string().min(1, "El nombre de la certificación es requerido"),
+        document: z.instanceof(File).optional(),
+        documentUrl: z.string().min(1, "El documento de certificación es obligatorio"),
+        fileName: z.string().optional(),
+      }),
+    )
+    .optional(),
   languages: z.array(z.string()).optional(),
   therapyApproaches: z.array(z.string()).optional(),
 
   // Settings
   timezone: z.string().optional(),
-
-  // Emergency contact
-  emergencyContact: z.string().optional(),
-  emergencyPhone: z.string().optional(),
 });
 
 export const fileUploadSchema = z

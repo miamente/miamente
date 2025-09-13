@@ -66,7 +66,7 @@ export function ProfessionalGate({
   fallback?: React.ReactNode;
 }) {
   return (
-    <RoleGate roles={["pro", "admin"]} fallback={fallback}>
+    <RoleGate roles={["professional", "admin"]} fallback={fallback}>
       {children}
     </RoleGate>
   );
@@ -80,7 +80,7 @@ export function UserGate({
   fallback?: React.ReactNode;
 }) {
   return (
-    <RoleGate roles={["user", "pro", "admin"]} fallback={fallback}>
+    <RoleGate roles={["user", "professional", "admin"]} fallback={fallback}>
       {children}
     </RoleGate>
   );

@@ -46,7 +46,7 @@ class Settings(BaseSettings):
         raise ValueError(v)
     
     # Database settings
-    DATABASE_URL: str = "postgresql://user:password@localhost:5432/miamente"
+    DATABASE_URL: str = "postgresql://manueljurado@localhost:5432/miamente"
     
     # Redis settings
     REDIS_URL: str = "redis://localhost:6379/0"

@@ -84,7 +84,7 @@ ALLOWED_HOSTS=["localhost", "127.0.0.1", "*.railway.app", "*.vercel.app"]
 ```bash
 cd backend
 source venv/bin/activate
-uvicorn app.main:app --host 0.0.0.0 --port 8001 --reload
+uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
 ```
 
 ### 2. Configuración del Frontend (Next.js)

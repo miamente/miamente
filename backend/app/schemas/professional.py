@@ -14,14 +14,16 @@ class ProfessionalBase(BaseModel):
     full_name: str
     phone: Optional[str] = None
     specialty: str
+    specialty_id: Optional[str] = None
     license_number: Optional[str] = None
     years_experience: int = 0
     rate_cents: int = 50000  # Default rate in cents (500 COP)
+    custom_rate_cents: Optional[int] = None
     currency: str = "COP"
     bio: Optional[str] = None
     academic_experience: Optional[List[dict]] = None  # Structured academic experience
     work_experience: Optional[List[dict]] = None  # Structured work experience
-    certifications: Optional[List[str]] = None
+    certifications: Optional[List[dict]] = None  # Structured certifications with name and document_url
     languages: Optional[List[str]] = None
     therapy_approaches: Optional[List[str]] = None
     timezone: str = "America/Bogota"
@@ -46,14 +48,16 @@ class ProfessionalUpdate(BaseModel):
     full_name: Optional[str] = None
     phone: Optional[str] = None
     specialty: Optional[str] = None
+    specialty_id: Optional[str] = None
     license_number: Optional[str] = None
     years_experience: Optional[int] = None
     rate_cents: Optional[int] = None
+    custom_rate_cents: Optional[int] = None
     currency: Optional[str] = None
     bio: Optional[str] = None
     academic_experience: Optional[List[dict]] = None
     work_experience: Optional[List[dict]] = None
-    certifications: Optional[List[str]] = None
+    certifications: Optional[List[dict]] = None
     languages: Optional[List[str]] = None
     therapy_approaches: Optional[List[str]] = None
     timezone: Optional[str] = None

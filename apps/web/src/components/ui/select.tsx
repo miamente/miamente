@@ -146,18 +146,8 @@ const Select = React.forwardRef<HTMLDivElement, SelectProps>(
 
         {isOpen && (
           <div
-            className="fixed z-50 mt-1 max-h-60 w-full overflow-auto rounded-md border border-gray-300 bg-white text-gray-900 shadow-lg"
+            className="absolute z-[9999] mt-1 max-h-60 w-full overflow-auto rounded-md border-2 border-blue-500 bg-white text-gray-900 shadow-lg"
             role="listbox"
-            style={{
-              zIndex: 9999,
-              top: selectRef.current
-                ? selectRef.current.getBoundingClientRect().bottom + window.scrollY + 4
-                : 0,
-              left: selectRef.current
-                ? selectRef.current.getBoundingClientRect().left + window.scrollX
-                : 0,
-              width: selectRef.current ? selectRef.current.getBoundingClientRect().width : "auto",
-            }}
             onClick={(e) => {
               // Don't stop propagation here, let option clicks work
             }}

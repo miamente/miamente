@@ -233,18 +233,35 @@ export default function ProfessionalProfilePage() {
           )}
 
           {/* Education */}
-          {professional.education && (
+          {professional.academic_experience && professional.academic_experience.length > 0 && (
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center">
                   <GraduationCap className="mr-2 h-5 w-5" />
-                  Educación
+                  Formación Académica
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="whitespace-pre-line text-gray-700 dark:text-gray-300">
-                  {professional.education}
-                </p>
+                <div className="space-y-4">
+                  {professional.academic_experience.map((education, index) => (
+                    <div key={index} className="border-l-4 border-blue-200 pl-4">
+                      <h4 className="font-semibold text-gray-900 dark:text-gray-100">
+                        {education.degree}
+                      </h4>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">
+                        {education.institution} - {education.field}
+                      </p>
+                      <p className="text-xs text-gray-500 dark:text-gray-500">
+                        {education.startDate} - {education.endDate || "Presente"}
+                      </p>
+                      {education.description && (
+                        <p className="mt-2 text-sm text-gray-700 dark:text-gray-300">
+                          {education.description}
+                        </p>
+                      )}
+                    </div>
+                  ))}
+                </div>
               </CardContent>
             </Card>
           )}

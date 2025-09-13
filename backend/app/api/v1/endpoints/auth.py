@@ -124,12 +124,16 @@ async def login_unified(login_data: UnifiedLogin, db: Session = Depends(get_db))
         from app.core.security import create_token_response
         token_response = create_token_response(str(professional.id))
         
+        # Convert professional to response format
+        from app.api.v1.endpoints.professionals import parse_professional_data
+        professional_data = parse_professional_data(professional)
+        
         return UnifiedLoginResponse(
             access_token=token_response["access_token"],
             refresh_token=token_response["refresh_token"],
             token_type=token_response["token_type"],
             user_type="professional",
-            professional_data=professional
+            professional_data=professional_data
         )
     
     # Try to authenticate as regular user
@@ -138,12 +142,16 @@ async def login_unified(login_data: UnifiedLogin, db: Session = Depends(get_db))
         from app.core.security import create_token_response
         token_response = create_token_response(str(user.id))
         
+        # Convert user to response format
+        from app.api.v1.endpoints.users import parse_user_data
+        user_data = parse_user_data(user)
+        
         return UnifiedLoginResponse(
             access_token=token_response["access_token"],
             refresh_token=token_response["refresh_token"],
             token_type=token_response["token_type"],
             user_type="user",
-            user_data=user
+            user_data=user_data
         )
     
     # If neither worked, return authentication error

@@ -45,12 +45,12 @@ export const USER_NAVIGATION_ITEMS: NavigationItem[] = [
   {
     label: "Inicio",
     href: "/",
-    roles: ["user", "pro"],
+    roles: ["user", "professional"],
   },
   {
     label: "Profesionales",
     href: "/professionals",
-    roles: ["user", "pro"],
+    roles: ["user", "professional"],
   },
 ];
 
