@@ -22,19 +22,86 @@ export const registerSchema = z
 
 export const userProfileSchema = z.object({
   fullName: z.string().min(2, "El nombre debe tener al menos 2 caracteres"),
-  phone: z.string().min(10, "El teléfono debe tener al menos 10 dígitos").optional(),
+  phoneCountryCode: z.string().optional(),
+  phoneNumber: z.string().min(7, "El número de teléfono debe tener al menos 7 dígitos").optional(),
 });
 
 export const professionalProfileSchema = z.object({
-  specialty: z.string().min(2, "La especialidad debe tener al menos 2 caracteres"),
-  rateCents: z
+  // Basic info
+  fullName: z.string().min(2, "El nombre debe tener al menos 2 caracteres"),
+  email: z.string().email("Email inválido").optional(),
+  phoneCountryCode: z.string().optional(),
+  phoneNumber: z.string().min(7, "El número de teléfono debe tener al menos 7 dígitos").optional(),
+
+  // Professional info
+  licenseNumber: z.string().optional(),
+  yearsExperience: z
     .number()
-    .min(1000, "La tarifa debe ser al menos $10.00")
-    .max(1000000, "La tarifa no puede exceder $10,000.00"),
+    .min(0, "Los años de experiencia no pueden ser negativos")
+    .max(50, "Los años de experiencia no pueden exceder 50"),
   bio: z
     .string()
     .min(50, "La biografía debe tener al menos 50 caracteres")
-    .max(1000, "La biografía no puede exceder 1000 caracteres"),
+    .max(1000, "La biografía no puede exceder 1000 caracteres")
+    .optional(),
+
+  // Experience arrays
+  academicExperience: z
+    .array(
+      z.object({
+        institution: z.string(),
+        degree: z.string(),
+        field: z.string(),
+        startDate: z.string(),
+        endDate: z.string().optional(),
+        description: z.string().optional(),
+      }),
+    )
+    .optional(),
+
+  workExperience: z
+    .array(
+      z.object({
+        company: z.string(),
+        position: z.string(),
+        startDate: z.string(),
+        endDate: z.string().optional(),
+        description: z.string().optional(),
+      }),
+    )
+    .optional(),
+
+  // Arrays
+  certifications: z
+    .array(
+      z.object({
+        name: z.string().min(1, "El nombre de la certificación es requerido"),
+        document: z.instanceof(File).optional(),
+        documentUrl: z.string().min(1, "El documento de certificación es obligatorio"),
+        fileName: z.string().optional(),
+      }),
+    )
+    .optional(),
+  languages: z.array(z.string()).optional(),
+  therapyApproaches: z.array(z.string()).optional(),
+  specialtyIds: z.array(z.string()).optional(),
+  modalities: z
+    .array(
+      z.object({
+        id: z.string(),
+        modalityId: z.string(),
+        modalityName: z.string(),
+        virtualPrice: z.number().min(0, "El precio virtual no puede ser negativo"),
+        presencialPrice: z.number().min(0, "El precio presencial no puede ser negativo"),
+        offersPresencial: z.boolean(),
+        description: z.string().optional(),
+        isDefault: z.boolean(),
+      }),
+    )
+    .optional(),
+
+  // Settings
+  timezone: z.string().optional(),
 });
 
 export const fileUploadSchema = z

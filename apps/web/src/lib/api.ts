@@ -182,6 +182,7 @@ class ApiClient {
     this.token = token;
     if (typeof window !== "undefined") {
       localStorage.setItem("access_token", token);
+      console.log("API Client - Token saved to localStorage:", token.substring(0, 20) + "...");
     }
   }
 

@@ -40,8 +40,16 @@ export function AcademicExperienceSection({ experiences }: AcademicExperiencePro
                 <div className="flex items-center gap-1 text-sm text-gray-500 dark:text-gray-400">
                   <Calendar className="h-4 w-4" />
                   <span>
-                    {experience.start_year}
-                    {experience.end_year ? ` - ${experience.end_year}` : " - Presente"}
+                    {new Date(experience.startDate).toLocaleDateString("es-CO", {
+                      month: "short",
+                      year: "numeric",
+                    })}
+                    {experience.endDate
+                      ? ` - ${new Date(experience.endDate).toLocaleDateString("es-CO", {
+                          month: "short",
+                          year: "numeric",
+                        })}`
+                      : " - Presente"}
                   </span>
                 </div>
               </div>

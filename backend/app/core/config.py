@@ -22,7 +22,7 @@ class Settings(BaseSettings):
     SERVER_HOST: AnyHttpUrl = "http://localhost:8000"
     
     # CORS settings
-    BACKEND_CORS_ORIGINS: List[str] = ["http://localhost:3000", "http://localhost:3001", "https://miamente.vercel.app"]
+    BACKEND_CORS_ORIGINS: List[str] = ["http://localhost:3000", "http://localhost:3001", "http://localhost:8000", "https://miamente.vercel.app"]
     
     @field_validator("BACKEND_CORS_ORIGINS", mode="before")
     @classmethod
@@ -46,7 +46,7 @@ class Settings(BaseSettings):
         raise ValueError(v)
     
     # Database settings
-    DATABASE_URL: str = "postgresql://user:password@localhost:5432/miamente"
+    DATABASE_URL: str = "postgresql://manueljurado@localhost:5432/miamente"
     
     # Redis settings
     REDIS_URL: str = "redis://localhost:6379/0"

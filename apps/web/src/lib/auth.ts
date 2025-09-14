@@ -1,6 +1,6 @@
 import { apiClient } from "./api";
 
-export type UserRole = "user" | "pro" | "admin";
+export type UserRole = "user" | "professional" | "admin";
 
 export interface UserProfile {
   id: string;
@@ -16,7 +16,9 @@ export interface UserProfile {
 export interface LoginResponse {
   access_token: string;
   token_type: string;
-  user: UserProfile;
+  user_type: string;
+  user?: UserProfile;
+  professional?: UserProfile;
 }
 
 export interface RegisterRequest {
@@ -39,7 +41,7 @@ export async function registerWithEmail(data: RegisterRequest): Promise<UserProf
 
 export async function loginWithEmail(email: string, password: string): Promise<LoginResponse> {
   try {
-    const response = await apiClient.post("/auth/login/user", {
+    const response = await apiClient.post("/auth/login", {
       email,
       password,
     });
@@ -63,9 +65,16 @@ export async function logout(): Promise<void> {
     // Clear token from API client and localStorage
     // In JWT-based authentication, logout is handled client-side by removing the token
     apiClient.clearToken();
+    // Redirect to login page
+    if (typeof window !== "undefined") {
+      window.location.href = "/login";
+    }
   } catch (error) {
     console.error("Logout error:", error);
-    // Even if there's an error, we should still clear local storage
+    // Even if there's an error, we should still clear local storage and redirect
+    if (typeof window !== "undefined") {
+      window.location.href = "/login";
+    }
   }
 }
 

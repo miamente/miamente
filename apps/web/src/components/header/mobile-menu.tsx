@@ -34,12 +34,14 @@ export function MobileMenu({
 
   const filteredNavItems = navigationItems.filter(
     (item) =>
-      !item.roles || (userRole && item.roles.includes(userRole as "user" | "pro" | "admin")),
+      !item.roles ||
+      (userRole && item.roles.includes(userRole as "user" | "professional" | "admin")),
   );
 
   const filteredUserOptions = userMenuOptions.filter(
     (option) =>
-      !option.roles || (userRole && option.roles.includes(userRole as "user" | "pro" | "admin")),
+      !option.roles ||
+      (userRole && option.roles.includes(userRole as "user" | "professional" | "admin")),
   );
 
   return (

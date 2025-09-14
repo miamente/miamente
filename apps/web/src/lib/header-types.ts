@@ -45,12 +45,12 @@ export const USER_NAVIGATION_ITEMS: NavigationItem[] = [
   {
     label: "Inicio",
     href: "/",
-    roles: ["user", "pro"],
+    roles: ["user", "professional"],
   },
   {
     label: "Profesionales",
     href: "/professionals",
-    roles: ["user", "pro"],
+    roles: ["user", "professional"],
   },
 ];
 
@@ -73,17 +73,12 @@ export const ADMIN_NAVIGATION_ITEMS: NavigationItem[] = [
   },
 ];
 
-// User menu options for regular users (user and pro)
+// User menu options for regular users (user and professional)
 export const USER_MENU_OPTIONS: UserMenuOption[] = [
   {
     label: "Dashboard",
-    href: "/dashboard/user",
-    roles: ["user"],
-  },
-  {
-    label: "Dashboard",
-    href: "/dashboard/pro",
-    roles: ["pro"],
+    href: "/dashboard",
+    roles: ["user", "professional"],
   },
   {
     label: "Mi Perfil",
@@ -93,12 +88,12 @@ export const USER_MENU_OPTIONS: UserMenuOption[] = [
   {
     label: "Mi Perfil",
     href: "/profile/professional",
-    roles: ["pro"],
+    roles: ["professional"],
   },
   {
     label: "Cerrar Sesión",
     action: "logout", // Special action identifier
-    roles: ["user", "pro"],
+    roles: ["user", "professional"],
     divider: true,
   },
 ];

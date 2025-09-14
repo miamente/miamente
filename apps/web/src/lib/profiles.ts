@@ -3,41 +3,58 @@ import { apiClient } from "./api";
 export interface AcademicExperience {
   institution: string;
   degree: string;
-  start_year: number;
-  end_year?: number;
+  field: string;
+  startDate: string;
+  endDate?: string;
   description?: string;
 }
 
 export interface WorkExperience {
   company: string;
   position: string;
-  start_date: string;
-  end_date?: string;
+  startDate: string;
+  endDate?: string;
   description?: string;
   achievements?: string[];
+}
+
+export interface Certification {
+  name: string;
+  documentUrl: string;
+  fileName?: string;
+}
+
+export interface Modality {
+  id: string;
+  modalityId: string;
+  modalityName: string;
+  virtualPrice: number;
+  presencialPrice: number;
+  offersPresencial: boolean;
+  description?: string;
+  isDefault: boolean;
 }
 
 export interface ProfessionalProfile {
   id: string;
   email: string;
   full_name: string;
-  phone?: string;
-  specialty: string;
+  phone_country_code?: string;
+  phone_number?: string;
+  specialty_ids?: string[];
   license_number?: string;
   years_experience: number;
   rate_cents: number;
   currency: string;
   bio?: string;
-  education?: string;
   academic_experience?: AcademicExperience[];
   work_experience?: WorkExperience[];
-  certifications?: string[];
+  certifications?: Certification[];
   languages?: string[];
-  therapy_approaches?: string[];
+  therapy_approaches_ids?: string[];
+  modalities?: Modality[];
   timezone: string;
   profile_picture?: string;
-  emergency_contact?: string;
-  emergency_phone?: string;
   is_active: boolean;
   is_verified: boolean;
   created_at: string;
@@ -45,13 +62,47 @@ export interface ProfessionalProfile {
 }
 
 export interface UpdateProfessionalProfileRequest {
+  // Basic info
+  full_name?: string;
+  phone_country_code?: string;
+  phone_number?: string;
+
+  // Professional info
   specialty?: string;
+  specialty_ids?: string[];
+  license_number?: string;
+  years_experience?: number;
+  rate_cents?: number;
+  currency?: string;
   bio?: string;
-  experience_years?: number;
-  education?: string;
-  certifications?: string[];
+
+  // Experience arrays
+  academic_experience?: Array<{
+    institution: string;
+    degree: string;
+    field: string;
+    startDate: string;
+    endDate?: string;
+    description?: string;
+  }>;
+
+  work_experience?: Array<{
+    company: string;
+    position: string;
+    startDate: string;
+    endDate?: string;
+    description?: string;
+  }>;
+
+  // Arrays
+  certifications?: Certification[];
   languages?: string[];
-  consultation_fee?: number;
+  therapy_approaches_ids?: string[];
+  modalities?: Modality[];
+
+  // Settings
+  timezone?: string;
+  profile_picture?: string;
 }
 
 export async function getProfessionalProfile(professionalId: string): Promise<ProfessionalProfile> {
@@ -79,7 +130,7 @@ export async function updateProfessionalProfileById(
 
 export async function getMyProfessionalProfile(): Promise<ProfessionalProfile | null> {
   try {
-    const response = await apiClient.get("/professionals/me");
+    const response = await apiClient.get("/professionals/me/profile");
     return response as ProfessionalProfile;
   } catch (error) {
     console.error("Get my professional profile error:", error);

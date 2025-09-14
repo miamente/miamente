@@ -122,7 +122,6 @@ class ProfessionalModel(TestBase):
     rate_cents = Column(Integer, nullable=False)  # Rate in cents
     currency = Column(String(3), default="COP")
     bio = Column(Text, nullable=True)
-    education = Column(Text, nullable=True)  # JSON string
     certifications = Column(Text, nullable=True)  # JSON string instead of ARRAY
     languages = Column(Text, nullable=True)  # JSON string instead of ARRAY
     therapy_approaches = Column(Text, nullable=True)  # JSON string instead of ARRAY

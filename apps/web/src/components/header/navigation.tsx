@@ -3,6 +3,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 import type { NavigationItem } from "@/lib/header-types";
+import type { UserRole } from "@/hooks/useRole";
 import { cn } from "@/lib/utils";
 
 interface NavigationProps {
@@ -16,7 +17,8 @@ export function Navigation({ navigationItems, userRole, className }: NavigationP
 
   const filteredItems = navigationItems.filter(
     (item) =>
-      !item.roles || (userRole && item.roles.includes(userRole as "user" | "pro" | "admin")),
+      !item.roles ||
+      (userRole && item.roles.includes(userRole as "user" | "professional" | "admin")),
   );
 
   return (

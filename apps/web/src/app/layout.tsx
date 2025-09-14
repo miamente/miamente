@@ -5,6 +5,7 @@ import "./globals.css";
 import { Footer } from "@/components/footer";
 import { HeaderWrapper as Header } from "@/components/header/header-wrapper";
 import { ThemeProvider } from "@/components/theme-provider";
+import { TooltipProvider } from "@/components/ui/tooltip";
 
 const montserrat = Montserrat({ variable: "--font-montserrat", subsets: ["latin"] });
 
@@ -25,9 +26,11 @@ export default function RootLayout({
         suppressHydrationWarning={true}
       >
         <ThemeProvider>
-          <Header />
-          <main className="mx-auto min-h-[70vh] max-w-6xl px-4 py-8">{children}</main>
-          <Footer />
+          <TooltipProvider>
+            <Header />
+            <main className="mx-auto min-h-[70vh] max-w-6xl px-4 py-8">{children}</main>
+            <Footer />
+          </TooltipProvider>
         </ThemeProvider>
       </body>
     </html>

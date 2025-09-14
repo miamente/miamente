@@ -33,7 +33,7 @@ export default function RegisterPage() {
   React.useEffect(() => {
     if (user) {
       if (isUserVerified(user)) {
-        router.push("/dashboard/user");
+        router.push("/dashboard");
       } else {
         router.push("/verify");
       }

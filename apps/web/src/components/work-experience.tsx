@@ -40,12 +40,12 @@ export function WorkExperienceSection({ experiences }: WorkExperienceProps) {
                 <div className="flex items-center gap-1 text-sm text-gray-500 dark:text-gray-400">
                   <Calendar className="h-4 w-4" />
                   <span>
-                    {new Date(experience.start_date).toLocaleDateString("es-CO", {
+                    {new Date(experience.startDate).toLocaleDateString("es-CO", {
                       month: "short",
                       year: "numeric",
                     })}
-                    {experience.end_date
-                      ? ` - ${new Date(experience.end_date).toLocaleDateString("es-CO", {
+                    {experience.endDate
+                      ? ` - ${new Date(experience.endDate).toLocaleDateString("es-CO", {
                           month: "short",
                           year: "numeric",
                         })}`
