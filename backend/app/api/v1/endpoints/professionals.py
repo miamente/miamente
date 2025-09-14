@@ -18,17 +18,21 @@ router = APIRouter()
 
 def parse_professional_data(professional: Professional) -> dict:
     """Parse professional data including JSON fields."""
+    print(f"DEBUG: Parsing professional data for {professional.id}")
+    print(f"DEBUG: Professional modalities count: {len(professional.professional_modalities) if professional.professional_modalities else 0}")
+    if professional.professional_modalities:
+        for pm in professional.professional_modalities:
+            print(f"DEBUG: Modality: {pm.modality_name}, Active: {pm.is_active}")
+    
     return {
         "id": professional.id,
         "email": professional.email,
         "full_name": professional.full_name,
-        "phone": professional.phone,
-        "specialty": professional.specialty,
-        "specialty_id": str(professional.specialty_id) if professional.specialty_id else None,
+        "phone_country_code": professional.phone_country_code,
+        "phone_number": professional.phone_number,
         "license_number": professional.license_number,
         "years_experience": professional.years_experience,
         "rate_cents": professional.rate_cents,
-        "custom_rate_cents": professional.custom_rate_cents,
         "currency": professional.currency,
         "professional_specialties": [
             {
@@ -47,11 +51,23 @@ def parse_professional_data(professional: Professional) -> dict:
         "work_experience": json.loads(professional.work_experience) if professional.work_experience else None,
         "certifications": json.loads(professional.certifications) if professional.certifications else None,
         "languages": professional.languages,
-        "therapy_approaches": professional.therapy_approaches,
+        "therapy_approaches_ids": professional.therapy_approaches_ids,
+        "specialty_ids": professional.specialty_ids,
+        "modalities": [
+            {
+                "id": str(pm.id),
+                "modalityId": str(pm.modality_id),
+                "modalityName": pm.modality_name,
+                "virtualPrice": pm.virtual_price,
+                "presencialPrice": pm.presencial_price,
+                "offersPresencial": pm.offers_presencial,
+                "description": pm.description,
+                "isDefault": pm.is_default,
+            }
+            for pm in professional.professional_modalities if pm.is_active
+        ],
         "timezone": professional.timezone,
         "working_hours": json.loads(professional.working_hours) if professional.working_hours else None,
-        "emergency_contact": professional.emergency_contact,
-        "emergency_phone": professional.emergency_phone,
         "profile_picture": professional.profile_picture,
         "is_active": professional.is_active,
         "is_verified": professional.is_verified,
@@ -193,9 +209,48 @@ async def update_current_professional(
     if "certifications" in update_data:
         professional.certifications = json.dumps(update_data["certifications"])
     
+    # Handle specialty_ids - update directly in the professional model
+    if "specialty_ids" in update_data:
+        professional.specialty_ids = update_data["specialty_ids"]
+    
+    # Handle therapy_approaches_ids - update directly in the professional model
+    if "therapy_approaches_ids" in update_data:
+        professional.therapy_approaches_ids = update_data["therapy_approaches_ids"]
+    
+    # Handle modalities - update professional_modalities relationship
+    if "modalities" in update_data:
+        from app.models.professional_modality import ProfessionalModality
+        
+        print(f"DEBUG: Processing modalities data: {update_data['modalities']}")
+        
+        # Remove existing modalities
+        db.query(ProfessionalModality).filter(
+            ProfessionalModality.professional_id == professional.id
+        ).delete()
+        
+        # Add new modalities
+        for modality_data in update_data["modalities"]:
+            print(f"DEBUG: Creating modality with data: {modality_data}")
+            new_modality = ProfessionalModality(
+                professional_id=professional.id,
+                modality_id=uuid.UUID(modality_data["modalityId"]),
+                modality_name=modality_data["modalityName"],
+                virtual_price=modality_data["virtualPrice"],
+                presencial_price=modality_data.get("presencialPrice", 0),
+                offers_presencial=modality_data.get("offersPresencial", False),
+                description=modality_data.get("description"),
+                is_default=modality_data.get("isDefault", False)
+            )
+            db.add(new_modality)
+            print(f"DEBUG: Added modality to database: {new_modality}")
+            
+        # Flush to ensure the modalities are saved before commit
+        db.flush()
+        print(f"DEBUG: Flushed {len(update_data['modalities'])} modalities to database")
+    
     # Update other fields
     for field, value in update_data.items():
-        if field not in ["academic_experience", "work_experience", "certifications"] and hasattr(professional, field):
+        if field not in ["academic_experience", "work_experience", "certifications", "specialty_ids", "therapy_approaches_ids", "modalities"] and hasattr(professional, field):
             # Map hourly_rate_cents to rate_cents
             if field == "hourly_rate_cents":
                 professional.rate_cents = value
@@ -203,10 +258,19 @@ async def update_current_professional(
                 setattr(professional, field, value)
     
     try:
+        print("DEBUG: Committing changes to database...")
         db.commit()
+        print("DEBUG: Changes committed successfully")
         db.refresh(professional)
+        print("DEBUG: Professional refreshed from database")
+        
+        # Explicitly reload the modalities relationship
+        db.refresh(professional, ['professional_modalities'])
+        print(f"DEBUG: After refresh, modalities count: {len(professional.professional_modalities) if professional.professional_modalities else 0}")
+        
         return professional
     except Exception as e:
+        print(f"DEBUG: Error during commit: {str(e)}")
         db.rollback()
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,

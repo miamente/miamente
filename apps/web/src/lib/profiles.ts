@@ -24,12 +24,24 @@ export interface Certification {
   fileName?: string;
 }
 
+export interface Modality {
+  id: string;
+  modalityId: string;
+  modalityName: string;
+  virtualPrice: number;
+  presencialPrice: number;
+  offersPresencial: boolean;
+  description?: string;
+  isDefault: boolean;
+}
+
 export interface ProfessionalProfile {
   id: string;
   email: string;
   full_name: string;
-  phone?: string;
-  specialty: string;
+  phone_country_code?: string;
+  phone_number?: string;
+  specialty_ids?: string[];
   license_number?: string;
   years_experience: number;
   rate_cents: number;
@@ -39,7 +51,8 @@ export interface ProfessionalProfile {
   work_experience?: WorkExperience[];
   certifications?: Certification[];
   languages?: string[];
-  therapy_approaches?: string[];
+  therapy_approaches_ids?: string[];
+  modalities?: Modality[];
   timezone: string;
   profile_picture?: string;
   is_active: boolean;
@@ -51,10 +64,12 @@ export interface ProfessionalProfile {
 export interface UpdateProfessionalProfileRequest {
   // Basic info
   full_name?: string;
-  phone?: string;
+  phone_country_code?: string;
+  phone_number?: string;
 
   // Professional info
   specialty?: string;
+  specialty_ids?: string[];
   license_number?: string;
   years_experience?: number;
   rate_cents?: number;
@@ -82,7 +97,8 @@ export interface UpdateProfessionalProfileRequest {
   // Arrays
   certifications?: Certification[];
   languages?: string[];
-  therapy_approaches?: string[];
+  therapy_approaches_ids?: string[];
+  modalities?: Modality[];
 
   // Settings
   timezone?: string;

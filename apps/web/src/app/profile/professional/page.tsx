@@ -8,10 +8,14 @@ import { FileUpload } from "@/components/file-upload";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { PhoneInputFieldWithRef } from "@/components/ui/phone-input";
 import { AcademicExperienceEditor } from "@/components/academic-experience-editor";
 import { WorkExperienceEditor } from "@/components/work-experience-editor";
 import { CertificationsEditor } from "@/components/certifications-editor";
-import { SpecialtiesEditor } from "@/components/specialties-editor";
+import { SpecialtiesMultiSelect } from "@/components/professional-info/SpecialtiesMultiSelect";
+import { TherapeuticApproachesMultiSelect } from "@/components/professional-info/TherapeuticApproachesMultiSelect";
+import { LanguagesMultiSelect } from "@/components/professional-info/LanguagesMultiSelect";
+import { ModalitiesEditor } from "@/components/professional-info/ModalitiesEditor";
 import { ArrayFieldEditor } from "@/components/array-field-editor";
 import {
   Award,
@@ -52,6 +56,7 @@ export default function ProfessionalProfilePage() {
     formState: { errors },
     setValue,
     reset,
+    watch,
   } = methods;
 
   const loadProfile = useCallback(async () => {
@@ -67,7 +72,9 @@ export default function ProfessionalProfilePage() {
         // Reset form with all data at once
         const formData: ProfessionalProfileFormData = {
           fullName: proProfile.full_name || "",
-          phone: proProfile.phone || "",
+          email: proProfile.email || "",
+          phoneCountryCode: proProfile.phone_country_code || "",
+          phoneNumber: proProfile.phone_number || "",
           licenseNumber: proProfile.license_number || "",
           yearsExperience: proProfile.years_experience || 0,
           bio: proProfile.bio || "",
@@ -92,7 +99,9 @@ export default function ProfessionalProfilePage() {
               };
             }) || [],
           languages: proProfile.languages || [],
-          therapyApproaches: proProfile.therapy_approaches || [],
+          therapyApproaches: proProfile.therapy_approaches_ids || [],
+          specialtyIds: proProfile.specialty_ids || [],
+          modalities: proProfile.modalities || [],
           timezone: proProfile.timezone || "America/Bogota",
         };
 
@@ -183,46 +192,39 @@ export default function ProfessionalProfilePage() {
         }
       }
 
+      // Debug: Log the modalities data being sent
+      console.log("Submitting modalities data:", data.modalities);
+
+      const profileData = {
+        full_name: data.fullName,
+        phone_country_code: data.phoneCountryCode,
+        phone_number: data.phoneNumber,
+        license_number: data.licenseNumber,
+        years_experience: data.yearsExperience,
+        bio: data.bio,
+        academic_experience: data.academicExperience,
+        work_experience: data.workExperience,
+        certifications: data.certifications?.map((cert) => ({
+          name: cert.name,
+          documentUrl: cert.documentUrl,
+          fileName: cert.fileName,
+        })),
+        languages: data.languages,
+        therapy_approaches_ids: data.therapyApproaches,
+        specialty_ids: data.specialtyIds,
+        modalities: data.modalities,
+        timezone: data.timezone,
+        profile_picture: profilePictureUrl || undefined,
+      };
+
+      console.log("Full profile data being sent:", profileData);
+
       if (profile) {
         // Update existing profile
-        await updateProfessionalProfile({
-          full_name: data.fullName,
-          phone: data.phone,
-          license_number: data.licenseNumber,
-          years_experience: data.yearsExperience,
-          bio: data.bio,
-          academic_experience: data.academicExperience,
-          work_experience: data.workExperience,
-          certifications: data.certifications?.map((cert) => ({
-            name: cert.name,
-            documentUrl: cert.documentUrl,
-            fileName: cert.fileName,
-          })),
-          languages: data.languages,
-          therapy_approaches: data.therapyApproaches,
-          timezone: data.timezone,
-          profile_picture: profilePictureUrl || undefined,
-        });
+        await updateProfessionalProfile(profileData);
       } else {
         // Create new profile
-        await createProfessionalProfile({
-          full_name: data.fullName,
-          phone: data.phone,
-          license_number: data.licenseNumber,
-          years_experience: data.yearsExperience,
-          bio: data.bio,
-          academic_experience: data.academicExperience,
-          work_experience: data.workExperience,
-          certifications: data.certifications?.map((cert) => ({
-            name: cert.name,
-            documentUrl: cert.documentUrl,
-            fileName: cert.fileName,
-          })),
-          languages: data.languages,
-          therapy_approaches: data.therapyApproaches,
-          timezone: data.timezone,
-          profile_picture: profilePictureUrl || undefined,
-        });
+        await createProfessionalProfile(profileData);
       }
 
       setSuccess(true);
@@ -391,21 +393,51 @@ export default function ProfessionalProfilePage() {
 
                   <div>
                     <label
+                      htmlFor="email"
+                      className="block text-sm font-medium text-neutral-700 dark:text-neutral-300"
+                    >
+                      Correo Electrónico
+                    </label>
+                    <Input
+                      id="email"
+                      {...register("email")}
+                      className="mt-1"
+                      type="email"
+                      placeholder="juan.perez@ejemplo.com"
+                      disabled={true}
+                    />
+                    {errors.email && (
+                      <p className="mt-1 text-sm text-red-600 dark:text-red-400">
+                        {errors.email.message}
+                      </p>
+                    )}
+                  </div>
+
+                  <div>
+                    <label
                       htmlFor="phone"
                       className="block text-sm font-medium text-neutral-700 dark:text-neutral-300"
                     >
                       Teléfono
                     </label>
-                    <Input
+                    <PhoneInputFieldWithRef
                       id="phone"
-                      {...register("phone")}
+                      countryCode={watch("phoneCountryCode")}
+                      onCountryCodeChange={(e: any) => setValue("phoneCountryCode", e.target.value)}
+                      phoneNumber={watch("phoneNumber")}
+                      onPhoneNumberChange={(e: any) => setValue("phoneNumber", e.target.value)}
                       className="mt-1"
-                      placeholder="+573001234567"
+                      placeholder="300 123 4567"
                       disabled={isSubmitting}
                     />
-                    {errors.phone && (
+                    {errors.phoneCountryCode && (
                       <p className="mt-1 text-sm text-red-600 dark:text-red-400">
-                        {errors.phone.message}
+                        {errors.phoneCountryCode.message}
+                      </p>
+                    )}
+                    {errors.phoneNumber && (
+                      <p className="mt-1 text-sm text-red-600 dark:text-red-400">
+                        {errors.phoneNumber.message}
                       </p>
                     )}
                   </div>
@@ -487,36 +519,43 @@ export default function ProfessionalProfilePage() {
                       </p>
                     )}
                   </div>
+
+                  {/* Especialidades */}
+                  <div>
+                    <SpecialtiesMultiSelect
+                      value={watch("specialtyIds") || []}
+                      onChange={(specialtyIds) => setValue("specialtyIds", specialtyIds)}
+                      disabled={isSubmitting}
+                    />
+                  </div>
+
+                  {/* Enfoques Terapéuticos */}
+                  <div>
+                    <TherapeuticApproachesMultiSelect
+                      value={watch("therapyApproaches") || []}
+                      onChange={(approaches) => setValue("therapyApproaches", approaches)}
+                      disabled={isSubmitting}
+                    />
+                  </div>
+
+                  {/* Idiomas */}
+                  <div>
+                    <LanguagesMultiSelect
+                      value={watch("languages") || []}
+                      onChange={(languages) => setValue("languages", languages)}
+                      disabled={isSubmitting}
+                    />
+                  </div>
                 </CardContent>
               </Card>
             </div>
 
-            {/* Specialties and Pricing */}
-            <SpecialtiesEditor disabled={isSubmitting} />
-
             {/* Experience Sections */}
             <div className="space-y-6">
+              <ModalitiesEditor disabled={isSubmitting} />
               <AcademicExperienceEditor disabled={isSubmitting} />
               <WorkExperienceEditor disabled={isSubmitting} />
               <CertificationsEditor disabled={isSubmitting} />
-            </div>
-
-            {/* Additional Information */}
-            <div className="grid gap-6 md:grid-cols-2">
-              <ArrayFieldEditor
-                name="languages"
-                title="Idiomas"
-                placeholder="Agregar idioma..."
-                icon={<Languages className="h-5 w-5 text-blue-600" />}
-                disabled={isSubmitting}
-              />
-              <ArrayFieldEditor
-                name="therapyApproaches"
-                title="Enfoques Terapéuticos"
-                placeholder="Agregar enfoque..."
-                icon={<Brain className="h-5 w-5 text-green-600" />}
-                disabled={isSubmitting}
-              />
             </div>
           </form>
         </FormProvider>

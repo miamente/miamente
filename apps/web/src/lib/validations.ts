@@ -22,13 +22,16 @@ export const registerSchema = z
 
 export const userProfileSchema = z.object({
   fullName: z.string().min(2, "El nombre debe tener al menos 2 caracteres"),
-  phone: z.string().min(10, "El teléfono debe tener al menos 10 dígitos").optional(),
+  phoneCountryCode: z.string().optional(),
+  phoneNumber: z.string().min(7, "El número de teléfono debe tener al menos 7 dígitos").optional(),
 });
 
 export const professionalProfileSchema = z.object({
   // Basic info
   fullName: z.string().min(2, "El nombre debe tener al menos 2 caracteres"),
-  phone: z.string().min(10, "El teléfono debe tener al menos 10 dígitos").optional(),
+  email: z.string().email("Email inválido").optional(),
+  phoneCountryCode: z.string().optional(),
+  phoneNumber: z.string().min(7, "El número de teléfono debe tener al menos 7 dígitos").optional(),
 
   // Professional info
   licenseNumber: z.string().optional(),
@@ -81,6 +84,21 @@ export const professionalProfileSchema = z.object({
     .optional(),
   languages: z.array(z.string()).optional(),
   therapyApproaches: z.array(z.string()).optional(),
+  specialtyIds: z.array(z.string()).optional(),
+  modalities: z
+    .array(
+      z.object({
+        id: z.string(),
+        modalityId: z.string(),
+        modalityName: z.string(),
+        virtualPrice: z.number().min(0, "El precio virtual no puede ser negativo"),
+        presencialPrice: z.number().min(0, "El precio presencial no puede ser negativo"),
+        offersPresencial: z.boolean(),
+        description: z.string().optional(),
+        isDefault: z.boolean(),
+      }),
+    )
+    .optional(),
 
   // Settings
   timezone: z.string().optional(),

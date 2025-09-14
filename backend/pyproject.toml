@@ -23,7 +23,7 @@ dependencies = [
     "sendgrid==6.11.0",
     "redis==5.2.0",
     "celery==5.4.0",
-    "python-dotenv==1.1.0",
+    "python-dotenv==1.0.1",
     "httpx==0.28.1",
 ]
 
@@ -37,6 +37,10 @@ dev = [
     "flake8==7.1.1",
     "mypy==1.13.0",
 ]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["app*"]
 
 [tool.black]
 line-length = 88

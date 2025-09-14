@@ -19,14 +19,14 @@ class Professional(Base):
     email = Column(String(255), unique=True, index=True, nullable=False)
     full_name = Column(String(255), nullable=False)
     phone = Column(String(20), nullable=True)
+    phone_country_code = Column(String(10), nullable=True)
+    phone_number = Column(String(20), nullable=True)
     hashed_password = Column(String(255), nullable=False)
     is_active = Column(Boolean, default=True)
     is_verified = Column(Boolean, default=False)
     profile_picture = Column(Text, nullable=True)
     
     # Professional specific fields
-    specialty_id = Column(UUID(as_uuid=True), ForeignKey("specialties.id"), nullable=True)
-    specialty = Column(String(255), nullable=False)  # Keep for backward compatibility
     license_number = Column(String(100), nullable=True)
     years_experience = Column(Integer, default=0)
     rate_cents = Column(Integer, nullable=False)  # Rate in cents
@@ -37,7 +37,8 @@ class Professional(Base):
     work_experience = Column(Text, nullable=True)  # JSON string for structured work experience
     certifications = Column(Text, nullable=True)  # JSON string for structured certifications
     languages = Column(ARRAY(String), nullable=True)
-    therapy_approaches = Column(ARRAY(String), nullable=True)
+    therapy_approaches_ids = Column(ARRAY(String), nullable=True)  # List of therapeutic approach IDs
+    specialty_ids = Column(ARRAY(String), nullable=True)  # New: list of specialty IDs
     
     # Availability settings
     timezone = Column(String(50), default="America/Bogota")
@@ -51,10 +52,12 @@ class Professional(Base):
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
     
     # Relationships
-    specialty_rel = relationship("Specialty", foreign_keys=[specialty_id])
-    professional_specialties = relationship("ProfessionalSpecialty", back_populates="professional")
-    appointments = relationship("Appointment", back_populates="professional")
-    availability = relationship("Availability", back_populates="professional")
+    professional_specialties = relationship("app.models.professional_specialty.ProfessionalSpecialty", back_populates="professional")  # Keep for backward compatibility
+    professional_specialties_new = relationship("app.models.professional_specialty_new.ProfessionalSpecialty", back_populates="professional")  # New many-to-many relationship
+    professional_therapeutic_approaches = relationship("app.models.professional_therapeutic_approach.ProfessionalTherapeuticApproach", back_populates="professional")
+    professional_modalities = relationship("app.models.professional_modality.ProfessionalModality", back_populates="professional")
+    appointments = relationship("app.models.appointment.Appointment", back_populates="professional")
+    availability = relationship("app.models.availability.Availability", back_populates="professional")
     
     def __repr__(self):
         return f"<Professional(id={self.id}, email={self.email}, full_name={self.full_name}, specialty={self.specialty})>"

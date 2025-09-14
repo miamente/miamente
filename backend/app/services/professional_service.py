@@ -7,6 +7,9 @@ from fastapi import HTTPException, status
 
 from app.models.professional import Professional
 from app.schemas.professional import ProfessionalCreate, ProfessionalUpdate
+from app.services.professional_specialty_new_service import ProfessionalSpecialtyNewService
+from app.services.professional_therapeutic_approach_service import ProfessionalTherapeuticApproachService
+from app.services.professional_modality_service import ProfessionalModalityService
 
 
 class ProfessionalService:
@@ -14,6 +17,9 @@ class ProfessionalService:
     
     def __init__(self, db: Session):
         self.db = db
+        self.specialty_service = ProfessionalSpecialtyNewService(db)
+        self.therapeutic_approach_service = ProfessionalTherapeuticApproachService(db)
+        self.modality_service = ProfessionalModalityService(db)
     
     def get_professional_by_id(self, professional_id: str) -> Optional[Professional]:
         """Get professional by ID."""
@@ -43,8 +49,21 @@ class ProfessionalService:
             return None
         
         try:
-            # Update fields
-            for field, value in update_data.dict(exclude_unset=True).items():
+            # Handle new specialty_ids field
+            if update_data.specialty_ids is not None:
+                self.specialty_service.add_specialties_to_professional(professional_id, update_data.specialty_ids)
+            
+            
+            # Handle new modality_ids field (this would need to be implemented based on requirements)
+            # if update_data.modality_ids is not None:
+            #     self.modality_service.add_modalities_to_professional(professional_id, update_data.modality_ids)
+            
+            # Update other fields (excluding the new relationship fields)
+            update_dict = update_data.dict(exclude_unset=True)
+            update_dict.pop('specialty_ids', None)
+            update_dict.pop('modality_ids', None)
+            
+            for field, value in update_dict.items():
                 setattr(professional, field, value)
             
             self.db.commit()

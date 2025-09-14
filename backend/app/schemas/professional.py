@@ -12,23 +12,22 @@ class ProfessionalBase(BaseModel):
     """Base professional schema."""
     email: EmailStr
     full_name: str
-    phone: Optional[str] = None
-    specialty: str
-    specialty_id: Optional[str] = None
+    phone_country_code: Optional[str] = None
+    phone_number: Optional[str] = None
+    # New fields for specialties, therapeutic approaches, and modalities
+    specialty_ids: Optional[List[str]] = None  # New: list of specialty IDs
+    modalities: Optional[List[dict]] = None  # New: list of modality objects with full details
     license_number: Optional[str] = None
     years_experience: int = 0
     rate_cents: int = 50000  # Default rate in cents (500 COP)
-    custom_rate_cents: Optional[int] = None
     currency: str = "COP"
     bio: Optional[str] = None
     academic_experience: Optional[List[dict]] = None  # Structured academic experience
     work_experience: Optional[List[dict]] = None  # Structured work experience
     certifications: Optional[List[dict]] = None  # Structured certifications with name and document_url
     languages: Optional[List[str]] = None
-    therapy_approaches: Optional[List[str]] = None
+    therapy_approaches_ids: Optional[List[str]] = None  # List of therapeutic approach IDs
     timezone: str = "America/Bogota"
-    emergency_contact: Optional[str] = None
-    emergency_phone: Optional[str] = None
 
 
 class ProfessionalCreate(ProfessionalBase):
@@ -46,9 +45,13 @@ class ProfessionalCreate(ProfessionalBase):
 class ProfessionalUpdate(BaseModel):
     """Professional update schema."""
     full_name: Optional[str] = None
-    phone: Optional[str] = None
-    specialty: Optional[str] = None
-    specialty_id: Optional[str] = None
+    phone_country_code: Optional[str] = None
+    phone_number: Optional[str] = None
+    specialty: Optional[str] = None  # Keep for backward compatibility
+    specialty_id: Optional[str] = None  # Keep for backward compatibility
+    # New fields for specialties, therapeutic approaches, and modalities
+    specialty_ids: Optional[List[str]] = None  # New: list of specialty IDs
+    modalities: Optional[List[dict]] = None  # New: list of modality objects with full details
     license_number: Optional[str] = None
     years_experience: Optional[int] = None
     rate_cents: Optional[int] = None
@@ -59,7 +62,7 @@ class ProfessionalUpdate(BaseModel):
     work_experience: Optional[List[dict]] = None
     certifications: Optional[List[dict]] = None
     languages: Optional[List[str]] = None
-    therapy_approaches: Optional[List[str]] = None
+    therapy_approaches: Optional[List[str]] = None  # Keep for backward compatibility
     timezone: Optional[str] = None
     profile_picture: Optional[str] = None
     emergency_contact: Optional[str] = None
@@ -116,9 +119,9 @@ class ProfessionalResponse(ProfessionalBase):
                 return []
         return v or []
     
-    @field_validator('therapy_approaches', mode='before')
+    @field_validator('therapy_approaches_ids', mode='before')
     @classmethod
-    def parse_therapy_approaches(cls, v):
+    def parse_therapy_approaches_ids(cls, v):
         if isinstance(v, str):
             try:
                 return json.loads(v)

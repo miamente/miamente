@@ -240,11 +240,13 @@ export function CertificationsEditor({ disabled = false }: CertificationsEditorP
                           placeholder="Certificación en Terapia Cognitivo-Conductual"
                           disabled={disabled}
                         />
-                        {errors.certifications?.[index]?.name && (
-                          <p className="mt-1 text-sm text-red-600">
-                            {errors.certifications[index]?.name?.message}
-                          </p>
-                        )}
+                        {errors.certifications &&
+                          Array.isArray(errors.certifications) &&
+                          errors.certifications[index]?.name && (
+                            <p className="mt-1 text-sm text-red-600">
+                              {errors.certifications[index].name.message}
+                            </p>
+                          )}
                       </div>
 
                       <div>
@@ -298,11 +300,13 @@ export function CertificationsEditor({ disabled = false }: CertificationsEditorP
                             ) : null}
                           </div>
                         </div>
-                        {errors.certifications?.[index]?.documentUrl && (
-                          <p className="mt-1 text-sm text-red-600">
-                            {errors.certifications[index]?.documentUrl?.message}
-                          </p>
-                        )}
+                        {errors.certifications &&
+                          Array.isArray(errors.certifications) &&
+                          errors.certifications[index]?.documentUrl && (
+                            <p className="mt-1 text-sm text-red-600">
+                              {errors.certifications[index].documentUrl.message}
+                            </p>
+                          )}
                       </div>
                     </div>
                   </div>

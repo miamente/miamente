@@ -280,7 +280,7 @@ export default function ProfessionalProfilePage() {
                   {professional.certifications.map((cert, index) => (
                     <li key={index} className="flex items-center">
                       <span className="mr-3 h-2 w-2 rounded-full bg-blue-500"></span>
-                      <span className="text-gray-700 dark:text-gray-300">{cert}</span>
+                      <span className="text-gray-700 dark:text-gray-300">{cert.name}</span>
                     </li>
                   ))}
                 </ul>

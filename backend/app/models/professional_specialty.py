@@ -29,8 +29,8 @@ class ProfessionalSpecialty(Base):
     updated_at = Column(String(255), onupdate=func.now())
     
     # Relationships
-    professional = relationship("Professional", back_populates="professional_specialties")
-    specialty = relationship("Specialty", foreign_keys=[specialty_id])
+    professional = relationship("app.models.professional.Professional", back_populates="professional_specialties")
+    specialty = relationship("app.models.specialty.Specialty", foreign_keys=[specialty_id])
     
     def __repr__(self):
         return f"<ProfessionalSpecialty(id={self.id}, name={self.name}, price_cents={self.price_cents})>"
