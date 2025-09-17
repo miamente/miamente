@@ -16,15 +16,15 @@ describe("WorkExperienceSection", () => {
     {
       company: "Centro de Salud Mental ABC",
       position: "Psicóloga Clínica",
-      start_date: "2020-01-01",
-      end_date: "2022-12-31",
+      startDate: "2020-01-01",
+      endDate: "2022-12-31",
       description: "Atención psicológica individual y grupal",
       achievements: ["Implementé programa de terapia grupal", "Reduje tiempo de espera en 30%"],
     },
     {
       company: "Consultorio Privado",
       position: "Psicóloga Independiente",
-      start_date: "2023-01-01",
+      startDate: "2023-01-01",
       description: "Práctica privada especializada en terapia cognitivo-conductual",
       achievements: ["Atendí más de 200 pacientes", "Desarrollé protocolo de evaluación"],
     },
@@ -55,7 +55,7 @@ describe("WorkExperienceSection", () => {
       {
         company: "Hospital San Rafael",
         position: "Psicóloga Senior",
-        start_date: "2023-06-01",
+        startDate: "2023-06-01",
         description: "Trabajo actual",
       },
     ];
@@ -70,8 +70,8 @@ describe("WorkExperienceSection", () => {
       {
         company: "Clínica XYZ",
         position: "Psicóloga",
-        start_date: "2018-01-01",
-        end_date: "2020-12-31",
+        startDate: "2018-01-01",
+        endDate: "2020-12-31",
       },
     ];
 
@@ -87,8 +87,8 @@ describe("WorkExperienceSection", () => {
       {
         company: "Centro de Salud",
         position: "Psicóloga",
-        start_date: "2020-01-01",
-        end_date: "2021-12-31",
+        startDate: "2020-01-01",
+        endDate: "2021-12-31",
         description: "Trabajo en centro de salud",
       },
     ];
@@ -130,8 +130,8 @@ describe("WorkExperienceSection", () => {
       {
         company: "Test Company",
         position: "Test Position",
-        start_date: "2020-03-15",
-        end_date: "2022-11-30",
+        startDate: "2020-03-15",
+        endDate: "2022-11-30",
         description: "Test description",
       },
     ];

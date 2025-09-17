@@ -3,7 +3,7 @@ Appointment schemas.
 """
 from datetime import datetime
 from typing import Optional
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from app.models.appointment import AppointmentStatus
 import uuid
 
@@ -59,10 +59,7 @@ class AppointmentResponse(AppointmentBase):
     cancelled_at: Optional[datetime] = None
     completed_at: Optional[datetime] = None
     
-    class Config:
-        from_attributes = True
-
-
+    model_config = ConfigDict(from_attributes=True)
 class BookAppointmentRequest(BaseModel):
     """Book appointment request schema."""
     professional_id: uuid.UUID

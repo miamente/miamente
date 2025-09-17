@@ -88,8 +88,9 @@ class AuthService:
         db_professional = Professional(
             email=professional_data.email,
             full_name=professional_data.full_name,
-            phone=professional_data.phone,
-            specialty=professional_data.specialty,
+            phone_country_code=professional_data.phone_country_code,
+            phone_number=professional_data.phone_number,
+            specialty_ids=professional_data.specialty_ids,
             license_number=professional_data.license_number,
             years_experience=professional_data.years_experience,
             rate_cents=professional_data.rate_cents,
@@ -97,10 +98,8 @@ class AuthService:
             bio=professional_data.bio,
             certifications=professional_data.certifications,
             languages=professional_data.languages,
-            therapy_approaches=professional_data.therapy_approaches,
+            therapy_approaches_ids=professional_data.therapy_approaches_ids,
             timezone=professional_data.timezone,
-            emergency_contact=professional_data.emergency_contact,
-            emergency_phone=professional_data.emergency_phone,
             hashed_password=hashed_password,
         )
         

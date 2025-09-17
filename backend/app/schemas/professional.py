@@ -3,7 +3,7 @@ Professional schemas.
 """
 from datetime import datetime
 from typing import Optional, List
-from pydantic import BaseModel, EmailStr, field_validator
+from pydantic import BaseModel, EmailStr, field_validator, ConfigDict
 import uuid
 import json
 
@@ -129,10 +129,7 @@ class ProfessionalResponse(ProfessionalBase):
                 return []
         return v or []
     
-    class Config:
-        from_attributes = True
-
-
+    model_config = ConfigDict(from_attributes=True)
 class ProfessionalLogin(BaseModel):
     """Professional login schema."""
     email: EmailStr

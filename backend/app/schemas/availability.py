@@ -3,7 +3,7 @@ Availability schemas.
 """
 from datetime import datetime
 from typing import Optional
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from app.models.availability import SlotStatus
 import uuid
 
@@ -38,10 +38,7 @@ class AvailabilityResponse(AvailabilityBase):
     created_at: datetime
     updated_at: Optional[datetime] = None
     
-    class Config:
-        from_attributes = True
-
-
+    model_config = ConfigDict(from_attributes=True)
 class BulkAvailabilityCreate(BaseModel):
     """Bulk availability creation schema."""
     professional_id: uuid.UUID

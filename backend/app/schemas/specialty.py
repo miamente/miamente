@@ -2,7 +2,7 @@
 Specialty schemas for the Miamente platform.
 """
 from typing import Optional
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 
 class SpecialtyBase(BaseModel):
@@ -32,10 +32,7 @@ class SpecialtyResponse(SpecialtyBase):
     """Specialty response schema."""
     id: str
     
-    class Config:
-        from_attributes = True
-
-
+    model_config = ConfigDict(from_attributes=True)
 class ProfessionalSpecialtyUpdate(BaseModel):
     """Professional specialty update schema."""
     specialty_id: str

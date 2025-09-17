@@ -2,7 +2,7 @@
 Professional Specialty schemas for the Miamente platform.
 """
 from typing import Optional
-from pydantic import BaseModel, field_validator
+from pydantic import BaseModel, ConfigDict, field_validator
 from datetime import datetime
 from uuid import UUID
 
@@ -63,10 +63,7 @@ class ProfessionalSpecialtyResponse(ProfessionalSpecialtyBase):
                 return v
         return v
     
-    class Config:
-        from_attributes = True
-
-
+    model_config = ConfigDict(from_attributes=True)
 class ProfessionalSpecialtyWithDefault(ProfessionalSpecialtyResponse):
     """Professional specialty with default specialty information."""
     default_specialty_name: Optional[str] = None

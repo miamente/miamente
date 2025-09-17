@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 from typing import Optional, List
 from datetime import datetime
 import uuid
@@ -35,10 +35,7 @@ class ModalityResponse(ModalityBase):
     created_at: datetime
     updated_at: Optional[datetime] = None
     
-    class Config:
-        from_attributes = True
-
-
+    model_config = ConfigDict(from_attributes=True)
 class ProfessionalModalityBase(BaseModel):
     """Base professional modality schema."""
     modality_id: uuid.UUID = Field(...)
@@ -74,5 +71,4 @@ class ProfessionalModalityResponse(ProfessionalModalityBase):
     created_at: datetime
     updated_at: Optional[datetime] = None
     
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)

@@ -15,15 +15,17 @@ describe("AcademicExperienceSection", () => {
     {
       institution: "Universidad Nacional de Colombia",
       degree: "Psicología",
-      start_year: 2015,
-      end_year: 2020,
+      field: "Psicología Clínica",
+      startDate: "2015-01-01",
+      endDate: "2020-12-31",
       description: "Licenciatura en Psicología con énfasis en clínica",
     },
     {
       institution: "Universidad de los Andes",
       degree: "Especialización en Terapia Cognitivo-Conductual",
-      start_year: 2021,
-      end_year: 2022,
+      field: "Terapia Cognitivo-Conductual",
+      startDate: "2021-01-01",
+      endDate: "2022-12-31",
       description: "Especialización en TCC",
     },
   ];
@@ -34,14 +36,14 @@ describe("AcademicExperienceSection", () => {
     expect(screen.getByText("Formación Académica")).toBeInTheDocument();
     expect(screen.getByText("Psicología")).toBeInTheDocument();
     expect(screen.getByText("Universidad Nacional de Colombia")).toBeInTheDocument();
-    expect(screen.getByText("2015 - 2020")).toBeInTheDocument();
+    expect(screen.getByText("dic de 2014 - dic de 2020")).toBeInTheDocument();
     expect(
       screen.getByText("Licenciatura en Psicología con énfasis en clínica"),
     ).toBeInTheDocument();
 
     expect(screen.getByText("Especialización en Terapia Cognitivo-Conductual")).toBeInTheDocument();
     expect(screen.getByText("Universidad de los Andes")).toBeInTheDocument();
-    expect(screen.getByText("2021 - 2022")).toBeInTheDocument();
+    expect(screen.getByText("dic de 2020 - dic de 2022")).toBeInTheDocument();
     expect(screen.getByText("Especialización en TCC")).toBeInTheDocument();
   });
 
@@ -50,14 +52,15 @@ describe("AcademicExperienceSection", () => {
       {
         institution: "Universidad Javeriana",
         degree: "Maestría en Psicología Clínica",
-        start_year: 2023,
+        field: "Psicología Clínica",
+        startDate: "2023-01-01",
         description: "Maestría en curso",
       },
     ];
 
     render(<AcademicExperienceSection experiences={ongoingExperience} />);
 
-    expect(screen.getByText("2023 - Presente")).toBeInTheDocument();
+    expect(screen.getByText("dic de 2022 - Presente")).toBeInTheDocument();
   });
 
   it("renders experience without description", () => {
@@ -65,8 +68,9 @@ describe("AcademicExperienceSection", () => {
       {
         institution: "Universidad Externado",
         degree: "Psicología",
-        start_year: 2010,
-        end_year: 2015,
+        field: "Psicología",
+        startDate: "2010-01-01",
+        endDate: "2015-12-31",
       },
     ];
 
@@ -74,7 +78,7 @@ describe("AcademicExperienceSection", () => {
 
     expect(screen.getByText("Psicología")).toBeInTheDocument();
     expect(screen.getByText("Universidad Externado")).toBeInTheDocument();
-    expect(screen.getByText("2010 - 2015")).toBeInTheDocument();
+    expect(screen.getByText("dic de 2009 - dic de 2015")).toBeInTheDocument();
   });
 
   it("does not render when experiences array is empty", () => {

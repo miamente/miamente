@@ -81,7 +81,7 @@ async def login_user(user_login: UserLogin, db: Session = Depends(get_db)):
     )
 
 
-@router.post("/login/professional", response_model=Token)
+@router.post("/login/professional", response_model=ProfessionalTokenResponse)
 async def login_professional(professional_login: ProfessionalLogin, db: Session = Depends(get_db)):
     """Login professional."""
     auth_service = AuthService(db)
@@ -106,10 +106,11 @@ async def login_professional(professional_login: ProfessionalLogin, db: Session 
     from app.core.security import create_token_response
     
     token_response = create_token_response(str(professional.id))
-    return Token(
+    return ProfessionalTokenResponse(
         access_token=token_response["access_token"],
         refresh_token=token_response["refresh_token"],
-        token_type=token_response["token_type"]
+        token_type=token_response["token_type"],
+        professional=professional
     )
 
 

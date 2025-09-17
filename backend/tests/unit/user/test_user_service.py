@@ -4,11 +4,11 @@ Test-specific user service that uses test models.
 from typing import List, Optional
 from sqlalchemy.orm import Session
 
-from tests.conftest import UserModel
+from app.models.user import User as UserModel
 from app.schemas.user import UserCreate, UserUpdate
 
 
-class TestUserService:
+class UserService:
     """Test user service that uses test models."""
     
     def __init__(self, db: Session):

@@ -1,197 +1,184 @@
-# Backend Tests
+# Estructura de Tests del Backend
 
-This directory contains comprehensive tests for the FastAPI backend.
+Esta documentación describe la organización de los tests del backend de la plataforma Miamente.
 
-## Test Structure
+## 📁 Estructura de Directorios
 
 ```
 tests/
-├── conftest.py              # Pytest configuration and fixtures
-├── unit/                    # Unit tests
-│   ├── test_models.py      # Database model tests (8 tests)
-│   ├── test_services.py    # Service layer tests (15 tests)
-│   ├── test_user_service.py        # Test service for users
-│   ├── test_professional_service.py # Test service for professionals
-│   ├── test_appointment_service.py  # Test service for appointments
-│   └── test_auth_service.py         # Test service for authentication
-├── integration/             # Integration tests
-│   ├── test_auth_endpoints.py      # Authentication API tests
-│   ├── test_user_endpoints.py      # User API tests
-│   ├── test_professional_endpoints.py  # Professional API tests
-│   ├── test_appointment_endpoints.py   # Appointment API tests
-│   └── test_payment_endpoints.py       # Payment API tests
-└── fixtures/                # Test fixtures and utilities
-    └── test_appointment.py  # Test schemas for appointments
+├── __init__.py
+├── conftest.py              # Configuración global de pytest
+├── fixtures/                # Datos de prueba y fixtures
+│   ├── __init__.py
+│   └── test_appointment.py
+├── unit/                    # Tests unitarios
+│   ├── __init__.py
+│   ├── auth/                # Tests de autenticación
+│   │   ├── __init__.py
+│   │   └── test_auth_service.py
+│   ├── professional/        # Tests de profesionales
+│   │   ├── __init__.py
+│   │   └── test_professional_service.py
+│   ├── user/                # Tests de usuarios
+│   │   ├── __init__.py
+│   │   └── test_user_service.py
+│   ├── appointment/         # Tests de citas
+│   │   ├── __init__.py
+│   │   └── test_appointment_service.py
+│   ├── payment/             # Tests de pagos
+│   │   └── __init__.py
+│   ├── models/              # Tests de modelos de datos
+│   │   ├── __init__.py
+│   │   └── test_models.py
+│   └── services/            # Tests de servicios generales
+│       ├── __init__.py
+│       ├── test_config.py
+│       └── test_services.py
+└── integration/             # Tests de integración
+    ├── __init__.py
+    ├── auth/                # Tests de endpoints de autenticación
+    │   ├── __init__.py
+    │   └── test_auth_endpoints.py
+    ├── professional/        # Tests de endpoints de profesionales
+    │   ├── __init__.py
+    │   ├── test_professional_endpoints.py
+    │   ├── test_professional_experience.py
+    │   └── test_professional_profile.py
+    ├── user/                # Tests de endpoints de usuarios
+    │   ├── __init__.py
+    │   └── test_user_endpoints.py
+    ├── appointment/         # Tests de endpoints de citas
+    │   ├── __init__.py
+    │   └── test_appointment_endpoints.py
+    └── payment/             # Tests de endpoints de pagos
+        ├── __init__.py
+        └── test_payment_endpoints.py
 ```
 
-## Running Tests
+## 🧪 Tipos de Tests
 
-### Prerequisites
+### Tests Unitarios (`unit/`)
 
-Make sure you have all dependencies installed:
+Los tests unitarios prueban componentes individuales de forma aislada:
+
+- **Servicios**: Lógica de negocio de cada servicio
+- **Modelos**: Validación y comportamiento de los modelos de datos
+- **Configuración**: Configuraciones de la aplicación
+- **Utilidades**: Funciones auxiliares y helpers
+
+**Características:**
+
+- No dependen de la base de datos real
+- Usan mocks y stubs
+- Ejecutan rápidamente
+- Son determinísticos
+
+### Tests de Integración (`integration/`)
+
+Los tests de integración prueban la interacción entre componentes:
+
+- **Endpoints**: APIs REST completas
+- **Base de datos**: Operaciones CRUD reales
+- **Autenticación**: Flujos completos de login/registro
+- **Flujos de negocio**: Casos de uso completos
+
+**Características:**
+
+- Usan la base de datos de prueba
+- Prueban flujos completos
+- Verifican contratos entre componentes
+- Son más lentos que los unitarios
+
+## 🚀 Ejecución de Tests
+
+### Ejecutar todos los tests
 
 ```bash
-pip install -r requirements.txt
+python -m pytest tests/ -v
 ```
 
-### Run All Tests
+### Ejecutar solo tests unitarios
 
 ```bash
-# From the backend directory
-python run_tests.py
+python -m pytest tests/unit/ -v
 ```
 
-### Run Specific Test Types
+### Ejecutar solo tests de integración
 
 ```bash
-# Unit tests only
-pytest tests/unit/ -v
-
-# Integration tests only
-pytest tests/integration/ -v
-
-# Tests with coverage
-pytest tests/ -v --cov=app --cov-report=term-missing
-
-# Generate HTML coverage report
-pytest tests/ -v --cov=app --cov-report=html
+python -m pytest tests/integration/ -v
 ```
 
-### Run Individual Test Files
+### Ejecutar tests por funcionalidad
 
 ```bash
-# Test models
-pytest tests/unit/test_models.py -v
+# Tests de autenticación
+python -m pytest tests/unit/auth/ tests/integration/auth/ -v
 
-# Test services
-pytest tests/unit/test_services.py -v
-
-# Test authentication endpoints
-pytest tests/integration/test_auth_endpoints.py -v
+# Tests de profesionales
+python -m pytest tests/unit/professional/ tests/integration/professional/ -v
 ```
 
-### Run Specific Tests
+### Ejecutar tests específicos
 
 ```bash
-# Run a specific test function
-pytest tests/unit/test_models.py::TestUserModel::test_create_user -v
+# Test específico
+python -m pytest tests/unit/auth/test_auth_service.py::TestAuthService::test_authenticate_user -v
 
-# Run tests matching a pattern
-pytest tests/ -k "test_create" -v
+# Archivo específico
+python -m pytest tests/integration/professional/test_professional_endpoints.py -v
 ```
 
-## Test Categories
+## 📋 Convenciones
 
-### Unit Tests (`tests/unit/`)
+### Nomenclatura de archivos
 
-- **Model Tests**: Test database models, relationships, and constraints
-- **Service Tests**: Test business logic in service classes
+- Tests unitarios: `test_[componente]_service.py`
+- Tests de integración: `test_[componente]_endpoints.py`
+- Tests de modelos: `test_models.py`
+- Tests de configuración: `test_config.py`
 
-### Integration Tests (`tests/integration/`)
+### Nomenclatura de clases
 
-- **API Endpoint Tests**: Test HTTP endpoints, request/response handling
-- **Authentication Tests**: Test login, registration, and token handling
-- **Database Integration**: Test database operations through the API
+- `Test[Componente]Service` para tests unitarios
+- `Test[Componente]Endpoints` para tests de integración
+- `Test[Modelo]Model` para tests de modelos
 
-## Test Fixtures
+### Nomenclatura de métodos
 
-The `conftest.py` file provides several useful fixtures:
+- `test_[descripción_del_comportamiento]`
+- Usar nombres descriptivos que expliquen qué se está probando
+- Ejemplo: `test_authenticate_user_with_valid_credentials`
 
-- `db_session`: Fresh database session for each test
-- `client`: FastAPI test client with database override
-- `test_user_data`: Sample user data for testing
-- `test_professional_data`: Sample professional data for testing
-- `test_appointment_data`: Sample appointment data for testing
+## 🔧 Configuración
 
-## Test Database
+### Fixtures globales (`conftest.py`)
 
-Tests use a SQLite in-memory database (`test.db`) that is created and destroyed for each test run. This ensures:
+- Configuración de la base de datos de prueba
+- Clientes HTTP para tests de integración
+- Datos de prueba comunes
+- Configuración de autenticación
 
-- Tests are isolated from each other
-- No interference with development/production data
-- Fast test execution
+### Fixtures específicas (`fixtures/`)
 
-## Coverage
+- Modelos de datos de prueba
+- Datos de ejemplo para diferentes escenarios
+- Helpers para crear entidades de prueba
 
-The test suite includes coverage reporting to ensure comprehensive testing:
+## ⚠️ Problemas Conocidos
 
-- **Terminal Coverage**: Shows coverage percentage in terminal
-- **HTML Coverage**: Generates detailed HTML report in `htmlcov/` directory
-- **XML Coverage**: Generates XML report for CI/CD integration
+Actualmente hay un problema de compatibilidad de tipos en la base de datos que afecta todos los tests:
 
-## Writing New Tests
+- Error: `foreign key constraint "availability_held_by_fkey" cannot be implemented`
+- Detalle: Las columnas `held_by` (UUID) y `id` (bigint) son de tipos incompatibles
+- Este problema debe resolverse antes de que los tests puedan ejecutarse correctamente
 
-### Unit Test Example
+## 📝 Mejores Prácticas
 
-```python
-def test_create_user(self, db_session):
-    """Test creating a user."""
-    service = UserService(db_session)
-    user_data = UserCreate(
-        email="test@example.com",
-        password="testpassword123",
-        full_name="Test User"
-    )
-
-    user = service.create_user(user_data)
-
-    assert user.email == "test@example.com"
-    assert user.full_name == "Test User"
-    assert user.hashed_password != "testpassword123"
-```
-
-### Integration Test Example
-
-```python
-def test_register_user(self, client: TestClient):
-    """Test user registration."""
-    user_data = {
-        "email": "test@example.com",
-        "password": "testpassword123",
-        "full_name": "Test User"
-    }
-
-    response = client.post("/api/v1/auth/register/user", json=user_data)
-
-    assert response.status_code == 201
-    data = response.json()
-    assert data["email"] == "test@example.com"
-    assert "password" not in data
-```
-
-## Best Practices
-
-1. **Test Isolation**: Each test should be independent and not rely on other tests
-2. **Clear Naming**: Use descriptive test names that explain what is being tested
-3. **Arrange-Act-Assert**: Structure tests with clear setup, execution, and verification
-4. **Mock External Dependencies**: Use mocks for external services, email, etc.
-5. **Test Edge Cases**: Include tests for error conditions and edge cases
-6. **Keep Tests Fast**: Use in-memory database and avoid slow operations
-
-## Continuous Integration
-
-The test suite is designed to run in CI/CD environments:
-
-- Uses SQLite for fast, isolated testing
-- Includes coverage reporting
-- Provides clear pass/fail status
-- Generates reports for analysis
-
-## Troubleshooting
-
-### Common Issues
-
-1. **Import Errors**: Make sure you're running tests from the backend directory
-2. **Database Errors**: Ensure test database is properly configured
-3. **Authentication Errors**: Check that test tokens are properly generated
-4. **Fixture Errors**: Verify that fixtures are properly defined in conftest.py
-
-### Debug Mode
-
-Run tests with verbose output for debugging:
-
-```bash
-pytest tests/ -v -s --tb=long
-```
-
-The `-s` flag shows print statements, and `--tb=long` shows full tracebacks.
+1. **Separación clara**: Mantener tests unitarios e integración separados
+2. **Nombres descriptivos**: Usar nombres que expliquen claramente qué se está probando
+3. **Datos de prueba**: Usar fixtures para datos consistentes
+4. **Aislamiento**: Cada test debe ser independiente
+5. **Cobertura**: Probar casos exitosos y de error
+6. **Documentación**: Comentar tests complejos
+7. **Mantenimiento**: Actualizar tests cuando cambie el código

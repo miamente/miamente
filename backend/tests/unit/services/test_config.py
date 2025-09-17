@@ -1,5 +1,5 @@
 """
-Application configuration settings.
+Test configuration settings for backend tests.
 """
 from typing import List, Union
 from pydantic import AnyHttpUrl, field_validator, ConfigDict
@@ -8,21 +8,21 @@ import secrets
 
 
 class Settings(BaseSettings):
-    """Application settings."""
+    """Test application settings."""
     
     # Basic settings
-    PROJECT_NAME: str = "Miamente Backend"
+    PROJECT_NAME: str = "Miamente Test Backend"
     VERSION: str = "0.1.0"
     API_V1_STR: str = "/api/v1"
-    SECRET_KEY: str = secrets.token_urlsafe(32)
-    DEBUG: bool = False
+    SECRET_KEY: str = "test-secret-key-for-testing-only"
+    DEBUG: bool = True
     
     # Server settings
     SERVER_NAME: str = "localhost"
     SERVER_HOST: AnyHttpUrl = "http://localhost:8000"
     
     # CORS settings
-    BACKEND_CORS_ORIGINS: List[str] = ["http://localhost:3000", "http://localhost:3001", "http://localhost:8000", "https://miamente.vercel.app"]
+    BACKEND_CORS_ORIGINS: List[str] = ["http://localhost:3000", "http://localhost:3001", "http://localhost:8000"]
     
     @field_validator("BACKEND_CORS_ORIGINS", mode="before")
     @classmethod
@@ -34,7 +34,7 @@ class Settings(BaseSettings):
         raise ValueError(v)
     
     # Allowed hosts
-    ALLOWED_HOSTS: List[str] = ["localhost", "127.0.0.1", "*.railway.app", "*.vercel.app"]
+    ALLOWED_HOSTS: List[str] = ["localhost", "127.0.0.1"]
     
     @field_validator("ALLOWED_HOSTS", mode="before")
     @classmethod
@@ -45,8 +45,8 @@ class Settings(BaseSettings):
             return v
         raise ValueError(v)
     
-    # Database settings
-    DATABASE_URL: str = "postgresql://manueljurado@localhost:5432/miamente"
+    # Database settings - using test database
+    DATABASE_URL: str = "postgresql://manueljurado@localhost:5432/miamente_test"
     
     # Redis settings
     REDIS_URL: str = "redis://localhost:6379/0"
@@ -78,8 +78,8 @@ class Settings(BaseSettings):
     
     model_config = ConfigDict(
         case_sensitive=True,
-        env_file=".env"
+        env_file=".env.test"
     )
 
 
-settings = Settings()
+test_settings = Settings()

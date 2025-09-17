@@ -95,7 +95,7 @@ async def update_current_user(
     
     try:
         # Update fields
-        for field, value in update_data.dict(exclude_unset=True).items():
+        for field, value in update_data.model_dump(exclude_unset=True).items():
             setattr(user, field, value)
         
         db.commit()

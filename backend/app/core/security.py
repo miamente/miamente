@@ -1,15 +1,15 @@
 """
 Security utilities for authentication and authorization.
 """
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Any, Union, Optional
-from jose import jwt, JWTError
-from passlib.context import CryptContext
+import jwt
+from argon2 import PasswordHasher
 from fastapi import HTTPException, status
 from app.core.config import settings
 
-# Password hashing
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+# Password hashing - using argon2 for modern, secure password hashing
+ph = PasswordHasher()
 
 
 def create_access_token(
@@ -17,9 +17,9 @@ def create_access_token(
 ) -> str:
     """Create access token."""
     if expires_delta:
-        expire = datetime.utcnow() + expires_delta
+        expire = datetime.now(timezone.utc) + expires_delta
     else:
-        expire = datetime.utcnow() + timedelta(
+        expire = datetime.now(timezone.utc) + timedelta(
             minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES
         )
     
@@ -33,9 +33,9 @@ def create_refresh_token(
 ) -> str:
     """Create refresh token."""
     if expires_delta:
-        expire = datetime.utcnow() + expires_delta
+        expire = datetime.now(timezone.utc) + expires_delta
     else:
-        expire = datetime.utcnow() + timedelta(
+        expire = datetime.now(timezone.utc) + timedelta(
             minutes=settings.REFRESH_TOKEN_EXPIRE_MINUTES
         )
     
@@ -54,18 +54,22 @@ def verify_token(token: str) -> Optional[str]:
         if user_id is None:
             return None
         return user_id
-    except JWTError:
+    except jwt.InvalidTokenError:
         return None
 
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
     """Verify password against hash."""
-    return pwd_context.verify(plain_password, hashed_password)
+    try:
+        ph.verify(hashed_password, plain_password)
+        return True
+    except Exception:
+        return False
 
 
 def get_password_hash(password: str) -> str:
     """Hash password."""
-    return pwd_context.hash(password)
+    return ph.hash(password)
 
 
 def create_token_response(user_id: str) -> dict:

@@ -44,15 +44,17 @@ const mockProfessional = {
     {
       institution: "Universidad Nacional de Colombia",
       degree: "Psicología",
-      start_year: 2015,
-      end_year: 2020,
+      field: "Psicología Clínica",
+      startDate: "2015-01-01",
+      endDate: "2020-12-31",
       description: "Licenciatura en Psicología con énfasis en clínica",
     },
     {
       institution: "Universidad de los Andes",
       degree: "Especialización en Terapia Cognitivo-Conductual",
-      start_year: 2021,
-      end_year: 2022,
+      field: "Terapia Cognitivo-Conductual",
+      startDate: "2021-01-01",
+      endDate: "2022-12-31",
       description: "Especialización en TCC",
     },
   ],
@@ -60,20 +62,23 @@ const mockProfessional = {
     {
       company: "Centro de Salud Mental ABC",
       position: "Psicóloga Clínica",
-      start_date: "2020-01-01",
-      end_date: "2022-12-31",
+      startDate: "2020-01-01",
+      endDate: "2022-12-31",
       description: "Atención psicológica individual y grupal",
       achievements: ["Implementé programa de terapia grupal", "Reduje tiempo de espera en 30%"],
     },
     {
       company: "Consultorio Privado",
       position: "Psicóloga Independiente",
-      start_date: "2023-01-01",
+      startDate: "2023-01-01",
       description: "Práctica privada especializada en terapia cognitivo-conductual",
       achievements: ["Atendí más de 200 pacientes", "Desarrollé protocolo de evaluación"],
     },
   ],
-  certifications: ["Terapia Cognitivo-Conductual", "EMDR"],
+  certifications: [
+    { name: "Terapia Cognitivo-Conductual", documentUrl: "", fileName: "cert1.pdf" },
+    { name: "EMDR", documentUrl: "", fileName: "cert2.pdf" },
+  ],
   languages: ["Español", "Inglés"],
   therapy_approaches: ["Cognitivo-Conductual", "Humanista"],
   timezone: "America/Bogota",
@@ -131,8 +136,10 @@ describe("ProfessionalProfilePage", () => {
     expect(
       screen.getByText("Psicóloga clínica con experiencia en terapia cognitivo-conductual."),
     ).toBeInTheDocument();
-    expect(screen.getByText("Educación")).toBeInTheDocument();
-    expect(screen.getByText("Universidad Nacional de Colombia - Psicología")).toBeInTheDocument();
+    expect(screen.getAllByText("Formación Académica")).toHaveLength(2);
+    expect(
+      screen.getByText("Universidad Nacional de Colombia - Psicología Clínica"),
+    ).toBeInTheDocument();
     expect(screen.getByText("Certificaciones")).toBeInTheDocument();
     expect(screen.getByText("Terapia Cognitivo-Conductual")).toBeInTheDocument();
     expect(screen.getByText("EMDR")).toBeInTheDocument();
@@ -260,20 +267,20 @@ describe("ProfessionalProfilePage", () => {
     render(<ProfessionalProfilePage />);
 
     await waitFor(() => {
-      expect(screen.getByText("Formación Académica")).toBeInTheDocument();
+      expect(screen.getAllByText("Formación Académica")).toHaveLength(2);
     });
 
-    expect(screen.getByText("Psicología")).toBeInTheDocument();
+    expect(screen.getAllByText("Psicología")).toHaveLength(2);
     expect(screen.getByText("Universidad Nacional de Colombia")).toBeInTheDocument();
-    expect(screen.getByText("2015 - 2020")).toBeInTheDocument();
-    expect(
-      screen.getByText("Licenciatura en Psicología con énfasis en clínica"),
-    ).toBeInTheDocument();
+    expect(screen.getByText("2015-01-01 - 2020-12-31")).toBeInTheDocument();
+    expect(screen.getAllByText("Licenciatura en Psicología con énfasis en clínica")).toHaveLength(
+      2,
+    );
 
-    expect(screen.getByText("Especialización en Terapia Cognitivo-Conductual")).toBeInTheDocument();
+    expect(screen.getAllByText("Especialización en Terapia Cognitivo-Conductual")).toHaveLength(2);
     expect(screen.getByText("Universidad de los Andes")).toBeInTheDocument();
-    expect(screen.getByText("2021 - 2022")).toBeInTheDocument();
-    expect(screen.getByText("Especialización en TCC")).toBeInTheDocument();
+    expect(screen.getByText("2021-01-01 - 2022-12-31")).toBeInTheDocument();
+    expect(screen.getAllByText("Especialización en TCC")).toHaveLength(2);
   });
 
   it("renders work experience section when available", async () => {

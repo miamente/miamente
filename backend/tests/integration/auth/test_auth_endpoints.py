@@ -167,7 +167,7 @@ class TestAuthEndpoints:
             "email": "professional@example.com",
             "password": "testpassword123",
             "full_name": "Test Professional",
-            "specialty": "Psychology",
+            "specialty_ids": ["psychology"],
             "bio": "Test bio",
             "rate_cents": 50000
         }
@@ -178,7 +178,7 @@ class TestAuthEndpoints:
         data = response.json()
         assert data["email"] == "professional@example.com"
         assert data["full_name"] == "Test Professional"
-        assert data["specialty"] == "Psychology"
+        assert data["specialty_ids"] == ["psychology"]
         assert data["bio"] == "Test bio"
         assert data["rate_cents"] == 50000
         assert "id" in data
@@ -192,7 +192,7 @@ class TestAuthEndpoints:
             "email": "professional@example.com",
             "password": "testpassword123",
             "full_name": "Test Professional",
-            "specialty": "Psychology"
+            "specialty_ids": ["psychology"]
         }
         client.post("/api/v1/auth/register/professional", json=professional_data)
         
@@ -210,4 +210,4 @@ class TestAuthEndpoints:
         assert data["token_type"] == "bearer"
         assert "professional" in data
         assert data["professional"]["email"] == "professional@example.com"
-        assert data["professional"]["specialty"] == "Psychology"
+        assert data["professional"]["specialty_ids"] == ["psychology"]
