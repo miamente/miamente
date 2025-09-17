@@ -64,9 +64,6 @@ DATABASE_URL=postgresql://user:password@localhost:5432/miamente
 
 # JWT
 SECRET_KEY=your-secret-key-here
-
-# Email (optional for development)
-SENDGRID_API_KEY=your-sendgrid-api-key
 ```
 
 6. Run database migrations:
@@ -179,7 +176,6 @@ mypy .
 ```bash
 DATABASE_URL=postgresql://user:password@host:port/database
 SECRET_KEY=your-production-secret-key
-SENDGRID_API_KEY=your-sendgrid-api-key
 BACKEND_CORS_ORIGINS=https://your-frontend-domain.com
 ```
 

@@ -48,30 +48,10 @@ class Settings(BaseSettings):
     # Database settings
     DATABASE_URL: str = "postgresql://manueljurado@localhost:5432/miamente"
     
-    # Redis settings
-    REDIS_URL: str = "redis://localhost:6379/0"
-    
     # JWT settings
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 8  # 8 days
     REFRESH_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 30  # 30 days
     ALGORITHM: str = "HS256"
-    
-    # Email settings
-    SENDGRID_API_KEY: str = ""
-    SENDGRID_FROM_EMAIL: str = "noreply@miamente.com"
-    SENDGRID_FROM_NAME: str = "Miamente"
-    
-    # Payment settings
-    PAYMENT_PROVIDER: str = "mock"  # mock, stripe, etc.
-    STRIPE_SECRET_KEY: str = ""
-    STRIPE_WEBHOOK_SECRET: str = ""
-    
-    # Celery settings
-    CELERY_BROKER_URL: str = "redis://localhost:6379/1"
-    CELERY_RESULT_BACKEND: str = "redis://localhost:6379/2"
-    
-    # Jitsi settings
-    JITSI_DOMAIN: str = "meet.jit.si"
     
     # Timezone
     TIMEZONE: str = "America/Bogota"
