@@ -4,9 +4,10 @@ import React from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuthGuard } from "@/hooks/useAuthGuard";
+import { UserRole } from "@/lib/types";
 
 export default function AdminDashboard() {
-  const { isLoading } = useAuthGuard({ requiredRole: "admin" });
+  const { isLoading } = useAuthGuard({ requiredRole: UserRole.ADMIN });
 
   if (isLoading) {
     return <div className="flex min-h-[50vh] items-center justify-center">Cargando...</div>;

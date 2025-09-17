@@ -19,8 +19,6 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Breadcrumbs } from "@/components/ui/breadcrumbs";
-import { AcademicExperienceSection } from "@/components/academic-experience";
-import { WorkExperienceSection } from "@/components/work-experience";
 import { getProfessionalProfile, type ProfessionalProfile } from "@/lib/profiles";
 import { useAuth, getUserUid } from "@/hooks/useAuth";
 
@@ -177,7 +175,9 @@ export default function ProfessionalProfilePage() {
               )}
 
               <CardTitle className="text-xl">{professional.full_name}</CardTitle>
-              <p className="text-sm text-gray-600 dark:text-gray-400">{professional.specialty}</p>
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                {professional.specialty_ids?.[0] || "Especialidad no especificada"}
+              </p>
 
               {professional.is_verified && (
                 <div className="mt-2 flex items-center justify-center">
@@ -252,7 +252,7 @@ export default function ProfessionalProfilePage() {
                         {education.institution} - {education.field}
                       </p>
                       <p className="text-xs text-gray-500 dark:text-gray-500">
-                        {education.startDate} - {education.endDate || "Presente"}
+                        {education.start_date} - {education.end_date || "Presente"}
                       </p>
                       {education.description && (
                         <p className="mt-2 text-sm text-gray-700 dark:text-gray-300">
@@ -313,38 +313,29 @@ export default function ProfessionalProfilePage() {
           )}
 
           {/* Therapy Approaches */}
-          {professional.therapy_approaches && professional.therapy_approaches.length > 0 && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center">
-                  <Award className="mr-2 h-5 w-5" />
-                  Enfoques Terapéuticos
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="flex flex-wrap gap-2">
-                  {professional.therapy_approaches.map((approach, index) => (
-                    <span
-                      key={index}
-                      className="rounded-full bg-green-100 px-3 py-1 text-sm text-green-800 dark:bg-green-900 dark:text-green-200"
-                    >
-                      {approach}
-                    </span>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Academic Experience */}
-          {professional.academic_experience && professional.academic_experience.length > 0 && (
-            <AcademicExperienceSection experiences={professional.academic_experience} />
-          )}
-
-          {/* Work Experience */}
-          {professional.work_experience && professional.work_experience.length > 0 && (
-            <WorkExperienceSection experiences={professional.work_experience} />
-          )}
+          {professional.therapy_approaches_ids &&
+            professional.therapy_approaches_ids.length > 0 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center">
+                    <Award className="mr-2 h-5 w-5" />
+                    Enfoques Terapéuticos
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex flex-wrap gap-2">
+                    {professional.therapy_approaches_ids.map((approach: string, index: number) => (
+                      <span
+                        key={index}
+                        className="rounded-full bg-green-100 px-3 py-1 text-sm text-green-800 dark:bg-green-900 dark:text-green-200"
+                      >
+                        {approach}
+                      </span>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
 
           {/* Action Buttons */}
           <Card>

@@ -17,7 +17,7 @@ vi.mock("@/lib/profiles", () => ({
 
 // Mock Next.js Image component
 vi.mock("next/image", () => ({
-  default: ({ src, alt, ...props }: any) => <img src={src} alt={alt} {...props} />,
+  default: ({ alt }: { alt: string }) => <div role="img" aria-label={alt} />,
 }));
 
 const mockUseRouter = vi.mocked(useRouter);
@@ -31,7 +31,8 @@ const mockProfessionals = [
     email: "test1@example.com",
     full_name: "Dr. Test Professional 1",
     phone: "+573001234567",
-    specialty: "Psicología Clínica",
+    specialty_ids: ["psicologia-clinica"],
+    specialty: "Psicología Clínica", // Keep for backward compatibility
     license_number: "PS123456",
     years_experience: 5,
     rate_cents: 80000,
@@ -55,7 +56,8 @@ const mockProfessionals = [
     email: "test2@example.com",
     full_name: "Dr. Test Professional 2",
     phone: "+573001234569",
-    specialty: "Psiquiatría",
+    specialty_ids: ["psiquiatria"],
+    specialty: "Psiquiatría", // Keep for backward compatibility
     license_number: "PS123457",
     years_experience: 8,
     rate_cents: 120000,
@@ -174,14 +176,14 @@ describe("ProfessionalsPage", () => {
     });
 
     // Check professional 1 details
-    expect(screen.getByText("Psicología Clínica")).toBeInTheDocument();
+    expect(screen.getByText("psicologia-clinica")).toBeInTheDocument();
     expect(screen.getByText("$ 800,00 / hora")).toBeInTheDocument();
     expect(
       screen.getByText("Psicóloga clínica con experiencia en terapia cognitivo-conductual."),
     ).toBeInTheDocument();
 
     // Check professional 2 details
-    expect(screen.getByText("Psiquiatría")).toBeInTheDocument();
+    expect(screen.getByText("psiquiatria")).toBeInTheDocument();
     expect(screen.getByText("$ 1.200,00 / hora")).toBeInTheDocument();
     expect(
       screen.getByText("Psiquiatra con especialización en trastornos del estado de ánimo."),

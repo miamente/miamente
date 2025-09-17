@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Plus, Trash2, Briefcase, ChevronDown, ChevronRight } from "lucide-react";
 import type { ProfessionalProfileFormData } from "@/lib/validations";
+import type { WorkExperience } from "@/lib/types";
 
 interface WorkExperienceEditorProps {
   disabled?: boolean;
@@ -33,8 +34,15 @@ export function WorkExperienceEditor({ disabled = false }: WorkExperienceEditorP
   useEffect(() => {
     if (workExperience && workExperience.length > 0 && fields.length === 0) {
       // Clear existing fields and add the loaded data
-      workExperience.forEach((exp: any) => {
-        append(exp);
+      workExperience.forEach((exp: WorkExperience) => {
+        // Convert backend format to form format
+        append({
+          company: exp.company,
+          position: exp.position,
+          start_date: exp.start_date,
+          end_date: exp.end_date,
+          description: exp.description,
+        });
       });
     }
   }, [workExperience, fields.length, append]);
@@ -43,8 +51,8 @@ export function WorkExperienceEditor({ disabled = false }: WorkExperienceEditorP
     append({
       company: "",
       position: "",
-      startDate: "",
-      endDate: "",
+      start_date: "",
+      end_date: "",
       description: "",
     });
   };
@@ -132,12 +140,12 @@ export function WorkExperienceEditor({ disabled = false }: WorkExperienceEditorP
                     </label>
                     <Input
                       type="date"
-                      {...control.register(`workExperience.${index}.startDate`)}
+                      {...control.register(`workExperience.${index}.start_date`)}
                       disabled={disabled}
                     />
-                    {errors.workExperience?.[index]?.startDate && (
+                    {errors.workExperience?.[index]?.start_date && (
                       <p className="mt-1 text-sm text-red-600">
-                        {errors.workExperience[index]?.startDate?.message}
+                        {errors.workExperience[index]?.start_date?.message}
                       </p>
                     )}
                   </div>
@@ -148,12 +156,12 @@ export function WorkExperienceEditor({ disabled = false }: WorkExperienceEditorP
                     </label>
                     <Input
                       type="date"
-                      {...control.register(`workExperience.${index}.endDate`)}
+                      {...control.register(`workExperience.${index}.end_date`)}
                       disabled={disabled}
                     />
-                    {errors.workExperience?.[index]?.endDate && (
+                    {errors.workExperience?.[index]?.end_date && (
                       <p className="mt-1 text-sm text-red-600">
-                        {errors.workExperience[index]?.endDate?.message}
+                        {errors.workExperience[index]?.end_date?.message}
                       </p>
                     )}
                   </div>

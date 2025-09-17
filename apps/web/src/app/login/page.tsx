@@ -43,7 +43,7 @@ export default function LoginPage() {
     setError(null);
 
     try {
-      const response = await loginWithEmail(data.email, data.password);
+      await loginWithEmail(data.email, data.password);
 
       // Redirect to unified dashboard
       router.push("/dashboard");

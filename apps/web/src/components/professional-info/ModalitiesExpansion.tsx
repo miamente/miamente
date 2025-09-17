@@ -4,7 +4,6 @@ import React, { useEffect } from "react";
 import { useFieldArray, useFormContext } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Select } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -12,6 +11,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { Badge } from "@/components/ui/badge";
 import { ChevronDown, ChevronRight, Plus, Trash2, Star, StarOff, DollarSign } from "lucide-react";
 import type { ProfessionalProfileFormData } from "@/lib/validations";
+import type { ProfessionalModality } from "@/lib/types";
 
 interface ModalitiesEditorProps {
   disabled?: boolean;
@@ -32,11 +32,7 @@ const AVAILABLE_MODALITIES = [
 
 export function ModalitiesEditor({ disabled = false }: ModalitiesEditorProps) {
   const [isOpen, setIsOpen] = React.useState(false);
-  const {
-    control,
-    formState: { errors },
-    watch,
-  } = useFormContext<ProfessionalProfileFormData>();
+  const { control, watch, setValue } = useFormContext<ProfessionalProfileFormData>();
 
   const { fields, append, remove } = useFieldArray({
     control,
@@ -50,7 +46,7 @@ export function ModalitiesEditor({ disabled = false }: ModalitiesEditorProps) {
   useEffect(() => {
     if (modalities && modalities.length > 0 && fields.length === 0) {
       // Clear existing fields and add the loaded data
-      modalities.forEach((modality: any) => {
+      modalities.forEach((modality: ProfessionalModality) => {
         append(modality);
       });
     }
@@ -74,17 +70,18 @@ export function ModalitiesEditor({ disabled = false }: ModalitiesEditorProps) {
   };
 
   const setDefaultModality = (index: number) => {
-    // This would need to be implemented with form state management
-    // For now, we'll just remove the functionality
-  };
-
-  const getModalityName = (modalityId: string) => {
-    const modality = AVAILABLE_MODALITIES.find((m) => m.id === modalityId);
-    return modality ? modality.name : "Modalidad";
+    // Set all modalities to not default first
+    modalities?.forEach((_, idx) => {
+      setValue(`modalities.${idx}.isDefault`, false);
+    });
+    // Set the selected modality as default
+    setValue(`modalities.${index}.isDefault`, true);
   };
 
   const getAvailableModalities = () => {
-    const usedModalityIds = modalities?.map((m: any) => m.modalityId).filter(Boolean) || [];
+    const usedModalityIds =
+      modalities?.map((m: unknown) => (m as { modalityId?: string }).modalityId).filter(Boolean) ||
+      [];
     return AVAILABLE_MODALITIES.filter((m) => !usedModalityIds.includes(m.id));
   };
 
@@ -169,9 +166,8 @@ export function ModalitiesEditor({ disabled = false }: ModalitiesEditorProps) {
                         label: modality.name,
                       }))}
                       value={modalities?.[index]?.modalityId || ""}
-                      onValueChange={(value) => {
+                      onValueChange={() => {
                         // This would need to be implemented with form state management
-                        const modalityName = getModalityName(value);
                         // Update the form field
                       }}
                       placeholder="Seleccionar modalidad..."

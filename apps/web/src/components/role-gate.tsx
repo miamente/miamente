@@ -1,7 +1,8 @@
 "use client";
 import React from "react";
 
-import { useRole, type UserRole } from "@/hooks/useRole";
+import { useRole } from "@/hooks/useRole";
+import { UserRole } from "@/lib/types";
 
 interface RoleGateProps {
   roles: UserRole[];
@@ -52,7 +53,7 @@ export function AdminGate({
   fallback?: React.ReactNode;
 }) {
   return (
-    <RoleGate roles={["admin"]} fallback={fallback}>
+    <RoleGate roles={[UserRole.ADMIN]} fallback={fallback}>
       {children}
     </RoleGate>
   );
@@ -66,7 +67,7 @@ export function ProfessionalGate({
   fallback?: React.ReactNode;
 }) {
   return (
-    <RoleGate roles={["professional", "admin"]} fallback={fallback}>
+    <RoleGate roles={[UserRole.PROFESSIONAL, UserRole.ADMIN]} fallback={fallback}>
       {children}
     </RoleGate>
   );
@@ -80,7 +81,7 @@ export function UserGate({
   fallback?: React.ReactNode;
 }) {
   return (
-    <RoleGate roles={["user", "professional", "admin"]} fallback={fallback}>
+    <RoleGate roles={[UserRole.USER, UserRole.PROFESSIONAL, UserRole.ADMIN]} fallback={fallback}>
       {children}
     </RoleGate>
   );

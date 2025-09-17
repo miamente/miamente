@@ -2,166 +2,101 @@
  * API client for communicating with the FastAPI backend.
  */
 
+import type {
+  User,
+  Professional,
+  Appointment,
+  Availability,
+  Specialty,
+  TherapeuticApproach,
+  Modality,
+  Payment,
+  Review,
+  LoginResponse,
+  UserCreate,
+  ProfessionalCreate,
+  AppointmentCreate,
+  AvailabilityCreate,
+  SpecialtyCreate,
+  TherapeuticApproachCreate,
+  ModalityCreate,
+  PaymentCreate,
+  CreateReviewRequest,
+  ApiResponse,
+  PaginatedResponse,
+  ErrorResponse,
+  AuthUser,
+  UserUpdate,
+  ProfessionalUpdate,
+  AppointmentUpdate,
+  AvailabilityUpdate,
+  SpecialtyUpdate,
+  TherapeuticApproachUpdate,
+  ModalityUpdate,
+  PaymentUpdate,
+  BookAppointmentRequest,
+  BookAppointmentResponse,
+  ReviewStats,
+  UploadResponse,
+} from "./types";
+
 // API Configuration
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 const API_VERSION = "/api/v1";
 
-// Types
-export interface ApiResponse<T = unknown> {
-  data?: T;
-  message?: string;
-  error?: string;
-}
+// Re-export types for backward compatibility
+export type {
+  User,
+  Professional,
+  Appointment,
+  Availability,
+  Specialty,
+  TherapeuticApproach,
+  Modality,
+  Payment,
+  Review,
+  LoginResponse,
+  UserCreate,
+  ProfessionalCreate,
+  AppointmentCreate,
+  AvailabilityCreate,
+  SpecialtyCreate,
+  TherapeuticApproachCreate,
+  ModalityCreate,
+  PaymentCreate,
+  CreateReviewRequest,
+  ApiResponse,
+  PaginatedResponse,
+  ErrorResponse,
+  AuthUser,
+  UserUpdate,
+  ProfessionalUpdate,
+  AppointmentUpdate,
+  AvailabilityUpdate,
+  SpecialtyUpdate,
+  TherapeuticApproachUpdate,
+  ModalityUpdate,
+  PaymentUpdate,
+  BookAppointmentRequest,
+  BookAppointmentResponse,
+  ReviewStats,
+  UploadResponse,
+};
 
-export interface TypedApiResponse<T> {
-  data: T;
-  message?: string;
-  error?: string;
-}
-
-export interface PaginatedResponse<T> {
-  items: T[];
-  total: number;
-  page: number;
-  size: number;
-  pages: number;
-}
-
-// Auth Types
-export interface LoginRequest {
+// Legacy type aliases for backward compatibility
+export type LoginRequest = {
   email: string;
   password: string;
-}
+};
 
-export interface RegisterUserRequest {
-  email: string;
-  full_name: string;
-  password: string;
-  phone?: string;
-  date_of_birth?: string;
-  emergency_contact?: string;
-  emergency_phone?: string;
-}
+export type RegisterUserRequest = UserCreate;
+export type RegisterProfessionalRequest = ProfessionalCreate;
 
-export interface RegisterProfessionalRequest {
-  email: string;
-  full_name: string;
-  password: string;
-  phone?: string;
-  specialty: string;
-  license_number?: string;
-  years_experience?: number;
-  rate_cents: number;
-  currency?: string;
-  bio?: string;
-  education?: string;
-  certifications?: string[];
-  languages?: string[];
-  therapy_approaches?: string[];
-  timezone?: string;
-  emergency_contact?: string;
-  emergency_phone?: string;
-}
-
-export interface TokenResponse {
+export type TokenResponse = {
   access_token: string;
   refresh_token: string;
   token_type: string;
-}
-
-export interface User {
-  id: string;
-  email: string;
-  full_name: string;
-  phone?: string;
-  is_active: boolean;
-  is_verified: boolean;
-  profile_picture?: string;
-  date_of_birth?: string;
-  emergency_contact?: string;
-  emergency_phone?: string;
-  created_at: string;
-  updated_at?: string;
-}
-
-export interface Professional {
-  id: string;
-  email: string;
-  full_name: string;
-  phone?: string;
-  is_active: boolean;
-  is_verified: boolean;
-  profile_picture?: string;
-  specialty: string;
-  license_number?: string;
-  years_experience: number;
-  rate_cents: number;
-  currency: string;
-  bio?: string;
-  education?: string;
-  certifications?: string[];
-  languages?: string[];
-  therapy_approaches?: string[];
-  timezone: string;
-  emergency_contact?: string;
-  emergency_phone?: string;
-  created_at: string;
-  updated_at?: string;
-}
-
-export interface Availability {
-  id: string;
-  professional_id: string;
-  date: string;
-  time: string;
-  duration: number;
-  timezone: string;
-  status: "free" | "held" | "booked" | "cancelled";
-  held_by?: string;
-  held_at?: string;
-  created_at: string;
-  updated_at?: string;
-}
-
-export interface Appointment {
-  id: string;
-  user_id: string;
-  professional_id: string;
-  availability_id: string;
-  start_time: string;
-  end_time: string;
-  duration: number;
-  timezone: string;
-  status:
-    | "pending_payment"
-    | "paid"
-    | "confirmed"
-    | "in_progress"
-    | "completed"
-    | "cancelled"
-    | "no_show";
-  paid: boolean;
-  payment_amount_cents: number;
-  payment_currency: string;
-  payment_provider: string;
-  payment_status: string;
-  jitsi_url?: string;
-  session_notes?: string;
-  session_rating?: number;
-  session_feedback?: string;
-  created_at: string;
-  updated_at?: string;
-  cancelled_at?: string;
-  completed_at?: string;
-}
-
-export interface PaymentIntent {
-  payment_intent_id: string;
-  client_secret?: string;
-  status: string;
-  amount_cents: number;
-  currency: string;
-}
+};
 
 // API Client Class
 class ApiClient {
@@ -174,15 +109,16 @@ class ApiClient {
   }
 
   private getStoredToken(): string | null {
-    if (typeof window === "undefined") return null;
-    return localStorage.getItem("access_token");
+    if (typeof window !== "undefined") {
+      return localStorage.getItem("access_token");
+    }
+    return null;
   }
 
   setToken(token: string): void {
     this.token = token;
     if (typeof window !== "undefined") {
       localStorage.setItem("access_token", token);
-      console.log("API Client - Token saved to localStorage:", token.substring(0, 20) + "...");
     }
   }
 
@@ -190,261 +126,435 @@ class ApiClient {
     this.token = null;
     if (typeof window !== "undefined") {
       localStorage.removeItem("access_token");
-      localStorage.removeItem("refresh_token");
     }
   }
 
-  private async request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
-    const url = `${this.baseURL}${API_VERSION}${endpoint}`;
-
-    const headers: Record<string, string> = {
+  private getHeaders(): HeadersInit {
+    const headers: HeadersInit = {
       "Content-Type": "application/json",
-      ...(options.headers as Record<string, string>),
     };
 
     if (this.token) {
       headers.Authorization = `Bearer ${this.token}`;
     }
 
-    const response = await fetch(url, {
-      ...options,
-      headers,
-    });
+    return headers;
+  }
 
+  private async handleResponse<T>(response: Response): Promise<T> {
     if (!response.ok) {
-      if (response.status === 401) {
-        // Token expired, try to refresh
-        const refreshed = await this.refreshToken();
-        if (refreshed) {
-          // Retry the request with new token
-          headers.Authorization = `Bearer ${this.token}`;
-          const retryResponse = await fetch(url, {
-            ...options,
-            headers,
-          });
-
-          if (!retryResponse.ok) {
-            throw new Error(`HTTP ${retryResponse.status}: ${retryResponse.statusText}`);
-          }
-
-          return retryResponse.json();
-        } else {
-          this.clearToken();
-          throw new Error("Authentication failed");
-        }
-      }
-
-      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      const errorData: ErrorResponse = await response.json().catch(() => ({
+        detail: `HTTP ${response.status}: ${response.statusText}`,
+      }));
+      throw new Error(errorData.detail);
     }
 
     return response.json();
   }
 
-  // Public HTTP methods
-  async get<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
-    return this.request<T>(endpoint, { ...options, method: "GET" });
+  // Generic HTTP methods
+  async get<T>(endpoint: string, options?: RequestInit): Promise<T> {
+    const response = await fetch(`${this.baseURL}${API_VERSION}${endpoint}`, {
+      method: "GET",
+      headers: this.getHeaders(),
+      ...options,
+    });
+
+    return this.handleResponse<T>(response);
   }
 
-  async post<T>(endpoint: string, data?: unknown, options: RequestInit = {}): Promise<T> {
-    return this.request<T>(endpoint, {
-      ...options,
+  async post<T>(endpoint: string, data?: unknown, options?: RequestInit): Promise<T> {
+    const response = await fetch(`${this.baseURL}${API_VERSION}${endpoint}`, {
       method: "POST",
-      body: data instanceof FormData ? data : JSON.stringify(data),
+      headers: this.getHeaders(),
+      body: data ? JSON.stringify(data) : undefined,
+      ...options,
     });
+
+    return this.handleResponse<T>(response);
   }
 
-  async put<T>(endpoint: string, data?: unknown, options: RequestInit = {}): Promise<T> {
-    return this.request<T>(endpoint, {
-      ...options,
+  async put<T>(endpoint: string, data?: unknown, options?: RequestInit): Promise<T> {
+    const response = await fetch(`${this.baseURL}${API_VERSION}${endpoint}`, {
       method: "PUT",
-      body: data instanceof FormData ? data : JSON.stringify(data),
-    });
-  }
-
-  async patch<T>(endpoint: string, data?: unknown, options: RequestInit = {}): Promise<T> {
-    return this.request<T>(endpoint, {
+      headers: this.getHeaders(),
+      body: data ? JSON.stringify(data) : undefined,
       ...options,
-      method: "PATCH",
-      body: data instanceof FormData ? data : JSON.stringify(data),
     });
+
+    return this.handleResponse<T>(response);
   }
 
-  async delete<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
-    return this.request<T>(endpoint, { ...options, method: "DELETE" });
+  async patch<T>(endpoint: string, data?: unknown, options?: RequestInit): Promise<T> {
+    const response = await fetch(`${this.baseURL}${API_VERSION}${endpoint}`, {
+      method: "PATCH",
+      headers: this.getHeaders(),
+      body: data ? JSON.stringify(data) : undefined,
+      ...options,
+    });
+
+    return this.handleResponse<T>(response);
   }
 
-  private async refreshToken(): Promise<boolean> {
-    if (typeof window === "undefined") return false;
+  async delete<T>(endpoint: string, options?: RequestInit): Promise<T> {
+    const response = await fetch(`${this.baseURL}${API_VERSION}${endpoint}`, {
+      method: "DELETE",
+      headers: this.getHeaders(),
+      ...options,
+    });
 
-    const refreshToken = localStorage.getItem("refresh_token");
-    if (!refreshToken) return false;
-
-    try {
-      const response = await fetch(`${this.baseURL}${API_VERSION}/auth/refresh`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ refresh_token: refreshToken }),
-      });
-
-      if (response.ok) {
-        const data: TokenResponse = await response.json();
-        this.setToken(data.access_token);
-        localStorage.setItem("refresh_token", data.refresh_token);
-        return true;
-      }
-    } catch (error) {
-      console.error("Token refresh failed:", error);
-    }
-
-    return false;
+    return this.handleResponse<T>(response);
   }
 
-  // Auth Methods
-  async loginUser(credentials: LoginRequest): Promise<TokenResponse> {
-    const response = await this.post<TokenResponse>("/auth/login/user", credentials);
-
-    this.setToken(response.access_token);
-    if (typeof window !== "undefined") {
-      localStorage.setItem("refresh_token", response.refresh_token);
-    }
-
-    return response;
+  // Auth methods
+  async login(email: string, password: string): Promise<LoginResponse> {
+    return this.post<LoginResponse>("/auth/login", { email, password });
   }
 
-  async loginProfessional(credentials: LoginRequest): Promise<TokenResponse> {
-    const response = await this.post<TokenResponse>("/auth/login/professional", credentials);
-
-    this.setToken(response.access_token);
-    if (typeof window !== "undefined") {
-      localStorage.setItem("refresh_token", response.refresh_token);
-    }
-
-    return response;
+  async loginUser(credentials: LoginRequest): Promise<LoginResponse> {
+    return this.post<LoginResponse>("/auth/login", credentials);
   }
 
-  async registerUser(userData: RegisterUserRequest): Promise<User> {
+  async loginProfessional(credentials: LoginRequest): Promise<LoginResponse> {
+    return this.post<LoginResponse>("/auth/login", credentials);
+  }
+
+  async registerUser(userData: UserCreate): Promise<User> {
     return this.post<User>("/auth/register/user", userData);
   }
 
-  async registerProfessional(professionalData: RegisterProfessionalRequest): Promise<Professional> {
+  async registerProfessional(professionalData: ProfessionalCreate): Promise<Professional> {
     return this.post<Professional>("/auth/register/professional", professionalData);
   }
 
-  async getCurrentUser(): Promise<{ type: "user" | "professional"; data: User | Professional }> {
-    return this.get("/auth/me");
+  async getCurrentUser(): Promise<AuthUser> {
+    return this.get<AuthUser>("/auth/me");
   }
 
-  logout(): void {
+  async logout(): Promise<void> {
     this.clearToken();
   }
 
-  // User Methods
-  async getUserProfile(): Promise<User> {
-    return this.request<User>("/users/me");
+  // User methods
+  async getUser(userId: string): Promise<User> {
+    return this.get<User>(`/users/${userId}`);
   }
 
-  async updateUserProfile(updates: Partial<User>): Promise<User> {
-    return this.request<User>("/users/me", {
-      method: "PUT",
-      body: JSON.stringify(updates),
-    });
+  async updateUser(userId: string, userData: UserUpdate): Promise<User> {
+    return this.patch<User>(`/users/${userId}`, userData);
   }
 
-  // Professional Methods
-  async getProfessionals(): Promise<Professional[]> {
-    return this.request<Professional[]>("/professionals");
+  async deleteUser(userId: string): Promise<void> {
+    return this.delete<void>(`/users/${userId}`);
   }
 
-  async getProfessional(id: string): Promise<Professional> {
-    return this.request<Professional>(`/professionals/${id}`);
+  // Professional methods
+  async getProfessional(professionalId: string): Promise<Professional> {
+    return this.get<Professional>(`/professionals/${professionalId}`);
   }
 
-  async getProfessionalProfile(): Promise<Professional> {
-    return this.request<Professional>("/professionals/me/profile");
+  async getProfessionals(params?: {
+    page?: number;
+    size?: number;
+    specialty?: string;
+    verified?: boolean;
+  }): Promise<PaginatedResponse<Professional>> {
+    const searchParams = new URLSearchParams();
+    if (params?.page) searchParams.set("page", params.page.toString());
+    if (params?.size) searchParams.set("size", params.size.toString());
+    if (params?.specialty) searchParams.set("specialty", params.specialty);
+    if (params?.verified !== undefined) searchParams.set("verified", params.verified.toString());
+
+    const queryString = searchParams.toString();
+    const endpoint = queryString ? `/professionals?${queryString}` : "/professionals";
+    return this.get<PaginatedResponse<Professional>>(endpoint);
   }
 
-  async updateProfessionalProfile(updates: Partial<Professional>): Promise<Professional> {
-    return this.request<Professional>("/professionals/me/profile", {
-      method: "PUT",
-      body: JSON.stringify(updates),
-    });
-  }
-
-  // Availability Methods
-  async getProfessionalAvailability(professionalId: string): Promise<Availability[]> {
-    return this.request<Availability[]>(`/availability/professional/${professionalId}`);
-  }
-
-  async createAvailability(
-    availability: Omit<Availability, "id" | "created_at" | "updated_at">,
-  ): Promise<Availability> {
-    return this.request<Availability>("/availability", {
-      method: "POST",
-      body: JSON.stringify(availability),
-    });
-  }
-
-  // Appointment Methods
-  async bookAppointment(
+  async updateProfessional(
     professionalId: string,
-    availabilityId: string,
-  ): Promise<{ appointment_id: string; message: string }> {
-    return this.request("/appointments/book", {
-      method: "POST",
-      body: JSON.stringify({
-        professional_id: professionalId,
-        availability_id: availabilityId,
-      }),
-    });
+    professionalData: ProfessionalUpdate,
+  ): Promise<Professional> {
+    return this.patch<Professional>(`/professionals/${professionalId}`, professionalData);
+  }
+
+  async deleteProfessional(professionalId: string): Promise<void> {
+    return this.delete<void>(`/professionals/${professionalId}`);
+  }
+
+  // Appointment methods
+  async getAppointments(params?: {
+    page?: number;
+    size?: number;
+    status?: string;
+    user_id?: string;
+    professional_id?: string;
+  }): Promise<PaginatedResponse<Appointment>> {
+    const searchParams = new URLSearchParams();
+    if (params?.page) searchParams.set("page", params.page.toString());
+    if (params?.size) searchParams.set("size", params.size.toString());
+    if (params?.status) searchParams.set("status", params.status);
+    if (params?.user_id) searchParams.set("user_id", params.user_id);
+    if (params?.professional_id) searchParams.set("professional_id", params.professional_id);
+
+    const queryString = searchParams.toString();
+    const endpoint = queryString ? `/appointments?${queryString}` : "/appointments";
+    return this.get<PaginatedResponse<Appointment>>(endpoint);
+  }
+
+  async getAppointment(appointmentId: string): Promise<Appointment> {
+    return this.get<Appointment>(`/appointments/${appointmentId}`);
+  }
+
+  async createAppointment(appointmentData: AppointmentCreate): Promise<Appointment> {
+    return this.post<Appointment>("/appointments", appointmentData);
+  }
+
+  async updateAppointment(
+    appointmentId: string,
+    appointmentData: AppointmentUpdate,
+  ): Promise<Appointment> {
+    return this.patch<Appointment>(`/appointments/${appointmentId}`, appointmentData);
+  }
+
+  async cancelAppointment(appointmentId: string): Promise<Appointment> {
+    return this.patch<Appointment>(`/appointments/${appointmentId}`, { status: "cancelled" });
+  }
+
+  async bookAppointment(bookingData: BookAppointmentRequest): Promise<BookAppointmentResponse> {
+    return this.post<BookAppointmentResponse>("/appointments/book", bookingData);
   }
 
   async getUserAppointments(): Promise<Appointment[]> {
-    return this.request<Appointment[]>("/appointments");
+    return this.get<Appointment[]>("/appointments/my-appointments");
   }
 
-  async getAppointment(id: string): Promise<Appointment> {
-    return this.request<Appointment>(`/appointments/${id}`);
-  }
-
-  async updateAppointment(id: string, updates: Partial<Appointment>): Promise<Appointment> {
-    return this.request<Appointment>(`/appointments/${id}`, {
-      method: "PUT",
-      body: JSON.stringify(updates),
+  async bookAppointmentDirect(
+    professionalId: string,
+    availabilityId: string,
+  ): Promise<BookAppointmentResponse> {
+    return this.post<BookAppointmentResponse>("/appointments/book", {
+      professional_id: professionalId,
+      availability_id: availabilityId,
     });
   }
 
-  async cancelAppointment(id: string): Promise<{ message: string }> {
-    return this.request(`/appointments/${id}`, {
-      method: "DELETE",
-    });
+  // Availability methods
+  async getAvailability(professionalId: string): Promise<Availability[]> {
+    return this.get<Availability[]>(`/professionals/${professionalId}/availability`);
   }
 
-  // Payment Methods
+  async createAvailability(
+    professionalId: string,
+    availabilityData: AvailabilityCreate,
+  ): Promise<Availability> {
+    return this.post<Availability>(
+      `/professionals/${professionalId}/availability`,
+      availabilityData,
+    );
+  }
+
+  async getProfessionalAvailability(professionalId: string): Promise<Availability[]> {
+    return this.get<Availability[]>(`/professionals/${professionalId}/availability`);
+  }
+
+  async updateAvailability(
+    professionalId: string,
+    availabilityId: string,
+    availabilityData: AvailabilityUpdate,
+  ): Promise<Availability> {
+    return this.patch<Availability>(
+      `/professionals/${professionalId}/availability/${availabilityId}`,
+      availabilityData,
+    );
+  }
+
+  async deleteAvailability(professionalId: string, availabilityId: string): Promise<void> {
+    return this.delete<void>(`/professionals/${professionalId}/availability/${availabilityId}`);
+  }
+
+  // Specialty methods
+  async getSpecialties(): Promise<Specialty[]> {
+    return this.get<Specialty[]>("/specialties");
+  }
+
+  async getSpecialty(specialtyId: string): Promise<Specialty> {
+    return this.get<Specialty>(`/specialties/${specialtyId}`);
+  }
+
+  async createSpecialty(specialtyData: SpecialtyCreate): Promise<Specialty> {
+    return this.post<Specialty>("/specialties", specialtyData);
+  }
+
+  async updateSpecialty(specialtyId: string, specialtyData: SpecialtyUpdate): Promise<Specialty> {
+    return this.patch<Specialty>(`/specialties/${specialtyId}`, specialtyData);
+  }
+
+  async deleteSpecialty(specialtyId: string): Promise<void> {
+    return this.delete<void>(`/specialties/${specialtyId}`);
+  }
+
+  // Therapeutic Approach methods
+  async getTherapeuticApproaches(): Promise<TherapeuticApproach[]> {
+    return this.get<TherapeuticApproach[]>("/therapeutic-approaches");
+  }
+
+  async getTherapeuticApproach(approachId: string): Promise<TherapeuticApproach> {
+    return this.get<TherapeuticApproach>(`/therapeutic-approaches/${approachId}`);
+  }
+
+  async createTherapeuticApproach(
+    approachData: TherapeuticApproachCreate,
+  ): Promise<TherapeuticApproach> {
+    return this.post<TherapeuticApproach>("/therapeutic-approaches", approachData);
+  }
+
+  async updateTherapeuticApproach(
+    approachId: string,
+    approachData: TherapeuticApproachUpdate,
+  ): Promise<TherapeuticApproach> {
+    return this.patch<TherapeuticApproach>(`/therapeutic-approaches/${approachId}`, approachData);
+  }
+
+  async deleteTherapeuticApproach(approachId: string): Promise<void> {
+    return this.delete<void>(`/therapeutic-approaches/${approachId}`);
+  }
+
+  // Modality methods
+  async getModalities(): Promise<Modality[]> {
+    return this.get<Modality[]>("/modalities");
+  }
+
+  async getModality(modalityId: string): Promise<Modality> {
+    return this.get<Modality>(`/modalities/${modalityId}`);
+  }
+
+  async createModality(modalityData: ModalityCreate): Promise<Modality> {
+    return this.post<Modality>("/modalities", modalityData);
+  }
+
+  async updateModality(modalityId: string, modalityData: ModalityUpdate): Promise<Modality> {
+    return this.patch<Modality>(`/modalities/${modalityId}`, modalityData);
+  }
+
+  async deleteModality(modalityId: string): Promise<void> {
+    return this.delete<void>(`/modalities/${modalityId}`);
+  }
+
+  // Payment methods
+  async getPayments(params?: {
+    page?: number;
+    size?: number;
+    user_id?: string;
+    status?: string;
+  }): Promise<PaginatedResponse<Payment>> {
+    const searchParams = new URLSearchParams();
+    if (params?.page) searchParams.set("page", params.page.toString());
+    if (params?.size) searchParams.set("size", params.size.toString());
+    if (params?.user_id) searchParams.set("user_id", params.user_id);
+    if (params?.status) searchParams.set("status", params.status);
+
+    const queryString = searchParams.toString();
+    const endpoint = queryString ? `/payments?${queryString}` : "/payments";
+    return this.get<PaginatedResponse<Payment>>(endpoint);
+  }
+
+  async getPayment(paymentId: string): Promise<Payment> {
+    return this.get<Payment>(`/payments/${paymentId}`);
+  }
+
+  async createPayment(paymentData: PaymentCreate): Promise<Payment> {
+    return this.post<Payment>("/payments", paymentData);
+  }
+
+  async updatePayment(paymentId: string, paymentData: PaymentUpdate): Promise<Payment> {
+    return this.patch<Payment>(`/payments/${paymentId}`, paymentData);
+  }
+
   async createPaymentIntent(
     appointmentId: string,
-    amountCents: number,
+    amount: number,
     currency: string = "COP",
-  ): Promise<PaymentIntent> {
-    return this.request<PaymentIntent>("/payments/intent", {
-      method: "POST",
-      body: JSON.stringify({
-        appointment_id: appointmentId,
-        amount_cents: amountCents,
-        currency,
-      }),
+  ): Promise<{ payment_intent_id: string; client_secret: string }> {
+    return this.post<{ payment_intent_id: string; client_secret: string }>(
+      "/payments/create-intent",
+      { appointment_id: appointmentId, amount, currency },
+    );
+  }
+
+  async confirmPayment(paymentIntentId: string): Promise<{ status: string; payment_id: string }> {
+    return this.post<{ status: string; payment_id: string }>("/payments/confirm", {
+      payment_intent_id: paymentIntentId,
     });
   }
 
-  async confirmPayment(paymentIntentId: string): Promise<{ message: string; payment_id: string }> {
-    return this.request(`/payments/confirm/${paymentIntentId}`, {
-      method: "POST",
+  // Review methods
+  async getReviews(params?: {
+    page?: number;
+    size?: number;
+    professional_id?: string;
+    user_id?: string;
+  }): Promise<PaginatedResponse<Review>> {
+    const searchParams = new URLSearchParams();
+    if (params?.page) searchParams.set("page", params.page.toString());
+    if (params?.size) searchParams.set("size", params.size.toString());
+    if (params?.professional_id) searchParams.set("professional_id", params.professional_id);
+    if (params?.user_id) searchParams.set("user_id", params.user_id);
+
+    const queryString = searchParams.toString();
+    const endpoint = queryString ? `/reviews?${queryString}` : "/reviews";
+    return this.get<PaginatedResponse<Review>>(endpoint);
+  }
+
+  async getReview(reviewId: string): Promise<Review> {
+    return this.get<Review>(`/reviews/${reviewId}`);
+  }
+
+  async createReview(reviewData: CreateReviewRequest): Promise<Review> {
+    return this.post<Review>("/reviews", reviewData);
+  }
+
+  async getProfessionalReviews(professionalId: string, limit?: number): Promise<Review[]> {
+    const endpoint = limit
+      ? `/reviews/professional/${professionalId}?limit=${limit}`
+      : `/reviews/professional/${professionalId}`;
+    return this.get<Review[]>(endpoint);
+  }
+
+  async getProfessionalAverageRating(professionalId: string): Promise<ReviewStats> {
+    return this.get<ReviewStats>(`/reviews/professional/${professionalId}/stats`);
+  }
+
+  async hasUserReviewedAppointment(
+    userId: string,
+    appointmentId: string,
+  ): Promise<{ hasReviewed: boolean }> {
+    return this.get<{ hasReviewed: boolean }>(`/reviews/check/${appointmentId}/${userId}`);
+  }
+
+  // File upload methods
+  async uploadFile(file: File): Promise<UploadResponse> {
+    const formData = new FormData();
+    formData.append("file", file);
+
+    return this.post<UploadResponse>("/upload", formData, {
+      headers: {
+        // Don't set Content-Type, let the browser set it with boundary
+      },
     });
+  }
+
+  async deleteFile(filename: string): Promise<void> {
+    return this.delete<void>(`/files/${filename}`);
+  }
+
+  // Health check
+  async healthCheck(): Promise<{ status: string; timestamp: string }> {
+    return this.get<{ status: string; timestamp: string }>("/health");
   }
 }
 
-// Export singleton instance
+// Create and export the API client instance
 export const apiClient = new ApiClient();
 
-// Types are already exported above, no need to re-export
+// Export the class for testing
+export { ApiClient };

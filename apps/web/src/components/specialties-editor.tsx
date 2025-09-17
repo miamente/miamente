@@ -11,10 +11,7 @@ interface SpecialtiesEditorProps {
   disabled?: boolean;
 }
 
-export function SpecialtiesEditorSimple({
-  professionalId,
-  disabled: _disabled = false,
-}: SpecialtiesEditorProps) {
+export function SpecialtiesEditorSimple({ professionalId }: SpecialtiesEditorProps) {
   const [isOpen, setIsOpen] = useState(false);
 
   const { specialties, loading, error } = useProfessionalSpecialties(professionalId);
@@ -62,11 +59,12 @@ export function SpecialtiesEditorSimple({
                       <div className="flex-1">
                         <div className="mb-2 flex items-center gap-2">
                           <h4 className="font-medium text-gray-900">
-                            {specialty.specialty?.name ||
-                              `Especialidad ${specialty.id.slice(0, 8)}`}
+                            {specialty.name || `Especialidad ${specialty.id.slice(0, 8)}`}
                           </h4>
                         </div>
-                        <p className="mb-2 text-sm text-gray-600">ID: {specialty.specialtyId}</p>
+                        <p className="mb-2 text-sm text-gray-600">
+                          ID: {specialty.specialty_id || specialty.id}
+                        </p>
                       </div>
                     </div>
                   </div>

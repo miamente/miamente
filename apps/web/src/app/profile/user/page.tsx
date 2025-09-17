@@ -45,8 +45,12 @@ export default function UserProfilePage() {
       const userProfile = await getUserProfile(userUid);
       if (userProfile) {
         setProfile(userProfile as unknown as UserProfile);
-        setValue("fullName", (userProfile as any).fullName || "");
-        setValue("phone", (userProfile as any).phone || "");
+        setValue("fullName", (userProfile as { fullName?: string }).fullName || "");
+        setValue(
+          "phoneCountryCode",
+          (userProfile as { phone_country_code?: string }).phone_country_code || "",
+        );
+        setValue("phoneNumber", (userProfile as { phone_number?: string }).phone_number || "");
       }
     } catch (err) {
       console.error("Error loading profile:", err);
@@ -81,7 +85,8 @@ export default function UserProfilePage() {
       if (!userUid) return;
       await updateUserProfile(userUid, {
         fullName: data.fullName,
-        phone: data.phone,
+        phone_country_code: data.phoneCountryCode,
+        phone_number: data.phoneNumber,
         updatedAt: new Date(),
       });
 
@@ -92,7 +97,7 @@ export default function UserProfilePage() {
       // Track profile completion event
       await trackProfileComplete({
         hasPhoto: !!photoFile,
-        hasPhone: !!data.phone,
+        hasPhone: !!(data.phoneCountryCode && data.phoneNumber),
         timestamp: new Date().toISOString(),
       });
     } catch (err) {
@@ -148,13 +153,13 @@ export default function UserProfilePage() {
 
               <div>
                 <Input
-                  {...register("phone")}
+                  {...register("phoneCountryCode")}
                   placeholder="Teléfono (opcional)"
                   disabled={isLoading}
                 />
-                {errors.phone && (
+                {errors.phoneCountryCode && (
                   <p className="mt-1 text-sm text-red-600 dark:text-red-400">
-                    {errors.phone.message}
+                    {errors.phoneCountryCode.message}
                   </p>
                 )}
               </div>
@@ -199,7 +204,7 @@ export default function UserProfilePage() {
                 <strong>Email:</strong> {getUserEmail(user)}
               </p>
               <p>
-                <strong>Nombre:</strong> {(profile as any).fullName}
+                <strong>Nombre:</strong> {(profile as { fullName?: string }).fullName}
               </p>
               <p>
                 <strong>Teléfono:</strong> {profile.phone || "No especificado"}
@@ -208,7 +213,8 @@ export default function UserProfilePage() {
                 <strong>Rol:</strong> {profile.role}
               </p>
               <p>
-                <strong>Miembro desde:</strong> {profile.createdAt.toLocaleDateString()}
+                <strong>Miembro desde:</strong>{" "}
+                {profile.created_at ? new Date(profile.created_at).toLocaleDateString() : "N/A"}
               </p>
             </div>
           </CardContent>

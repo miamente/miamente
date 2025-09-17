@@ -92,7 +92,11 @@ export default function ProfessionalsPage() {
     <div className="container mx-auto px-4 py-8">
       <h1 className="mb-6 text-3xl font-bold">Profesionales</h1>
 
-      <div className="mb-6 grid gap-4 sm:grid-cols-4" aria-label="Filtros">
+      <form
+        className="mb-6 grid gap-4 sm:grid-cols-4"
+        aria-label="Filtros"
+        onSubmit={handleApplyFilters}
+      >
         <div className="sm:col-span-2">
           <label htmlFor="specialty" className="mb-1 block text-sm font-medium">
             Especialidad
@@ -159,7 +163,7 @@ export default function ProfessionalsPage() {
             Limpiar
           </Button>
         </div>
-      </div>
+      </form>
 
       {error && (
         <div
@@ -193,7 +197,9 @@ export default function ProfessionalsPage() {
               <Card className="flex cursor-pointer flex-col transition-shadow duration-200 hover:shadow-lg">
                 <CardHeader>
                   <CardTitle className="text-xl">{pro.full_name}</CardTitle>
-                  <p className="text-sm text-neutral-600 dark:text-neutral-400">{pro.specialty}</p>
+                  <p className="text-sm text-neutral-600 dark:text-neutral-400">
+                    {pro.specialty_ids?.[0] || "Especialidad no especificada"}
+                  </p>
                   <p className="text-sm text-neutral-600 dark:text-neutral-400">
                     {(pro.rate_cents / 100).toLocaleString("es-CO", {
                       style: "currency",

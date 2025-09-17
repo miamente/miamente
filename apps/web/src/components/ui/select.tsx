@@ -30,7 +30,6 @@ const Select = React.forwardRef<HTMLDivElement, SelectProps>(
       placeholder = "Seleccionar...",
       disabled = false,
       className,
-      id,
       "aria-label": ariaLabel,
       "aria-describedby": ariaDescribedBy,
       ...props
@@ -125,6 +124,7 @@ const Select = React.forwardRef<HTMLDivElement, SelectProps>(
           role="combobox"
           aria-expanded={isOpen}
           aria-haspopup="listbox"
+          aria-controls="select-listbox"
           aria-label={ariaLabel}
           aria-describedby={ariaDescribedBy}
           onClick={(e) => {
@@ -146,9 +146,10 @@ const Select = React.forwardRef<HTMLDivElement, SelectProps>(
 
         {isOpen && (
           <div
+            id="select-listbox"
             className="absolute z-[9999] mt-1 max-h-60 w-full overflow-auto rounded-md border-2 border-blue-500 bg-white text-gray-900 shadow-lg"
             role="listbox"
-            onClick={(e) => {
+            onClick={() => {
               // Don't stop propagation here, let option clicks work
             }}
           >

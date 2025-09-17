@@ -4,7 +4,7 @@ import { useFieldArray, useFormContext } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Plus, Trash2, X } from "lucide-react";
+import { Plus, X } from "lucide-react";
 
 interface ArrayFieldEditorProps {
   name: "certifications" | "languages" | "therapyApproaches";
@@ -21,10 +21,7 @@ export function ArrayFieldEditor({
   icon,
   disabled = false,
 }: ArrayFieldEditorProps) {
-  const {
-    control,
-    formState: { errors },
-  } = useFormContext();
+  const { control } = useFormContext();
   const [newItem, setNewItem] = useState("");
 
   const { fields, append, remove } = useFieldArray({

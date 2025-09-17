@@ -6,17 +6,14 @@ import { useState, useEffect, useCallback } from "react";
 
 import {
   apiClient,
-  type User,
-  type Professional,
   type LoginRequest,
   type RegisterUserRequest,
   type RegisterProfessionalRequest,
 } from "@/lib/api";
+import type { AuthUser } from "@/lib/types";
 
-export interface AuthUser {
-  type: "user" | "professional";
-  data: User | Professional;
-}
+// Re-export AuthUser from types for backward compatibility
+export type { AuthUser };
 
 // Helper functions to access user properties
 export function getUserEmail(user: AuthUser | null): string | undefined {
@@ -103,7 +100,7 @@ export function useAuth() {
   useEffect(() => {
     console.log("useAuth useEffect - component mounted, calling checkAuth");
     checkAuth();
-  }, []); // Remove checkAuth dependency to prevent infinite loop
+  }, [checkAuth]);
 
   // Debug effect to log state changes
   useEffect(() => {

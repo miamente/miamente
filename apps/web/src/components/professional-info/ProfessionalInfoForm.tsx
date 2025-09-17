@@ -149,7 +149,7 @@ export function ProfessionalInfoForm({
       />
 
       {/* Modalidades */}
-      <ModalitiesEditor professionalId={professionalId} disabled={disabled} />
+      <ModalitiesEditor disabled={disabled} />
 
       {/* Botón de Guardar */}
       <div className="flex justify-end">

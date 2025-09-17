@@ -1,14 +1,14 @@
 import { apiClient } from "./api";
 
 export interface AdminMetrics {
-  totalUsers: number;
-  newUsers7Days: number;
-  newUsers30Days: number;
-  verifiedProfessionals: number;
-  totalProfessionals: number;
-  confirmedAppointmentsToday: number;
-  totalAppointmentsToday: number;
-  paymentConversionRate: number;
+  total_users: number;
+  new_users_7_days: number;
+  new_users_30_days: number;
+  verified_professionals: number;
+  total_professionals: number;
+  confirmed_appointments_today: number;
+  total_appointments_today: number;
+  payment_conversion_rate: number;
 }
 
 export interface EventLogEntry {
@@ -49,16 +49,16 @@ export interface AppointmentSummary {
 export async function getAdminMetrics(): Promise<AdminMetrics> {
   try {
     const response = await apiClient.get("/admin/metrics");
-    const data = (response as any).data;
+    const data = (response as { data: AdminMetrics }).data;
     return {
-      totalUsers: data.total_users,
-      newUsers7Days: data.new_users_7_days,
-      newUsers30Days: data.new_users_30_days,
-      verifiedProfessionals: data.verified_professionals,
-      totalProfessionals: data.total_professionals,
-      confirmedAppointmentsToday: data.confirmed_appointments_today,
-      totalAppointmentsToday: data.total_appointments_today,
-      paymentConversionRate: data.payment_conversion_rate,
+      total_users: data.total_users,
+      new_users_7_days: data.new_users_7_days,
+      new_users_30_days: data.new_users_30_days,
+      verified_professionals: data.verified_professionals,
+      total_professionals: data.total_professionals,
+      confirmed_appointments_today: data.confirmed_appointments_today,
+      total_appointments_today: data.total_appointments_today,
+      payment_conversion_rate: data.payment_conversion_rate,
     };
   } catch (error) {
     console.error("Error fetching admin metrics:", error);
@@ -70,13 +70,13 @@ export async function getAdminMetrics(): Promise<AdminMetrics> {
  * Get event log entries with pagination
  */
 export async function getEventLogEntries(): Promise<EventLogEntry[]> {
-// limitCount: number = 50,
-// offset: number = 0,
+  // limitCount: number = 50,
+  // offset: number = 0,
   try {
     const response = await apiClient.get("/admin/event-log", {
       // params: { limit: limitCount, offset }, // TODO: Fix API client params
     });
-    return (response as any).data;
+    return (response as { data: EventLogEntry[] }).data;
   } catch (error) {
     console.error("Error fetching event log entries:", error);
     throw new Error("Failed to fetch event log entries");
@@ -89,16 +89,16 @@ export async function getEventLogEntries(): Promise<EventLogEntry[]> {
 export async function getProfessionalsSummary(): Promise<ProfessionalSummary[]> {
   try {
     const response = await apiClient.get("/admin/professionals");
-    const data = (response as any).data;
-    return data.map((pro: Record<string, unknown>) => ({
+    const data = (response as { data: ProfessionalSummary[] }).data;
+    return data.map((pro: ProfessionalSummary) => ({
       id: pro.id,
-      fullName: pro.full_name,
+      fullName: pro.fullName,
       email: pro.email,
       specialty: pro.specialty,
-      isVerified: pro.is_verified,
-      createdAt: pro.created_at,
-      appointmentCount: pro.appointment_count,
-      averageRating: pro.average_rating,
+      isVerified: pro.isVerified,
+      createdAt: pro.createdAt,
+      appointmentCount: pro.appointmentCount,
+      averageRating: pro.averageRating,
     }));
   } catch (error) {
     console.error("Error fetching professionals summary:", error);
@@ -131,13 +131,13 @@ export async function updateProfessionalVerification(
  * Get appointments summary for admin management
  */
 export async function getAppointmentsSummary(): Promise<AppointmentSummary[]> {
-// limitCount: number = 50,
-// offset: number = 0,
+  // limitCount: number = 50,
+  // offset: number = 0,
   try {
     const response = await apiClient.get("/admin/appointments", {
       // params: { limit: limitCount, offset }, // TODO: Fix API client params
     });
-    return (response as any).data;
+    return (response as { data: AppointmentSummary[] }).data;
   } catch (error) {
     console.error("Error fetching appointments summary:", error);
     throw new Error("Failed to fetch appointments summary");

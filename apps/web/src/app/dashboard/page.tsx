@@ -61,7 +61,6 @@ export default function DashboardPage() {
 
   // Check user role
   const isProfessional = user.type === "professional";
-  const isRegularUser = user.type === "user";
 
   return (
     <div className="space-y-6">

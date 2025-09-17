@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Award, Plus, Trash2, Upload, FileText, ChevronDown, ChevronRight } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
+import type { Certification } from "@/lib/types";
 
 interface CertificationsEditorProps {
   disabled?: boolean;
@@ -38,7 +39,7 @@ export function CertificationsEditor({ disabled = false }: CertificationsEditorP
   useEffect(() => {
     if (certifications && certifications.length > 0 && fields.length === 0) {
       // Clear existing fields and add the loaded data
-      certifications.forEach((cert: any) => {
+      certifications.forEach((cert: Certification) => {
         append(cert);
       });
     }

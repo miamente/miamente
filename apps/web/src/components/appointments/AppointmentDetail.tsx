@@ -69,7 +69,7 @@ const AppointmentDetail: React.FC<AppointmentDetailProps> = ({ appointmentId }) 
         setError(null);
 
         const appointment = await apiClient.get(`/appointments/${appointmentId}`);
-        setAppointment((appointment as any).data);
+        setAppointment((appointment as { data: Appointment }).data);
       } catch (err: unknown) {
         console.error("Error fetching appointment:", err);
         setError(err instanceof Error ? err.message : "Error al cargar la cita");

@@ -1,10 +1,10 @@
 "use client";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import React, { useState, useEffect, useCallback } from "react";
 import { useForm, FormProvider } from "react-hook-form";
 
-import { FileUpload } from "@/components/file-upload";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -16,18 +16,8 @@ import { SpecialtiesMultiSelect } from "@/components/professional-info/Specialti
 import { TherapeuticApproachesMultiSelect } from "@/components/professional-info/TherapeuticApproachesMultiSelect";
 import { LanguagesMultiSelect } from "@/components/professional-info/LanguagesMultiSelect";
 import { ModalitiesEditor } from "@/components/professional-info/ModalitiesEditor";
-import { ArrayFieldEditor } from "@/components/array-field-editor";
-import {
-  Award,
-  Languages,
-  Brain,
-  User,
-  Briefcase,
-  GraduationCap,
-  Building2,
-  FileText,
-} from "lucide-react";
-import { useAuth, getUserUid } from "@/hooks/useAuth";
+import { User, Briefcase } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
 import {
   getMyProfessionalProfile,
   createProfessionalProfile,
@@ -35,6 +25,7 @@ import {
 } from "@/lib/profiles";
 import type { ProfessionalProfile } from "@/lib/profiles";
 import { professionalProfileSchema, type ProfessionalProfileFormData } from "@/lib/validations";
+import type { AcademicExperience, WorkExperience, Certification } from "@/lib/types";
 
 export default function ProfessionalProfilePage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -78,21 +69,18 @@ export default function ProfessionalProfilePage() {
           licenseNumber: proProfile.license_number || "",
           yearsExperience: proProfile.years_experience || 0,
           bio: proProfile.bio || "",
-          academicExperience: (proProfile.academic_experience as any) || [],
-          workExperience: (proProfile.work_experience as any) || [],
+          academicExperience: (proProfile.academic_experience as AcademicExperience[]) || [],
+          workExperience: (proProfile.work_experience as WorkExperience[]) || [],
           certifications:
-            (proProfile.certifications as any)?.map((cert: any) => {
-              const documentUrl = typeof cert === "object" ? cert.documentUrl || "" : "";
+            (proProfile.certifications as Certification[])?.map((cert: Certification) => {
+              const documentUrl = cert.document_url || "";
               // Use fileName from database if available, otherwise extract from URL
               const fileName =
-                typeof cert === "object" && cert.fileName
-                  ? cert.fileName
-                  : documentUrl
-                    ? documentUrl.split("/").pop() || "Archivo adjunto"
-                    : "";
+                cert.file_name ||
+                (documentUrl ? documentUrl.split("/").pop() || "Archivo adjunto" : "");
 
               return {
-                name: typeof cert === "string" ? cert : cert.name || "",
+                name: cert.name,
                 document: undefined,
                 documentUrl: documentUrl,
                 fileName: fileName,
@@ -261,13 +249,15 @@ export default function ProfessionalProfilePage() {
         <div className="relative">
           {photoFile || profile?.profile_picture ? (
             <div className="group relative">
-              <img
+              <Image
                 src={
                   photoFile
                     ? URL.createObjectURL(photoFile)
                     : `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}${profile?.profile_picture}`
                 }
                 alt="Profile"
+                width={128}
+                height={128}
                 className="h-32 w-32 rounded-full border-4 border-blue-200 object-cover dark:border-blue-800"
               />
               <div className="bg-opacity-50 absolute inset-0 flex items-center justify-center rounded-full bg-black opacity-0 transition-opacity group-hover:opacity-100">
@@ -423,9 +413,13 @@ export default function ProfessionalProfilePage() {
                     <PhoneInputFieldWithRef
                       id="phone"
                       countryCode={watch("phoneCountryCode")}
-                      onCountryCodeChange={(e: any) => setValue("phoneCountryCode", e.target.value)}
+                      onCountryCodeChange={(countryCode: string) =>
+                        setValue("phoneCountryCode", countryCode)
+                      }
                       phoneNumber={watch("phoneNumber")}
-                      onPhoneNumberChange={(e: any) => setValue("phoneNumber", e.target.value)}
+                      onPhoneNumberChange={(phoneNumber: string) =>
+                        setValue("phoneNumber", phoneNumber)
+                      }
                       className="mt-1"
                       placeholder="300 123 4567"
                       disabled={isSubmitting}

@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Plus, Trash2, GraduationCap, ChevronDown, ChevronRight } from "lucide-react";
 import type { ProfessionalProfileFormData } from "@/lib/validations";
+import type { AcademicExperience } from "@/lib/types";
 
 interface AcademicExperienceEditorProps {
   disabled?: boolean;
@@ -33,8 +34,16 @@ export function AcademicExperienceEditor({ disabled = false }: AcademicExperienc
   useEffect(() => {
     if (academicExperience && academicExperience.length > 0 && fields.length === 0) {
       // Clear existing fields and add the loaded data
-      academicExperience.forEach((exp: any) => {
-        append(exp);
+      academicExperience.forEach((exp: AcademicExperience) => {
+        // Convert backend format to form format
+        append({
+          institution: exp.institution,
+          degree: exp.degree,
+          field: exp.field,
+          start_date: exp.start_date,
+          end_date: exp.end_date,
+          description: exp.description,
+        });
       });
     }
   }, [academicExperience, fields.length, append]);
@@ -44,8 +53,8 @@ export function AcademicExperienceEditor({ disabled = false }: AcademicExperienc
       institution: "",
       degree: "",
       field: "",
-      startDate: "",
-      endDate: "",
+      start_date: "",
+      end_date: "",
       description: "",
     });
   };
@@ -149,12 +158,12 @@ export function AcademicExperienceEditor({ disabled = false }: AcademicExperienc
                     </label>
                     <Input
                       type="date"
-                      {...control.register(`academicExperience.${index}.startDate`)}
+                      {...control.register(`academicExperience.${index}.start_date`)}
                       disabled={disabled}
                     />
-                    {errors.academicExperience?.[index]?.startDate && (
+                    {errors.academicExperience?.[index]?.start_date && (
                       <p className="mt-1 text-sm text-red-600">
-                        {errors.academicExperience[index]?.startDate?.message}
+                        {errors.academicExperience[index]?.start_date?.message}
                       </p>
                     )}
                   </div>
@@ -165,12 +174,12 @@ export function AcademicExperienceEditor({ disabled = false }: AcademicExperienc
                     </label>
                     <Input
                       type="date"
-                      {...control.register(`academicExperience.${index}.endDate`)}
+                      {...control.register(`academicExperience.${index}.end_date`)}
                       disabled={disabled}
                     />
-                    {errors.academicExperience?.[index]?.endDate && (
+                    {errors.academicExperience?.[index]?.end_date && (
                       <p className="mt-1 text-sm text-red-600">
-                        {errors.academicExperience[index]?.endDate?.message}
+                        {errors.academicExperience[index]?.end_date?.message}
                       </p>
                     )}
                   </div>

@@ -52,8 +52,8 @@ export const professionalProfileSchema = z.object({
         institution: z.string(),
         degree: z.string(),
         field: z.string(),
-        startDate: z.string(),
-        endDate: z.string().optional(),
+        start_date: z.string(),
+        end_date: z.string().optional(),
         description: z.string().optional(),
       }),
     )
@@ -64,8 +64,8 @@ export const professionalProfileSchema = z.object({
       z.object({
         company: z.string(),
         position: z.string(),
-        startDate: z.string(),
-        endDate: z.string().optional(),
+        start_date: z.string(),
+        end_date: z.string().optional(),
         description: z.string().optional(),
       }),
     )

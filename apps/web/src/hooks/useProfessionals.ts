@@ -15,8 +15,8 @@ export function useProfessionals() {
     setError(null);
 
     try {
-      const data = await apiClient.getProfessionals();
-      setProfessionals(data);
+      const response = await apiClient.getProfessionals();
+      setProfessionals(response.data);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to fetch professionals");
     } finally {
@@ -88,7 +88,10 @@ export function useProfessionalAvailability(professionalId: string) {
       setError(null);
 
       try {
-        const newAvailability = await apiClient.createAvailability(availabilityData);
+        const newAvailability = await apiClient.createAvailability(
+          professionalId,
+          availabilityData,
+        );
         setAvailability((prev) => [...prev, newAvailability]);
         return newAvailability;
       } catch (err) {
@@ -98,7 +101,7 @@ export function useProfessionalAvailability(professionalId: string) {
         setIsLoading(false);
       }
     },
-    [],
+    [professionalId],
   );
 
   return {

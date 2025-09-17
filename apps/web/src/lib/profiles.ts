@@ -1,29 +1,10 @@
 import { apiClient } from "./api";
+import type { AcademicExperience, WorkExperience, Certification, Professional } from "./types";
 
-export interface AcademicExperience {
-  institution: string;
-  degree: string;
-  field: string;
-  startDate: string;
-  endDate?: string;
-  description?: string;
-}
+// Re-export types for backward compatibility
+export type { AcademicExperience, WorkExperience, Certification };
 
-export interface WorkExperience {
-  company: string;
-  position: string;
-  startDate: string;
-  endDate?: string;
-  description?: string;
-  achievements?: string[];
-}
-
-export interface Certification {
-  name: string;
-  documentUrl: string;
-  fileName?: string;
-}
-
+// Legacy Modality interface for backward compatibility
 export interface Modality {
   id: string;
   modalityId: string;
@@ -35,31 +16,8 @@ export interface Modality {
   isDefault: boolean;
 }
 
-export interface ProfessionalProfile {
-  id: string;
-  email: string;
-  full_name: string;
-  phone_country_code?: string;
-  phone_number?: string;
-  specialty_ids?: string[];
-  license_number?: string;
-  years_experience: number;
-  rate_cents: number;
-  currency: string;
-  bio?: string;
-  academic_experience?: AcademicExperience[];
-  work_experience?: WorkExperience[];
-  certifications?: Certification[];
-  languages?: string[];
-  therapy_approaches_ids?: string[];
-  modalities?: Modality[];
-  timezone: string;
-  profile_picture?: string;
-  is_active: boolean;
-  is_verified: boolean;
-  created_at: string;
-  updated_at?: string;
-}
+// Use the comprehensive Professional type from types.ts
+export type ProfessionalProfile = Professional;
 
 export interface UpdateProfessionalProfileRequest {
   // Basic info
@@ -81,16 +39,16 @@ export interface UpdateProfessionalProfileRequest {
     institution: string;
     degree: string;
     field: string;
-    startDate: string;
-    endDate?: string;
+    start_date: string;
+    end_date?: string;
     description?: string;
   }>;
 
   work_experience?: Array<{
     company: string;
     position: string;
-    startDate: string;
-    endDate?: string;
+    start_date: string;
+    end_date?: string;
     description?: string;
   }>;
 

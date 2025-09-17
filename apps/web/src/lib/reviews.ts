@@ -43,7 +43,7 @@ export async function createReview(
 
     return {
       success: true,
-      reviewId: (response as any).id,
+      reviewId: (response as { id: string }).id,
     };
   } catch (error: unknown) {
     console.error("Error creating review:", error);
@@ -72,14 +72,14 @@ export async function getProfessionalReviews(
 ): Promise<Array<Review & { id: string }>> {
   try {
     const response = await apiClient.get(`/reviews/professional/${proId}?limit=${limit}`);
-    return (response as any).map((review: Record<string, unknown>) => ({
-      id: review.id,
-      appointmentId: review.appointment_id,
-      userId: review.user_id,
-      proId: review.professional_id,
-      rating: review.rating,
-      comment: review.comment,
-      createdAt: new Date((review as any).created_at),
+    return (response as Array<Record<string, unknown>>).map((review: Record<string, unknown>) => ({
+      id: review.id as string,
+      appointmentId: review.appointment_id as string,
+      userId: review.user_id as string,
+      proId: review.professional_id as string,
+      rating: review.rating as number,
+      comment: review.comment as string,
+      createdAt: new Date((review as { created_at: string }).created_at),
     }));
   } catch (error) {
     console.error("Error getting professional reviews:", error);
@@ -96,14 +96,14 @@ export async function getUserReviews(
 ): Promise<Array<Review & { id: string }>> {
   try {
     const response = await apiClient.get(`/reviews/user/${userId}?limit=${limit}`);
-    return (response as any).map((review: Record<string, unknown>) => ({
-      id: review.id,
-      appointmentId: review.appointment_id,
-      userId: review.user_id,
-      proId: review.professional_id,
-      rating: review.rating,
-      comment: review.comment,
-      createdAt: new Date((review as any).created_at),
+    return (response as Array<Record<string, unknown>>).map((review: Record<string, unknown>) => ({
+      id: review.id as string,
+      appointmentId: review.appointment_id as string,
+      userId: review.user_id as string,
+      proId: review.professional_id as string,
+      rating: review.rating as number,
+      comment: review.comment as string,
+      createdAt: new Date((review as { created_at: string }).created_at),
     }));
   } catch (error) {
     console.error("Error getting user reviews:", error);
@@ -120,7 +120,7 @@ export async function hasUserReviewedAppointment(
 ): Promise<boolean> {
   try {
     const response = await apiClient.get(`/reviews/check/${appointmentId}/${userId}`);
-    return (response as any).hasReviewed || false;
+    return (response as { hasReviewed?: boolean }).hasReviewed || false;
   } catch (error) {
     console.error("Error checking if user reviewed appointment:", error);
     return false;
@@ -137,8 +137,8 @@ export async function getProfessionalAverageRating(proId: string): Promise<{
   try {
     const response = await apiClient.get(`/reviews/professional/${proId}/stats`);
     return {
-      average: (response as any).average || 0,
-      count: (response as any).count || 0,
+      average: (response as { average?: number }).average || 0,
+      count: (response as { count?: number }).count || 0,
     };
   } catch (error) {
     console.error("Error getting professional average rating:", error);

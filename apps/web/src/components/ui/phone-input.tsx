@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { parsePhoneNumber, formatNumber, getCountryCallingCode } from "libphonenumber-js";
+import { parsePhoneNumber } from "libphonenumber-js";
 import { cn } from "@/lib/utils";
 import { ChevronDown } from "lucide-react";
 
@@ -131,7 +131,7 @@ export function PhoneInputField({
             onPhoneNumberChange?.(parsed.nationalNumber);
           }
         }
-      } catch (error) {
+      } catch {
         // Si no se puede parsear, usar como está
         setInternalPhoneNumber(value);
         onPhoneNumberChange?.(value);
@@ -264,8 +264,8 @@ export function PhoneInputField({
 }
 
 // Wrapper compatible con React Hook Form
-export const PhoneInputFieldWithRef = React.forwardRef<HTMLInputElement, any>(
-  ({ onChange, onCountryCodeChange, onPhoneNumberChange, ...props }, ref) => {
+export const PhoneInputFieldWithRef = React.forwardRef<HTMLInputElement, PhoneInputFieldProps>(
+  ({ onChange, onCountryCodeChange, onPhoneNumberChange, ...props }) => {
     const handleChange = (value: string) => {
       // Crear un evento sintético compatible con React Hook Form
       const syntheticEvent = {
@@ -273,27 +273,19 @@ export const PhoneInputFieldWithRef = React.forwardRef<HTMLInputElement, any>(
         type: "change",
       };
       if (onChange) {
-        onChange(syntheticEvent as any);
+        onChange(syntheticEvent.target.value);
       }
     };
 
     const handleCountryCodeChange = (countryCode: string) => {
       if (onCountryCodeChange) {
-        const syntheticEvent = {
-          target: { value: countryCode },
-          type: "change",
-        };
-        onCountryCodeChange(syntheticEvent as any);
+        onCountryCodeChange(countryCode);
       }
     };
 
     const handlePhoneNumberChange = (phoneNumber: string) => {
       if (onPhoneNumberChange) {
-        const syntheticEvent = {
-          target: { value: phoneNumber },
-          type: "change",
-        };
-        onPhoneNumberChange(syntheticEvent as any);
+        onPhoneNumberChange(phoneNumber);
       }
     };
 

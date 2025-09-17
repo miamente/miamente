@@ -4,7 +4,6 @@ import React, { useEffect } from "react";
 import { useFieldArray, useFormContext } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Select } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -13,6 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import { ChevronDown, ChevronRight, Plus, Trash2, Star, StarOff, DollarSign } from "lucide-react";
 import type { ProfessionalProfileFormData } from "@/lib/validations";
 import { useModalities } from "@/hooks/useModalities";
+import type { ProfessionalModality } from "@/lib/types";
 
 interface ModalitiesEditorProps {
   disabled?: boolean;
@@ -25,12 +25,7 @@ export function ModalitiesEditor({ disabled = false }: ModalitiesEditorProps) {
     error: modalitiesError,
   } = useModalities();
   const [isOpen, setIsOpen] = React.useState(false);
-  const {
-    control,
-    formState: { errors },
-    watch,
-    setValue,
-  } = useFormContext<ProfessionalProfileFormData>();
+  const { control, watch, setValue } = useFormContext<ProfessionalProfileFormData>();
 
   const { fields, append, remove } = useFieldArray({
     control,
@@ -44,12 +39,12 @@ export function ModalitiesEditor({ disabled = false }: ModalitiesEditorProps) {
   useEffect(() => {
     if (modalities && modalities.length > 0 && fields.length === 0) {
       // Clear existing fields and add the loaded data
-      modalities.forEach((modality: any) => {
+      modalities.forEach((modality: ProfessionalModality) => {
         append(modality);
       });
 
       // If no modality is marked as default, make the first one default
-      const hasDefault = modalities.some((m: any) => m.isDefault);
+      const hasDefault = modalities.some((m: unknown) => (m as { isDefault?: boolean }).isDefault);
       if (!hasDefault && modalities.length > 0) {
         setValue(`modalities.0.isDefault`, true);
       }
@@ -97,7 +92,9 @@ export function ModalitiesEditor({ disabled = false }: ModalitiesEditorProps) {
     // Get modalities that are not already selected by other items
     const usedModalityIds =
       modalities
-        ?.map((m: any, idx: number) => (idx !== currentIndex ? m.modalityId : null))
+        ?.map((m: unknown, idx: number) =>
+          idx !== currentIndex ? (m as { modalityId?: string }).modalityId : null,
+        )
         .filter(Boolean) || [];
     return availableModalities.filter((m) => !usedModalityIds.includes(m.id));
   };
