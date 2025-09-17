@@ -1,4 +1,4 @@
-import { renderHook, waitFor, act } from "@testing-library/react";
+import { renderHook, act } from "@testing-library/react";
 import { vi, describe, it, expect, beforeEach } from "vitest";
 import {
   useProfessionals,
@@ -6,7 +6,7 @@ import {
   useProfessionalAvailability,
 } from "../useProfessionals";
 import { apiClient } from "@/lib/api";
-import { UserRole } from "@/lib/types";
+import { SlotStatus } from "@/lib/types";
 
 // Mock the API client
 vi.mock("@/lib/api", () => ({
@@ -86,8 +86,8 @@ describe("useProfessionals", () => {
       data: mockProfessionals,
       total: 2,
       page: 1,
-      size: 10,
-      pages: 1,
+      per_page: 10,
+      total_pages: 1,
     };
 
     vi.mocked(apiClient.getProfessionals).mockResolvedValue(mockResponse);
@@ -218,18 +218,22 @@ describe("useProfessionalAvailability", () => {
       {
         id: "avail-1",
         professional_id: "prof-1",
-        start_time: "2023-12-01T09:00:00Z",
-        end_time: "2023-12-01T17:00:00Z",
-        is_available: true,
+        date: "2023-12-01",
+        time: "09:00",
+        duration: 480,
+        timezone: "America/Bogota",
+        status: SlotStatus.FREE,
         created_at: "2023-11-01T00:00:00Z",
         updated_at: "2023-11-01T00:00:00Z",
       },
       {
         id: "avail-2",
         professional_id: "prof-1",
-        start_time: "2023-12-02T09:00:00Z",
-        end_time: "2023-12-02T17:00:00Z",
-        is_available: true,
+        date: "2023-12-02",
+        time: "09:00",
+        duration: 480,
+        timezone: "America/Bogota",
+        status: SlotStatus.FREE,
         created_at: "2023-11-01T00:00:00Z",
         updated_at: "2023-11-01T00:00:00Z",
       },
@@ -279,9 +283,11 @@ describe("useProfessionalAvailability", () => {
   it("should create availability successfully", async () => {
     const newAvailabilityData = {
       professional_id: "prof-1",
-      start_time: "2023-12-03T09:00:00Z",
-      end_time: "2023-12-03T17:00:00Z",
-      is_available: true,
+      date: "2023-12-03",
+      time: "09:00",
+      duration: 480,
+      timezone: "America/Bogota",
+      status: SlotStatus.FREE,
     };
 
     const createdAvailability = {
@@ -307,9 +313,11 @@ describe("useProfessionalAvailability", () => {
   it("should handle create availability error", async () => {
     const newAvailabilityData = {
       professional_id: "prof-1",
-      start_time: "2023-12-03T09:00:00Z",
-      end_time: "2023-12-03T17:00:00Z",
-      is_available: true,
+      date: "2023-12-03",
+      time: "09:00",
+      duration: 480,
+      timezone: "America/Bogota",
+      status: SlotStatus.FREE,
     };
 
     vi.mocked(apiClient.createAvailability).mockRejectedValue(new Error("Creation failed"));

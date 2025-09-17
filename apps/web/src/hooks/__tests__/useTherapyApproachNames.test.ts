@@ -1,4 +1,4 @@
-import { renderHook, waitFor } from "@testing-library/react";
+import { renderHook, waitFor, act } from "@testing-library/react";
 import { vi, describe, it, expect, beforeEach } from "vitest";
 import { useTherapyApproachNames } from "../useTherapyApproachNames";
 import { apiClient } from "@/lib/api";
@@ -15,12 +15,23 @@ describe("useTherapyApproachNames", () => {
     vi.clearAllMocks();
   });
 
-  it("should initialize with loading state when approachIds provided", () => {
+  it("should initialize with loading state when approachIds provided", async () => {
+    // Mock API to return empty array to avoid undefined error
+    vi.mocked(apiClient.get).mockResolvedValue([]);
+
     const { result } = renderHook(() => useTherapyApproachNames(["approach-1"]));
 
     expect(result.current.loading).toBe(true);
     expect(result.current.error).toBe(null);
     expect(typeof result.current.getNames).toBe("function");
+
+    // Wait for the async effect to complete
+    await waitFor(
+      () => {
+        expect(result.current.loading).toBe(false);
+      },
+      { timeout: 1000 },
+    );
   });
 
   it("should not be loading when approachIds is empty", () => {
@@ -46,7 +57,7 @@ describe("useTherapyApproachNames", () => {
       () => {
         expect(result.current.loading).toBe(false);
       },
-      { timeout: 10000 },
+      { timeout: 1000 },
     );
 
     expect(result.current.error).toBe(null);
@@ -66,7 +77,7 @@ describe("useTherapyApproachNames", () => {
       () => {
         expect(result.current.loading).toBe(false);
       },
-      { timeout: 10000 },
+      { timeout: 1000 },
     );
 
     expect(result.current.error).toBe("API Error");
@@ -86,7 +97,7 @@ describe("useTherapyApproachNames", () => {
       () => {
         expect(result.current.loading).toBe(false);
       },
-      { timeout: 10000 },
+      { timeout: 1000 },
     );
 
     expect(result.current.getNames(["approach-1", "unknown-approach"])).toEqual([
@@ -104,7 +115,7 @@ describe("useTherapyApproachNames", () => {
       () => {
         expect(result.current.loading).toBe(false);
       },
-      { timeout: 10000 },
+      { timeout: 1000 },
     );
 
     expect(result.current.error).toBe(null);

@@ -31,8 +31,6 @@ class User(Base):
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
     
     # Relationships
-    appointments = relationship("Appointment", back_populates="user")
-    payments = relationship("Payment", back_populates="user")
     held_slots = relationship("Availability", back_populates="user")
     
     def __repr__(self):

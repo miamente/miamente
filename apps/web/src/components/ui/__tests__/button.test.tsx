@@ -6,43 +6,63 @@ import { Button } from "../button";
 describe("Button", () => {
   it("should render with default props", () => {
     render(<Button>Click me</Button>);
+    expect(screen.getByRole("button")).toBeInTheDocument();
+  });
 
-    const button = screen.getByRole("button", { name: "Click me" });
-    expect(button).toBeInTheDocument();
+  it("should have correct default attributes", () => {
+    render(<Button>Click me</Button>);
+    const button = screen.getByRole("button");
+    expect(button).toHaveTextContent("Click me");
     expect(button).toHaveAttribute("data-slot", "button");
   });
 
-  it("should render with different variants", () => {
-    const { rerender } = render(<Button variant="default">Default</Button>);
+  it("should render default variant", () => {
+    render(<Button variant="default">Default</Button>);
     expect(screen.getByRole("button")).toHaveClass("bg-primary");
+  });
 
-    rerender(<Button variant="destructive">Destructive</Button>);
+  it("should render destructive variant", () => {
+    render(<Button variant="destructive">Destructive</Button>);
     expect(screen.getByRole("button")).toHaveClass("bg-destructive");
+  });
 
-    rerender(<Button variant="outline">Outline</Button>);
+  it("should render outline variant", () => {
+    render(<Button variant="outline">Outline</Button>);
     expect(screen.getByRole("button")).toHaveClass("border");
+  });
 
-    rerender(<Button variant="secondary">Secondary</Button>);
+  it("should render secondary variant", () => {
+    render(<Button variant="secondary">Secondary</Button>);
     expect(screen.getByRole("button")).toHaveClass("bg-secondary");
+  });
 
-    rerender(<Button variant="ghost">Ghost</Button>);
+  it("should render ghost variant", () => {
+    render(<Button variant="ghost">Ghost</Button>);
     expect(screen.getByRole("button")).toHaveClass("hover:bg-accent");
+  });
 
-    rerender(<Button variant="link">Link</Button>);
+  it("should render link variant", () => {
+    render(<Button variant="link">Link</Button>);
     expect(screen.getByRole("button")).toHaveClass("text-primary");
   });
 
-  it("should render with different sizes", () => {
-    const { rerender } = render(<Button size="default">Default</Button>);
+  it("should render default size", () => {
+    render(<Button size="default">Default</Button>);
     expect(screen.getByRole("button")).toHaveClass("h-9");
+  });
 
-    rerender(<Button size="sm">Small</Button>);
+  it("should render small size", () => {
+    render(<Button size="sm">Small</Button>);
     expect(screen.getByRole("button")).toHaveClass("h-8");
+  });
 
-    rerender(<Button size="lg">Large</Button>);
+  it("should render large size", () => {
+    render(<Button size="lg">Large</Button>);
     expect(screen.getByRole("button")).toHaveClass("h-10");
+  });
 
-    rerender(<Button size="icon">Icon</Button>);
+  it("should render icon size", () => {
+    render(<Button size="icon">Icon</Button>);
     expect(screen.getByRole("button")).toHaveClass("size-9");
   });
 

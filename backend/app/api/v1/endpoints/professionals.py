@@ -47,9 +47,9 @@ def parse_professional_data(professional: Professional) -> dict:
             for ps in professional.professional_specialties if ps.is_active
         ],
         "bio": professional.bio,
-        "academic_experience": json.loads(professional.academic_experience) if professional.academic_experience else None,
-        "work_experience": json.loads(professional.work_experience) if professional.work_experience else None,
-        "certifications": json.loads(professional.certifications) if professional.certifications else None,
+        "academic_experience": professional.academic_experience,
+        "work_experience": professional.work_experience,
+        "certifications": professional.certifications,
         "languages": professional.languages,
         "therapy_approaches_ids": professional.therapy_approaches_ids,
         "specialty_ids": professional.specialty_ids,

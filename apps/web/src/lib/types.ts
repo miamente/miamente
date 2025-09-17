@@ -291,25 +291,16 @@ export interface AvailabilityUpdate {
 
 export interface Specialty extends BaseEntity {
   name: string;
-  description: string;
-  default_price_cents: number;
-  currency: string;
   category: string;
 }
 
 export interface SpecialtyCreate {
   name: string;
-  description: string;
-  default_price_cents: number;
-  currency?: string;
   category: string;
 }
 
 export interface SpecialtyUpdate {
   name?: string;
-  description?: string;
-  default_price_cents?: number;
-  currency?: string;
   category?: string;
 }
 

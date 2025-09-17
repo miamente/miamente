@@ -12,9 +12,14 @@ export function useSpecialtyNames() {
     try {
       const allSpecialties = await apiClient.getSpecialtiesNew();
       const newNamesMap = new Map<string, string>();
-      allSpecialties.forEach((specialty) => {
-        newNamesMap.set(specialty.id, specialty.name);
-      });
+
+      // Safety check: ensure allSpecialties is an array
+      if (Array.isArray(allSpecialties)) {
+        allSpecialties.forEach((specialty) => {
+          newNamesMap.set(specialty.id, specialty.name);
+        });
+      }
+
       setNamesMap(newNamesMap);
     } catch (err) {
       console.error("Failed to fetch specialties:", err);

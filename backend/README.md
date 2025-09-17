@@ -5,10 +5,7 @@ Backend API for the Miamente mental health platform built with FastAPI.
 ## Features
 
 - **Authentication**: JWT-based authentication for users and professionals
-- **Appointments**: Book, manage, and track mental health appointments
 - **Availability**: Professional availability management
-- **Payments**: Payment processing with mock provider (extensible to Stripe)
-- **Email**: Automated email notifications using SendGrid
 - **Database**: PostgreSQL with SQLAlchemy ORM
 
 ## Tech Stack
@@ -18,16 +15,82 @@ Backend API for the Miamente mental health platform built with FastAPI.
 - **Redis**: Caching and task queue
 - **SQLAlchemy**: ORM for database operations
 - **Pydantic**: Data validation and serialization
-- **SendGrid**: Email service
 - **JWT**: Authentication tokens
 
 ## Quick Start
 
 ### Prerequisites
 
-- Python 3.11+
+- **Python 3.13.7** (exact version required)
 - PostgreSQL
 - Redis (optional, for caching and background tasks)
+
+> **Note**: This project requires Python 3.13.7 specifically. Use pyenv, conda, or similar tools to manage Python versions.
+
+### Python Version Management
+
+This project uses Python 3.13.7. The following files ensure version consistency:
+
+- `.python-version` - For pyenv users
+- `runtime.txt` - For deployment platforms (Heroku, Railway, etc.)
+- `pyproject.toml` - Specifies `requires-python = ">=3.13,<3.14"` and manages all dependencies
+
+> **Note**: This project uses `pyproject.toml` as the single source of truth for dependencies. No `requirements.txt` files are used.
+
+#### Using pyenv (Recommended)
+
+```bash
+# Install Python 3.13.7
+pyenv install 3.13.7
+
+# Set local version for this project
+pyenv local 3.13.7
+
+# Verify version
+python --version  # Should output: Python 3.13.7
+```
+
+#### Using conda
+
+```bash
+# Create environment with specific Python version
+conda create -n miamente-backend python=3.13.7
+
+# Activate environment
+conda activate miamente-backend
+```
+
+### Dependency Management
+
+This project uses `pyproject.toml` for dependency management. Here are the available dependency groups:
+
+- **Production**: `pip install -e .` (installs only runtime dependencies)
+- **Development**: `pip install -e ".[dev]"` (includes testing, linting, and formatting tools)
+
+#### Adding Dependencies
+
+To add a new dependency, edit `pyproject.toml`:
+
+```toml
+# For production dependencies
+dependencies = [
+    "fastapi==0.115.6",
+    "your-new-package==1.0.0",
+]
+
+# For development dependencies
+[project.optional-dependencies]
+dev = [
+    "pytest==8.3.4",
+    "your-dev-package==1.0.0",
+]
+```
+
+Then reinstall:
+
+```bash
+pip install -e ".[dev]"
+```
 
 ### Installation
 
@@ -47,7 +110,11 @@ source venv/bin/activate  # On Windows: venv\Scripts\activate
 3. Install dependencies:
 
 ```bash
-pip install -r requirements.txt
+# Install production dependencies
+pip install -e .
+
+# Or install with development dependencies
+pip install -e ".[dev]"
 ```
 
 4. Copy environment variables:
@@ -90,14 +157,6 @@ The API will be available at `http://localhost:8000` with interactive docs at `h
 - `POST /api/v1/auth/login/professional` - Login professional
 - `POST /api/v1/auth/refresh` - Refresh access token
 
-### Appointments
-
-- `POST /api/v1/appointments/book` - Book new appointment
-- `GET /api/v1/appointments/` - Get user appointments
-- `GET /api/v1/appointments/{id}` - Get appointment details
-- `PUT /api/v1/appointments/{id}` - Update appointment
-- `DELETE /api/v1/appointments/{id}` - Cancel appointment
-
 ### Professionals
 
 - `GET /api/v1/professionals/` - List all professionals
@@ -108,12 +167,6 @@ The API will be available at `http://localhost:8000` with interactive docs at `h
 - `GET /api/v1/availability/professional/{id}` - Get professional availability
 - `POST /api/v1/availability/` - Create availability slot
 - `POST /api/v1/availability/bulk` - Create multiple availability slots
-
-### Payments
-
-- `POST /api/v1/payments/intent` - Create payment intent
-- `POST /api/v1/payments/confirm/{id}` - Confirm payment
-- `GET /api/v1/payments/{id}` - Get payment details
 
 ## Database Models
 
@@ -127,20 +180,10 @@ The API will be available at `http://localhost:8000` with interactive docs at `h
 - Professional information and credentials
 - Specialties, rates, and availability settings
 
-### Appointment
-
-- Appointment details and status
-- Payment and session information
-
 ### Availability
 
 - Time slots for professionals
 - Booking status and management
-
-### Payment
-
-- Payment records and status
-- Integration with payment providers
 
 ## Development
 

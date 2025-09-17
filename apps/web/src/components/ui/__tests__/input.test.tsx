@@ -55,8 +55,8 @@ describe("Input", () => {
     expect(input).toHaveValue("test value");
 
     input.focus();
-    input.setSelectionRange(0, 0);
-    input.setRangeText("new");
+    (input as HTMLInputElement).setSelectionRange(0, 0);
+    (input as HTMLInputElement).setRangeText("new");
     input.dispatchEvent(new Event("input", { bubbles: true }));
 
     expect(handleChange).toHaveBeenCalled();

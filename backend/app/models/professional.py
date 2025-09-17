@@ -56,7 +56,6 @@ class Professional(Base):
     professional_specialties_new = relationship("app.models.professional_specialty_new.ProfessionalSpecialty", back_populates="professional")  # New many-to-many relationship
     professional_therapeutic_approaches = relationship("app.models.professional_therapeutic_approach.ProfessionalTherapeuticApproach", back_populates="professional")
     professional_modalities = relationship("app.models.professional_modality.ProfessionalModality", back_populates="professional")
-    appointments = relationship("app.models.appointment.Appointment", back_populates="professional")
     availability = relationship("app.models.availability.Availability", back_populates="professional")
     
     def __repr__(self):

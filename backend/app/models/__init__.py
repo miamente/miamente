@@ -3,9 +3,7 @@ Database models for the Miamente platform.
 """
 from app.models.user import User
 from app.models.professional import Professional
-from app.models.appointment import Appointment
 from app.models.availability import Availability
-from app.models.payment import Payment
 from app.models.specialty import Specialty  # Keep for backward compatibility
 from app.models.professional_specialty import ProfessionalSpecialty  # Keep for backward compatibility
 from app.models.modality import Modality  # New: intervention modalities
@@ -18,9 +16,7 @@ from app.models.professional_modality import ProfessionalModality
 __all__ = [
     "User",
     "Professional", 
-    "Appointment",
     "Availability",
-    "Payment",
     "Specialty",
     "ProfessionalSpecialty",
     "Modality",

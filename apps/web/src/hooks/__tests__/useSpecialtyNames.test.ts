@@ -1,4 +1,4 @@
-import { renderHook, waitFor } from "@testing-library/react";
+import { renderHook, waitFor, act } from "@testing-library/react";
 import { vi, describe, it, expect, beforeEach } from "vitest";
 import { useSpecialtyNames } from "../useSpecialtyNames";
 import { apiClient } from "@/lib/api";
@@ -15,12 +15,23 @@ describe("useSpecialtyNames", () => {
     vi.clearAllMocks();
   });
 
-  it("should initialize with loading state", () => {
+  it("should initialize with loading state", async () => {
+    // Mock API to return empty array to avoid undefined error
+    vi.mocked(apiClient.getSpecialtiesNew).mockResolvedValue([]);
+
     const { result } = renderHook(() => useSpecialtyNames());
 
     expect(result.current.loading).toBe(true);
     expect(result.current.error).toBe(null);
     expect(typeof result.current.getNames).toBe("function");
+
+    // Wait for the async effect to complete
+    await waitFor(
+      () => {
+        expect(result.current.loading).toBe(false);
+      },
+      { timeout: 1000 },
+    );
   });
 
   it("should fetch specialties and create names map", async () => {

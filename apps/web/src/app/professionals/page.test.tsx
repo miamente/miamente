@@ -127,9 +127,12 @@ describe("ProfessionalsPage", () => {
   it("renders professionals list with navigation links", async () => {
     render(<ProfessionalsPage />);
 
-    await waitFor(() => {
-      expect(screen.getByText("Dr. Test Professional 1")).toBeInTheDocument();
-    });
+    await waitFor(
+      () => {
+        expect(screen.getByText("Dr. Test Professional 1")).toBeInTheDocument();
+      },
+      { timeout: 1000 },
+    );
 
     expect(screen.getByText("Dr. Test Professional 2")).toBeInTheDocument();
 
@@ -150,9 +153,12 @@ describe("ProfessionalsPage", () => {
   it("navigates to professional profile when card is clicked", async () => {
     render(<ProfessionalsPage />);
 
-    await waitFor(() => {
-      expect(screen.getByText("Dr. Test Professional 1")).toBeInTheDocument();
-    });
+    await waitFor(
+      () => {
+        expect(screen.getByText("Dr. Test Professional 1")).toBeInTheDocument();
+      },
+      { timeout: 1000 },
+    );
 
     const professional1Link = screen.getByRole("link", { name: /Dr. Test Professional 1/i });
     fireEvent.click(professional1Link);
@@ -168,9 +174,12 @@ describe("ProfessionalsPage", () => {
   it("shows correct button text for profile navigation", async () => {
     render(<ProfessionalsPage />);
 
-    await waitFor(() => {
-      expect(screen.getByText("Dr. Test Professional 1")).toBeInTheDocument();
-    });
+    await waitFor(
+      () => {
+        expect(screen.getByText("Dr. Test Professional 1")).toBeInTheDocument();
+      },
+      { timeout: 1000 },
+    );
 
     // Check that buttons show "Ver perfil" instead of "Ver horarios"
     const profileButtons = screen.getAllByText("Ver perfil");
@@ -183,9 +192,12 @@ describe("ProfessionalsPage", () => {
   it("applies hover effects to professional cards", async () => {
     render(<ProfessionalsPage />);
 
-    await waitFor(() => {
-      expect(screen.getByText("Dr. Test Professional 1")).toBeInTheDocument();
-    });
+    await waitFor(
+      () => {
+        expect(screen.getByText("Dr. Test Professional 1")).toBeInTheDocument();
+      },
+      { timeout: 1000 },
+    );
 
     const professional1Link = screen.getByRole("link", { name: /Dr. Test Professional 1/i });
     const professional1Card = professional1Link.querySelector('[data-slot="card"]');
@@ -200,9 +212,12 @@ describe("ProfessionalsPage", () => {
   it("displays professional information correctly", async () => {
     render(<ProfessionalsPage />);
 
-    await waitFor(() => {
-      expect(screen.getByText("Dr. Test Professional 1")).toBeInTheDocument();
-    });
+    await waitFor(
+      () => {
+        expect(screen.getByText("Dr. Test Professional 1")).toBeInTheDocument();
+      },
+      { timeout: 1000 },
+    );
 
     // Check professional 1 details
     expect(screen.getByText("Psicología Clínica")).toBeInTheDocument();
@@ -222,9 +237,12 @@ describe("ProfessionalsPage", () => {
   it("handles professionals without profile pictures", async () => {
     render(<ProfessionalsPage />);
 
-    await waitFor(() => {
-      expect(screen.getByText("Dr. Test Professional 2")).toBeInTheDocument();
-    });
+    await waitFor(
+      () => {
+        expect(screen.getByText("Dr. Test Professional 2")).toBeInTheDocument();
+      },
+      { timeout: 1000 },
+    );
 
     // Professional 2 doesn't have a profile picture
     expect(screen.getByText("Sin foto")).toBeInTheDocument();
@@ -248,11 +266,14 @@ describe("ProfessionalsPage", () => {
 
     render(<ProfessionalsPage />);
 
-    await waitFor(() => {
-      expect(
-        screen.getByText("No encontramos profesionales con los filtros seleccionados."),
-      ).toBeInTheDocument();
-    });
+    await waitFor(
+      () => {
+        expect(
+          screen.getByText("No encontramos profesionales con los filtros seleccionados."),
+        ).toBeInTheDocument();
+      },
+      { timeout: 1000 },
+    );
 
     expect(screen.getByText("Intenta ajustar los filtros.")).toBeInTheDocument();
   });
