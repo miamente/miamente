@@ -6,6 +6,7 @@ import { Footer } from "@/components/footer";
 import { HeaderWrapper as Header } from "@/components/header/header-wrapper";
 import { ThemeProvider } from "@/components/theme-provider";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { AuthProvider } from "@/contexts/AuthContext";
 
 const montserrat = Montserrat({ variable: "--font-montserrat", subsets: ["latin"] });
 
@@ -27,9 +28,11 @@ export default function RootLayout({
       >
         <ThemeProvider>
           <TooltipProvider>
-            <Header />
-            <main className="mx-auto min-h-[70vh] max-w-6xl px-4 py-8">{children}</main>
-            <Footer />
+            <AuthProvider>
+              <Header />
+              <main className="mx-auto min-h-[70vh] max-w-6xl px-4 py-8">{children}</main>
+              <Footer />
+            </AuthProvider>
           </TooltipProvider>
         </ThemeProvider>
       </body>

@@ -5,7 +5,16 @@
 
 import React, { createContext, useContext, ReactNode } from "react";
 
-import { useAuth, type AuthUser } from "@/hooks/useAuth";
+import {
+  useAuth,
+  type AuthUser,
+  getUserEmail,
+  getUserFullName,
+  isUserVerified,
+  isEmailVerified,
+  getUserId,
+  getUserUid,
+} from "@/hooks/useAuth";
 
 interface AuthContextType {
   user: AuthUser | null;
@@ -29,6 +38,12 @@ interface AuthContextType {
   }) => Promise<void>;
   logout: () => void;
   refreshUser: () => Promise<void>;
+  getUserEmail: (user: AuthUser | null) => string | undefined;
+  getUserFullName: (user: AuthUser | null) => string | undefined;
+  isUserVerified: (user: AuthUser | null) => boolean;
+  isEmailVerified: (user: AuthUser | null) => boolean;
+  getUserId: (user: AuthUser | null) => string | undefined;
+  getUserUid: (user: AuthUser | null) => string | undefined;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -40,7 +55,17 @@ interface AuthProviderProps {
 export function AuthProvider({ children }: AuthProviderProps) {
   const auth = useAuth();
 
-  return <AuthContext.Provider value={auth}>{children}</AuthContext.Provider>;
+  const contextValue = {
+    ...auth,
+    getUserEmail,
+    getUserFullName,
+    isUserVerified,
+    isEmailVerified,
+    getUserId,
+    getUserUid,
+  };
+
+  return <AuthContext.Provider value={contextValue}>{children}</AuthContext.Provider>;
 }
 
 export function useAuthContext() {
@@ -50,6 +75,9 @@ export function useAuthContext() {
   }
   return context;
 }
+
+// Re-export helper functions
+export { getUserEmail, getUserFullName, isUserVerified, isEmailVerified, getUserId, getUserUid };
 
 // Convenience hooks for specific user types
 export function useUser() {

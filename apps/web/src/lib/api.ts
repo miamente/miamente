@@ -208,15 +208,33 @@ class ApiClient {
 
   // Auth methods
   async login(email: string, password: string): Promise<LoginResponse> {
-    return this.post<LoginResponse>("/auth/login", { email, password });
+    const response = await this.post<LoginResponse>("/auth/login", { email, password });
+
+    // Store the token
+    const { access_token } = response;
+    this.setToken(access_token);
+
+    return response;
   }
 
   async loginUser(credentials: LoginRequest): Promise<LoginResponse> {
-    return this.post<LoginResponse>("/auth/login", credentials);
+    const response = await this.post<LoginResponse>("/auth/login", credentials);
+
+    // Store the token
+    const { access_token } = response;
+    this.setToken(access_token);
+
+    return response;
   }
 
   async loginProfessional(credentials: LoginRequest): Promise<LoginResponse> {
-    return this.post<LoginResponse>("/auth/login", credentials);
+    const response = await this.post<LoginResponse>("/auth/login", credentials);
+
+    // Store the token
+    const { access_token } = response;
+    this.setToken(access_token);
+
+    return response;
   }
 
   async registerUser(userData: UserCreate): Promise<User> {
@@ -228,7 +246,10 @@ class ApiClient {
   }
 
   async getCurrentUser(): Promise<AuthUser> {
-    return this.get<AuthUser>("/auth/me");
+    // Ensure we have the latest token from localStorage
+    this.token = this.getStoredToken();
+    const result = await this.get<AuthUser>("/auth/me");
+    return result;
   }
 
   async logout(): Promise<void> {
@@ -375,6 +396,10 @@ class ApiClient {
   // Specialty methods
   async getSpecialties(): Promise<Specialty[]> {
     return this.get<Specialty[]>("/specialties");
+  }
+
+  async getSpecialtiesNew(): Promise<Specialty[]> {
+    return this.get<Specialty[]>("/specialties-new");
   }
 
   async getSpecialty(specialtyId: string): Promise<Specialty> {

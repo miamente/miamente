@@ -64,10 +64,7 @@ export function useAuth() {
   const checkAuth = useCallback(async () => {
     try {
       const token = localStorage.getItem("access_token");
-      console.log("checkAuth - token exists:", !!token);
-      console.log("checkAuth - token value:", token ? token.substring(0, 20) + "..." : "null");
       if (!token) {
-        console.log("checkAuth - no token, setting user to null");
         setAuthState({
           user: null,
           isLoading: false,
@@ -76,9 +73,7 @@ export function useAuth() {
         return;
       }
 
-      console.log("checkAuth - calling getCurrentUser");
       const userData = await apiClient.getCurrentUser();
-      console.log("checkAuth - userData received:", userData);
       setAuthState({
         user: userData,
         isLoading: false,
@@ -98,40 +93,17 @@ export function useAuth() {
 
   // Check if user is authenticated on mount
   useEffect(() => {
-    console.log("useAuth useEffect - component mounted, calling checkAuth");
     checkAuth();
   }, [checkAuth]);
-
-  // Debug effect to log state changes
-  useEffect(() => {
-    console.log("useAuth state changed:", {
-      user: authState.user
-        ? {
-            type: authState.user.type,
-            id: authState.user.data.id,
-            email: authState.user.data.email,
-          }
-        : null,
-      isLoading: authState.isLoading,
-      isAuthenticated: authState.isAuthenticated,
-    });
-  }, [authState.user, authState.isLoading, authState.isAuthenticated]);
 
   const loginUser = useCallback(
     async (credentials: LoginRequest) => {
       try {
-        const response = await apiClient.loginUser(credentials);
-        console.log("Login successful, response:", response);
+        await apiClient.loginUser(credentials);
 
-        // Get user data immediately
-        const userData = await apiClient.getCurrentUser();
-        console.log("User data after login:", userData);
-
-        setAuthState({
-          user: userData,
-          isLoading: false,
-          isAuthenticated: true,
-        });
+        // Use the same checkAuth logic that works for refresh
+        await new Promise((resolve) => setTimeout(resolve, 100));
+        await checkAuth();
 
         router.push("/dashboard");
       } catch (error) {
@@ -139,24 +111,17 @@ export function useAuth() {
         throw error;
       }
     },
-    [router],
+    [router, checkAuth],
   );
 
   const loginProfessional = useCallback(
     async (credentials: LoginRequest) => {
       try {
-        const response = await apiClient.loginProfessional(credentials);
-        console.log("Professional login successful, response:", response);
+        await apiClient.loginProfessional(credentials);
 
-        // Get user data immediately
-        const userData = await apiClient.getCurrentUser();
-        console.log("Professional data after login:", userData);
-
-        setAuthState({
-          user: userData,
-          isLoading: false,
-          isAuthenticated: true,
-        });
+        // Use the same checkAuth logic that works for refresh
+        await new Promise((resolve) => setTimeout(resolve, 100));
+        await checkAuth();
 
         router.push("/dashboard");
       } catch (error) {
@@ -164,7 +129,7 @@ export function useAuth() {
         throw error;
       }
     },
-    [router],
+    [router, checkAuth],
   );
 
   const registerUser = useCallback(
@@ -212,10 +177,8 @@ export function useAuth() {
   }, [router]);
 
   const refreshUser = useCallback(async () => {
-    if (authState.isAuthenticated) {
-      await checkAuth();
-    }
-  }, [authState.isAuthenticated, checkAuth]);
+    await checkAuth();
+  }, [checkAuth]);
 
   const getAuthHeaders = useCallback(() => {
     const token = localStorage.getItem("access_token");

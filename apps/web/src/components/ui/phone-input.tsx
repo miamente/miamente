@@ -95,177 +95,186 @@ const countries = [
 ];
 
 // Componente básico
-export function PhoneInputField({
-  value,
-  onChange,
-  countryCode,
-  onCountryCodeChange,
-  phoneNumber: externalPhoneNumber,
-  onPhoneNumberChange,
-  placeholder = "300 123 4567",
-  disabled = false,
-  className,
-  id,
-  name,
-  ...props
-}: PhoneInputFieldProps) {
-  const [selectedCountry, setSelectedCountry] = useState(countries[0]); // Colombia por defecto
-  const [internalPhoneNumber, setInternalPhoneNumber] = useState("");
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+export const PhoneInputField = React.forwardRef<HTMLInputElement, PhoneInputFieldProps>(
+  (
+    {
+      value,
+      onChange,
+      countryCode,
+      onCountryCodeChange,
+      phoneNumber: externalPhoneNumber,
+      onPhoneNumberChange,
+      placeholder = "300 123 4567",
+      disabled = false,
+      className,
+      id,
+      name,
+      ...props
+    },
+    ref,
+  ) => {
+    const [selectedCountry, setSelectedCountry] = useState(countries[0]); // Colombia por defecto
+    const [internalPhoneNumber, setInternalPhoneNumber] = useState("");
+    const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
-  // Usar valores externos si están disponibles, sino usar valores internos
-  const phoneNumber = externalPhoneNumber !== undefined ? externalPhoneNumber : internalPhoneNumber;
-  const currentCountryCode = countryCode || selectedCountry.callingCode;
+    // Usar valores externos si están disponibles, sino usar valores internos
+    const phoneNumber =
+      externalPhoneNumber !== undefined ? externalPhoneNumber : internalPhoneNumber;
+    const currentCountryCode = countryCode || selectedCountry.callingCode;
 
-  // Parsear el número de teléfono si viene con código de país (para compatibilidad)
-  React.useEffect(() => {
-    if (value && !countryCode && !externalPhoneNumber) {
-      try {
-        const parsed = parsePhoneNumber(value);
-        if (parsed) {
-          const country = countries.find((c) => c.code === parsed.country);
-          if (country) {
-            setSelectedCountry(country);
-            setInternalPhoneNumber(parsed.nationalNumber);
-            onCountryCodeChange?.(country.callingCode);
-            onPhoneNumberChange?.(parsed.nationalNumber);
+    // Parsear el número de teléfono si viene con código de país (para compatibilidad)
+    React.useEffect(() => {
+      if (value && !countryCode && !externalPhoneNumber) {
+        try {
+          const parsed = parsePhoneNumber(value);
+          if (parsed) {
+            const country = countries.find((c) => c.code === parsed.country);
+            if (country) {
+              setSelectedCountry(country);
+              setInternalPhoneNumber(parsed.nationalNumber);
+              onCountryCodeChange?.(country.callingCode);
+              onPhoneNumberChange?.(parsed.nationalNumber);
+            }
           }
+        } catch {
+          // Si no se puede parsear, usar como está
+          setInternalPhoneNumber(value);
+          onPhoneNumberChange?.(value);
         }
-      } catch {
-        // Si no se puede parsear, usar como está
-        setInternalPhoneNumber(value);
-        onPhoneNumberChange?.(value);
       }
-    }
-  }, [value, countryCode, externalPhoneNumber, onCountryCodeChange, onPhoneNumberChange]);
+    }, [value, countryCode, externalPhoneNumber, onCountryCodeChange, onPhoneNumberChange]);
 
-  // Actualizar país seleccionado basado en countryCode
-  React.useEffect(() => {
-    if (countryCode) {
-      const country = countries.find((c) => c.callingCode === countryCode);
-      if (country) {
-        setSelectedCountry(country);
+    // Actualizar país seleccionado basado en countryCode
+    React.useEffect(() => {
+      if (countryCode) {
+        const country = countries.find((c) => c.callingCode === countryCode);
+        if (country) {
+          setSelectedCountry(country);
+        }
       }
-    }
-  }, [countryCode]);
+    }, [countryCode]);
 
-  // Cerrar dropdown al hacer clic fuera
-  React.useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      const target = event.target as Element;
-      const dropdown = document.querySelector(".phone-input-dropdown");
-      const button = document.querySelector(".phone-input-button");
+    // Cerrar dropdown al hacer clic fuera
+    React.useEffect(() => {
+      const handleClickOutside = (event: MouseEvent) => {
+        const target = event.target as Element;
+        const dropdown = document.querySelector(".phone-input-dropdown");
+        const button = document.querySelector(".phone-input-button");
 
-      if (dropdown && button && !dropdown.contains(target) && !button.contains(target)) {
-        setIsDropdownOpen(false);
+        if (dropdown && button && !dropdown.contains(target) && !button.contains(target)) {
+          setIsDropdownOpen(false);
+        }
+      };
+
+      if (isDropdownOpen) {
+        document.addEventListener("mousedown", handleClickOutside);
       }
+
+      return () => {
+        document.removeEventListener("mousedown", handleClickOutside);
+      };
+    }, [isDropdownOpen]);
+
+    const handleCountryChange = (country: (typeof countries)[0]) => {
+      setSelectedCountry(country);
+      setIsDropdownOpen(false);
+
+      // Notificar cambios por separado
+      onCountryCodeChange?.(country.callingCode);
+
+      // Para compatibilidad, también notificar el número completo
+      const fullNumber = `+${country.callingCode}${phoneNumber}`;
+      onChange?.(fullNumber);
     };
 
-    if (isDropdownOpen) {
-      document.addEventListener("mousedown", handleClickOutside);
-    }
+    const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+      const newNumber = e.target.value;
 
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
+      // Actualizar número interno si no hay control externo
+      if (externalPhoneNumber === undefined) {
+        setInternalPhoneNumber(newNumber);
+      }
+
+      // Notificar cambios por separado
+      onPhoneNumberChange?.(newNumber);
+
+      // Para compatibilidad, también notificar el número completo
+      const fullNumber = `+${currentCountryCode}${newNumber}`;
+      onChange?.(fullNumber);
     };
-  }, [isDropdownOpen]);
 
-  const handleCountryChange = (country: (typeof countries)[0]) => {
-    setSelectedCountry(country);
-    setIsDropdownOpen(false);
+    return (
+      <div className={cn("flex w-full", className)}>
+        {/* Selector de país */}
+        <div className="relative">
+          <button
+            type="button"
+            disabled={disabled}
+            onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+            className={cn(
+              "phone-input-button border-input bg-background flex h-9 cursor-pointer items-center justify-between rounded-l-md border px-3 py-1 text-sm shadow-xs transition-[color,box-shadow] outline-none",
+              "focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]",
+              "aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive",
+              "disabled:cursor-not-allowed disabled:opacity-50",
+              "hover:bg-accent/50",
+            )}
+          >
+            <span className="flex items-center gap-1">
+              <span>{selectedCountry.flag}</span>
+              <span>+{selectedCountry.callingCode}</span>
+            </span>
+            <ChevronDown className="h-4 w-4 opacity-50" />
+          </button>
 
-    // Notificar cambios por separado
-    onCountryCodeChange?.(country.callingCode);
+          {/* Dropdown de países */}
+          {isDropdownOpen && (
+            <div className="phone-input-dropdown bg-popover text-popover-foreground absolute z-[9999] mt-1 max-h-60 w-80 overflow-auto rounded-md border shadow-md">
+              {countries.map((country) => (
+                <div
+                  key={country.code}
+                  className="hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground relative flex w-full cursor-default items-center rounded-sm px-3 py-2 text-sm outline-none select-none"
+                  onClick={() => handleCountryChange(country)}
+                >
+                  <span className="flex w-full items-center justify-between">
+                    <span className="flex items-center gap-3">
+                      <span className="text-lg">{country.flag}</span>
+                      <span className="font-medium">{country.name}</span>
+                    </span>
+                    <span className="text-muted-foreground font-mono">+{country.callingCode}</span>
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
 
-    // Para compatibilidad, también notificar el número completo
-    const fullNumber = `+${country.callingCode}${phoneNumber}`;
-    onChange?.(fullNumber);
-  };
-
-  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newNumber = e.target.value;
-
-    // Actualizar número interno si no hay control externo
-    if (externalPhoneNumber === undefined) {
-      setInternalPhoneNumber(newNumber);
-    }
-
-    // Notificar cambios por separado
-    onPhoneNumberChange?.(newNumber);
-
-    // Para compatibilidad, también notificar el número completo
-    const fullNumber = `+${currentCountryCode}${newNumber}`;
-    onChange?.(fullNumber);
-  };
-
-  return (
-    <div className={cn("flex w-full", className)}>
-      {/* Selector de país */}
-      <div className="relative">
-        <button
-          type="button"
+        {/* Input de número */}
+        <input
+          ref={ref}
+          id={id}
+          name={name}
+          type="tel"
+          value={phoneNumber}
+          onChange={handlePhoneChange}
+          placeholder={placeholder}
           disabled={disabled}
-          onClick={() => setIsDropdownOpen(!isDropdownOpen)}
           className={cn(
-            "phone-input-button border-input bg-background flex h-9 cursor-pointer items-center justify-between rounded-l-md border px-3 py-1 text-sm shadow-xs transition-[color,box-shadow] outline-none",
+            "file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input flex h-9 w-full min-w-0 rounded-r-md border border-l-0 bg-transparent px-3 py-1 text-base shadow-xs transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm",
             "focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]",
             "aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive",
-            "disabled:cursor-not-allowed disabled:opacity-50",
-            "hover:bg-accent/50",
           )}
-        >
-          <span className="flex items-center gap-1">
-            <span>{selectedCountry.flag}</span>
-            <span>+{selectedCountry.callingCode}</span>
-          </span>
-          <ChevronDown className="h-4 w-4 opacity-50" />
-        </button>
-
-        {/* Dropdown de países */}
-        {isDropdownOpen && (
-          <div className="phone-input-dropdown bg-popover text-popover-foreground absolute z-[9999] mt-1 max-h-60 w-80 overflow-auto rounded-md border shadow-md">
-            {countries.map((country) => (
-              <div
-                key={country.code}
-                className="hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground relative flex w-full cursor-default items-center rounded-sm px-3 py-2 text-sm outline-none select-none"
-                onClick={() => handleCountryChange(country)}
-              >
-                <span className="flex w-full items-center justify-between">
-                  <span className="flex items-center gap-3">
-                    <span className="text-lg">{country.flag}</span>
-                    <span className="font-medium">{country.name}</span>
-                  </span>
-                  <span className="text-muted-foreground font-mono">+{country.callingCode}</span>
-                </span>
-              </div>
-            ))}
-          </div>
-        )}
+          {...props}
+        />
       </div>
+    );
+  },
+);
 
-      {/* Input de número */}
-      <input
-        id={id}
-        name={name}
-        type="tel"
-        value={phoneNumber}
-        onChange={handlePhoneChange}
-        placeholder={placeholder}
-        disabled={disabled}
-        className={cn(
-          "file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input flex h-9 w-full min-w-0 rounded-r-md border border-l-0 bg-transparent px-3 py-1 text-base shadow-xs transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm",
-          "focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]",
-          "aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive",
-        )}
-        {...props}
-      />
-    </div>
-  );
-}
+PhoneInputField.displayName = "PhoneInputField";
 
 // Wrapper compatible con React Hook Form
 export const PhoneInputFieldWithRef = React.forwardRef<HTMLInputElement, PhoneInputFieldProps>(
-  ({ onChange, onCountryCodeChange, onPhoneNumberChange, ...props }) => {
+  ({ onChange, onCountryCodeChange, onPhoneNumberChange, ...props }, ref) => {
     const handleChange = (value: string) => {
       // Crear un evento sintético compatible con React Hook Form
       const syntheticEvent = {
@@ -291,6 +300,7 @@ export const PhoneInputFieldWithRef = React.forwardRef<HTMLInputElement, PhoneIn
 
     return (
       <PhoneInputField
+        ref={ref}
         {...props}
         onChange={handleChange}
         onCountryCodeChange={handleCountryCodeChange}

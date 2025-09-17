@@ -15,6 +15,21 @@ vi.mock("@/lib/profiles", () => ({
   queryProfessionals: vi.fn(),
 }));
 
+// Mock the specialty names hook
+vi.mock("@/hooks/useSpecialtyNames", () => ({
+  useSpecialtyNames: vi.fn(() => ({
+    getNames: (ids: string[]) => {
+      const specialtyMap: Record<string, string> = {
+        "psicologia-clinica": "Psicología Clínica",
+        psiquiatria: "Psiquiatría",
+      };
+      return ids.map((id) => specialtyMap[id] || id);
+    },
+    loading: false,
+    error: null,
+  })),
+}));
+
 // Mock Next.js Image component
 vi.mock("next/image", () => ({
   default: ({ alt }: { alt: string }) => <div role="img" aria-label={alt} />,
@@ -39,9 +54,16 @@ const mockProfessionals = [
     currency: "COP",
     bio: "Psicóloga clínica con experiencia en terapia cognitivo-conductual.",
     education: "Universidad Nacional de Colombia - Psicología",
-    certifications: ["Terapia Cognitivo-Conductual", "EMDR"],
+    academic_experience: [],
+    work_experience: [],
+    certifications: [
+      { name: "Terapia Cognitivo-Conductual", document_url: "", file_name: "cert1.pdf" },
+      { name: "EMDR", document_url: "", file_name: "cert2.pdf" },
+    ],
     languages: ["Español", "Inglés"],
     therapy_approaches: ["Cognitivo-Conductual", "Humanista"],
+    therapy_approaches_ids: ["cognitivo-conductual", "humanista"],
+    modalities: [],
     timezone: "America/Bogota",
     emergency_contact: "María Test",
     emergency_phone: "+573001234568",
@@ -64,9 +86,16 @@ const mockProfessionals = [
     currency: "COP",
     bio: "Psiquiatra con especialización en trastornos del estado de ánimo.",
     education: "Universidad de los Andes - Medicina",
-    certifications: ["Psiquiatría General", "Psicofarmacología"],
+    academic_experience: [],
+    work_experience: [],
+    certifications: [
+      { name: "Psiquiatría General", document_url: "", file_name: "cert3.pdf" },
+      { name: "Psicofarmacología", document_url: "", file_name: "cert4.pdf" },
+    ],
     languages: ["Español"],
     therapy_approaches: ["Psicofarmacología", "Terapia de Pareja"],
+    therapy_approaches_ids: ["psicofarmacologia", "terapia-pareja"],
+    modalities: [],
     timezone: "America/Bogota",
     emergency_contact: "Juan Test",
     emergency_phone: "+573001234570",
@@ -176,15 +205,15 @@ describe("ProfessionalsPage", () => {
     });
 
     // Check professional 1 details
-    expect(screen.getByText("psicologia-clinica")).toBeInTheDocument();
-    expect(screen.getByText("$ 800,00 / hora")).toBeInTheDocument();
+    expect(screen.getByText("Psicología Clínica")).toBeInTheDocument();
+    expect(screen.getByText("800 / hora")).toBeInTheDocument();
     expect(
       screen.getByText("Psicóloga clínica con experiencia en terapia cognitivo-conductual."),
     ).toBeInTheDocument();
 
     // Check professional 2 details
-    expect(screen.getByText("psiquiatria")).toBeInTheDocument();
-    expect(screen.getByText("$ 1.200,00 / hora")).toBeInTheDocument();
+    expect(screen.getByText("Psiquiatría")).toBeInTheDocument();
+    expect(screen.getByText("1.200 / hora")).toBeInTheDocument();
     expect(
       screen.getByText("Psiquiatra con especialización en trastornos del estado de ánimo."),
     ).toBeInTheDocument();

@@ -21,6 +21,22 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Breadcrumbs } from "@/components/ui/breadcrumbs";
 import { getProfessionalProfile, type ProfessionalProfile } from "@/lib/profiles";
 import { useAuth, getUserUid } from "@/hooks/useAuth";
+import { useTherapyApproachNames } from "@/hooks/useTherapyApproachNames";
+import { useSpecialtyNames } from "@/hooks/useSpecialtyNames";
+
+// Helper function to construct full image URLs
+const getImageUrl = (imagePath: string | undefined): string | undefined => {
+  if (!imagePath) return undefined;
+
+  // If it's already a full URL, return as is
+  if (imagePath.startsWith("http")) {
+    return imagePath;
+  }
+
+  // If it's a relative path, prepend the API base URL
+  const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+  return `${API_BASE_URL}${imagePath}`;
+};
 
 export default function ProfessionalProfilePage() {
   const params = useParams();
@@ -31,6 +47,13 @@ export default function ProfessionalProfilePage() {
   const [error, setError] = useState<string | null>(null);
 
   const professionalId = params.id as string;
+
+  // Get therapy approach names
+  const { getNames: getTherapyApproachNames, loading: therapyApproachesLoading } =
+    useTherapyApproachNames(professional?.therapy_approaches_ids || []);
+
+  // Get specialty names
+  const { getNames: getSpecialtyNames, loading: specialtiesLoading } = useSpecialtyNames();
 
   // Check if the logged-in user is the same as the professional being viewed
   const isOwnProfile = user && professional && getUserUid(user) === professional.id;
@@ -123,8 +146,8 @@ export default function ProfessionalProfilePage() {
 
   const formatPrice = (cents: number) => {
     return (cents / 100).toLocaleString("es-CO", {
-      style: "currency",
-      currency: "COP",
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
     });
   };
 
@@ -160,9 +183,9 @@ export default function ProfessionalProfilePage() {
         <div className="lg:col-span-1">
           <Card>
             <CardHeader className="text-center">
-              {professional.profile_picture ? (
+              {getImageUrl(professional.profile_picture) ? (
                 <Image
-                  src={professional.profile_picture}
+                  src={getImageUrl(professional.profile_picture)!}
                   alt={`Foto de ${professional.full_name}`}
                   width={200}
                   height={200}
@@ -175,9 +198,26 @@ export default function ProfessionalProfilePage() {
               )}
 
               <CardTitle className="text-xl">{professional.full_name}</CardTitle>
-              <p className="text-sm text-gray-600 dark:text-gray-400">
-                {professional.specialty_ids?.[0] || "Especialidad no especificada"}
-              </p>
+              <div className="text-sm text-gray-600 dark:text-gray-400">
+                {specialtiesLoading ? (
+                  <Skeleton className="h-4 w-32" />
+                ) : professional.specialty_ids && professional.specialty_ids.length > 0 ? (
+                  <div className="flex flex-wrap gap-1">
+                    {getSpecialtyNames(professional.specialty_ids).map(
+                      (specialty: string, index: number) => (
+                        <span
+                          key={index}
+                          className="rounded-full bg-blue-100 px-2 py-1 text-xs text-blue-800 dark:bg-blue-900 dark:text-blue-200"
+                        >
+                          {specialty}
+                        </span>
+                      ),
+                    )}
+                  </div>
+                ) : (
+                  "Especialidad no especificada"
+                )}
+              </div>
 
               {professional.is_verified && (
                 <div className="mt-2 flex items-center justify-center">
@@ -323,16 +363,25 @@ export default function ProfessionalProfilePage() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="flex flex-wrap gap-2">
-                    {professional.therapy_approaches_ids.map((approach: string, index: number) => (
-                      <span
-                        key={index}
-                        className="rounded-full bg-green-100 px-3 py-1 text-sm text-green-800 dark:bg-green-900 dark:text-green-200"
-                      >
-                        {approach}
-                      </span>
-                    ))}
-                  </div>
+                  {therapyApproachesLoading ? (
+                    <div className="flex flex-wrap gap-2">
+                      <Skeleton className="h-8 w-32 rounded-full" />
+                      <Skeleton className="h-8 w-24 rounded-full" />
+                    </div>
+                  ) : (
+                    <div className="flex flex-wrap gap-2">
+                      {getTherapyApproachNames(professional.therapy_approaches_ids).map(
+                        (approach: string, index: number) => (
+                          <span
+                            key={index}
+                            className="rounded-full bg-green-100 px-3 py-1 text-sm text-green-800 dark:bg-green-900 dark:text-green-200"
+                          >
+                            {approach}
+                          </span>
+                        ),
+                      )}
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             )}

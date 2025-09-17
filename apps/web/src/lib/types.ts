@@ -128,10 +128,6 @@ export interface Professional extends BaseEntity {
   specialty_ids: string[];
   modalities: ProfessionalModality[];
 
-  // Legacy field for backward compatibility
-  specialty?: string;
-  therapy_approaches?: string[];
-
   // Availability settings
   timezone: string;
   working_hours?: string; // JSON string
@@ -578,7 +574,7 @@ export interface ProfessionalProfileFormData {
   work_experience: WorkExperience[];
   certifications: Certification[];
   languages: string[];
-  therapy_approaches: string[];
+  therapy_approaches_ids: string[];
   specialty_ids: string[];
   modalities: ProfessionalModality[];
   timezone: string;
@@ -637,7 +633,7 @@ export interface ProfessionalSummary {
   id: string;
   full_name: string;
   email: string;
-  specialty: string;
+  specialty_ids: string[];
   is_verified: boolean;
   created_at: string;
   appointment_count: number;

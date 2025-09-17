@@ -16,10 +16,43 @@ vi.mock("@/lib/profiles", () => ({
   getProfessionalProfile: vi.fn(),
 }));
 
+// Mock the therapy approach names hook
+vi.mock("@/hooks/useTherapyApproachNames", () => ({
+  useTherapyApproachNames: vi.fn(() => ({
+    getNames: vi.fn((ids: string[]) => {
+      // Mock mapping of IDs to names
+      const idToName: Record<string, string> = {
+        "634efbc4-c977-430a-9a51-ba715f3df552": "Cognitivo-Conductual",
+        "5c0e0887-972e-48fe-9428-a8a9066d4bb4": "Humanista",
+      };
+      return ids.map((id) => idToName[id] || id);
+    }),
+    loading: false,
+    error: null,
+  })),
+}));
+
+// Mock the specialty names hook
+vi.mock("@/hooks/useSpecialtyNames", () => ({
+  useSpecialtyNames: vi.fn(() => ({
+    getNames: vi.fn((ids: string[]) => {
+      // Mock mapping of IDs to names
+      const idToName: Record<string, string> = {
+        "psicologia-clinica": "Psicología Clínica",
+        psiquiatria: "Psiquiatría",
+      };
+      return ids.map((id) => idToName[id] || id);
+    }),
+    loading: false,
+    error: null,
+  })),
+}));
+
 // Mock Next.js Image component
 vi.mock("next/image", () => ({
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any, @next/next/no-img-element
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   default: ({ src, alt, ...props }: any) => (
+    // eslint-disable-next-line @next/next/no-img-element
     <img src={src as string} alt={alt as string} {...props} />
   ),
 }));
@@ -84,14 +117,38 @@ const mockProfessional = {
     { name: "EMDR", document_url: "", file_name: "cert2.pdf" },
   ],
   languages: ["Español", "Inglés"],
-  therapy_approaches_ids: ["cognitivo-conductual", "humanista"],
-  therapy_approaches: ["Cognitivo-Conductual", "Humanista"], // Keep for backward compatibility
+  therapy_approaches_ids: [
+    "634efbc4-c977-430a-9a51-ba715f3df552",
+    "5c0e0887-972e-48fe-9428-a8a9066d4bb4",
+  ],
   timezone: "America/Bogota",
   emergency_contact: "María Test",
   emergency_phone: "+573001234568",
   is_active: true,
   is_verified: true,
   profile_picture: "https://example.com/profile.jpg",
+  modalities: [
+    {
+      id: "presencial",
+      modalityId: "presencial",
+      modalityName: "Presencial",
+      virtualPrice: 0,
+      presencialPrice: 80000,
+      offersPresencial: true,
+      description: "Sesiones presenciales",
+      isDefault: true,
+    },
+    {
+      id: "virtual",
+      modalityId: "virtual",
+      modalityName: "Virtual",
+      virtualPrice: 80000,
+      presencialPrice: 0,
+      offersPresencial: false,
+      description: "Sesiones virtuales",
+      isDefault: false,
+    },
+  ],
   created_at: "2024-01-01T00:00:00Z",
   updated_at: "2024-01-01T00:00:00Z",
 };
@@ -133,8 +190,8 @@ describe("ProfessionalProfilePage", () => {
       expect(screen.getByText("Perfil del Profesional")).toBeInTheDocument();
     });
 
-    expect(screen.getByText("psicologia-clinica")).toBeInTheDocument();
-    expect(screen.getByText("$ 800,00 / hora")).toBeInTheDocument();
+    expect(screen.getByText("Psicología Clínica")).toBeInTheDocument();
+    expect(screen.getByText("800 / hora")).toBeInTheDocument();
     expect(screen.getByText("5 años de experiencia")).toBeInTheDocument();
     expect(screen.getByText("Verificado")).toBeInTheDocument();
     expect(screen.getByText("Sobre mí")).toBeInTheDocument();
@@ -152,8 +209,8 @@ describe("ProfessionalProfilePage", () => {
     expect(screen.getByText("Español")).toBeInTheDocument();
     expect(screen.getByText("Inglés")).toBeInTheDocument();
     expect(screen.getByText("Enfoques Terapéuticos")).toBeInTheDocument();
-    expect(screen.getByText("cognitivo-conductual")).toBeInTheDocument();
-    expect(screen.getByText("humanista")).toBeInTheDocument();
+    expect(screen.getByText("Cognitivo-Conductual")).toBeInTheDocument();
+    expect(screen.getByText("Humanista")).toBeInTheDocument();
   });
 
   it("renders error state when professional not found", async () => {
@@ -207,10 +264,9 @@ describe("ProfessionalProfilePage", () => {
       ...mockProfessional,
       bio: undefined,
       education: undefined,
-      certifications: undefined,
-      languages: undefined,
-      therapy_approaches: undefined,
-      therapy_approaches_ids: undefined,
+      certifications: [],
+      languages: [],
+      therapy_approaches_ids: [],
       profile_picture: undefined,
     };
 
@@ -236,7 +292,7 @@ describe("ProfessionalProfilePage", () => {
     render(<ProfessionalProfilePage />);
 
     await waitFor(() => {
-      expect(screen.getByText("$ 800,00 / hora")).toBeInTheDocument();
+      expect(screen.getByText("800 / hora")).toBeInTheDocument();
     });
   });
 
@@ -329,8 +385,8 @@ describe("ProfessionalProfilePage", () => {
   it("does not render experience sections when null", async () => {
     const professionalWithNullExperience = {
       ...mockProfessional,
-      academic_experience: null,
-      work_experience: null,
+      academic_experience: [],
+      work_experience: [],
     };
     mockGetProfessionalProfile.mockResolvedValue(professionalWithNullExperience);
 

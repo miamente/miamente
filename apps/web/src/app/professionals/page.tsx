@@ -9,6 +9,21 @@ import { Input } from "@/components/ui/input";
 import { Select, type SelectOption } from "@/components/ui/select";
 import { ProfessionalCardSkeleton } from "@/components/professional-card-skeleton";
 import { queryProfessionals, type ProfessionalsQueryResult } from "@/lib/profiles";
+import { useSpecialtyNames } from "@/hooks/useSpecialtyNames";
+
+// Helper function to construct full image URLs
+const getImageUrl = (imagePath: string | undefined): string | undefined => {
+  if (!imagePath) return undefined;
+
+  // If it's already a full URL, return as is
+  if (imagePath.startsWith("http")) {
+    return imagePath;
+  }
+
+  // If it's a relative path, prepend the API base URL
+  const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+  return `${API_BASE_URL}${imagePath}`;
+};
 
 const SPECIALTY_OPTIONS: SelectOption[] = [
   { value: "", label: "Todas las especialidades" },
@@ -22,10 +37,6 @@ const SPECIALTY_OPTIONS: SelectOption[] = [
 
 export default function ProfessionalsPage() {
   const [specialty, setSpecialty] = useState<string>("");
-
-  const handleSpecialtyChange = (value: string) => {
-    setSpecialty(value);
-  };
   const [minPrice, setMinPrice] = useState<string>("");
   const [maxPrice, setMaxPrice] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
@@ -33,6 +44,13 @@ export default function ProfessionalsPage() {
   const [items, setItems] = useState<ProfessionalsQueryResult["professionals"]>([]);
   const [isInitialLoad, setIsInitialLoad] = useState<boolean>(true);
   const lastSnapshotRef = useRef<ProfessionalsQueryResult["lastSnapshot"]>(null);
+
+  // Get specialty names for all professionals
+  const { getNames: getSpecialtyNames, loading: specialtiesLoading } = useSpecialtyNames();
+
+  const handleSpecialtyChange = (value: string) => {
+    setSpecialty(value);
+  };
 
   const parsedMin = useMemo(
     () => (minPrice ? Math.max(0, Number(minPrice)) : undefined),
@@ -197,21 +215,38 @@ export default function ProfessionalsPage() {
               <Card className="flex cursor-pointer flex-col transition-shadow duration-200 hover:shadow-lg">
                 <CardHeader>
                   <CardTitle className="text-xl">{pro.full_name}</CardTitle>
-                  <p className="text-sm text-neutral-600 dark:text-neutral-400">
-                    {pro.specialty_ids?.[0] || "Especialidad no especificada"}
-                  </p>
+                  <div className="text-sm text-neutral-600 dark:text-neutral-400">
+                    {specialtiesLoading ? (
+                      <div className="h-4 w-32 animate-pulse rounded bg-neutral-200 dark:bg-neutral-700"></div>
+                    ) : pro.specialty_ids && pro.specialty_ids.length > 0 ? (
+                      <div className="flex flex-wrap gap-1">
+                        {getSpecialtyNames(pro.specialty_ids).map(
+                          (specialty: string, index: number) => (
+                            <span
+                              key={index}
+                              className="rounded-full bg-blue-100 px-2 py-1 text-xs text-blue-800 dark:bg-blue-900 dark:text-blue-200"
+                            >
+                              {specialty}
+                            </span>
+                          ),
+                        )}
+                      </div>
+                    ) : (
+                      "Especialidad no especificada"
+                    )}
+                  </div>
                   <p className="text-sm text-neutral-600 dark:text-neutral-400">
                     {(pro.rate_cents / 100).toLocaleString("es-CO", {
-                      style: "currency",
-                      currency: "COP",
+                      minimumFractionDigits: 0,
+                      maximumFractionDigits: 0,
                     })}{" "}
                     / hora
                   </p>
                 </CardHeader>
                 <CardContent className="flex flex-1 flex-col gap-3">
-                  {pro.profile_picture ? (
+                  {getImageUrl(pro.profile_picture) ? (
                     <Image
-                      src={pro.profile_picture}
+                      src={getImageUrl(pro.profile_picture)!}
                       alt={`Foto del profesional ${pro.full_name}`}
                       width={400}
                       height={160}
