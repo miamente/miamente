@@ -34,6 +34,7 @@ def generate_test_name(test_name: str = "User") -> str:
 
 
 def _build_app() -> FastAPI:
+    settings = get_settings()
     app = FastAPI(
         title=settings.PROJECT_NAME,
         version=settings.VERSION,
