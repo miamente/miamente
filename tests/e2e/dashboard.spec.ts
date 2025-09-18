@@ -3,8 +3,8 @@ import { test, expect } from "@playwright/test";
 import { AuthHelper } from "./utils/auth-helper";
 import { TestHelpers } from "./utils/test-helpers";
 
-// Test password constant
-const TEST_PASSWORD = "TestPassword123!";
+// Test password - use environment variable or fallback for test data
+const TEST_PASSWORD = process.env.E2E_TEST_PASSWORD || "TestPassword123!";
 
 test.describe("Dashboard", () => {
   let authHelper: AuthHelper;
