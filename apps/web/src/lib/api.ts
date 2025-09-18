@@ -88,7 +88,7 @@ export type TokenResponse = {
 
 // API Client Class
 class ApiClient {
-  private baseURL: string;
+  private readonly baseURL: string;
   private token: string | null = null;
 
   constructor(baseURL: string = API_BASE_URL) {
