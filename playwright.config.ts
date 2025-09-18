@@ -11,8 +11,8 @@ export default defineConfig({
   forbidOnly: !!process.env.CI,
   /* Retry on CI only */
   retries: process.env.CI ? 2 : 0,
-  /* Opt out of parallel tests on CI. */
-  workers: process.env.CI ? 1 : undefined,
+  /* Optimize workers for faster execution */
+  workers: process.env.CI ? 2 : 4,
   /* Reporter to use. See https://playwright.dev/docs/test-reporters */
   reporter: [
     ["html"],
@@ -84,9 +84,9 @@ export default defineConfig({
   globalSetup: require.resolve("./tests/e2e/global-setup.ts"),
   globalTeardown: require.resolve("./tests/e2e/global-teardown.ts"),
 
-  /* Test timeout */
-  timeout: 30 * 1000,
+  /* Optimized timeouts for faster execution */
+  timeout: 15 * 1000,
   expect: {
-    timeout: 10 * 1000,
+    timeout: 5 * 1000,
   },
 });

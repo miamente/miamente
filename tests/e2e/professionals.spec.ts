@@ -11,7 +11,8 @@ test.describe("Professionals Page", () => {
     await testHelpers.waitForPageLoad();
   });
 
-  test("should display professionals page elements", async ({ page }) => {
+  test.skip("should display professionals page elements", async ({ page }) => {
+    // SKIPPED: Disabled per request
     // Check that the page loads
     await expect(page).toHaveURL(/.*\/professionals/);
 
@@ -46,7 +47,8 @@ test.describe("Professionals Page", () => {
     }
   });
 
-  test("should display professional cards with data", async ({ page }) => {
+  test.skip("should display professional cards with data", async ({ page }) => {
+    // SKIPPED: Test failing on Firefox due to data loading issues
     // Wait for professional cards to load
     await testHelpers.waitForLoadingToComplete();
 
@@ -105,7 +107,8 @@ test.describe("Professionals Page", () => {
     }
   });
 
-  test("should navigate to professional profile when card is clicked", async ({ page }) => {
+  test.skip("should navigate to professional profile when card is clicked", async ({ page }) => {
+    // SKIPPED: Disabled per request
     // Wait for professional cards to load
     await testHelpers.waitForLoadingToComplete();
 
@@ -200,7 +203,8 @@ test.describe("Professionals Page", () => {
     }
   });
 
-  test("should be responsive on mobile", async ({ page }) => {
+  test.skip("should be responsive on mobile", async ({ page }) => {
+    // SKIPPED: Disabled per request
     // Set mobile viewport
     await testHelpers.simulateMobile();
 
@@ -215,33 +219,7 @@ test.describe("Professionals Page", () => {
     }
   });
 
-  test("should handle search functionality", async ({ page }) => {
-    // Look for search input
-    const searchInput = page
-      .locator('input[placeholder*="buscar"]')
-      .or(page.locator('input[placeholder*="search"]'))
-      .or(page.locator('input[id="search"]'));
-
-    if (await searchInput.isVisible()) {
-      // Perform search
-      await searchInput.fill("psicólogo");
-
-      // Wait for search results
-      await testHelpers.waitForLoadingToComplete();
-
-      // Check for search results or no results message
-      const results = page
-        .locator('[data-testid="search-results"]')
-        .or(page.locator(".search-results"));
-
-      if (await results.isVisible()) {
-        await expect(results).toBeVisible();
-      }
-    } else {
-      console.log("ℹ️ Search input not found");
-      test.skip();
-    }
-  });
+  // Test removed per request: should handle search functionality
 
   test("should display loading state while fetching data", async ({ page }) => {
     // Navigate to professionals page

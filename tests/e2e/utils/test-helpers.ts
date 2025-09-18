@@ -40,12 +40,19 @@ export class TestHelpers {
   }
 
   /**
-   * Fill form field with retry logic
+   * Fill form field with retry logic and proper timing
    */
   async fillField(selector: string, value: string, retries: number = 3): Promise<void> {
     for (let i = 0; i < retries; i++) {
       try {
-        await this.page.fill(selector, value);
+        // Clear the field first
+        await this.page.fill(selector, "");
+        await this.page.waitForTimeout(100);
+
+        // Type the value with delay to trigger proper validation
+        await this.page.type(selector, value, { delay: 50 });
+        await this.page.waitForTimeout(100);
+
         const actualValue = await this.page.inputValue(selector);
         if (actualValue === value) {
           return;

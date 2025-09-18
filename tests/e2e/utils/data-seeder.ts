@@ -10,7 +10,6 @@ export interface TestUser {
   password: string;
   full_name: string;
   phone: string;
-  is_verified: boolean;
 }
 
 export interface TestProfessional {
@@ -53,15 +52,15 @@ export class DataSeeder {
     console.log("🌱 Checking if test data exists...");
 
     try {
-      // Check if we have any professionals
-      const professionalsResponse = await this.request.get("/api/v1/professionals");
-      const professionals = await professionalsResponse.json();
+      // Check if we have any specialties (public endpoint)
+      const specialtiesResponse = await this.request.get("/api/v1/specialties-new");
+      const specialties = await specialtiesResponse.json();
 
-      if (!professionals || professionals.length === 0) {
-        console.log("📊 No professionals found, seeding data...");
+      if (!specialties || specialties.length === 0) {
+        console.log("📊 No specialties found, seeding data...");
         await this.seedAllData();
       } else {
-        console.log(`✅ Found ${professionals.length} professionals, skipping seed`);
+        console.log(`✅ Found ${specialties.length} specialties, skipping seed`);
       }
     } catch (error) {
       console.log("⚠️ Error checking data, attempting to seed...", error);
@@ -119,7 +118,7 @@ export class DataSeeder {
 
     for (const specialty of specialties) {
       try {
-        await this.request.post("/api/v1/specialties", { data: specialty });
+        await this.request.post("/api/v1/specialties-new", { data: specialty });
         console.log(`✅ Created specialty: ${specialty.name}`);
       } catch (_error) {
         // eslint-disable-line @typescript-eslint/no-unused-vars
@@ -209,20 +208,18 @@ export class DataSeeder {
         password: "TestPassword123!",
         full_name: "Test User 1",
         phone: "+1234567890",
-        is_verified: true,
       },
       {
         email: "testuser2@example.com",
         password: "TestPassword123!",
         full_name: "Test User 2",
         phone: "+1234567891",
-        is_verified: true,
       },
     ];
 
     for (const user of users) {
       try {
-        await this.request.post("/api/v1/auth/register", { data: user });
+        await this.request.post("/api/v1/auth/register/user", { data: user });
         console.log(`✅ Created user: ${user.email}`);
       } catch (_error) {
         // eslint-disable-line @typescript-eslint/no-unused-vars
@@ -274,7 +271,7 @@ export class DataSeeder {
     for (const professional of professionals) {
       try {
         // Register the professional
-        await this.request.post("/api/v1/auth/register-professional", { data: professional });
+        await this.request.post("/api/v1/auth/register/professional", { data: professional });
         console.log(`✅ Created professional: ${professional.email}`);
       } catch (_error) {
         // eslint-disable-line @typescript-eslint/no-unused-vars

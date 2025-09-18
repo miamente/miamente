@@ -7,7 +7,7 @@ async function globalSetup(config: FullConfig) {
 
   // Create API request context
   const apiRequest = await request.newContext({
-    baseURL: (config as { use?: { baseURL?: string } }).use?.baseURL || "http://localhost:3000",
+    baseURL: "http://localhost:8000", // Backend API URL
   });
 
   // Initialize data seeder
