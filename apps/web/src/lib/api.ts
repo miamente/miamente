@@ -9,7 +9,6 @@ import type {
   Specialty,
   TherapeuticApproach,
   Modality,
-  Payment,
   Review,
   LoginResponse,
   UserCreate,
@@ -18,7 +17,6 @@ import type {
   SpecialtyCreate,
   TherapeuticApproachCreate,
   ModalityCreate,
-  PaymentCreate,
   CreateReviewRequest,
   ApiResponse,
   PaginatedResponse,
@@ -30,7 +28,6 @@ import type {
   SpecialtyUpdate,
   TherapeuticApproachUpdate,
   ModalityUpdate,
-  PaymentUpdate,
   BookAppointmentRequest,
   BookAppointmentResponse,
   ReviewStats,
@@ -49,7 +46,6 @@ export type {
   Specialty,
   TherapeuticApproach,
   Modality,
-  Payment,
   Review,
   LoginResponse,
   UserCreate,
@@ -58,7 +54,6 @@ export type {
   SpecialtyCreate,
   TherapeuticApproachCreate,
   ModalityCreate,
-  PaymentCreate,
   CreateReviewRequest,
   ApiResponse,
   PaginatedResponse,
@@ -70,7 +65,6 @@ export type {
   SpecialtyUpdate,
   TherapeuticApproachUpdate,
   ModalityUpdate,
-  PaymentUpdate,
   BookAppointmentRequest,
   BookAppointmentResponse,
   ReviewStats,
@@ -421,53 +415,6 @@ class ApiClient {
 
   async deleteModality(modalityId: string): Promise<void> {
     return this.delete<void>(`/modalities/${modalityId}`);
-  }
-
-  // Payment methods
-  async getPayments(params?: {
-    page?: number;
-    size?: number;
-    user_id?: string;
-    status?: string;
-  }): Promise<PaginatedResponse<Payment>> {
-    const searchParams = new URLSearchParams();
-    if (params?.page) searchParams.set("page", params.page.toString());
-    if (params?.size) searchParams.set("size", params.size.toString());
-    if (params?.user_id) searchParams.set("user_id", params.user_id);
-    if (params?.status) searchParams.set("status", params.status);
-
-    const queryString = searchParams.toString();
-    const endpoint = queryString ? `/payments?${queryString}` : "/payments";
-    return this.get<PaginatedResponse<Payment>>(endpoint);
-  }
-
-  async getPayment(paymentId: string): Promise<Payment> {
-    return this.get<Payment>(`/payments/${paymentId}`);
-  }
-
-  async createPayment(paymentData: PaymentCreate): Promise<Payment> {
-    return this.post<Payment>("/payments", paymentData);
-  }
-
-  async updatePayment(paymentId: string, paymentData: PaymentUpdate): Promise<Payment> {
-    return this.patch<Payment>(`/payments/${paymentId}`, paymentData);
-  }
-
-  async createPaymentIntent(
-    appointmentId: string,
-    amount: number,
-    currency: string = "COP",
-  ): Promise<{ payment_intent_id: string; client_secret: string }> {
-    return this.post<{ payment_intent_id: string; client_secret: string }>(
-      "/payments/create-intent",
-      { appointment_id: appointmentId, amount, currency },
-    );
-  }
-
-  async confirmPayment(paymentIntentId: string): Promise<{ status: string; payment_id: string }> {
-    return this.post<{ status: string; payment_id: string }>("/payments/confirm", {
-      payment_intent_id: paymentIntentId,
-    });
   }
 
   // Review methods

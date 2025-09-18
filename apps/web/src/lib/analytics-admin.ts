@@ -91,8 +91,6 @@ export async function getConversionFunnelData(): Promise<{
   profileCompletions: number;
   slotCreations: number;
   appointmentConfirmations: number;
-  paymentAttempts: number;
-  paymentSuccesses: number;
 }> {
   try {
     const response = await apiClient.get("/admin/analytics/funnel");
@@ -103,8 +101,6 @@ export async function getConversionFunnelData(): Promise<{
           profile_completions: number;
           slot_creations: number;
           appointment_confirmations: number;
-          payment_attempts: number;
-          payment_successes: number;
         };
       }
     ).data;
@@ -113,8 +109,6 @@ export async function getConversionFunnelData(): Promise<{
       profileCompletions: data.profile_completions,
       slotCreations: data.slot_creations,
       appointmentConfirmations: data.appointment_confirmations,
-      paymentAttempts: data.payment_attempts,
-      paymentSuccesses: data.payment_successes,
     };
   } catch (error) {
     console.error("Error fetching conversion funnel data:", error);

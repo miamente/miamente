@@ -33,7 +33,7 @@ export default function AdminAppointments() {
 
   const filteredAppointments = appointments.filter((appointment) => {
     if (filter === "all") return true;
-    if (filter === "pending") return appointment.status === "pending_payment";
+    if (filter === "pending") return appointment.status === "confirmed";
     if (filter === "paid") return appointment.status === "paid";
     if (filter === "confirmed") return appointment.status === "confirmed";
     if (filter === "completed") return appointment.status === "completed";
@@ -43,8 +43,6 @@ export default function AdminAppointments() {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case "pending_payment":
-        return "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200";
       case "paid":
         return "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200";
       case "confirmed":
@@ -60,8 +58,6 @@ export default function AdminAppointments() {
 
   const getStatusText = (status: string) => {
     switch (status) {
-      case "pending_payment":
-        return "Pendiente Pago";
       case "paid":
         return "Pagado";
       case "confirmed":
@@ -265,15 +261,6 @@ export default function AdminAppointments() {
                         </td>
                         <td className="p-4">
                           <div className="flex space-x-2">
-                            {appointment.status === "pending_payment" && (
-                              <Button
-                                size="sm"
-                                variant="destructive"
-                                onClick={() => handleCancelAppointment(appointment.id)}
-                              >
-                                Cancelar
-                              </Button>
-                            )}
                             <Button
                               size="sm"
                               variant="outline"

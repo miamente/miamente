@@ -20,8 +20,6 @@ export default function AdminDashboard() {
     profileCompletions: number;
     slotCreations: number;
     appointmentConfirmations: number;
-    paymentAttempts: number;
-    paymentSuccesses: number;
   } | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -228,7 +226,6 @@ export default function AdminDashboard() {
                 </svg>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{metrics.payment_conversion_rate}%</div>
                 <p className="text-muted-foreground text-xs">Tasa de conversión</p>
               </CardContent>
             </Card>

@@ -5,9 +5,6 @@ export type AnalyticsEvent =
   | "profile_complete"
   | "slot_created"
   | "appointment_confirmed"
-  | "payment_attempt"
-  | "payment_success"
-  | "payment_failed"
   | "cta_click";
 
 export interface EventLogEntry {
@@ -79,37 +76,4 @@ export async function logAppointmentConfirmedEvent(
   metadata?: Record<string, unknown>,
 ) {
   return logEvent(userId, "appointment_confirmed", appointmentId, metadata);
-}
-
-/**
- * Log payment attempt event
- */
-export async function logPaymentAttemptEvent(
-  userId: string,
-  appointmentId: string,
-  metadata?: Record<string, unknown>,
-) {
-  return logEvent(userId, "payment_attempt", appointmentId, metadata);
-}
-
-/**
- * Log payment success event
- */
-export async function logPaymentSuccessEvent(
-  userId: string,
-  appointmentId: string,
-  metadata?: Record<string, unknown>,
-) {
-  return logEvent(userId, "payment_success", appointmentId, metadata);
-}
-
-/**
- * Log payment failure event
- */
-export async function logPaymentFailedEvent(
-  userId: string,
-  appointmentId: string,
-  metadata?: Record<string, unknown>,
-) {
-  return logEvent(userId, "payment_failed", appointmentId, metadata);
 }

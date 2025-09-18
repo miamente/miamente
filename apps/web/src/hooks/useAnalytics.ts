@@ -8,9 +8,6 @@ import {
   logProfileCompleteEvent,
   logSlotCreatedEvent,
   logAppointmentConfirmedEvent,
-  logPaymentAttemptEvent,
-  logPaymentSuccessEvent,
-  logPaymentFailedEvent,
   type AnalyticsEvent,
 } from "@/lib/analytics";
 
@@ -117,66 +114,6 @@ export function useAnalytics() {
     [user],
   );
 
-  const trackPaymentAttempt = useCallback(
-    async (appointmentId: string, metadata?: Record<string, unknown>) => {
-      if (!user) {
-        console.warn("Cannot track payment attempt: user not authenticated");
-        return { success: false, error: "User not authenticated" };
-      }
-
-      try {
-        const userUid = getUserUid(user);
-        if (!userUid) return { success: false, error: "User not authenticated" };
-        const result = await logPaymentAttemptEvent(userUid, appointmentId, metadata);
-        return result;
-      } catch (error) {
-        console.error("Error tracking payment attempt:", error);
-        return { success: false, error: "Failed to track payment attempt" };
-      }
-    },
-    [user],
-  );
-
-  const trackPaymentSuccess = useCallback(
-    async (appointmentId: string, metadata?: Record<string, unknown>) => {
-      if (!user) {
-        console.warn("Cannot track payment success: user not authenticated");
-        return { success: false, error: "User not authenticated" };
-      }
-
-      try {
-        const userUid = getUserUid(user);
-        if (!userUid) return { success: false, error: "User not authenticated" };
-        const result = await logPaymentSuccessEvent(userUid, appointmentId, metadata);
-        return result;
-      } catch (error) {
-        console.error("Error tracking payment success:", error);
-        return { success: false, error: "Failed to track payment success" };
-      }
-    },
-    [user],
-  );
-
-  const trackPaymentFailed = useCallback(
-    async (appointmentId: string, metadata?: Record<string, unknown>) => {
-      if (!user) {
-        console.warn("Cannot track payment failed: user not authenticated");
-        return { success: false, error: "User not authenticated" };
-      }
-
-      try {
-        const userUid = getUserUid(user);
-        if (!userUid) return { success: false, error: "User not authenticated" };
-        const result = await logPaymentFailedEvent(userUid, appointmentId, metadata);
-        return result;
-      } catch (error) {
-        console.error("Error tracking payment failed:", error);
-        return { success: false, error: "Failed to track payment failed" };
-      }
-    },
-    [user],
-  );
-
   const trackCTAClick = useCallback(
     async (ctaType: string, metadata?: Record<string, unknown>) => {
       if (!user) {
@@ -203,9 +140,6 @@ export function useAnalytics() {
     trackProfileComplete,
     trackSlotCreated,
     trackAppointmentConfirmed,
-    trackPaymentAttempt,
-    trackPaymentSuccess,
-    trackPaymentFailed,
     trackCTAClick,
   };
 }

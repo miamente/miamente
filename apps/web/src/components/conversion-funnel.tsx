@@ -16,8 +16,6 @@ interface ConversionFunnelData {
   profileCompletions: number;
   slotCreations: number;
   appointmentConfirmations: number;
-  paymentAttempts: number;
-  paymentSuccesses: number;
 }
 
 interface ConversionFunnelProps {
@@ -55,16 +53,6 @@ export function ConversionFunnel({ data, loading = false }: ConversionFunnelProp
       step: "Citas Confirmadas",
       count: data.appointmentConfirmations,
       percentage: data.signups > 0 ? (data.appointmentConfirmations / data.signups) * 100 : 0,
-    },
-    {
-      step: "Intentos de Pago",
-      count: data.paymentAttempts,
-      percentage: data.signups > 0 ? (data.paymentAttempts / data.signups) * 100 : 0,
-    },
-    {
-      step: "Pagos Exitosos",
-      count: data.paymentSuccesses,
-      percentage: data.signups > 0 ? (data.paymentSuccesses / data.signups) * 100 : 0,
     },
   ];
 
