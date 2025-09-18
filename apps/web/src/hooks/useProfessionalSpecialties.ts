@@ -18,7 +18,7 @@ export function useProfessionalSpecialties(professionalId?: string) {
       try {
         setLoading(true);
         const response = await fetch(
-          `${API_BASE_URL}/api/v1/professional-specialties-new/professional/${professionalId}`,
+          `${API_BASE_URL}/api/v1/professional-specialties/professional/${professionalId}`,
         );
 
         if (!response.ok) {
@@ -43,7 +43,7 @@ export function useProfessionalSpecialties(professionalId?: string) {
     try {
       setLoading(true);
       const response = await fetch(
-        `${API_BASE_URL}/api/v1/professional-specialties-new/professional/${professionalId}/specialties`,
+        `${API_BASE_URL}/api/v1/professional-specialties/professional/${professionalId}/specialties`,
         {
           method: "PUT",
           headers: {

@@ -57,11 +57,7 @@ class Professional(Base):
     professional_specialties = relationship(
         "app.models.professional_specialty.ProfessionalSpecialty",
         back_populates="professional",
-    )  # Keep for backward compatibility
-    professional_specialties_new = relationship(
-        "app.models.professional_specialty_new.ProfessionalSpecialty",
-        back_populates="professional",
-    )  # New many-to-many relationship
+    )
     professional_therapeutic_approaches = relationship(
         "app.models.professional_therapeutic_approach.ProfessionalTherapeuticApproach",
         back_populates="professional",

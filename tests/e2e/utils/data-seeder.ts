@@ -53,7 +53,7 @@ export class DataSeeder {
 
     try {
       // Check if we have any specialties (public endpoint)
-      const specialtiesResponse = await this.request.get("/api/v1/specialties-new");
+      const specialtiesResponse = await this.request.get("/api/v1/specialties");
       const specialties = await specialtiesResponse.json();
 
       if (!specialties || specialties.length === 0) {
@@ -118,7 +118,7 @@ export class DataSeeder {
 
     for (const specialty of specialties) {
       try {
-        await this.request.post("/api/v1/specialties-new", { data: specialty });
+        await this.request.post("/api/v1/specialties", { data: specialty });
         console.log(`✅ Created specialty: ${specialty.name}`);
       } catch {
         console.log(`⚠️ Specialty ${specialty.name} might already exist`);

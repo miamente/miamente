@@ -6,11 +6,11 @@ from typing import List, Optional
 
 from sqlalchemy.orm import Session
 
-from app.models.specialty_new import Specialty
-from app.schemas.specialty_new import SpecialtyCreate, SpecialtyUpdate
+from app.models.specialty import Specialty
+from app.schemas.specialty import SpecialtyCreate, SpecialtyUpdate
 
 
-class SpecialtyNewService:
+class SpecialtyService:
     """Service for managing specialties (new version)."""
 
     def __init__(self, db: Session):

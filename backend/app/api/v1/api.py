@@ -11,11 +11,9 @@ from app.api.v1.endpoints import (
     modalities,
     professional_modalities,
     professional_specialties,
-    professional_specialties_new,
     professional_therapeutic_approaches,
     professionals,
     specialties,
-    specialties_new,
     therapeutic_approaches,
     users,
 )
@@ -44,16 +42,10 @@ api_router.include_router(
     prefix="/therapeutic-approaches",
     tags=["therapeutic-approaches"],
 )
-api_router.include_router(specialties_new.router, prefix="/specialties-new", tags=["specialties-new"])
 api_router.include_router(
     professional_modalities.router,
     prefix="/professional-modalities",
     tags=["professional-modalities"],
-)
-api_router.include_router(
-    professional_specialties_new.router,
-    prefix="/professional-specialties-new",
-    tags=["professional-specialties-new"],
 )
 api_router.include_router(
     professional_therapeutic_approaches.router,

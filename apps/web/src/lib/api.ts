@@ -398,10 +398,6 @@ class ApiClient {
     return this.get<Specialty[]>("/specialties");
   }
 
-  async getSpecialtiesNew(): Promise<Specialty[]> {
-    return this.get<Specialty[]>("/specialties-new");
-  }
-
   async getSpecialty(specialtyId: string): Promise<Specialty> {
     return this.get<Specialty>(`/specialties/${specialtyId}`);
   }

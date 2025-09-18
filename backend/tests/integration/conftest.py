@@ -126,10 +126,6 @@ def _cleanup_test_data(session_factory):
                 WHERE professional_id IN ('{professional_ids_str}')
             """))
             
-            session.execute(text(f"""
-                DELETE FROM professional_specialties_new 
-                WHERE professional_id IN ('{professional_ids_str}')
-            """))
             
             session.execute(text(f"""
                 DELETE FROM professional_modalities 
@@ -148,7 +144,7 @@ def _cleanup_test_data(session_factory):
         
         # Clean test data from reference tables (only test-specific data)
         session.execute(text("""
-            DELETE FROM specialties_new 
+            DELETE FROM specialties 
             WHERE name LIKE 'Test %' 
             OR name LIKE '% Test'
             OR name = 'psychology'

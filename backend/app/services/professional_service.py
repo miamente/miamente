@@ -10,9 +10,7 @@ from sqlalchemy.orm import Session
 from app.models.professional import Professional
 from app.schemas.professional import ProfessionalUpdate
 from app.services.professional_modality_service import ProfessionalModalityService
-from app.services.professional_specialty_new_service import (
-    ProfessionalSpecialtyNewService,
-)
+from app.services.professional_specialty_service import ProfessionalSpecialtyService
 from app.services.professional_therapeutic_approach_service import (
     ProfessionalTherapeuticApproachService,
 )
@@ -23,7 +21,7 @@ class ProfessionalService:
 
     def __init__(self, db: Session):
         self.db = db
-        self.specialty_service = ProfessionalSpecialtyNewService(db)
+        self.specialty_service = ProfessionalSpecialtyService(db)
         self.therapeutic_approach_service = ProfessionalTherapeuticApproachService(db)
         self.modality_service = ProfessionalModalityService(db)
 

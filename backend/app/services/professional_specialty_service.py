@@ -6,14 +6,14 @@ from typing import List, Optional
 
 from sqlalchemy.orm import Session
 
-from app.models.professional_specialty_new import ProfessionalSpecialty
-from app.schemas.professional_specialty_new import (
+from app.models.professional_specialty import ProfessionalSpecialty
+from app.schemas.professional_specialty import (
     ProfessionalSpecialtyCreate,
     ProfessionalSpecialtyUpdate,
 )
 
 
-class ProfessionalSpecialtyNewService:
+class ProfessionalSpecialtyService:
     """Service for managing professional specialties (new version)."""
 
     def __init__(self, db: Session):

@@ -8,7 +8,7 @@ Run with:
 from sqlalchemy.orm import Session
 
 from app.core.database import SessionLocal
-from app.models.specialty_new import Specialty as SpecialtyNew  # new specialties table
+from app.models.specialty import Specialty
 from app.models.therapeutic_approach import TherapeuticApproach
 from app.models.modality import Modality
 from app.models.user import User
@@ -74,7 +74,14 @@ def get_or_create(model, db: Session, defaults=None, **kwargs):
 
 def seed_reference_data(db: Session) -> None:
     for name in SPECIALTIES:
-        get_or_create(SpecialtyNew, db, defaults={"category": None}, name=name)
+        get_or_create(
+            Specialty,
+            db,
+            defaults={
+                "category": "General",
+            },
+            name=name,
+        )
     for name in APPROACHES:
         get_or_create(
             TherapeuticApproach,
@@ -104,7 +111,7 @@ def seed_users(db: Session) -> None:
 
 def seed_professional(db: Session) -> None:
     # Ensure key specialty exists
-    specialty = db.query(SpecialtyNew).filter_by(name="Psicología clínica").first()
+    specialty = db.query(Specialty).filter_by(name="Psicología clínica").first()
     get_or_create(
         Professional,
         db,

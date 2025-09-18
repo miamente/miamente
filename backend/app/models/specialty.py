@@ -4,23 +4,24 @@ Specialty model for the Miamente platform.
 
 import uuid
 
-from sqlalchemy import Column, Integer, String, Text
+from sqlalchemy import Column, String
 from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.sql import func
 
 from app.core.database import Base
 
 
 class Specialty(Base):
-    """Specialty model."""
+    """Specialty model - Academic or regulated professional fields."""
 
     __tablename__ = "specialties"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     name = Column(String(255), nullable=False, unique=True)
-    description = Column(Text, nullable=False)
-    default_price_cents = Column(Integer, nullable=False)
-    currency = Column(String(3), default="COP", nullable=False)
-    category = Column(String(100), nullable=False)
+    category = Column(String(100), nullable=True)  # Optional category grouping
+
+    created_at = Column(String(255), server_default=func.now())
+    updated_at = Column(String(255), onupdate=func.now())
 
     def __repr__(self):
-        return f"<Specialty(id={self.id}, name={self.name}, category={self.category})>"
+        return f"<Specialty(id={self.id}, name={self.name})>"

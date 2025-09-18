@@ -12,7 +12,7 @@ export function useSpecialties() {
     const fetchSpecialties = async () => {
       try {
         setLoading(true);
-        const response = await fetch(`${API_BASE_URL}/api/v1/specialties-new`);
+        const response = await fetch(`${API_BASE_URL}/api/v1/specialties`);
 
         if (!response.ok) {
           throw new Error("Failed to fetch specialties");

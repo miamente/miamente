@@ -48,7 +48,7 @@ def parse_professional_data(professional: Professional) -> dict:
                 "is_default": False,  # Determined by business logic
                 "is_active": True,  # All specialties are considered active
             }
-            for ps in professional.professional_specialties_new
+            for ps in professional.professional_specialties
             if ps.specialty  # Only include if specialty exists
         ],
         "bio": professional.bio,
