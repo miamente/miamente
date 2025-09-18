@@ -11,8 +11,8 @@ export interface LoginCredentials {
 
 export class AuthHelper {
   constructor(
-    private page: Page,
-    private request: APIRequestContext,
+    private readonly page: Page,
+    private readonly request: APIRequestContext,
   ) {}
 
   /**

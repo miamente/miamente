@@ -53,7 +53,7 @@ export function ModalitiesEditor({ disabled = false }: ModalitiesEditorProps) {
 
   const addModality = () => {
     append({
-      id: `${Date.now()}-${Math.random()}`,
+      id: crypto.randomUUID(),
       modalityId: "",
       modalityName: "Modalidad",
       virtualPrice: 0,

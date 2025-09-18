@@ -5,7 +5,7 @@
 import { Page, expect } from "@playwright/test";
 
 export class TestHelpers {
-  constructor(private page: Page) {}
+  constructor(private readonly page: Page) {}
 
   /**
    * Wait for page to be fully loaded
