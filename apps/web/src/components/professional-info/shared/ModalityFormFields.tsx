@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { Control, FieldPath, FieldValues } from "react-hook-form";
+import { Control, FieldPath } from "react-hook-form";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
@@ -9,11 +9,11 @@ import { DollarSign } from "lucide-react";
 import type { ProfessionalProfileFormData } from "@/lib/validations";
 
 interface ModalityFormFieldsProps {
-  index: number;
-  control: Control<ProfessionalProfileFormData>;
-  disabled?: boolean;
-  availableModalities: Array<{ id: string; name: string }>;
-  onModalityChange?: (value: string) => void;
+  readonly index: number;
+  readonly control: Control<ProfessionalProfileFormData>;
+  readonly disabled?: boolean;
+  readonly availableModalities: Array<{ id: string; name: string }>;
+  readonly onModalityChange?: (value: string) => void;
 }
 
 export function ModalityFormFields({
@@ -104,9 +104,9 @@ export function ModalityFormFields({
 }
 
 interface PresencialPriceFieldProps {
-  index: number;
-  control: Control<ProfessionalProfileFormData>;
-  disabled?: boolean;
+  readonly index: number;
+  readonly control: Control<ProfessionalProfileFormData>;
+  readonly disabled?: boolean;
 }
 
 export function PresencialPriceField({
