@@ -9,12 +9,15 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Badge } from "@/components/ui/badge";
-import { ChevronDown, ChevronRight, Plus, Trash2, Star, StarOff, DollarSign } from "lucide-react";
+import { Plus, Star } from "lucide-react";
 import type { ProfessionalProfileFormData } from "@/lib/validations";
 import type { ProfessionalModality } from "@/lib/types";
+import { ModalityCardTrigger } from "./shared/ModalityCardTrigger";
+import { ModalityCardHeader } from "./shared/ModalityCardHeader";
+import { ModalityFormFields, PresencialPriceField } from "./shared/ModalityFormFields";
 
 interface ModalitiesEditorProps {
-  disabled?: boolean;
+  readonly disabled?: boolean;
 }
 
 const AVAILABLE_MODALITIES = [
@@ -88,175 +91,35 @@ export function ModalitiesEditor({ disabled = false }: ModalitiesEditorProps) {
   return (
     <Card className={isOpen ? "pt-0" : "p-0"}>
       <Collapsible open={isOpen} onOpenChange={setIsOpen}>
-        <CollapsibleTrigger asChild>
-          <CardHeader className="group cursor-pointer py-6 transition-colors duration-200 hover:bg-purple-50/30 dark:hover:bg-purple-900/10">
-            <CardTitle className="flex items-center justify-between text-lg">
-              <div className="flex items-center gap-2">
-                <Star className="h-5 w-5 text-purple-600 transition-colors group-hover:text-purple-700" />
-                Modalidades de Intervención
-              </div>
-              {isOpen ? (
-                <ChevronDown className="h-5 w-5 text-gray-500 transition-colors group-hover:text-gray-700" />
-              ) : (
-                <ChevronRight className="h-5 w-5 text-gray-500 transition-colors group-hover:text-gray-700" />
-              )}
-            </CardTitle>
-          </CardHeader>
-        </CollapsibleTrigger>
+        <ModalityCardTrigger isOpen={isOpen} onOpenChange={setIsOpen} />
         <CollapsibleContent>
           <CardContent className="space-y-4">
             {fields.map((field, index) => (
               <div key={field.id} className="space-y-4 rounded-lg border p-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                      {modalities?.[index]?.modalityName || `Modalidad ${index + 1}`}
-                    </h4>
-                    <div className="flex gap-1">
-                      <Badge variant="secondary" className="text-xs">
-                        Virtual
-                      </Badge>
-                      {modalities?.[index]?.offersPresencial && (
-                        <Badge variant="secondary" className="text-xs">
-                          Presencial
-                        </Badge>
-                      )}
-                      {modalities?.[index]?.isDefault && (
-                        <Badge variant="outline" className="flex items-center gap-1 text-xs">
-                          <Star className="h-3 w-3 fill-current text-yellow-500" />
-                          Por defecto
-                        </Badge>
-                      )}
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    {!modalities?.[index]?.isDefault && (
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setDefaultModality(index)}
-                        disabled={disabled}
-                        className="text-yellow-600 hover:bg-yellow-50 hover:text-yellow-700"
-                      >
-                        <StarOff className="h-4 w-4" />
-                      </Button>
-                    )}
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={() => removeModality(index)}
-                      disabled={disabled}
-                      className="text-red-600 hover:bg-red-50 hover:text-red-700"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
+                <ModalityCardHeader
+                  index={index}
+                  modalityName={modalities?.[index]?.modalityName}
+                  offersPresencial={modalities?.[index]?.offersPresencial}
+                  isDefault={modalities?.[index]?.isDefault}
+                  disabled={disabled}
+                  onSetDefault={setDefaultModality}
+                  onRemove={removeModality}
+                />
 
-                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                  <div>
-                    <label
-                      htmlFor={`modality-${index}`}
-                      className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300"
-                    >
-                      Modalidad *
-                    </label>
-                    <Select
-                      id={`modality-${index}`}
-                      options={AVAILABLE_MODALITIES.map((modality) => ({
-                        value: modality.id,
-                        label: modality.name,
-                      }))}
-                      value={modalities?.[index]?.modalityId || ""}
-                      onValueChange={() => {
-                        // This would need to be implemented with form state management
-                        // Update the form field
-                      }}
-                      placeholder="Seleccionar modalidad..."
-                      className="w-full"
-                    />
-                  </div>
-
-                  <div>
-                    <label
-                      htmlFor={`virtual-price-${index}`}
-                      className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300"
-                    >
-                      Precio Virtual (COP) *
-                    </label>
-                    <div className="relative">
-                      <DollarSign className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform text-gray-400" />
-                      <Input
-                        id={`virtual-price-${index}`}
-                        type="number"
-                        {...control.register(`modalities.${index}.virtualPrice`, {
-                          valueAsNumber: true,
-                        })}
-                        placeholder="0"
-                        disabled={disabled}
-                        className="pl-10"
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                <div className="flex items-center space-x-2">
-                  <input
-                    type="checkbox"
-                    id={`offers-presencial-${index}`}
-                    {...control.register(`modalities.${index}.offersPresencial`)}
-                    disabled={disabled}
-                    className="h-4 w-4 rounded border-gray-300 text-purple-600 focus:ring-purple-500"
-                  />
-                  <label
-                    htmlFor={`offers-presencial-${index}`}
-                    className="text-sm font-medium text-gray-700 dark:text-gray-300"
-                  >
-                    También ofrecer modalidad presencial
-                  </label>
-                </div>
+                <ModalityFormFields
+                  index={index}
+                  control={control}
+                  disabled={disabled}
+                  availableModalities={AVAILABLE_MODALITIES}
+                  onModalityChange={() => {
+                    // This would need to be implemented with form state management
+                    // Update the form field
+                  }}
+                />
 
                 {modalities?.[index]?.offersPresencial && (
-                  <div>
-                    <label
-                      htmlFor={`presencial-price-${index}`}
-                      className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300"
-                    >
-                      Precio Presencial (COP)
-                    </label>
-                    <div className="relative">
-                      <DollarSign className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform text-gray-400" />
-                      <Input
-                        id={`presencial-price-${index}`}
-                        type="number"
-                        {...control.register(`modalities.${index}.presencialPrice`, {
-                          valueAsNumber: true,
-                        })}
-                        placeholder="0"
-                        disabled={disabled}
-                        className="pl-10"
-                      />
-                    </div>
-                  </div>
+                  <PresencialPriceField index={index} control={control} disabled={disabled} />
                 )}
-
-                <div>
-                  <label
-                    htmlFor={`description-${index}`}
-                    className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300"
-                  >
-                    Descripción
-                  </label>
-                  <Textarea
-                    id={`description-${index}`}
-                    {...control.register(`modalities.${index}.description`)}
-                    placeholder="Descripción de la modalidad..."
-                    rows={3}
-                    disabled={disabled}
-                  />
-                </div>
               </div>
             ))}
 

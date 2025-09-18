@@ -16,11 +16,9 @@ export class AuthHelper {
   ) {}
 
   /**
-   * Login as a regular user
+   * Fill login form with credentials
    */
-  async loginAsUser(credentials: LoginCredentials): Promise<void> {
-    await this.page.goto("/login");
-
+  private async fillLoginForm(credentials: LoginCredentials): Promise<void> {
     // Wait for form to be ready
     await this.page.waitForSelector('input[name="email"]');
     await this.page.waitForSelector('input[name="password"]');
@@ -39,14 +37,21 @@ export class AuthHelper {
 
     // Click login button
     await this.page.click('button[type="submit"]');
+  }
 
+  /**
+   * Handle login response and navigation
+   */
+  private async handleLoginResponse(userType: string): Promise<void> {
     // Wait for either redirect or error message
     try {
       await this.page.waitForURL(/\/(dashboard|verify)/, { timeout: 10000 });
 
       // If redirected to verify page, that's expected for unverified users
       if (this.page.url().includes("/verify")) {
-        console.log("User redirected to verify page (expected for unverified users)");
+        console.log(
+          `${userType} redirected to verify page (expected for unverified ${userType.toLowerCase()}s)`,
+        );
         return;
       }
 
@@ -72,14 +77,25 @@ export class AuthHelper {
 
         if (errorCount > 0) {
           const errorText = await errorMessage.first().textContent();
-          throw new Error(`User login failed: ${errorText}`);
+          throw new Error(`${userType} login failed: ${errorText}`);
         } else {
-          throw new Error("User login failed: No redirect occurred and no error message found");
+          throw new Error(
+            `${userType} login failed: No redirect occurred and no error message found`,
+          );
         }
       } else {
-        throw new Error("Unexpected navigation state after user login");
+        throw new Error(`Unexpected navigation state after ${userType.toLowerCase()} login`);
       }
     }
+  }
+
+  /**
+   * Login as a regular user
+   */
+  async loginAsUser(credentials: LoginCredentials): Promise<void> {
+    await this.page.goto("/login");
+    await this.fillLoginForm(credentials);
+    await this.handleLoginResponse("User");
   }
 
   /**
@@ -87,68 +103,8 @@ export class AuthHelper {
    */
   async loginAsProfessional(credentials: LoginCredentials): Promise<void> {
     await this.page.goto("/login");
-
-    // Wait for form to be ready
-    await this.page.waitForSelector('input[name="email"]');
-    await this.page.waitForSelector('input[name="password"]');
-
-    // Robust form filling to avoid validation errors
-    await this.page.focus('input[name="email"]');
-    await this.page.fill('input[name="email"]', "");
-    await this.page.type('input[name="email"]', credentials.email, { delay: 50 });
-
-    await this.page.focus('input[name="password"]');
-    await this.page.fill('input[name="password"]', "");
-    await this.page.type('input[name="password"]', credentials.password, { delay: 50 });
-
-    // Wait for validation to complete
-    await this.page.waitForTimeout(300);
-
-    // Click login button
-    await this.page.click('button[type="submit"]');
-
-    // Wait for either redirect or error message
-    try {
-      await this.page.waitForURL(/\/(dashboard|verify)/, { timeout: 10000 });
-
-      // If redirected to verify page, that's expected for unverified users
-      if (this.page.url().includes("/verify")) {
-        console.log(
-          "Professional redirected to verify page (expected for unverified professionals)",
-        );
-        return;
-      }
-
-      // Wait for dashboard to finish loading (not just the loading spinner)
-      await this.page.waitForFunction(
-        () => {
-          const loadingSpinner = document.querySelector(".animate-spin");
-          return !loadingSpinner || (loadingSpinner as HTMLElement).offsetParent === null;
-        },
-        { timeout: 10000 },
-      );
-    } catch {
-      // Check if we're still on login page with an error
-      const currentUrl = this.page.url();
-      if (currentUrl.includes("/login")) {
-        // Check for error messages
-        const errorMessage = this.page.locator(
-          '[class*="error"], [class*="red"], [data-testid="error"]',
-        );
-        const errorCount = await errorMessage.count();
-
-        if (errorCount > 0) {
-          const errorText = await errorMessage.first().textContent();
-          throw new Error(`Professional login failed: ${errorText}`);
-        } else {
-          throw new Error(
-            "Professional login failed: No redirect occurred and no error message found",
-          );
-        }
-      } else {
-        throw new Error("Unexpected navigation state after professional login");
-      }
-    }
+    await this.fillLoginForm(credentials);
+    await this.handleLoginResponse("Professional");
   }
 
   /**

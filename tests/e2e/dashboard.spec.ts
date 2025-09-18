@@ -2,6 +2,7 @@ import { test, expect } from "@playwright/test";
 
 import { AuthHelper } from "./utils/auth-helper";
 import { TestHelpers } from "./utils/test-helpers";
+import { DashboardTestHelpers } from "./utils/dashboard-test-helpers";
 
 // Test password - use environment variable or fallback for test data
 const TEST_PASSWORD = process.env.E2E_TEST_PASSWORD || "TestPassword123!";
@@ -9,10 +10,12 @@ const TEST_PASSWORD = process.env.E2E_TEST_PASSWORD || "TestPassword123!";
 test.describe("Dashboard", () => {
   let authHelper: AuthHelper;
   let testHelpers: TestHelpers;
+  let dashboardHelpers: DashboardTestHelpers;
 
   test.beforeEach(async ({ page, request }) => {
     authHelper = new AuthHelper(page, request);
     testHelpers = new TestHelpers(page);
+    dashboardHelpers = new DashboardTestHelpers(page);
   });
 
   test.describe("User Dashboard", () => {
@@ -29,86 +32,28 @@ test.describe("Dashboard", () => {
 
     test.skip("should display user dashboard elements", async ({ page }) => {
       // SKIPPED: Test failing on WebKit and Mobile browsers due to responsive design issues
-      // Check for dashboard title
-      const dashboardTitle = page
-        .locator("h1, h2")
-        .or(page.locator('[data-testid="dashboard-title"]'));
-
-      if ((await dashboardTitle.count()) > 0) {
-        await expect(dashboardTitle.first()).toBeVisible();
-      }
-
-      // Check for user info
-      const userInfo = page
-        .locator('[data-testid="user-info"]')
-        .or(page.locator(".user-info"))
-        .or(page.locator("text=Test User 1"));
-
-      if ((await userInfo.count()) > 0) {
-        await expect(userInfo.first()).toBeVisible();
-      }
-
-      // Check for navigation menu
-      const navMenu = page
-        .locator("nav")
-        .or(page.locator('[data-testid="navigation"]'))
-        .or(page.locator(".navigation"));
-
-      if ((await navMenu.count()) > 0) {
-        await expect(navMenu.first()).toBeVisible();
-      }
+      await dashboardHelpers.checkDashboardTitle();
+      await dashboardHelpers.checkUserInfo("Test User 1");
+      await dashboardHelpers.checkNavigationMenu();
     });
 
     test.skip("should display user appointments if any", async ({ page }) => {
       // SKIPPED: Test failing on Firefox and WebKit due to login issues
-      // Look for appointments section
-      const appointmentsSection = page
-        .locator('[data-testid="appointments"]')
-        .or(page.locator(".appointments"))
-        .or(page.locator('h2:has-text("Citas")'))
-        .or(page.locator('h2:has-text("Appointments")'));
-
-      if (await appointmentsSection.isVisible()) {
-        await expect(appointmentsSection).toBeVisible();
-
-        // Check for appointment cards or empty state
-        const appointmentCards = page
-          .locator('[data-testid="appointment-card"]')
-          .or(page.locator(".appointment-card"));
-
-        const emptyState = page
-          .locator("text=No tienes citas programadas")
-          .or(page.locator("text=No appointments scheduled"));
-
-        if ((await appointmentCards.count()) > 0) {
-          await expect(appointmentCards.first()).toBeVisible();
-        } else if (await emptyState.isVisible()) {
-          await expect(emptyState).toBeVisible();
-        }
-      }
+      await dashboardHelpers.checkAppointmentsSection();
     });
 
     test.skip("should allow navigation to professionals page", async ({ page }) => {
       // SKIPPED: Disabled per request
-      // Check if we're on verify page (expected for unverified users)
-      const currentUrl = page.url();
-      if (currentUrl.includes("/verify")) {
-        console.log(
-          "User on verify page - skipping professionals navigation test (email verification required)",
-        );
-        test.skip();
+      if (await dashboardHelpers.checkVerifyPageAndSkip(test, "User")) {
         return;
       }
 
-      // Look for professionals link - use first() to avoid strict mode violation
-      const professionalsLink = page
-        .locator('a:has-text("Profesionales")')
-        .or(page.locator('a:has-text("Professionals")'))
-        .or(page.locator('[data-testid="professionals-link"]'))
-        .first();
+      const linkClicked = await dashboardHelpers.clickLinkWithVariations(
+        ["Profesionales", "Professionals"],
+        "professionals-link",
+      );
 
-      if (await professionalsLink.isVisible()) {
-        await professionalsLink.click();
+      if (linkClicked) {
         await testHelpers.waitForNavigation();
         await expect(page).toHaveURL(/\/professionals/);
       } else {
@@ -119,33 +64,22 @@ test.describe("Dashboard", () => {
 
     test.skip("should allow user to update profile", async ({ page }) => {
       // SKIPPED: Test failing on Firefox and WebKit due to login issues
-      // Check if we're on verify page (expected for unverified users)
-      const currentUrl = page.url();
-      if (currentUrl.includes("/verify")) {
-        console.log(
-          "User on verify page - skipping profile update test (email verification required)",
-        );
-        test.skip();
+      if (await dashboardHelpers.checkVerifyPageAndSkip(test, "User")) {
         return;
       }
 
-      // Look for profile link or button
-      const profileLink = page
-        .locator('a:has-text("Perfil")')
-        .or(page.locator('a:has-text("Profile")'))
-        .or(page.locator('[data-testid="profile-link"]'))
-        .or(page.locator('button:has-text("Perfil")'));
+      const linkClicked = await dashboardHelpers.clickLinkWithVariations(
+        ["Perfil", "Profile"],
+        "profile-link",
+        ["Perfil"],
+      );
 
-      if (await profileLink.isVisible()) {
-        await profileLink.click();
+      if (linkClicked) {
         await testHelpers.waitForNavigation();
-
-        // Should navigate to profile page
         await expect(page).toHaveURL(/\/(profile|perfil)/);
 
         // Check for profile form elements
         const profileForm = page.locator("form").or(page.locator('[data-testid="profile-form"]'));
-
         if (await profileForm.isVisible()) {
           await expect(profileForm).toBeVisible();
         }
@@ -157,30 +91,7 @@ test.describe("Dashboard", () => {
 
     test.skip("should display logout option", async ({ page }) => {
       // SKIPPED: Test failing on Firefox and WebKit due to login issues
-      // Look for logout button or menu
-      const logoutButton = page
-        .locator('button:has-text("Cerrar sesión")')
-        .or(page.locator('button:has-text("Logout")'))
-        .or(page.locator('[data-testid="logout-button"]'));
-
-      if (await logoutButton.isVisible()) {
-        await expect(logoutButton).toBeVisible();
-      } else {
-        // Check for user menu that might contain logout
-        const userMenu = page.locator('[data-testid="user-menu"]').or(page.locator(".user-menu"));
-
-        if (await userMenu.isVisible()) {
-          await userMenu.click();
-
-          const logoutOption = page
-            .locator('button:has-text("Cerrar sesión")')
-            .or(page.locator('a:has-text("Cerrar sesión")'));
-
-          if (await logoutOption.isVisible()) {
-            await expect(logoutOption).toBeVisible();
-          }
-        }
-      }
+      await dashboardHelpers.checkLogoutButton();
     });
   });
 
