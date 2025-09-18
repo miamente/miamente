@@ -10,6 +10,9 @@ from app.schemas.modality import ModalityCreate, ModalityResponse, ModalityUpdat
 
 router = APIRouter()
 
+# Error messages
+MODALITY_NOT_FOUND_MESSAGE = "Modality not found"
+
 
 @router.get("/", response_model=List[ModalityResponse])
 async def get_modalities(db: Session = Depends(get_db)):
@@ -27,7 +30,7 @@ async def get_modality(
     """Get a specific modality by ID."""
     modality = db.query(Modality).filter(Modality.id == modality_id).first()
     if not modality:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Modality not found")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=MODALITY_NOT_FOUND_MESSAGE)
     return modality
 
 
@@ -63,7 +66,7 @@ async def update_modality(
     """Update a modality."""
     modality = db.query(Modality).filter(Modality.id == modality_id).first()
     if not modality:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Modality not found")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=MODALITY_NOT_FOUND_MESSAGE)
 
     update_data = modality_update.dict(exclude_unset=True)
     for field, value in update_data.items():
@@ -83,7 +86,7 @@ async def delete_modality(
     """Delete a modality (soft delete by setting is_active to False)."""
     modality = db.query(Modality).filter(Modality.id == modality_id).first()
     if not modality:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Modality not found")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=MODALITY_NOT_FOUND_MESSAGE)
 
     modality.is_active = False
     db.commit()

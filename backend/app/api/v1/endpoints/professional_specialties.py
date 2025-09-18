@@ -19,6 +19,9 @@ from app.services.professional_specialty_service import (
 
 router = APIRouter()
 
+# Error messages
+PROFESSIONAL_SPECIALTY_NOT_FOUND_MESSAGE = "Professional specialty not found"
+
 
 @router.get(
     "/professional/{professional_id}",
@@ -39,7 +42,7 @@ def get_professional_specialty(specialty_id: str, db: Session = Depends(get_db))
     if not specialty:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Professional specialty not found",
+            detail=PROFESSIONAL_SPECIALTY_NOT_FOUND_MESSAGE,
         )
     return specialty
 
@@ -63,7 +66,7 @@ def update_professional_specialty(
     if not specialty:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Professional specialty not found",
+            detail=PROFESSIONAL_SPECIALTY_NOT_FOUND_MESSAGE,
         )
     return specialty
 
@@ -76,7 +79,7 @@ def delete_professional_specialty(specialty_id: str, db: Session = Depends(get_d
     if not success:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Professional specialty not found",
+            detail=PROFESSIONAL_SPECIALTY_NOT_FOUND_MESSAGE,
         )
     return {"message": "Professional specialty deleted successfully"}
 

@@ -19,6 +19,9 @@ from app.services.professional_therapeutic_approach_service import (
 
 router = APIRouter()
 
+# Error messages
+PROFESSIONAL_THERAPEUTIC_APPROACH_NOT_FOUND_MESSAGE = "Professional therapeutic approach not found"
+
 
 @router.get(
     "/professional/{professional_id}",
@@ -39,7 +42,7 @@ def get_professional_therapeutic_approach(approach_id: str, db: Session = Depend
     if not approach:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Professional therapeutic approach not found",
+            detail=PROFESSIONAL_THERAPEUTIC_APPROACH_NOT_FOUND_MESSAGE,
         )
     return approach
 
@@ -65,7 +68,7 @@ def update_professional_therapeutic_approach(
     if not approach:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Professional therapeutic approach not found",
+            detail=PROFESSIONAL_THERAPEUTIC_APPROACH_NOT_FOUND_MESSAGE,
         )
     return approach
 
@@ -78,7 +81,7 @@ def delete_professional_therapeutic_approach(approach_id: str, db: Session = Dep
     if not success:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Professional therapeutic approach not found",
+            detail=PROFESSIONAL_THERAPEUTIC_APPROACH_NOT_FOUND_MESSAGE,
         )
     return {"message": "Professional therapeutic approach deleted successfully"}
 

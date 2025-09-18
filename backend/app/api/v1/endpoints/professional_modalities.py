@@ -17,6 +17,9 @@ from app.services.professional_modality_service import ProfessionalModalityServi
 
 router = APIRouter()
 
+# Error messages
+PROFESSIONAL_MODALITY_NOT_FOUND_MESSAGE = "Professional modality not found"
+
 
 @router.get("/professional/{professional_id}", response_model=List[ProfessionalModalityResponse])
 def get_professional_modalities(professional_id: str, db: Session = Depends(get_db)):
@@ -50,7 +53,7 @@ def get_professional_modality(modality_id: str, db: Session = Depends(get_db)):
     if not modality:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Professional modality not found",
+            detail=PROFESSIONAL_MODALITY_NOT_FOUND_MESSAGE,
         )
     return modality
 
@@ -74,7 +77,7 @@ def update_professional_modality(
     if not modality:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Professional modality not found",
+            detail=PROFESSIONAL_MODALITY_NOT_FOUND_MESSAGE,
         )
     return modality
 
@@ -87,7 +90,7 @@ def delete_professional_modality(modality_id: str, db: Session = Depends(get_db)
     if not success:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Professional modality not found",
+            detail=PROFESSIONAL_MODALITY_NOT_FOUND_MESSAGE,
         )
     return {"message": "Professional modality deleted successfully"}
 
@@ -102,7 +105,7 @@ def set_default_modality(modality_id: str, db: Session = Depends(get_db)):
     if not modality:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Professional modality not found",
+            detail=PROFESSIONAL_MODALITY_NOT_FOUND_MESSAGE,
         )
 
     success = service.set_default_modality(modality.professional_id, modality_id)

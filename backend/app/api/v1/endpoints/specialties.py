@@ -17,6 +17,9 @@ from app.services.specialty_service import SpecialtyService
 
 router = APIRouter()
 
+# Error messages
+SPECIALTY_NOT_FOUND_MESSAGE = "Specialty not found"
+
 
 @router.get("/", response_model=List[SpecialtyResponse])
 def get_specialties(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
@@ -40,7 +43,7 @@ def get_specialty(specialty_id: str, db: Session = Depends(get_db)):
     service = SpecialtyService(db)
     specialty = service.get_specialty(specialty_id)
     if not specialty:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Specialty not found")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=SPECIALTY_NOT_FOUND_MESSAGE)
     return specialty
 
 
@@ -57,7 +60,7 @@ def update_specialty(specialty_id: str, specialty_update: SpecialtyUpdate, db: S
     service = SpecialtyService(db)
     specialty = service.update_specialty(specialty_id, specialty_update)
     if not specialty:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Specialty not found")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=SPECIALTY_NOT_FOUND_MESSAGE)
     return specialty
 
 
@@ -67,5 +70,5 @@ def delete_specialty(specialty_id: str, db: Session = Depends(get_db)):
     service = SpecialtyService(db)
     success = service.delete_specialty(specialty_id)
     if not success:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Specialty not found")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=SPECIALTY_NOT_FOUND_MESSAGE)
     return {"message": "Specialty deleted successfully"}

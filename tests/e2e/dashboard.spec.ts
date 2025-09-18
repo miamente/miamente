@@ -3,6 +3,9 @@ import { test, expect } from "@playwright/test";
 import { AuthHelper } from "./utils/auth-helper";
 import { TestHelpers } from "./utils/test-helpers";
 
+// Test password constant
+const TEST_PASSWORD = "TestPassword123!";
+
 test.describe("Dashboard", () => {
   let authHelper: AuthHelper;
   let testHelpers: TestHelpers;
@@ -17,7 +20,7 @@ test.describe("Dashboard", () => {
       // Login as user
       const credentials = {
         email: "testuser1@example.com",
-        password: "TestPassword123!",
+        password: TEST_PASSWORD,
       };
 
       await authHelper.loginAsUser(credentials);
@@ -186,7 +189,7 @@ test.describe("Dashboard", () => {
       // Login as professional
       const credentials = {
         email: "dr.smith@example.com",
-        password: "TestPassword123!",
+        password: TEST_PASSWORD,
       };
 
       await authHelper.loginAsProfessional(credentials);
@@ -309,7 +312,7 @@ test.describe("Dashboard", () => {
       // Login as user first
       const credentials = {
         email: "testuser1@example.com",
-        password: "TestPassword123!",
+        password: TEST_PASSWORD,
       };
 
       await authHelper.loginAsUser(credentials);
@@ -342,7 +345,7 @@ test.describe("Dashboard", () => {
       // Login as user first
       const credentials = {
         email: "testuser1@example.com",
-        password: "TestPassword123!",
+        password: TEST_PASSWORD,
       };
 
       await authHelper.loginAsUser(credentials);
@@ -377,7 +380,7 @@ test.describe("Dashboard", () => {
       // Login as user
       const credentials = {
         email: "testuser1@example.com",
-        password: "TestPassword123!",
+        password: TEST_PASSWORD,
       };
 
       await authHelper.loginAsUser(credentials);

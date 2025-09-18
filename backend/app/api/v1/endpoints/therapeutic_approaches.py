@@ -17,6 +17,9 @@ from app.services.therapeutic_approach_service import TherapeuticApproachService
 
 router = APIRouter()
 
+# Error messages
+THERAPEUTIC_APPROACH_NOT_FOUND_MESSAGE = "Therapeutic approach not found"
+
 
 @router.get("/", response_model=List[TherapeuticApproachResponse])
 def get_therapeutic_approaches(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
@@ -42,7 +45,7 @@ def get_therapeutic_approach(approach_id: str, db: Session = Depends(get_db)):
     if not approach:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Therapeutic approach not found",
+            detail=THERAPEUTIC_APPROACH_NOT_FOUND_MESSAGE,
         )
     return approach
 
@@ -66,7 +69,7 @@ def update_therapeutic_approach(
     if not approach:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Therapeutic approach not found",
+            detail=THERAPEUTIC_APPROACH_NOT_FOUND_MESSAGE,
         )
     return approach
 
@@ -79,6 +82,6 @@ def delete_therapeutic_approach(approach_id: str, db: Session = Depends(get_db))
     if not success:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Therapeutic approach not found",
+            detail=THERAPEUTIC_APPROACH_NOT_FOUND_MESSAGE,
         )
     return {"message": "Therapeutic approach deleted successfully"}
