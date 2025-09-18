@@ -35,6 +35,15 @@ ALLOWED_PROFILE_PICTURE_TYPES = {"image/jpeg", "image/jpg", "image/png", "image/
 MAX_FILE_SIZE = 5 * 1024 * 1024
 MAX_PROFILE_PICTURE_SIZE = 2 * 1024 * 1024
 
+# Error messages
+FILE_NOT_FOUND_MESSAGE = "File not found"
+INVALID_USER_ID_FORMAT_MESSAGE = "Invalid user ID format"
+INVALID_FILENAME_MESSAGE = "Invalid filename"
+INVALID_FILENAME_FORMAT_MESSAGE = "Invalid filename format"
+INVALID_PATH_CONSTRUCTION_MESSAGE = "Invalid path construction"
+INVALID_FILE_PATH_CONSTRUCTION_MESSAGE = "Invalid file path construction"
+CAN_ONLY_DELETE_OWN_FILES_MESSAGE = "You can only delete your own files"
+
 
 def validate_user_id(user_id: str) -> str:
     """
@@ -53,7 +62,7 @@ def validate_user_id(user_id: str) -> str:
     if not re.match(r'^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$', user_id):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Invalid user ID format"
+            detail=INVALID_USER_ID_FORMAT_MESSAGE
         )
     
     return user_id
@@ -80,14 +89,14 @@ def validate_path_components(user_id: str, filename: str) -> tuple[str, str]:
     if not filename or '..' in filename or '/' in filename or '\\' in filename:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Invalid filename"
+            detail=INVALID_FILENAME_MESSAGE
         )
     
     # Validate filename format - should be UUID + extension
     if not re.match(r'^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\.[a-zA-Z0-9]+$', filename):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Invalid filename format"
+            detail=INVALID_FILENAME_FORMAT_MESSAGE
         )
     
     return validated_user_id, filename
@@ -120,7 +129,7 @@ def safe_create_user_directory(base_dir: str, sub_dir: str, user_id: str) -> str
     if not user_upload_dir.startswith(expected_base):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Invalid path construction"
+            detail=INVALID_PATH_CONSTRUCTION_MESSAGE
         )
     
     # Create directory
@@ -155,7 +164,7 @@ def safe_construct_file_path(base_dir: str, sub_dir: str, user_id: str, filename
     if not file_path.startswith(user_upload_dir):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Invalid file path construction"
+            detail=INVALID_FILE_PATH_CONSTRUCTION_MESSAGE
         )
     
     return file_path
@@ -261,7 +270,7 @@ async def get_profile_picture(user_id: str, filename: str, db: Session = Depends
     file_path = safe_construct_file_path(UPLOAD_DIR, "profile_pictures", validated_user_id, validated_filename)
 
     if not os.path.exists(file_path):
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="File not found")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=FILE_NOT_FOUND_MESSAGE)
 
     return FileResponse(path=file_path, filename=validated_filename, media_type="image/jpeg")
 
@@ -276,7 +285,7 @@ async def get_certification_document(user_id: str, filename: str, db: Session = 
     file_path = safe_construct_file_path(UPLOAD_DIR, "certifications", validated_user_id, validated_filename)
 
     if not os.path.exists(file_path):
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="File not found")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=FILE_NOT_FOUND_MESSAGE)
 
     return FileResponse(path=file_path, filename=validated_filename, media_type="application/octet-stream")
 
@@ -297,13 +306,13 @@ async def delete_profile_picture(
     if validated_user_id != current_user_id:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="You can only delete your own files",
+            detail=CAN_ONLY_DELETE_OWN_FILES_MESSAGE,
         )
 
     file_path = safe_construct_file_path(UPLOAD_DIR, "profile_pictures", validated_user_id, validated_filename)
 
     if not os.path.exists(file_path):
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="File not found")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=FILE_NOT_FOUND_MESSAGE)
 
     try:
         os.remove(file_path)
@@ -331,13 +340,13 @@ async def delete_certification_document(
     if validated_user_id != current_user_id:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="You can only delete your own files",
+            detail=CAN_ONLY_DELETE_OWN_FILES_MESSAGE,
         )
 
     file_path = safe_construct_file_path(UPLOAD_DIR, "certifications", validated_user_id, validated_filename)
 
     if not os.path.exists(file_path):
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="File not found")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=FILE_NOT_FOUND_MESSAGE)
 
     try:
         os.remove(file_path)

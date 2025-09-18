@@ -13,6 +13,9 @@ from app.services.auth_service import AuthService
 
 router = APIRouter()
 
+# Error messages
+USER_NOT_FOUND_MESSAGE = "User not found"
+
 
 def parse_user_data(user: User) -> dict:
     """Parse user data for API response."""
@@ -56,7 +59,7 @@ async def get_current_user(current_user_id: str = Depends(get_current_user_id), 
     user = auth_service.get_user_by_id(current_user_id)
 
     if not user:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=USER_NOT_FOUND_MESSAGE)
 
     return user
 
@@ -72,7 +75,7 @@ async def update_current_user(
     user = auth_service.get_user_by_id(current_user_id)
 
     if not user:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=USER_NOT_FOUND_MESSAGE)
 
     try:
         # Update fields
@@ -98,7 +101,7 @@ async def delete_current_user(current_user_id: str = Depends(get_current_user_id
     user = auth_service.get_user_by_id(current_user_id)
 
     if not user:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=USER_NOT_FOUND_MESSAGE)
 
     try:
         # Soft delete - mark as inactive instead of hard delete

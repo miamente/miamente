@@ -28,10 +28,14 @@ from app.schemas.user import UserCreate, UserResponse
 from app.services.auth_service import AuthService
 
 router = APIRouter()
-security = HTTPBearer(auto_error=False)
 
-# Constants
+# Error messages
 INCORRECT_CREDENTIALS_MESSAGE = "Incorrect email or password"
+USER_NOT_FOUND_MESSAGE = "User not found"
+INVALID_AUTH_CREDENTIALS_MESSAGE = "Invalid authentication credentials"
+INVALID_REFRESH_TOKEN_MESSAGE = "Invalid refresh token"
+
+security = HTTPBearer(auto_error=False)
 
 
 def get_current_user_id(
@@ -49,7 +53,7 @@ def get_current_user_id(
     if user_id is None:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid authentication credentials",
+            detail=INVALID_AUTH_CREDENTIALS_MESSAGE,
             headers={"WWW-Authenticate": "Bearer"},
         )
     return user_id
@@ -204,7 +208,7 @@ async def simulate_email_verification(user_id: str = Depends(get_current_user_id
             "user_type": "professional",
         }
 
-    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=USER_NOT_FOUND_MESSAGE)
 
 
 @router.post("/refresh", response_model=Token)
@@ -215,7 +219,7 @@ async def refresh_token(refresh_data: RefreshToken, db: Session = Depends(get_db
     if user_id is None:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid refresh token",
+            detail=INVALID_REFRESH_TOKEN_MESSAGE,
             headers={"WWW-Authenticate": "Bearer"},
         )
 
@@ -239,4 +243,4 @@ async def get_current_user_info(current_user_id: str = Depends(get_current_user_
     if professional:
         return {"type": "professional", "data": professional}
 
-    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=USER_NOT_FOUND_MESSAGE)
