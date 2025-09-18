@@ -5,6 +5,9 @@
 
 import { APIRequestContext } from "@playwright/test";
 
+// Test password constant
+const TEST_PASSWORD = "TestPassword123!";
+
 export interface TestUser {
   email: string;
   password: string;
@@ -202,13 +205,13 @@ export class DataSeeder {
     const users: TestUser[] = [
       {
         email: "testuser1@example.com",
-        password: "TestPassword123!",
+        password: TEST_PASSWORD,
         full_name: "Test User 1",
         phone: "+1234567890",
       },
       {
         email: "testuser2@example.com",
-        password: "TestPassword123!",
+        password: TEST_PASSWORD,
         full_name: "Test User 2",
         phone: "+1234567891",
       },
@@ -231,7 +234,7 @@ export class DataSeeder {
     const professionals: TestProfessional[] = [
       {
         email: "dr.smith@example.com",
-        password: "TestPassword123!",
+        password: TEST_PASSWORD,
         full_name: "Dr. Sarah Smith",
         phone: "+1234567892",
         license_number: "PSY123456",
@@ -242,7 +245,7 @@ export class DataSeeder {
       },
       {
         email: "dr.johnson@example.com",
-        password: "TestPassword123!",
+        password: TEST_PASSWORD,
         full_name: "Dr. Michael Johnson",
         phone: "+1234567893",
         license_number: "PSY789012",
@@ -253,7 +256,7 @@ export class DataSeeder {
       },
       {
         email: "dr.garcia@example.com",
-        password: "TestPassword123!",
+        password: TEST_PASSWORD,
         full_name: "Dra. Maria Garcia",
         phone: "+1234567894",
         license_number: "PSY345678",
