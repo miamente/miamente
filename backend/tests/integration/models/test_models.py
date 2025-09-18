@@ -1,11 +1,13 @@
 """
-Unit tests for database models.
+Model tests rely on real DB behavior; mark them as integration.
 """
 import pytest
 from datetime import datetime, timezone
 from sqlalchemy.exc import IntegrityError
 
 from app.models.user import User as UserModel
+
+pytestmark = pytest.mark.integration
 
 
 class TestUserModel:

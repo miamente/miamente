@@ -19,9 +19,7 @@ class ProfessionalBase(BaseModel):
     phone_number: Optional[str] = None
     # New fields for specialties, therapeutic approaches, and modalities
     specialty_ids: Optional[List[str]] = None  # New: list of specialty IDs
-    modalities: Optional[List[dict]] = (
-        None  # New: list of modality objects with full details
-    )
+    modalities: Optional[List[dict]] = None  # New: list of modality objects with full details
     license_number: Optional[str] = None
     years_experience: int = 0
     rate_cents: int = 50000  # Default rate in cents (500 COP)
@@ -29,13 +27,9 @@ class ProfessionalBase(BaseModel):
     bio: Optional[str] = None
     academic_experience: Optional[List[dict]] = None  # Structured academic experience
     work_experience: Optional[List[dict]] = None  # Structured work experience
-    certifications: Optional[List[dict]] = (
-        None  # Structured certifications with name and document_url
-    )
+    certifications: Optional[List[dict]] = None  # Structured certifications with name and document_url
     languages: Optional[List[str]] = None
-    therapy_approaches_ids: Optional[List[str]] = (
-        None  # List of therapeutic approach IDs
-    )
+    therapy_approaches_ids: Optional[List[str]] = None  # List of therapeutic approach IDs
     timezone: str = "America/Bogota"
 
 
@@ -62,9 +56,7 @@ class ProfessionalUpdate(BaseModel):
     specialty_id: Optional[str] = None  # Keep for backward compatibility
     # New fields for specialties, therapeutic approaches, and modalities
     specialty_ids: Optional[List[str]] = None  # New: list of specialty IDs
-    modalities: Optional[List[dict]] = (
-        None  # New: list of modality objects with full details
-    )
+    modalities: Optional[List[dict]] = None  # New: list of modality objects with full details
     license_number: Optional[str] = None
     years_experience: Optional[int] = None
     rate_cents: Optional[int] = None

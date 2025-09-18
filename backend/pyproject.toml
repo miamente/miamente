@@ -42,7 +42,7 @@ where = ["."]
 include = ["app*"]
 
 [tool.black]
-line-length = 88
+line-length = 120
 target-version = ['py313']
 include = '\.pyi?$'
 extend-exclude = '''
@@ -67,7 +67,7 @@ preview = false
 [tool.isort]
 profile = "black"
 multi_line_output = 3
-line_length = 88
+line_length = 120
 known_first_party = ["app"]
 
 [tool.flake8]
@@ -135,7 +135,7 @@ disable = [
 ]
 
 [tool.pylint.FORMAT]
-max-line-length = 88
+max-line-length = 120
 indent-string = "    "  # 4 spaces, same as black
 expected-line-ending-format = "LF"  # Unix line endings
 

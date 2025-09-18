@@ -21,24 +21,14 @@ from app.schemas.availability import (
 router = APIRouter()
 
 
-@router.get(
-    "/professional/{professional_id}", response_model=List[AvailabilityResponse]
-)
-async def get_professional_availability(
-    professional_id: str, db: Session = Depends(get_db)
-):
+@router.get("/professional/{professional_id}", response_model=List[AvailabilityResponse])
+async def get_professional_availability(professional_id: str, db: Session = Depends(get_db)):
     """Get availability for a specific professional."""
     # Verify professional exists and is active
-    professional = (
-        db.query(Professional)
-        .filter(Professional.id == professional_id, Professional.is_active)
-        .first()
-    )
+    professional = db.query(Professional).filter(Professional.id == professional_id, Professional.is_active).first()
 
     if not professional:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Professional not found"
-        )
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Professional not found")
 
     availability = (
         db.query(Availability)
@@ -58,11 +48,7 @@ async def create_availability(
 ):
     """Create availability slot (for professionals)."""
     # Verify user is a professional
-    professional = (
-        db.query(Professional)
-        .filter(Professional.id == current_user_id, Professional.is_active)
-        .first()
-    )
+    professional = db.query(Professional).filter(Professional.id == current_user_id, Professional.is_active).first()
 
     if not professional:
         raise HTTPException(
@@ -100,11 +86,7 @@ async def create_bulk_availability(
 ):
     """Create multiple availability slots (for professionals)."""
     # Verify user is a professional
-    professional = (
-        db.query(Professional)
-        .filter(Professional.id == current_user_id, Professional.is_active)
-        .first()
-    )
+    professional = db.query(Professional).filter(Professional.id == current_user_id, Professional.is_active).first()
 
     if not professional:
         raise HTTPException(
@@ -129,9 +111,7 @@ async def create_bulk_availability(
 
         while current_date <= end_date:
             for time_slot in bulk_data.time_slots:
-                slot_datetime = datetime.combine(
-                    current_date, datetime.strptime(time_slot, "%H:%M").time()
-                )
+                slot_datetime = datetime.combine(current_date, datetime.strptime(time_slot, "%H:%M").time())
 
                 availability = Availability(
                     professional_id=bulk_data.professional_id,

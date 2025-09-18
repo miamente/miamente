@@ -62,7 +62,7 @@ def get_or_create(model, db: Session, defaults=None, **kwargs):
     instance = db.query(model).filter_by(**kwargs).first()
     if instance:
         return instance, False
-    params = dict(**kwargs)
+    params = {**kwargs}
     if defaults:
         params.update(defaults)
     instance = model(**params)
@@ -74,12 +74,13 @@ def get_or_create(model, db: Session, defaults=None, **kwargs):
 
 def seed_reference_data(db: Session) -> None:
     for name in SPECIALTIES:
-        get_or_create(
-            SpecialtyNew, db, defaults={"category": None}, name=name
-        )
+        get_or_create(SpecialtyNew, db, defaults={"category": None}, name=name)
     for name in APPROACHES:
         get_or_create(
-            TherapeuticApproach, db, defaults={"description": name, "category": None}, name=name
+            TherapeuticApproach,
+            db,
+            defaults={"description": name, "category": None},
+            name=name,
         )
     for name in MODALITIES:
         get_or_create(Modality, db, defaults={"description": name, "is_active": True}, name=name)
@@ -118,7 +119,7 @@ def seed_professional(db: Session) -> None:
             "is_verified": True,
             # Optional arrays can be linked later through M2M tables; keep simple here
             "specialty_ids": [str(getattr(specialty, "id", ""))] if specialty else None,
-          },
+        },
     )
 
 
@@ -135,5 +136,3 @@ def run() -> None:
 
 if __name__ == "__main__":
     run()
-
-

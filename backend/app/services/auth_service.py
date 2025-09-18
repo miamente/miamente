@@ -30,13 +30,9 @@ class AuthService:
             return None
         return user
 
-    def authenticate_professional(
-        self, email: str, password: str
-    ) -> Optional[Professional]:
+    def authenticate_professional(self, email: str, password: str) -> Optional[Professional]:
         """Authenticate professional with email and password."""
-        professional = (
-            self.db.query(Professional).filter(Professional.email == email).first()
-        )
+        professional = self.db.query(Professional).filter(Professional.email == email).first()
         if not professional:
             return None
         if not verify_password(password, professional.hashed_password):
@@ -46,9 +42,7 @@ class AuthService:
     def create_user(self, user_data: UserCreate) -> User:
         """Create new user."""
         # Check if user already exists
-        existing_user = (
-            self.db.query(User).filter(User.email == user_data.email).first()
-        )
+        existing_user = self.db.query(User).filter(User.email == user_data.email).first()
         if existing_user:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
@@ -72,15 +66,11 @@ class AuthService:
         self.db.refresh(db_user)
         return db_user
 
-    def create_professional(
-        self, professional_data: ProfessionalCreate
-    ) -> Professional:
+    def create_professional(self, professional_data: ProfessionalCreate) -> Professional:
         """Create new professional."""
         # Check if professional already exists
         existing_professional = (
-            self.db.query(Professional)
-            .filter(Professional.email == professional_data.email)
-            .first()
+            self.db.query(Professional).filter(Professional.email == professional_data.email).first()
         )
         if existing_professional:
             raise HTTPException(
@@ -127,11 +117,7 @@ class AuthService:
             professional_uuid = uuid.UUID(professional_id)
         except ValueError:
             return None
-        return (
-            self.db.query(Professional)
-            .filter(Professional.id == professional_uuid)
-            .first()
-        )
+        return self.db.query(Professional).filter(Professional.id == professional_uuid).first()
 
     def get_current_user(self, token: str) -> Optional[User]:
         """Get current user from token."""

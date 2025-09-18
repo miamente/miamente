@@ -32,15 +32,11 @@ async def debug_professional_specialties(
         user_uuid = uuid.UUID(current_user_id)
 
         # Check if user exists
-        professional = (
-            db.query(Professional).filter(Professional.id == user_uuid).first()
-        )
+        professional = db.query(Professional).filter(Professional.id == user_uuid).first()
 
         # Check if there are any professional specialties
         specialties_count = (
-            db.query(ProfessionalSpecialty)
-            .filter(ProfessionalSpecialty.professional_id == user_uuid)
-            .count()
+            db.query(ProfessionalSpecialty).filter(ProfessionalSpecialty.professional_id == user_uuid).count()
         )
 
         return {
@@ -64,13 +60,9 @@ async def get_professional_specialties(
         user_uuid = uuid.UUID(current_user_id)
 
         # Verify user is a professional
-        professional = (
-            db.query(Professional).filter(Professional.id == user_uuid).first()
-        )
+        professional = db.query(Professional).filter(Professional.id == user_uuid).first()
         if not professional:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND, detail="Professional not found"
-            )
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Professional not found")
 
         # Get professional specialties with default specialty info
         specialties = (
@@ -94,9 +86,7 @@ async def get_professional_specialties(
             {
                 "id": str(specialty.id),
                 "professional_id": str(specialty.professional_id),
-                "specialty_id": (
-                    str(specialty.specialty_id) if specialty.specialty_id else None
-                ),
+                "specialty_id": (str(specialty.specialty_id) if specialty.specialty_id else None),
                 "name": specialty.name,
                 "description": specialty.description,
                 "price_cents": specialty.price_cents,
@@ -119,13 +109,9 @@ async def create_professional_specialty(
 ):
     """Create a new specialty for the current professional."""
     # Verify user is a professional
-    professional = (
-        db.query(Professional).filter(Professional.id == current_user_id).first()
-    )
+    professional = db.query(Professional).filter(Professional.id == current_user_id).first()
     if not professional:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Professional not found"
-        )
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Professional not found")
 
     # If specialty_id is provided, verify it exists and get default info
     default_specialty = None
@@ -138,9 +124,7 @@ async def create_professional_specialty(
                 detail="Invalid specialty ID format",
             )
 
-        default_specialty = (
-            db.query(Specialty).filter(Specialty.id == specialty_uuid).first()
-        )
+        default_specialty = db.query(Specialty).filter(Specialty.id == specialty_uuid).first()
         if not default_specialty:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
@@ -161,9 +145,7 @@ async def create_professional_specialty(
         if existing_assignment:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail=(
-                    f"Specialty '{default_specialty.name}' is already assigned to this professional"
-                ),
+                detail=(f"Specialty '{default_specialty.name}' is already assigned to this professional"),
             )
 
     # If this specialty is being marked as default, remove default status from other specialties
@@ -179,11 +161,7 @@ async def create_professional_specialty(
     # Create professional specialty
     try:
         user_uuid = uuid.UUID(current_user_id)
-        specialty_uuid = (
-            uuid.UUID(specialty_data.specialty_id)
-            if specialty_data.specialty_id
-            else None
-        )
+        specialty_uuid = uuid.UUID(specialty_data.specialty_id) if specialty_data.specialty_id else None
     except ValueError as e:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -257,17 +235,11 @@ async def get_professional_specialty(
     }
 
     if specialty.specialty_id:
-        default_specialty = (
-            db.query(Specialty).filter(Specialty.id == specialty.specialty_id).first()
-        )
+        default_specialty = db.query(Specialty).filter(Specialty.id == specialty.specialty_id).first()
         if default_specialty:
             specialty_data["default_specialty_name"] = default_specialty.name
-            specialty_data["default_specialty_description"] = (
-                default_specialty.description
-            )
-            specialty_data["default_specialty_price_cents"] = (
-                default_specialty.default_price_cents
-            )
+            specialty_data["default_specialty_description"] = default_specialty.description
+            specialty_data["default_specialty_price_cents"] = default_specialty.default_price_cents
 
     return ProfessionalSpecialtyWithDefault(**specialty_data)
 

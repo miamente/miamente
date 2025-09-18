@@ -1,1 +1,1 @@
-# Fixtures package
+# Test fixtures and utilities

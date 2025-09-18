@@ -21,11 +21,7 @@ class AvailabilityService:
 
     def get_availability_by_id(self, availability_id: str) -> Optional[Availability]:
         """Get availability by ID."""
-        return (
-            self.db.query(Availability)
-            .filter(Availability.id == availability_id)
-            .first()
-        )
+        return self.db.query(Availability).filter(Availability.id == availability_id).first()
 
     def get_professional_availability(self, professional_id: str) -> List[Availability]:
         """Get all availability for a professional."""
@@ -36,9 +32,7 @@ class AvailabilityService:
             .all()
         )
 
-    def get_available_slots(
-        self, professional_id: str, start_date: datetime, end_date: datetime
-    ) -> List[Availability]:
+    def get_available_slots(self, professional_id: str, start_date: datetime, end_date: datetime) -> List[Availability]:
         """Get available slots for a professional in a date range."""
         return (
             self.db.query(Availability)
@@ -54,9 +48,7 @@ class AvailabilityService:
             .all()
         )
 
-    def create_availability(
-        self, availability_data: AvailabilityCreate
-    ) -> Availability:
+    def create_availability(self, availability_data: AvailabilityCreate) -> Availability:
         """Create availability slot."""
         try:
             availability = Availability(**availability_data.dict())
@@ -72,9 +64,7 @@ class AvailabilityService:
                 detail="Failed to create availability",
             )
 
-    def create_bulk_availability(
-        self, bulk_data: BulkAvailabilityCreate
-    ) -> List[Availability]:
+    def create_bulk_availability(self, bulk_data: BulkAvailabilityCreate) -> List[Availability]:
         """Create multiple availability slots."""
         try:
             availability_slots = []
@@ -83,9 +73,7 @@ class AvailabilityService:
 
             while current_date <= end_date:
                 for time_slot in bulk_data.time_slots:
-                    slot_datetime = datetime.combine(
-                        current_date, datetime.strptime(time_slot, "%H:%M").time()
-                    )
+                    slot_datetime = datetime.combine(current_date, datetime.strptime(time_slot, "%H:%M").time())
 
                     availability = Availability(
                         professional_id=bulk_data.professional_id,

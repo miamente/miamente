@@ -25,18 +25,12 @@ api_router = APIRouter()
 # Include all endpoint routers
 api_router.include_router(auth.router, prefix="/auth", tags=["authentication"])
 api_router.include_router(users.router, prefix="/users", tags=["users"])
-api_router.include_router(
-    professionals.router, prefix="/professionals", tags=["professionals"]
-)
-api_router.include_router(
-    availability.router, prefix="/availability", tags=["availability"]
-)
+api_router.include_router(professionals.router, prefix="/professionals", tags=["professionals"])
+api_router.include_router(availability.router, prefix="/availability", tags=["availability"])
 api_router.include_router(files.router, prefix="/files", tags=["files"])
 
 # Legacy endpoints (keep for backward compatibility)
-api_router.include_router(
-    specialties.router, prefix="/specialties", tags=["specialties"]
-)
+api_router.include_router(specialties.router, prefix="/specialties", tags=["specialties"])
 api_router.include_router(
     professional_specialties.router,
     prefix="/professional-specialties",
@@ -50,9 +44,7 @@ api_router.include_router(
     prefix="/therapeutic-approaches",
     tags=["therapeutic-approaches"],
 )
-api_router.include_router(
-    specialties_new.router, prefix="/specialties-new", tags=["specialties-new"]
-)
+api_router.include_router(specialties_new.router, prefix="/specialties-new", tags=["specialties-new"])
 api_router.include_router(
     professional_modalities.router,
     prefix="/professional-modalities",

@@ -36,9 +36,7 @@ class SpecialtyNewService:
         self.db.refresh(db_specialty)
         return db_specialty
 
-    def update_specialty(
-        self, specialty_id: str, specialty_update: SpecialtyUpdate
-    ) -> Optional[Specialty]:
+    def update_specialty(self, specialty_id: str, specialty_update: SpecialtyUpdate) -> Optional[Specialty]:
         """Update a specialty."""
         db_specialty = self.get_specialty(specialty_id)
         if not db_specialty:

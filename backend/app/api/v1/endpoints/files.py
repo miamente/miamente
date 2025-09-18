@@ -101,9 +101,7 @@ async def upload_profile_picture(
     if len(file_content) > MAX_PROFILE_PICTURE_SIZE:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=(
-                f"File too large. Maximum size: {MAX_PROFILE_PICTURE_SIZE // (1024*1024)}MB",
-            ),
+            detail=(f"File too large. Maximum size: {MAX_PROFILE_PICTURE_SIZE // (1024*1024)}MB",),
         )
 
     # Generate unique filename
@@ -131,37 +129,27 @@ async def upload_profile_picture(
 
 
 @router.get("/profile-picture/{user_id}/{filename}")
-async def get_profile_picture(
-    user_id: str, filename: str, db: Session = Depends(get_db)
-):
+async def get_profile_picture(user_id: str, filename: str, db: Session = Depends(get_db)):
     """Get a profile picture."""
 
     file_path = os.path.join(UPLOAD_DIR, "profile_pictures", user_id, filename)
 
     if not os.path.exists(file_path):
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="File not found"
-        )
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="File not found")
 
     return FileResponse(path=file_path, filename=filename, media_type="image/jpeg")
 
 
 @router.get("/certification/{user_id}/{filename}")
-async def get_certification_document(
-    user_id: str, filename: str, db: Session = Depends(get_db)
-):
+async def get_certification_document(user_id: str, filename: str, db: Session = Depends(get_db)):
     """Get a certification document."""
 
     file_path = os.path.join(UPLOAD_DIR, "certifications", user_id, filename)
 
     if not os.path.exists(file_path):
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="File not found"
-        )
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="File not found")
 
-    return FileResponse(
-        path=file_path, filename=filename, media_type="application/octet-stream"
-    )
+    return FileResponse(path=file_path, filename=filename, media_type="application/octet-stream")
 
 
 @router.delete("/profile-picture/{user_id}/{filename}")
@@ -183,9 +171,7 @@ async def delete_profile_picture(
     file_path = os.path.join(UPLOAD_DIR, "profile_pictures", user_id, filename)
 
     if not os.path.exists(file_path):
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="File not found"
-        )
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="File not found")
 
     try:
         os.remove(file_path)
@@ -216,9 +202,7 @@ async def delete_certification_document(
     file_path = os.path.join(UPLOAD_DIR, "certifications", user_id, filename)
 
     if not os.path.exists(file_path):
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="File not found"
-        )
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="File not found")
 
     try:
         os.remove(file_path)

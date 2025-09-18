@@ -40,9 +40,7 @@ def get_specialty(specialty_id: str, db: Session = Depends(get_db)):
     service = SpecialtyNewService(db)
     specialty = service.get_specialty(specialty_id)
     if not specialty:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Specialty not found"
-        )
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Specialty not found")
     return specialty
 
 
@@ -54,16 +52,12 @@ def create_specialty(specialty: SpecialtyCreate, db: Session = Depends(get_db)):
 
 
 @router.put("/{specialty_id}", response_model=SpecialtyResponse)
-def update_specialty(
-    specialty_id: str, specialty_update: SpecialtyUpdate, db: Session = Depends(get_db)
-):
+def update_specialty(specialty_id: str, specialty_update: SpecialtyUpdate, db: Session = Depends(get_db)):
     """Update a specialty."""
     service = SpecialtyNewService(db)
     specialty = service.update_specialty(specialty_id, specialty_update)
     if not specialty:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Specialty not found"
-        )
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Specialty not found")
     return specialty
 
 
@@ -73,7 +67,5 @@ def delete_specialty(specialty_id: str, db: Session = Depends(get_db)):
     service = SpecialtyNewService(db)
     success = service.delete_specialty(specialty_id)
     if not success:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Specialty not found"
-        )
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Specialty not found")
     return {"message": "Specialty deleted successfully"}

@@ -19,9 +19,7 @@ router = APIRouter()
 
 
 @router.get("/", response_model=List[TherapeuticApproachResponse])
-def get_therapeutic_approaches(
-    skip: int = 0, limit: int = 100, db: Session = Depends(get_db)
-):
+def get_therapeutic_approaches(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
     """Get all therapeutic approaches."""
     service = TherapeuticApproachService(db)
     approaches = service.get_therapeutic_approaches(skip=skip, limit=limit)
@@ -29,9 +27,7 @@ def get_therapeutic_approaches(
 
 
 @router.get("/category/{category}", response_model=List[TherapeuticApproachResponse])
-def get_therapeutic_approaches_by_category(
-    category: str, db: Session = Depends(get_db)
-):
+def get_therapeutic_approaches_by_category(category: str, db: Session = Depends(get_db)):
     """Get therapeutic approaches by category."""
     service = TherapeuticApproachService(db)
     approaches = service.get_therapeutic_approaches_by_category(category)
@@ -52,9 +48,7 @@ def get_therapeutic_approach(approach_id: str, db: Session = Depends(get_db)):
 
 
 @router.post("/", response_model=TherapeuticApproachResponse)
-def create_therapeutic_approach(
-    approach: TherapeuticApproachCreate, db: Session = Depends(get_db)
-):
+def create_therapeutic_approach(approach: TherapeuticApproachCreate, db: Session = Depends(get_db)):
     """Create a new therapeutic approach."""
     service = TherapeuticApproachService(db)
     return service.create_therapeutic_approach(approach)
