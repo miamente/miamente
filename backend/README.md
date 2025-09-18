@@ -133,10 +133,29 @@ DATABASE_URL=postgresql://user:password@localhost:5432/miamente
 SECRET_KEY=your-secret-key-here
 ```
 
-6. Run database migrations:
+6. Database migrations and seed (minimal commands)
 
 ```bash
+# From repo root
+cd backend
+
+# Create and activate virtualenv (first time only)
+python -m venv venv
+source venv/bin/activate  # Windows: venv\Scripts\activate
+
+# Install dependencies
+pip install -e ".[dev]"
+
+# Copy and edit environment
+cp env.example .env
+# Edit .env to set DATABASE_URL and SECRET_KEY
+
+# Run migrations
+alembic stamp head
 alembic upgrade head
+
+# Seed demo data
+python -m app.services.seed_demo_data
 ```
 
 7. Start the development server:
