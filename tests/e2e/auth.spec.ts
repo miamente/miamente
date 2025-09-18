@@ -89,7 +89,7 @@ test.describe("Authentication Flow", () => {
       }
 
       // Should be redirected to verify page (for unverified users)
-      await expect(page).toHaveURL(/.*\/(dashboard|verify)/);
+      await expect(page).toHaveURL(/\/(dashboard|verify)/);
 
       // If redirected to verify page, that's expected for unverified users
       if (page.url().includes("/verify")) {
@@ -195,7 +195,7 @@ test.describe("Authentication Flow", () => {
       await authHelper.logout();
 
       // Should be redirected to login or landing page
-      await expect(page).toHaveURL(/.*\/(login|landing)/);
+      await expect(page).toHaveURL(/\/(login|landing)/);
     });
   });
 
@@ -212,7 +212,7 @@ test.describe("Authentication Flow", () => {
       await authHelper.loginAsProfessional(credentials);
 
       // Should be redirected to dashboard or verify page
-      await expect(page).toHaveURL(/.*\/(dashboard|verify)/);
+      await expect(page).toHaveURL(/\/(dashboard|verify)/);
 
       // If redirected to verify page, that's expected for unverified professionals
       if (page.url().includes("/verify")) {
