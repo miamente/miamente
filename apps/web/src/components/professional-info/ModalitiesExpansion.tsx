@@ -9,7 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Star } from "lucide-react";
+import { Plus } from "lucide-react";
 import type { ProfessionalProfileFormData } from "@/lib/validations";
 import type { ProfessionalModality } from "@/lib/types";
 import { ModalityCardTrigger } from "./shared/ModalityCardTrigger";

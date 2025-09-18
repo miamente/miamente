@@ -45,6 +45,12 @@ export default function ProfessionalsPage() {
   const [isInitialLoad, setIsInitialLoad] = useState<boolean>(true);
   const lastSnapshotRef = useRef<ProfessionalsQueryResult["lastSnapshot"]>(null);
 
+  // Generate stable skeleton keys once
+  const skeletonKeys = useMemo(
+    () => Array.from({ length: 6 }).map((_, index) => `skeleton-${crypto.randomUUID()}-${index}`),
+    [],
+  );
+
   // Get specialty names for all professionals
   const { getNames: getSpecialtyNames, loading: specialtiesLoading } = useSpecialtyNames();
 
@@ -136,8 +142,8 @@ export default function ProfessionalsPage() {
     if (loading && isInitialLoad) {
       return (
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {Array.from({ length: 6 }).map((_, index) => (
-            <ProfessionalCardSkeleton key={`skeleton-${index}`} />
+          {skeletonKeys.map((key) => (
+            <ProfessionalCardSkeleton key={key} />
           ))}
         </div>
       );

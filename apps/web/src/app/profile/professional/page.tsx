@@ -69,10 +69,10 @@ export default function ProfessionalProfilePage() {
           licenseNumber: proProfile.license_number || "",
           yearsExperience: proProfile.years_experience || 0,
           bio: proProfile.bio || "",
-          academicExperience: (proProfile.academic_experience as AcademicExperience[]) || [],
-          workExperience: (proProfile.work_experience as WorkExperience[]) || [],
+          academicExperience: proProfile.academic_experience || [],
+          workExperience: proProfile.work_experience || [],
           certifications:
-            (proProfile.certifications as Certification[])?.map((cert: Certification) => {
+            proProfile.certifications?.map((cert: Certification) => {
               const documentUrl = cert.document_url || "";
               // Use fileName from database if available, otherwise extract from URL
               const fileName =
