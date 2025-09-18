@@ -9,8 +9,8 @@ from alembic import op
 import sqlalchemy as sa
 
 # Constants for duplicated literals
-NOW_FUNCTION = NOW_FUNCTION
-PROFESSIONALS_ID_REF = PROFESSIONALS_ID_REF
+NOW_FUNCTION = 'now()'
+PROFESSIONALS_ID_REF = 'professionals.id'
 
 # revision identifiers, used by Alembic.
 revision = '8896a8b86d20'
