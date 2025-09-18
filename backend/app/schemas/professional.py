@@ -85,50 +85,65 @@ class ProfessionalResponse(ProfessionalBase):
     created_at: datetime
     updated_at: Optional[datetime] = None
 
-    @staticmethod
-    def _parse_json_list(value):
-        """Parse JSON string to list, with fallback to empty list."""
+    @field_validator("academic_experience", mode="before")
+    @classmethod
+    def parse_academic_experience(cls, value):
+        """Parse academic experience from JSON string to list."""
         if isinstance(value, str):
             try:
-                return json.loads(value)
+                academic_data = json.loads(value)
+                return academic_data if isinstance(academic_data, list) else []
             except json.JSONDecodeError:
                 return []
         return value or []
 
-    @field_validator("academic_experience", mode="before")
-    @classmethod
-    def parse_academic_experience(cls, v):
-        """Parse academic experience from JSON string to list."""
-        # Handle academic experience parsing
-        return cls._parse_json_list(v)
-
     @field_validator("work_experience", mode="before")
     @classmethod
-    def parse_work_experience(cls, v):
+    def parse_work_experience(cls, value):
         """Parse work experience from JSON string to list."""
-        # Handle work experience parsing
-        return cls._parse_json_list(v)
+        if isinstance(value, str):
+            try:
+                work_data = json.loads(value)
+                return work_data if isinstance(work_data, list) else []
+            except json.JSONDecodeError:
+                return []
+        return value or []
 
     @field_validator("certifications", mode="before")
     @classmethod
-    def parse_certifications(cls, v):
+    def parse_certifications(cls, value):
         """Parse certifications from JSON string to list."""
-        # Handle certifications parsing
-        return cls._parse_json_list(v)
+        if isinstance(value, str):
+            try:
+                cert_data = json.loads(value)
+                return cert_data if isinstance(cert_data, list) else []
+            except json.JSONDecodeError:
+                return []
+        return value or []
 
     @field_validator("languages", mode="before")
     @classmethod
-    def parse_languages(cls, v):
+    def parse_languages(cls, value):
         """Parse languages from JSON string to list."""
-        # Handle languages parsing
-        return cls._parse_json_list(v)
+        if isinstance(value, str):
+            try:
+                lang_data = json.loads(value)
+                return lang_data if isinstance(lang_data, list) else []
+            except json.JSONDecodeError:
+                return []
+        return value or []
 
     @field_validator("therapy_approaches_ids", mode="before")
     @classmethod
-    def parse_therapy_approaches_ids(cls, v):
+    def parse_therapy_approaches_ids(cls, value):
         """Parse therapy approaches IDs from JSON string to list."""
-        # Handle therapy approaches IDs parsing
-        return cls._parse_json_list(v)
+        if isinstance(value, str):
+            try:
+                approach_data = json.loads(value)
+                return approach_data if isinstance(approach_data, list) else []
+            except json.JSONDecodeError:
+                return []
+        return value or []
 
     model_config = ConfigDict(from_attributes=True)
 
