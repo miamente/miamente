@@ -1,4 +1,5 @@
 import { test, expect } from "@playwright/test";
+
 import { TestHelpers } from "./utils/test-helpers";
 
 test.describe("Professionals Page", () => {
@@ -146,7 +147,7 @@ test.describe("Professionals Page", () => {
     if (await specialtyFilter.isVisible()) {
       // Select a specialty
       if ((await specialtyFilter.getAttribute("tagName")) === "SELECT") {
-        await specialtyFilter.selectOption({ label: /Psicología Clínica/i });
+        await specialtyFilter.selectOption({ label: "Psicología Clínica" });
       } else {
         await specialtyFilter.fill("Psicología Clínica");
       }

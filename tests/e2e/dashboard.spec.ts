@@ -1,4 +1,5 @@
 import { test, expect } from "@playwright/test";
+
 import { AuthHelper } from "./utils/auth-helper";
 import { TestHelpers } from "./utils/test-helpers";
 
@@ -12,7 +13,8 @@ test.describe("Dashboard", () => {
   });
 
   test.describe("User Dashboard", () => {
-    test.beforeEach(async ({ page }) => {
+    test.beforeEach(async ({ page: _page }) => {
+      // eslint-disable-line @typescript-eslint/no-unused-vars
       // Login as user
       const credentials = {
         email: "testuser1@example.com",
@@ -155,7 +157,8 @@ test.describe("Dashboard", () => {
   });
 
   test.describe("Professional Dashboard", () => {
-    test.beforeEach(async ({ page }) => {
+    test.beforeEach(async ({ page: _page }) => {
+      // eslint-disable-line @typescript-eslint/no-unused-vars
       // Login as professional
       const credentials = {
         email: "dr.smith@example.com",

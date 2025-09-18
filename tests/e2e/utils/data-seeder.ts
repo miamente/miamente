@@ -121,7 +121,8 @@ export class DataSeeder {
       try {
         await this.request.post("/api/v1/specialties", { data: specialty });
         console.log(`✅ Created specialty: ${specialty.name}`);
-      } catch (error) {
+      } catch (_error) {
+        // eslint-disable-line @typescript-eslint/no-unused-vars
         console.log(`⚠️ Specialty ${specialty.name} might already exist`);
       }
     }
@@ -153,7 +154,8 @@ export class DataSeeder {
       try {
         await this.request.post("/api/v1/modalities", { data: modality });
         console.log(`✅ Created modality: ${modality.name}`);
-      } catch (error) {
+      } catch (_error) {
+        // eslint-disable-line @typescript-eslint/no-unused-vars
         console.log(`⚠️ Modality ${modality.name} might already exist`);
       }
     }
@@ -190,7 +192,8 @@ export class DataSeeder {
       try {
         await this.request.post("/api/v1/therapeutic-approaches", { data: approach });
         console.log(`✅ Created therapeutic approach: ${approach.name}`);
-      } catch (error) {
+      } catch (_error) {
+        // eslint-disable-line @typescript-eslint/no-unused-vars
         console.log(`⚠️ Therapeutic approach ${approach.name} might already exist`);
       }
     }
@@ -221,7 +224,8 @@ export class DataSeeder {
       try {
         await this.request.post("/api/v1/auth/register", { data: user });
         console.log(`✅ Created user: ${user.email}`);
-      } catch (error) {
+      } catch (_error) {
+        // eslint-disable-line @typescript-eslint/no-unused-vars
         console.log(`⚠️ User ${user.email} might already exist`);
       }
     }
@@ -272,7 +276,8 @@ export class DataSeeder {
         // Register the professional
         await this.request.post("/api/v1/auth/register-professional", { data: professional });
         console.log(`✅ Created professional: ${professional.email}`);
-      } catch (error) {
+      } catch (_error) {
+        // eslint-disable-line @typescript-eslint/no-unused-vars
         console.log(`⚠️ Professional ${professional.email} might already exist`);
       }
     }

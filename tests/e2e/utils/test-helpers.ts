@@ -109,7 +109,7 @@ export class TestHelpers {
   /**
    * Wait for API response
    */
-  async waitForAPIResponse(urlPattern: string | RegExp, timeout: number = 10000): Promise<any> {
+  async waitForAPIResponse(urlPattern: string | RegExp, timeout: number = 10000): Promise<unknown> {
     const response = await this.page.waitForResponse(
       (response) => {
         const url = response.url();
@@ -127,7 +127,7 @@ export class TestHelpers {
   /**
    * Mock API response
    */
-  async mockAPIResponse(urlPattern: string | RegExp, mockData: any): Promise<void> {
+  async mockAPIResponse(urlPattern: string | RegExp, mockData: unknown): Promise<void> {
     await this.page.route(urlPattern, async (route) => {
       await route.fulfill({
         status: 200,

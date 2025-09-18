@@ -1,4 +1,5 @@
 import { FullConfig, request } from "@playwright/test";
+
 import { DataSeeder } from "./utils/data-seeder";
 
 async function globalSetup(config: FullConfig) {
@@ -6,7 +7,7 @@ async function globalSetup(config: FullConfig) {
 
   // Create API request context
   const apiRequest = await request.newContext({
-    baseURL: config.use?.baseURL || "http://localhost:3000",
+    baseURL: (config as { use?: { baseURL?: string } }).use?.baseURL || "http://localhost:3000",
   });
 
   // Initialize data seeder
