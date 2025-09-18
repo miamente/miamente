@@ -1,8 +1,8 @@
-import { FullConfig, request } from "@playwright/test";
+import { request } from "@playwright/test";
 
 import { DataSeeder } from "./utils/data-seeder";
 
-async function globalSetup(config: FullConfig) {
+async function globalSetup() {
   console.log("🚀 Starting E2E test setup...");
 
   // Create API request context

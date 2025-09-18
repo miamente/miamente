@@ -13,8 +13,7 @@ test.describe("Dashboard", () => {
   });
 
   test.describe("User Dashboard", () => {
-    test.beforeEach(async ({ page: _page }) => {
-      // eslint-disable-line @typescript-eslint/no-unused-vars
+    test.beforeEach(async () => {
       // Login as user
       const credentials = {
         email: "testuser1@example.com",
@@ -183,8 +182,7 @@ test.describe("Dashboard", () => {
   });
 
   test.describe("Professional Dashboard", () => {
-    test.beforeEach(async ({ page: _page }) => {
-      // eslint-disable-line @typescript-eslint/no-unused-vars
+    test.beforeEach(async () => {
       // Login as professional
       const credentials = {
         email: "dr.smith@example.com",

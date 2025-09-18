@@ -60,7 +60,7 @@ export class AuthHelper {
           { timeout: 10000 },
         );
       }
-    } catch (error) {
+    } catch {
       // Check if we're still on login page with an error
       const currentUrl = this.page.url();
       if (currentUrl.includes("/login")) {
@@ -77,7 +77,7 @@ export class AuthHelper {
           throw new Error("User login failed: No redirect occurred and no error message found");
         }
       } else {
-        throw error;
+        throw new Error("Unexpected navigation state after user login");
       }
     }
   }
@@ -127,7 +127,7 @@ export class AuthHelper {
         },
         { timeout: 10000 },
       );
-    } catch (error) {
+    } catch {
       // Check if we're still on login page with an error
       const currentUrl = this.page.url();
       if (currentUrl.includes("/login")) {
@@ -146,7 +146,7 @@ export class AuthHelper {
           );
         }
       } else {
-        throw error;
+        throw new Error("Unexpected navigation state after professional login");
       }
     }
   }
@@ -182,7 +182,7 @@ export class AuthHelper {
     // Wait for redirect to login or landing page
     try {
       await this.page.waitForURL(/.*\/(login|landing)/, { timeout: 10000 });
-    } catch (error) {
+    } catch {
       // If still not redirected, try navigating to login manually
       console.log("Not redirected automatically, navigating to login manually");
       await this.page.goto("/login");
@@ -218,12 +218,12 @@ export class AuthHelper {
           if (typeof window !== "undefined" && window.localStorage) {
             return localStorage.getItem("access_token");
           }
-        } catch (e) {
+        } catch {
           // Ignore localStorage errors
         }
         return null;
       });
-    } catch (error) {
+    } catch {
       // localStorage access not available in test environment
       return null;
     }
@@ -241,11 +241,11 @@ export class AuthHelper {
           if (typeof window !== "undefined" && window.localStorage) {
             localStorage.setItem("access_token", token);
           }
-        } catch (e) {
+        } catch {
           // Ignore localStorage errors
         }
       }, token);
-    } catch (error) {
+    } catch {
       // localStorage access not available in test environment
     }
   }
@@ -264,11 +264,11 @@ export class AuthHelper {
             localStorage.removeItem("access_token");
             localStorage.removeItem("user");
           }
-        } catch (e) {
+        } catch {
           // Ignore localStorage errors
         }
       });
-    } catch (error) {
+    } catch {
       // Ignore localStorage access errors in test environment
       // This is expected in some test environments
     }

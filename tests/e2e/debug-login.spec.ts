@@ -43,7 +43,7 @@ test.describe("Debug Login", () => {
     try {
       await navigationPromise;
       console.log("Navigation occurred to:", page.url());
-    } catch (error) {
+    } catch {
       console.log("No navigation occurred, current URL:", page.url());
 
       // Check for any error messages

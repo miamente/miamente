@@ -120,8 +120,7 @@ export class DataSeeder {
       try {
         await this.request.post("/api/v1/specialties-new", { data: specialty });
         console.log(`✅ Created specialty: ${specialty.name}`);
-      } catch (_error) {
-        // eslint-disable-line @typescript-eslint/no-unused-vars
+      } catch {
         console.log(`⚠️ Specialty ${specialty.name} might already exist`);
       }
     }
@@ -153,8 +152,7 @@ export class DataSeeder {
       try {
         await this.request.post("/api/v1/modalities", { data: modality });
         console.log(`✅ Created modality: ${modality.name}`);
-      } catch (_error) {
-        // eslint-disable-line @typescript-eslint/no-unused-vars
+      } catch {
         console.log(`⚠️ Modality ${modality.name} might already exist`);
       }
     }
@@ -191,8 +189,7 @@ export class DataSeeder {
       try {
         await this.request.post("/api/v1/therapeutic-approaches", { data: approach });
         console.log(`✅ Created therapeutic approach: ${approach.name}`);
-      } catch (_error) {
-        // eslint-disable-line @typescript-eslint/no-unused-vars
+      } catch {
         console.log(`⚠️ Therapeutic approach ${approach.name} might already exist`);
       }
     }
@@ -221,8 +218,7 @@ export class DataSeeder {
       try {
         await this.request.post("/api/v1/auth/register/user", { data: user });
         console.log(`✅ Created user: ${user.email}`);
-      } catch (_error) {
-        // eslint-disable-line @typescript-eslint/no-unused-vars
+      } catch {
         console.log(`⚠️ User ${user.email} might already exist`);
       }
     }
@@ -273,8 +269,7 @@ export class DataSeeder {
         // Register the professional
         await this.request.post("/api/v1/auth/register/professional", { data: professional });
         console.log(`✅ Created professional: ${professional.email}`);
-      } catch (_error) {
-        // eslint-disable-line @typescript-eslint/no-unused-vars
+      } catch {
         console.log(`⚠️ Professional ${professional.email} might already exist`);
       }
     }

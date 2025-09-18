@@ -51,3 +51,8 @@ uploads/*
 !**/profile_pictures/README.*
 **/documents/*
 !**/documents/README.*
+
+# TypeScript build cache
+*.tsbuildinfo
+apps/**/tsconfig.tsbuildinfo
+**/tsconfig.tsbuildinfo

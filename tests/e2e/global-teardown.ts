@@ -1,8 +1,8 @@
-import { FullConfig, request } from "@playwright/test";
+import { request } from "@playwright/test";
 
 import { DataSeeder } from "./utils/data-seeder";
 
-async function globalTeardown(config: FullConfig) {
+async function globalTeardown() {
   console.log("🧹 Starting E2E test teardown...");
 
   // Create API request context

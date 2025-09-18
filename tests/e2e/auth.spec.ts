@@ -1,15 +1,12 @@
 import { test, expect } from "@playwright/test";
 
 import { AuthHelper, LoginCredentials } from "./utils/auth-helper";
-import { TestHelpers } from "./utils/test-helpers";
 
 test.describe("Authentication Flow", () => {
   let authHelper: AuthHelper;
-  let testHelpers: TestHelpers;
 
   test.beforeEach(async ({ page, request }) => {
     authHelper = new AuthHelper(page, request);
-    testHelpers = new TestHelpers(page);
 
     // Clear any existing auth data
     await authHelper.clearAuth();
