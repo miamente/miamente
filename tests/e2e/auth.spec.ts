@@ -2,6 +2,9 @@ import { test, expect } from "@playwright/test";
 
 import { AuthHelper, LoginCredentials } from "./utils/auth-helper";
 
+// Test password constant
+const TEST_PASSWORD = "TestPassword123!";
+
 test.describe("Authentication Flow", () => {
   let authHelper: AuthHelper;
 
@@ -17,7 +20,7 @@ test.describe("Authentication Flow", () => {
       // SKIPPED: Test failing on Firefox due to timeout issues
       const credentials = {
         email: "testuser1@example.com",
-        password: "TestPassword123!",
+        password: TEST_PASSWORD,
       };
 
       await page.goto("/login");
@@ -180,7 +183,7 @@ test.describe("Authentication Flow", () => {
       // First login
       const credentials = {
         email: "testuser1@example.com",
-        password: "TestPassword123!",
+        password: TEST_PASSWORD,
       };
 
       await authHelper.loginAsUser(credentials);
@@ -206,7 +209,7 @@ test.describe("Authentication Flow", () => {
       // SKIPPED: Test failing on Firefox and WebKit due to form interaction issues
       const credentials: LoginCredentials = {
         email: "dr.smith@example.com",
-        password: "TestPassword123!",
+        password: TEST_PASSWORD,
       };
 
       await authHelper.loginAsProfessional(credentials);

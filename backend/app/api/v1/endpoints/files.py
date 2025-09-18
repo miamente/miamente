@@ -6,6 +6,7 @@ import os
 import re
 import uuid
 
+import aiofiles
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
 from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
@@ -191,8 +192,8 @@ async def upload_certification_document(
     file_path = safe_construct_file_path(UPLOAD_DIR, "certifications", current_user_id, unique_filename)
 
     # Save file
-    with open(file_path, "wb") as buffer:
-        buffer.write(file_content)
+    async with aiofiles.open(file_path, "wb") as buffer:
+        await buffer.write(file_content)
 
     # Return file URL
     file_url = f"/api/v1/files/certification/{current_user_id}/{unique_filename}"
@@ -236,8 +237,8 @@ async def upload_profile_picture(
     file_path = safe_construct_file_path(UPLOAD_DIR, "profile_pictures", current_user_id, unique_filename)
 
     # Save file
-    with open(file_path, "wb") as buffer:
-        buffer.write(file_content)
+    async with aiofiles.open(file_path, "wb") as buffer:
+        await buffer.write(file_content)
 
     # Return file URL
     file_url = f"/api/v1/files/profile-picture/{current_user_id}/{unique_filename}"
