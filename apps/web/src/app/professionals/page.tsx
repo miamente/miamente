@@ -106,6 +106,101 @@ export default function ProfessionalsPage() {
     fetchPage(false);
   };
 
+  // Determine what content to render
+  const renderContent = () => {
+    if (loading && isInitialLoad) {
+      return (
+        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          {Array.from({ length: 6 }).map((_, index) => (
+            <ProfessionalCardSkeleton key={`skeleton-${index}`} />
+          ))}
+        </div>
+      );
+    }
+
+    if (!loading && !isInitialLoad && items.length === 0) {
+      return (
+        <div role="status" aria-live="polite" className="rounded-md border p-6 text-center">
+          <p className="text-neutral-700 dark:text-neutral-300">
+            No encontramos profesionales con los filtros seleccionados.
+          </p>
+          <p className="text-sm text-neutral-500 dark:text-neutral-400">
+            Intenta ajustar los filtros.
+          </p>
+        </div>
+      );
+    }
+
+    return (
+      <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        {items.map((pro) => (
+          <Link key={pro.id} href={`/professionals/${pro.id}`}>
+            <Card className="flex cursor-pointer flex-col transition-shadow duration-200 hover:shadow-lg">
+              <CardHeader>
+                <CardTitle className="text-xl">{pro.full_name}</CardTitle>
+                <div className="text-sm text-neutral-600 dark:text-neutral-400">
+                  {specialtiesLoading ? (
+                    <div className="h-4 w-32 animate-pulse rounded bg-neutral-200 dark:bg-neutral-700"></div>
+                  ) : pro.specialty_ids && pro.specialty_ids.length > 0 ? (
+                    <div className="flex flex-wrap gap-1">
+                      {getSpecialtyNames(pro.specialty_ids).map(
+                        (specialty: string, index: number) => (
+                          <span
+                            key={`${pro.id}-specialty-${specialty}-${index}`}
+                            className="rounded-full bg-blue-100 px-2 py-1 text-xs text-blue-800 dark:bg-blue-900 dark:text-blue-200"
+                          >
+                            {specialty}
+                          </span>
+                        ),
+                      )}
+                    </div>
+                  ) : (
+                    "Especialidad no especificada"
+                  )}
+                </div>
+                <p className="text-sm text-neutral-600 dark:text-neutral-400">
+                  {(pro.rate_cents / 100).toLocaleString("es-CO", {
+                    minimumFractionDigits: 0,
+                    maximumFractionDigits: 0,
+                  })}{" "}
+                  / hora
+                </p>
+              </CardHeader>
+              <CardContent className="flex flex-1 flex-col gap-3">
+                {getImageUrl(pro.profile_picture) ? (
+                  <Image
+                    src={getImageUrl(pro.profile_picture)!}
+                    alt={`Foto del profesional ${pro.full_name}`}
+                    width={400}
+                    height={160}
+                    className="h-40 w-full rounded-md object-cover"
+                    priority={false}
+                  />
+                ) : (
+                  <div className="flex h-40 w-full items-center justify-center rounded-md bg-neutral-100 text-neutral-500 dark:bg-neutral-900 dark:text-neutral-400">
+                    Sin foto
+                  </div>
+                )}
+                <p className="line-clamp-3 text-sm text-neutral-700 dark:text-neutral-300">
+                  {pro.bio}
+                </p>
+                <div className="mt-auto">
+                  <Button
+                    className="w-full"
+                    variant="outline"
+                    aria-label={`Ver perfil de ${pro.full_name}`}
+                  >
+                    Ver perfil
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </Link>
+        ))}
+      </div>
+    );
+  };
+
   return (
     <div className="container mx-auto px-4 py-8">
       <h1 className="mb-6 text-3xl font-bold">Profesionales</h1>
@@ -193,89 +288,7 @@ export default function ProfessionalsPage() {
         </div>
       )}
 
-      {loading && isInitialLoad ? (
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {Array.from({ length: 6 }).map((_, index) => (
-            <ProfessionalCardSkeleton key={index} />
-          ))}
-        </div>
-      ) : !loading && !isInitialLoad && items.length === 0 ? (
-        <div role="status" aria-live="polite" className="rounded-md border p-6 text-center">
-          <p className="text-neutral-700 dark:text-neutral-300">
-            No encontramos profesionales con los filtros seleccionados.
-          </p>
-          <p className="text-sm text-neutral-500 dark:text-neutral-400">
-            Intenta ajustar los filtros.
-          </p>
-        </div>
-      ) : (
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {items.map((pro) => (
-            <Link key={pro.id} href={`/professionals/${pro.id}`}>
-              <Card className="flex cursor-pointer flex-col transition-shadow duration-200 hover:shadow-lg">
-                <CardHeader>
-                  <CardTitle className="text-xl">{pro.full_name}</CardTitle>
-                  <div className="text-sm text-neutral-600 dark:text-neutral-400">
-                    {specialtiesLoading ? (
-                      <div className="h-4 w-32 animate-pulse rounded bg-neutral-200 dark:bg-neutral-700"></div>
-                    ) : pro.specialty_ids && pro.specialty_ids.length > 0 ? (
-                      <div className="flex flex-wrap gap-1">
-                        {getSpecialtyNames(pro.specialty_ids).map(
-                          (specialty: string, index: number) => (
-                            <span
-                              key={index}
-                              className="rounded-full bg-blue-100 px-2 py-1 text-xs text-blue-800 dark:bg-blue-900 dark:text-blue-200"
-                            >
-                              {specialty}
-                            </span>
-                          ),
-                        )}
-                      </div>
-                    ) : (
-                      "Especialidad no especificada"
-                    )}
-                  </div>
-                  <p className="text-sm text-neutral-600 dark:text-neutral-400">
-                    {(pro.rate_cents / 100).toLocaleString("es-CO", {
-                      minimumFractionDigits: 0,
-                      maximumFractionDigits: 0,
-                    })}{" "}
-                    / hora
-                  </p>
-                </CardHeader>
-                <CardContent className="flex flex-1 flex-col gap-3">
-                  {getImageUrl(pro.profile_picture) ? (
-                    <Image
-                      src={getImageUrl(pro.profile_picture)!}
-                      alt={`Foto del profesional ${pro.full_name}`}
-                      width={400}
-                      height={160}
-                      className="h-40 w-full rounded-md object-cover"
-                      priority={false}
-                    />
-                  ) : (
-                    <div className="flex h-40 w-full items-center justify-center rounded-md bg-neutral-100 text-neutral-500 dark:bg-neutral-900 dark:text-neutral-400">
-                      Sin foto
-                    </div>
-                  )}
-                  <p className="line-clamp-3 text-sm text-neutral-700 dark:text-neutral-300">
-                    {pro.bio}
-                  </p>
-                  <div className="mt-auto">
-                    <Button
-                      className="w-full"
-                      variant="outline"
-                      aria-label={`Ver perfil de ${pro.full_name}`}
-                    >
-                      Ver perfil
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            </Link>
-          ))}
-        </div>
-      )}
+      {renderContent()}
 
       {items.length > 0 && !isInitialLoad && (
         <div className="mt-8 flex justify-center">

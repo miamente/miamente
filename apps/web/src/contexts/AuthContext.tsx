@@ -3,7 +3,7 @@
  */
 "use client";
 
-import React, { createContext, useContext, ReactNode } from "react";
+import React, { createContext, useContext, ReactNode, useMemo } from "react";
 
 import {
   useAuth,
@@ -55,15 +55,18 @@ interface AuthProviderProps {
 export function AuthProvider({ children }: AuthProviderProps) {
   const auth = useAuth();
 
-  const contextValue = {
-    ...auth,
-    getUserEmail,
-    getUserFullName,
-    isUserVerified,
-    isEmailVerified,
-    getUserId,
-    getUserUid,
-  };
+  const contextValue = useMemo(
+    () => ({
+      ...auth,
+      getUserEmail,
+      getUserFullName,
+      isUserVerified,
+      isEmailVerified,
+      getUserId,
+      getUserUid,
+    }),
+    [auth],
+  );
 
   return <AuthContext.Provider value={contextValue}>{children}</AuthContext.Provider>;
 }

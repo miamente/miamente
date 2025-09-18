@@ -196,6 +196,16 @@ export default function ProfessionalProfilePage() {
     }
   };
 
+  const getButtonText = () => {
+    if (isSubmitting) {
+      return "Actualizando...";
+    }
+    if (profile) {
+      return "Actualizar Perfil";
+    }
+    return "Crear Perfil";
+  };
+
   const onSubmit = async (data: ProfessionalProfileFormData) => {
     if (!user) return;
 
@@ -571,7 +581,7 @@ export default function ProfessionalProfilePage() {
           disabled={isSubmitting}
           form="professional-profile-form"
         >
-          {isSubmitting ? "Actualizando..." : profile ? "Actualizar Perfil" : "Crear Perfil"}
+          {getButtonText()}
         </Button>
       </div>
     </div>
