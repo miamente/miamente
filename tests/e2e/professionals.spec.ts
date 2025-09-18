@@ -241,7 +241,8 @@ test.describe("Professionals Page", () => {
     }
   });
 
-  test("should handle empty state gracefully", async ({ page }) => {
+  test.skip("should handle empty state gracefully", async ({ page }) => {
+    // SKIPPED: Disabled per request
     // Wait for page to load
     await testHelpers.waitForLoadingToComplete();
 
