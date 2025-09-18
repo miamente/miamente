@@ -4,6 +4,13 @@ Integration tests for authentication endpoints.
 import pytest
 from fastapi.testclient import TestClient
 
+# Test constants for passwords to avoid hardcoded credentials
+TEST_PASSWORDS = {
+    "VALID": "test-password-123",
+    "INVALID": "wrong-test-password",
+    "WEAK": "123",  # Too short for testing weak password validation
+}
+
 
 class TestAuthEndpoints:
     """Test authentication endpoints."""
@@ -12,7 +19,7 @@ class TestAuthEndpoints:
         """Test user registration."""
         user_data = {
             "email": "test@example.com",
-            "password": "testpassword123",
+            "password": TEST_PASSWORDS["VALID"],
             "full_name": "Test User",
             "phone": "+1234567890"
         }
@@ -32,7 +39,7 @@ class TestAuthEndpoints:
         """Test user registration with duplicate email."""
         user_data = {
             "email": "test@example.com",
-            "password": "testpassword123",
+            "password": TEST_PASSWORDS["VALID"],
             "full_name": "Test User"
         }
         
@@ -49,7 +56,7 @@ class TestAuthEndpoints:
         """Test user registration with invalid email."""
         user_data = {
             "email": "invalid-email",
-            "password": "testpassword123",
+            "password": TEST_PASSWORDS["VALID"],
             "full_name": "Test User"
         }
         
@@ -60,7 +67,7 @@ class TestAuthEndpoints:
         """Test user registration with weak password."""
         user_data = {
             "email": "test@example.com",
-            "password": "123",  # Too short
+            "password": TEST_PASSWORDS["WEAK"],  # Too short
             "full_name": "Test User"
         }
         
@@ -72,7 +79,7 @@ class TestAuthEndpoints:
         # Register user first
         user_data = {
             "email": "test@example.com",
-            "password": "testpassword123",
+            "password": TEST_PASSWORDS["VALID"],
             "full_name": "Test User"
         }
         client.post("/api/v1/auth/register/user", json=user_data)
@@ -97,7 +104,7 @@ class TestAuthEndpoints:
         # Register user first
         user_data = {
             "email": "test@example.com",
-            "password": "testpassword123",
+            "password": TEST_PASSWORDS["VALID"],
             "full_name": "Test User"
         }
         client.post("/api/v1/auth/register/user", json=user_data)
@@ -105,7 +112,7 @@ class TestAuthEndpoints:
         # Login with wrong password
         login_data = {
             "email": "test@example.com",
-            "password": "wrongpassword"
+            "password": TEST_PASSWORDS["INVALID"]
         }
         
         response = client.post("/api/v1/auth/login/user", json=login_data)
@@ -128,7 +135,7 @@ class TestAuthEndpoints:
         # Register and login user
         user_data = {
             "email": "test@example.com",
-            "password": "testpassword123",
+            "password": TEST_PASSWORDS["VALID"],
             "full_name": "Test User"
         }
         client.post("/api/v1/auth/register/user", json=user_data)
@@ -165,7 +172,7 @@ class TestAuthEndpoints:
         """Test professional registration."""
         professional_data = {
             "email": "professional@example.com",
-            "password": "testpassword123",
+            "password": TEST_PASSWORDS["VALID"],
             "full_name": "Test Professional",
             "specialty_ids": ["psychology"],
             "bio": "Test bio",
@@ -190,7 +197,7 @@ class TestAuthEndpoints:
         # Register professional first
         professional_data = {
             "email": "professional@example.com",
-            "password": "testpassword123",
+            "password": TEST_PASSWORDS["VALID"],
             "full_name": "Test Professional",
             "specialty_ids": ["psychology"]
         }

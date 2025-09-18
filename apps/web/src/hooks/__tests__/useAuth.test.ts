@@ -4,6 +4,12 @@ import { useAuth } from "../useAuth";
 import { apiClient } from "@/lib/api";
 import { UserRole } from "@/lib/types";
 
+// Test constants for passwords to avoid hardcoded credentials
+const TEST_PASSWORDS = {
+  VALID: "test-password-123",
+  INVALID: "wrong-test-password",
+} as const;
+
 // Mock Next.js router
 const mockPush = vi.fn();
 const mockReplace = vi.fn();
@@ -147,12 +153,12 @@ describe("useAuth", () => {
     const { result } = renderHook(() => useAuth());
 
     await act(async () => {
-      await result.current.loginUser({ email: "test@example.com", password: "password123" });
+      await result.current.loginUser({ email: "test@example.com", password: TEST_PASSWORDS.VALID });
     });
 
     expect(apiClient.loginUser).toHaveBeenCalledWith({
       email: "test@example.com",
-      password: "password123",
+      password: TEST_PASSWORDS.VALID,
     });
     expect(mockPush).toHaveBeenCalledWith("/dashboard");
   });
@@ -200,13 +206,13 @@ describe("useAuth", () => {
     await act(async () => {
       await result.current.loginProfessional({
         email: "prof@example.com",
-        password: "password123",
+        password: TEST_PASSWORDS.VALID,
       });
     });
 
     expect(apiClient.loginProfessional).toHaveBeenCalledWith({
       email: "prof@example.com",
-      password: "password123",
+      password: TEST_PASSWORDS.VALID,
     });
     expect(mockPush).toHaveBeenCalledWith("/dashboard");
   });
@@ -217,7 +223,10 @@ describe("useAuth", () => {
     const { result } = renderHook(() => useAuth());
 
     await expect(async () => {
-      await result.current.loginUser({ email: "test@example.com", password: "wrongpassword" });
+      await result.current.loginUser({
+        email: "test@example.com",
+        password: TEST_PASSWORDS.INVALID,
+      });
     }).rejects.toThrow("Invalid credentials");
   });
 

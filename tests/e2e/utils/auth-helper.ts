@@ -42,7 +42,7 @@ export class AuthHelper {
 
     // Wait for either redirect or error message
     try {
-      await this.page.waitForURL(/.*\/(dashboard|verify)/, { timeout: 10000 });
+      await this.page.waitForURL(/\/(dashboard|verify)/, { timeout: 10000 });
 
       // If redirected to verify page, that's expected for unverified users
       if (this.page.url().includes("/verify")) {
@@ -109,7 +109,7 @@ export class AuthHelper {
 
     // Wait for either redirect or error message
     try {
-      await this.page.waitForURL(/.*\/(dashboard|verify)/, { timeout: 10000 });
+      await this.page.waitForURL(/\/(dashboard|verify)/, { timeout: 10000 });
 
       // If redirected to verify page, that's expected for unverified users
       if (this.page.url().includes("/verify")) {
@@ -181,7 +181,7 @@ export class AuthHelper {
 
     // Wait for redirect to login or landing page
     try {
-      await this.page.waitForURL(/.*\/(login|landing)/, { timeout: 10000 });
+      await this.page.waitForURL(/\/(login|landing)/, { timeout: 10000 });
     } catch {
       // If still not redirected, try navigating to login manually
       console.log("Not redirected automatically, navigating to login manually");
