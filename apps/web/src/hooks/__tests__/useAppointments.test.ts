@@ -38,7 +38,6 @@ describe("useAppointments", () => {
         id: "apt-1",
         user_id: "user-1",
         professional_id: "prof-1",
-        availability_id: "avail-1",
         status: AppointmentStatus.CONFIRMED,
         paid: false,
         start_time: "2023-12-01T10:00:00Z",
@@ -56,7 +55,6 @@ describe("useAppointments", () => {
         id: "apt-2",
         user_id: "user-1",
         professional_id: "prof-2",
-        availability_id: "avail-2",
         status: AppointmentStatus.COMPLETED,
         paid: true,
         start_time: "2023-12-02T14:00:00Z",
@@ -112,7 +110,6 @@ describe("useAppointments", () => {
         id: "apt-new",
         user_id: "user-1",
         professional_id: "prof-1",
-        availability_id: "avail-1",
         status: AppointmentStatus.CONFIRMED,
         paid: false,
         start_time: "2023-12-01T10:00:00Z",
@@ -134,11 +131,19 @@ describe("useAppointments", () => {
     const { result } = renderHook(() => useAppointments());
 
     await act(async () => {
-      const response = await result.current.bookAppointment("prof-1", "avail-1");
+      const response = await result.current.bookAppointment(
+        "prof-1",
+        "2023-12-01T10:00:00Z",
+        "2023-12-01T11:00:00Z",
+      );
       expect(response).toEqual(mockBookingResponse);
     });
 
-    expect(apiClient.bookAppointmentDirect).toHaveBeenCalledWith("prof-1", "avail-1");
+    expect(apiClient.bookAppointmentDirect).toHaveBeenCalledWith(
+      "prof-1",
+      "2023-12-01T10:00:00Z",
+      "2023-12-01T11:00:00Z",
+    );
     expect(apiClient.getUserAppointments).toHaveBeenCalledTimes(1);
     expect(result.current.appointments).toEqual(mockAppointments);
   });
@@ -149,9 +154,9 @@ describe("useAppointments", () => {
     const { result } = renderHook(() => useAppointments());
 
     await act(async () => {
-      await expect(result.current.bookAppointment("prof-1", "avail-1")).rejects.toThrow(
-        "Booking failed",
-      );
+      await expect(
+        result.current.bookAppointment("prof-1", "2023-12-01T10:00:00Z", "2023-12-01T11:00:00Z"),
+      ).rejects.toThrow("Booking failed");
     });
 
     expect(result.current.error).toBe("Booking failed");
@@ -163,7 +168,6 @@ describe("useAppointments", () => {
         id: "apt-1",
         user_id: "user-1",
         professional_id: "prof-1",
-        availability_id: "avail-1",
         status: AppointmentStatus.CANCELLED,
         paid: false,
         start_time: "2023-12-01T10:00:00Z",
@@ -213,7 +217,6 @@ describe("useAppointments", () => {
         id: "apt-1",
         user_id: "user-1",
         professional_id: "prof-1",
-        availability_id: "avail-1",
         status: AppointmentStatus.CONFIRMED,
         paid: false,
         start_time: "2023-12-01T10:00:00Z",
@@ -296,7 +299,6 @@ describe("useAppointment", () => {
       id: "apt-1",
       user_id: "user-1",
       professional_id: "prof-1",
-      availability_id: "avail-1",
       status: AppointmentStatus.CONFIRMED,
       paid: false,
       start_time: "2023-12-01T10:00:00Z",

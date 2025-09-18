@@ -66,7 +66,6 @@ class Professional(Base):
         "app.models.professional_modality.ProfessionalModality",
         back_populates="professional",
     )
-    availability = relationship("app.models.availability.Availability", back_populates="professional")
 
     def __repr__(self):
         return (

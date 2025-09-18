@@ -10,7 +10,17 @@ import sys
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 
 from app.core.database import Base
-from app.models import *  # Import all models
+from app.models import (
+    User,
+    Professional,
+    Availability,
+    Specialty,
+    ProfessionalSpecialty,
+    Modality,
+    TherapeuticApproach,
+    ProfessionalTherapeuticApproach,
+    ProfessionalModality,
+)
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.

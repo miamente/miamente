@@ -1,20 +1,13 @@
 import { renderHook, act } from "@testing-library/react";
 import { vi, describe, it, expect, beforeEach } from "vitest";
-import {
-  useProfessionals,
-  useProfessional,
-  useProfessionalAvailability,
-} from "../useProfessionals";
+import { useProfessionals, useProfessional } from "../useProfessionals";
 import { apiClient } from "@/lib/api";
-import { SlotStatus } from "@/lib/types";
 
 // Mock the API client
 vi.mock("@/lib/api", () => ({
   apiClient: {
     getProfessionals: vi.fn(),
     getProfessional: vi.fn(),
-    getProfessionalAvailability: vi.fn(),
-    createAvailability: vi.fn(),
   },
 }));
 
@@ -195,141 +188,5 @@ describe("useProfessional", () => {
 
     expect(apiClient.getProfessional).not.toHaveBeenCalled();
     expect(result.current.professional).toBe(null);
-  });
-});
-
-describe("useProfessionalAvailability", () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-  });
-
-  it("should initialize with empty state", () => {
-    const { result } = renderHook(() => useProfessionalAvailability("prof-1"));
-
-    expect(result.current.availability).toEqual([]);
-    expect(result.current.isLoading).toBe(false);
-    expect(result.current.error).toBe(null);
-    expect(typeof result.current.fetchAvailability).toBe("function");
-    expect(typeof result.current.createAvailability).toBe("function");
-  });
-
-  it("should fetch availability successfully", async () => {
-    const mockAvailability = [
-      {
-        id: "avail-1",
-        professional_id: "prof-1",
-        date: "2023-12-01",
-        time: "09:00",
-        duration: 480,
-        timezone: "America/Bogota",
-        status: SlotStatus.FREE,
-        created_at: "2023-11-01T00:00:00Z",
-        updated_at: "2023-11-01T00:00:00Z",
-      },
-      {
-        id: "avail-2",
-        professional_id: "prof-1",
-        date: "2023-12-02",
-        time: "09:00",
-        duration: 480,
-        timezone: "America/Bogota",
-        status: SlotStatus.FREE,
-        created_at: "2023-11-01T00:00:00Z",
-        updated_at: "2023-11-01T00:00:00Z",
-      },
-    ];
-
-    vi.mocked(apiClient.getProfessionalAvailability).mockResolvedValue(mockAvailability);
-
-    const { result } = renderHook(() => useProfessionalAvailability("prof-1"));
-
-    await act(async () => {
-      await result.current.fetchAvailability();
-    });
-
-    expect(result.current.availability).toEqual(mockAvailability);
-    expect(result.current.isLoading).toBe(false);
-    expect(result.current.error).toBe(null);
-    expect(apiClient.getProfessionalAvailability).toHaveBeenCalledWith("prof-1");
-  });
-
-  it("should handle fetch availability error", async () => {
-    vi.mocked(apiClient.getProfessionalAvailability).mockRejectedValue(
-      new Error("Availability not found"),
-    );
-
-    const { result } = renderHook(() => useProfessionalAvailability("prof-1"));
-
-    await act(async () => {
-      await result.current.fetchAvailability();
-    });
-
-    expect(result.current.availability).toEqual([]);
-    expect(result.current.isLoading).toBe(false);
-    expect(result.current.error).toBe("Availability not found");
-  });
-
-  it("should not fetch when professionalId is empty", async () => {
-    const { result } = renderHook(() => useProfessionalAvailability(""));
-
-    await act(async () => {
-      await result.current.fetchAvailability();
-    });
-
-    expect(apiClient.getProfessionalAvailability).not.toHaveBeenCalled();
-    expect(result.current.availability).toEqual([]);
-  });
-
-  it("should create availability successfully", async () => {
-    const newAvailabilityData = {
-      professional_id: "prof-1",
-      date: "2023-12-03",
-      time: "09:00",
-      duration: 480,
-      timezone: "America/Bogota",
-      status: SlotStatus.FREE,
-    };
-
-    const createdAvailability = {
-      id: "avail-new",
-      ...newAvailabilityData,
-      created_at: "2023-11-01T00:00:00Z",
-      updated_at: "2023-11-01T00:00:00Z",
-    };
-
-    vi.mocked(apiClient.createAvailability).mockResolvedValue(createdAvailability);
-
-    const { result } = renderHook(() => useProfessionalAvailability("prof-1"));
-
-    await act(async () => {
-      const response = await result.current.createAvailability(newAvailabilityData);
-      expect(response).toEqual(createdAvailability);
-    });
-
-    expect(apiClient.createAvailability).toHaveBeenCalledWith("prof-1", newAvailabilityData);
-    expect(result.current.availability).toContain(createdAvailability);
-  });
-
-  it("should handle create availability error", async () => {
-    const newAvailabilityData = {
-      professional_id: "prof-1",
-      date: "2023-12-03",
-      time: "09:00",
-      duration: 480,
-      timezone: "America/Bogota",
-      status: SlotStatus.FREE,
-    };
-
-    vi.mocked(apiClient.createAvailability).mockRejectedValue(new Error("Creation failed"));
-
-    const { result } = renderHook(() => useProfessionalAvailability("prof-1"));
-
-    await act(async () => {
-      await expect(result.current.createAvailability(newAvailabilityData)).rejects.toThrow(
-        "Creation failed",
-      );
-    });
-
-    expect(result.current.error).toBe("Creation failed");
   });
 });
