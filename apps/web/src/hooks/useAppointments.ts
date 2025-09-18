@@ -25,12 +25,12 @@ export function useAppointments() {
   }, []);
 
   const bookAppointment = useCallback(
-    async (professionalId: string, availabilityId: string) => {
+    async (professionalId: string, startTime: string, endTime: string) => {
       setIsLoading(true);
       setError(null);
 
       try {
-        const result = await apiClient.bookAppointmentDirect(professionalId, availabilityId);
+        const result = await apiClient.bookAppointmentDirect(professionalId, startTime, endTime);
         // Refresh appointments after booking
         await fetchAppointments();
         return result;

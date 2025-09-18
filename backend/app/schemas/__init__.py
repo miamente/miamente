@@ -3,7 +3,6 @@ Pydantic schemas for request/response validation.
 """
 
 from app.schemas.auth import Token, TokenData
-from app.schemas.availability import AvailabilityCreate, AvailabilityResponse
 from app.schemas.professional import (
     ProfessionalCreate,
     ProfessionalResponse,
@@ -19,8 +18,6 @@ __all__ = [
     "ProfessionalCreate",
     "ProfessionalUpdate",
     "ProfessionalResponse",
-    "AvailabilityCreate",
-    "AvailabilityResponse",
     "Token",
     "TokenData",
 ]

@@ -2,7 +2,6 @@
 Database models for the Miamente platform.
 """
 
-from app.models.availability import Availability
 from app.models.modality import Modality  # New: intervention modalities
 from app.models.professional import Professional
 from app.models.professional_modality import ProfessionalModality
@@ -19,7 +18,6 @@ from app.models.user import User
 __all__ = [
     "User",
     "Professional",
-    "Availability",
     "Specialty",
     "ProfessionalSpecialty",
     "Modality",

@@ -1,9 +1,9 @@
 /**
- * Hook for managing professionals and their availability.
+ * Hook for managing professionals.
  */
 import { useState, useCallback } from "react";
 
-import { apiClient, type Professional, type Availability } from "@/lib/api";
+import { apiClient, type Professional } from "@/lib/api";
 
 export function useProfessionals() {
   const [professionals, setProfessionals] = useState<Professional[]>([]);
@@ -58,57 +58,5 @@ export function useProfessional(professionalId: string) {
     isLoading,
     error,
     fetchProfessional,
-  };
-}
-
-export function useProfessionalAvailability(professionalId: string) {
-  const [availability, setAvailability] = useState<Availability[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  const fetchAvailability = useCallback(async () => {
-    if (!professionalId) return;
-
-    setIsLoading(true);
-    setError(null);
-
-    try {
-      const data = await apiClient.getProfessionalAvailability(professionalId);
-      setAvailability(data);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to fetch availability");
-    } finally {
-      setIsLoading(false);
-    }
-  }, [professionalId]);
-
-  const createAvailability = useCallback(
-    async (availabilityData: Omit<Availability, "id" | "created_at" | "updated_at">) => {
-      setIsLoading(true);
-      setError(null);
-
-      try {
-        const newAvailability = await apiClient.createAvailability(
-          professionalId,
-          availabilityData,
-        );
-        setAvailability((prev) => [...prev, newAvailability]);
-        return newAvailability;
-      } catch (err) {
-        setError(err instanceof Error ? err.message : "Failed to create availability");
-        throw err;
-      } finally {
-        setIsLoading(false);
-      }
-    },
-    [professionalId],
-  );
-
-  return {
-    availability,
-    isLoading,
-    error,
-    fetchAvailability,
-    createAvailability,
   };
 }

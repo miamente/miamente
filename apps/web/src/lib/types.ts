@@ -17,13 +17,6 @@ export enum AppointmentStatus {
   NO_SHOW = "no_show",
 }
 
-export enum SlotStatus {
-  FREE = "free",
-  HELD = "held",
-  BOOKED = "booked",
-  CANCELLED = "cancelled",
-}
-
 export enum PaymentStatus {
   PENDING = "pending",
   PROCESSING = "processing",
@@ -194,7 +187,6 @@ export interface ProfessionalLogin {
 export interface Appointment extends BaseEntity {
   user_id: string;
   professional_id: string;
-  availability_id: string;
   status: AppointmentStatus;
   paid: boolean;
 
@@ -224,7 +216,6 @@ export interface Appointment extends BaseEntity {
 
 export interface AppointmentCreate {
   professional_id: string;
-  availability_id: string;
   start_time: string;
   end_time: string;
   duration?: number;
@@ -248,41 +239,13 @@ export interface AppointmentUpdate {
 
 export interface BookAppointmentRequest {
   professional_id: string;
-  availability_id: string;
+  start_time: string;
+  end_time: string;
 }
 
 export interface BookAppointmentResponse {
   appointment_id: string;
   message: string;
-}
-
-// ============================================================================
-// AVAILABILITY TYPES
-// ============================================================================
-
-export interface Availability extends BaseEntity {
-  professional_id: string;
-  date: string;
-  time: string; // HH:MM format
-  duration: number;
-  timezone: string;
-  status: SlotStatus;
-  held_by?: string;
-  held_at?: string;
-}
-
-export interface AvailabilityCreate {
-  professional_id: string;
-  date: string;
-  time: string;
-  duration?: number;
-  timezone?: string;
-}
-
-export interface AvailabilityUpdate {
-  status?: SlotStatus;
-  held_by?: string;
-  held_at?: string;
 }
 
 // ============================================================================

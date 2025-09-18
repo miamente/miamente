@@ -87,7 +87,7 @@ class TestAuthEndpoints:
         # Login
         login_data = {
             "email": "test@example.com",
-            "password": "testpassword123"
+            "password": TEST_PASSWORDS["VALID"]
         }
         
         response = client.post("/api/v1/auth/login/user", json=login_data)
@@ -142,7 +142,7 @@ class TestAuthEndpoints:
         
         login_data = {
             "email": "test@example.com",
-            "password": "testpassword123"
+            "password": TEST_PASSWORDS["VALID"]
         }
         login_response = client.post("/api/v1/auth/login/user", json=login_data)
         token = login_response.json()["access_token"]
@@ -206,7 +206,7 @@ class TestAuthEndpoints:
         # Login
         login_data = {
             "email": "professional@example.com",
-            "password": "testpassword123"
+            "password": TEST_PASSWORDS["VALID"]
         }
         
         response = client.post("/api/v1/auth/login/professional", json=login_data)

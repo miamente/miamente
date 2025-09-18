@@ -114,6 +114,88 @@ export default function ProfessionalProfilePage() {
     loadProfile();
   }, [user, isLoading, router, loadProfile]);
 
+  const uploadProfilePicture = async (file: File): Promise<string> => {
+    const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+    const token = localStorage.getItem("access_token");
+
+    // Delete old profile picture if it exists
+    if (profile?.profile_picture) {
+      try {
+        const urlParts = profile.profile_picture.split("/");
+        const userId = urlParts[urlParts.length - 2];
+        const filename = urlParts[urlParts.length - 1];
+
+        await fetch(`${API_BASE_URL}/api/v1/files/profile-picture/${userId}/${filename}`, {
+          method: "DELETE",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        console.log("Old profile picture deleted successfully");
+      } catch (deleteError) {
+        console.warn("Error deleting old profile picture:", deleteError);
+        // Don't fail the upload if deletion fails
+      }
+    }
+
+    const formData = new FormData();
+    formData.append("file", file);
+
+    const response = await fetch(`${API_BASE_URL}/api/v1/files/upload/profile-picture`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      body: formData,
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({ detail: "Unknown error" }));
+      throw new Error(
+        `Error uploading profile picture: ${errorData.detail || response.statusText}`,
+      );
+    }
+
+    const result = await response.json();
+    return result.file_url;
+  };
+
+  const prepareProfileData = (
+    data: ProfessionalProfileFormData,
+    profilePictureUrl: string | null,
+  ) => {
+    return {
+      full_name: data.fullName,
+      phone_country_code: data.phoneCountryCode,
+      phone_number: data.phoneNumber,
+      license_number: data.licenseNumber,
+      years_experience: data.yearsExperience,
+      bio: data.bio,
+      academic_experience: data.academicExperience,
+      work_experience: data.workExperience,
+      certifications: data.certifications?.map((cert) => ({
+        name: cert.name,
+        documentUrl: cert.documentUrl,
+        fileName: cert.fileName,
+      })),
+      languages: data.languages,
+      therapy_approaches_ids: data.therapyApproaches,
+      specialty_ids: data.specialtyIds,
+      modalities: data.modalities,
+      timezone: data.timezone,
+      profile_picture: profilePictureUrl || undefined,
+    };
+  };
+
+  const saveProfile = async (profileData: any) => {
+    if (profile) {
+      await updateProfessionalProfile(profileData);
+    } else {
+      await createProfessionalProfile(profileData);
+    }
+  };
+
   const onSubmit = async (data: ProfessionalProfileFormData) => {
     if (!user) return;
 
@@ -127,51 +209,7 @@ export default function ProfessionalProfilePage() {
       // Upload profile picture if a new one was selected
       if (photoFile) {
         try {
-          const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
-          const token = localStorage.getItem("access_token");
-
-          // Delete old profile picture if it exists
-          if (profile?.profile_picture) {
-            try {
-              // Extract user_id and filename from the existing profile picture URL
-              const urlParts = profile.profile_picture.split("/");
-              const userId = urlParts[urlParts.length - 2]; // user_id is second to last
-              const filename = urlParts[urlParts.length - 1]; // filename is last
-
-              await fetch(`${API_BASE_URL}/api/v1/files/profile-picture/${userId}/${filename}`, {
-                method: "DELETE",
-                headers: {
-                  Authorization: `Bearer ${token}`,
-                },
-              });
-
-              console.log("Old profile picture deleted successfully");
-            } catch (deleteError) {
-              console.warn("Error deleting old profile picture:", deleteError);
-              // Don't fail the upload if deletion fails
-            }
-          }
-
-          const formData = new FormData();
-          formData.append("file", photoFile);
-
-          const response = await fetch(`${API_BASE_URL}/api/v1/files/upload/profile-picture`, {
-            method: "POST",
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-            body: formData,
-          });
-
-          if (!response.ok) {
-            const errorData = await response.json().catch(() => ({ detail: "Unknown error" }));
-            throw new Error(
-              `Error uploading profile picture: ${errorData.detail || response.statusText}`,
-            );
-          }
-
-          const result = await response.json();
-          profilePictureUrl = result.file_url;
+          profilePictureUrl = await uploadProfilePicture(photoFile);
         } catch (uploadError) {
           console.error("Error uploading profile picture:", uploadError);
           setError("Error al subir la foto de perfil. Inténtalo de nuevo.");
@@ -180,40 +218,12 @@ export default function ProfessionalProfilePage() {
         }
       }
 
-      // Debug: Log the modalities data being sent
+      // Prepare and save profile data
       console.log("Submitting modalities data:", data.modalities);
-
-      const profileData = {
-        full_name: data.fullName,
-        phone_country_code: data.phoneCountryCode,
-        phone_number: data.phoneNumber,
-        license_number: data.licenseNumber,
-        years_experience: data.yearsExperience,
-        bio: data.bio,
-        academic_experience: data.academicExperience,
-        work_experience: data.workExperience,
-        certifications: data.certifications?.map((cert) => ({
-          name: cert.name,
-          documentUrl: cert.documentUrl,
-          fileName: cert.fileName,
-        })),
-        languages: data.languages,
-        therapy_approaches_ids: data.therapyApproaches,
-        specialty_ids: data.specialtyIds,
-        modalities: data.modalities,
-        timezone: data.timezone,
-        profile_picture: profilePictureUrl || undefined,
-      };
-
+      const profileData = prepareProfileData(data, profilePictureUrl);
       console.log("Full profile data being sent:", profileData);
 
-      if (profile) {
-        // Update existing profile
-        await updateProfessionalProfile(profileData);
-      } else {
-        // Create new profile
-        await createProfessionalProfile(profileData);
-      }
+      await saveProfile(profileData);
 
       setSuccess(true);
       setPhotoFile(null);

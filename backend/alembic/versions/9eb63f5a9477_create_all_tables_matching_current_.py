@@ -15,6 +15,9 @@ down_revision = None
 branch_labels = None
 depends_on = None
 
+# Constants
+NOW_FUNCTION = 'now()'
+
 
 def upgrade() -> None:
     # Create users table
@@ -31,7 +34,7 @@ def upgrade() -> None:
         sa.Column('emergency_contact', sa.String(length=255), nullable=True),
         sa.Column('emergency_phone', sa.String(length=20), nullable=True),
         sa.Column('preferences', sa.Text(), nullable=True),
-        sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=True),
+        sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text(NOW_FUNCTION), nullable=True),
         sa.Column('updated_at', sa.DateTime(timezone=True), nullable=True),
         sa.PrimaryKeyConstraint('id'),
         sa.UniqueConstraint('email')
@@ -66,7 +69,7 @@ def upgrade() -> None:
         sa.Column('working_hours', sa.Text(), nullable=True),
         sa.Column('emergency_contact', sa.String(length=255), nullable=True),
         sa.Column('emergency_phone', sa.String(length=20), nullable=True),
-        sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=True),
+        sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text(NOW_FUNCTION), nullable=True),
         sa.Column('updated_at', sa.DateTime(timezone=True), nullable=True),
         sa.PrimaryKeyConstraint('id'),
         sa.UniqueConstraint('email')
@@ -78,7 +81,7 @@ def upgrade() -> None:
         sa.Column('id', postgresql.UUID(as_uuid=True), nullable=False),
         sa.Column('name', sa.String(length=255), nullable=False),
         sa.Column('category', sa.String(length=100), nullable=True),
-        sa.Column('created_at', sa.String(length=255), server_default=sa.text('now()'), nullable=True),
+        sa.Column('created_at', sa.String(length=255), server_default=sa.text(NOW_FUNCTION), nullable=True),
         sa.Column('updated_at', sa.String(length=255), nullable=True),
         sa.PrimaryKeyConstraint('id'),
         sa.UniqueConstraint('name')
@@ -94,7 +97,7 @@ def upgrade() -> None:
         sa.Column('currency', sa.String(length=3), nullable=False),
         sa.Column('default_price_cents', sa.Integer(), nullable=False),
         sa.Column('is_active', sa.Boolean(), nullable=True),
-        sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=True),
+        sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text(NOW_FUNCTION), nullable=True),
         sa.Column('updated_at', sa.DateTime(timezone=True), nullable=True),
         sa.PrimaryKeyConstraint('id'),
         sa.UniqueConstraint('name')
@@ -107,7 +110,7 @@ def upgrade() -> None:
         sa.Column('description', sa.Text(), nullable=True),
         sa.Column('category', sa.String(length=100), nullable=True),
         sa.Column('is_active', sa.Boolean(), nullable=True),
-        sa.Column('created_at', sa.String(length=255), server_default=sa.text('now()'), nullable=True),
+        sa.Column('created_at', sa.String(length=255), server_default=sa.text(NOW_FUNCTION), nullable=True),
         sa.Column('updated_at', sa.String(length=255), nullable=True),
         sa.PrimaryKeyConstraint('id'),
         sa.UniqueConstraint('name')
@@ -118,7 +121,7 @@ def upgrade() -> None:
         sa.Column('id', postgresql.UUID(as_uuid=True), nullable=False),
         sa.Column('professional_id', postgresql.UUID(as_uuid=True), nullable=False),
         sa.Column('specialty_id', postgresql.UUID(as_uuid=True), nullable=False),
-        sa.Column('created_at', sa.String(length=255), server_default=sa.text('now()'), nullable=True),
+        sa.Column('created_at', sa.String(length=255), server_default=sa.text(NOW_FUNCTION), nullable=True),
         sa.ForeignKeyConstraint(['professional_id'], ['professionals.id'], ),
         sa.ForeignKeyConstraint(['specialty_id'], ['specialties.id'], ),
         sa.PrimaryKeyConstraint('id')
@@ -137,7 +140,7 @@ def upgrade() -> None:
         sa.Column('description', sa.String(length=1000), nullable=True),
         sa.Column('is_default', sa.Boolean(), nullable=False),
         sa.Column('is_active', sa.Boolean(), nullable=False),
-        sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=True),
+        sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text(NOW_FUNCTION), nullable=True),
         sa.Column('updated_at', sa.DateTime(timezone=True), nullable=True),
         sa.ForeignKeyConstraint(['modality_id'], ['modalities.id'], ),
         sa.ForeignKeyConstraint(['professional_id'], ['professionals.id'], ),
@@ -149,33 +152,16 @@ def upgrade() -> None:
         sa.Column('id', postgresql.UUID(as_uuid=True), nullable=False),
         sa.Column('professional_id', postgresql.UUID(as_uuid=True), nullable=False),
         sa.Column('therapeutic_approach_id', postgresql.UUID(as_uuid=True), nullable=False),
-        sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=True),
+        sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text(NOW_FUNCTION), nullable=True),
         sa.ForeignKeyConstraint(['professional_id'], ['professionals.id'], ),
         sa.ForeignKeyConstraint(['therapeutic_approach_id'], ['therapeutic_approaches.id'], ),
         sa.PrimaryKeyConstraint('id')
     )
 
-    # Create availability table
-    op.create_table('availability',
-        sa.Column('id', postgresql.UUID(as_uuid=True), nullable=False),
-        sa.Column('professional_id', postgresql.UUID(as_uuid=True), nullable=False),
-        sa.Column('user_id', postgresql.UUID(as_uuid=True), nullable=True),
-        sa.Column('day_of_week', sa.Integer(), nullable=False),
-        sa.Column('start_time', sa.Time(), nullable=False),
-        sa.Column('end_time', sa.Time(), nullable=False),
-        sa.Column('is_available', sa.Boolean(), nullable=True),
-        sa.Column('status', sa.Enum('AVAILABLE', 'BOOKED', 'UNAVAILABLE', name='slotstatus'), nullable=True),
-        sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=True),
-        sa.Column('updated_at', sa.DateTime(timezone=True), nullable=True),
-        sa.ForeignKeyConstraint(['professional_id'], ['professionals.id'], ),
-        sa.ForeignKeyConstraint(['user_id'], ['users.id'], ),
-        sa.PrimaryKeyConstraint('id')
-    )
 
 
 def downgrade() -> None:
     # Drop tables in reverse order
-    op.drop_table('availability')
     op.drop_table('professional_therapeutic_approaches')
     op.drop_table('professional_modalities')
     op.drop_table('professional_specialties')

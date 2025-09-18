@@ -6,7 +6,6 @@ import type {
   User,
   Professional,
   Appointment,
-  Availability,
   Specialty,
   TherapeuticApproach,
   Modality,
@@ -16,7 +15,6 @@ import type {
   UserCreate,
   ProfessionalCreate,
   AppointmentCreate,
-  AvailabilityCreate,
   SpecialtyCreate,
   TherapeuticApproachCreate,
   ModalityCreate,
@@ -29,7 +27,6 @@ import type {
   UserUpdate,
   ProfessionalUpdate,
   AppointmentUpdate,
-  AvailabilityUpdate,
   SpecialtyUpdate,
   TherapeuticApproachUpdate,
   ModalityUpdate,
@@ -49,7 +46,6 @@ export type {
   User,
   Professional,
   Appointment,
-  Availability,
   Specialty,
   TherapeuticApproach,
   Modality,
@@ -59,7 +55,6 @@ export type {
   UserCreate,
   ProfessionalCreate,
   AppointmentCreate,
-  AvailabilityCreate,
   SpecialtyCreate,
   TherapeuticApproachCreate,
   ModalityCreate,
@@ -72,7 +67,6 @@ export type {
   UserUpdate,
   ProfessionalUpdate,
   AppointmentUpdate,
-  AvailabilityUpdate,
   SpecialtyUpdate,
   TherapeuticApproachUpdate,
   ModalityUpdate,
@@ -351,46 +345,14 @@ class ApiClient {
 
   async bookAppointmentDirect(
     professionalId: string,
-    availabilityId: string,
+    startTime: string,
+    endTime: string,
   ): Promise<BookAppointmentResponse> {
     return this.post<BookAppointmentResponse>("/appointments/book", {
       professional_id: professionalId,
-      availability_id: availabilityId,
+      start_time: startTime,
+      end_time: endTime,
     });
-  }
-
-  // Availability methods
-  async getAvailability(professionalId: string): Promise<Availability[]> {
-    return this.get<Availability[]>(`/professionals/${professionalId}/availability`);
-  }
-
-  async createAvailability(
-    professionalId: string,
-    availabilityData: AvailabilityCreate,
-  ): Promise<Availability> {
-    return this.post<Availability>(
-      `/professionals/${professionalId}/availability`,
-      availabilityData,
-    );
-  }
-
-  async getProfessionalAvailability(professionalId: string): Promise<Availability[]> {
-    return this.get<Availability[]>(`/professionals/${professionalId}/availability`);
-  }
-
-  async updateAvailability(
-    professionalId: string,
-    availabilityId: string,
-    availabilityData: AvailabilityUpdate,
-  ): Promise<Availability> {
-    return this.patch<Availability>(
-      `/professionals/${professionalId}/availability/${availabilityId}`,
-      availabilityData,
-    );
-  }
-
-  async deleteAvailability(professionalId: string, availabilityId: string): Promise<void> {
-    return this.delete<void>(`/professionals/${professionalId}/availability/${availabilityId}`);
   }
 
   // Specialty methods

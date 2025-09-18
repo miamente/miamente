@@ -127,26 +127,6 @@ async def get_professional(professional_id: str, db: Session = Depends(get_db)):
     return parse_professional_data(professional)
 
 
-@router.get("/{professional_id}/availability")
-async def get_professional_availability(professional_id: str, db: Session = Depends(get_db)):
-    """Get professional availability."""
-    try:
-        professional_uuid = uuid.UUID(professional_id)
-    except ValueError:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Invalid professional ID format",
-        )
-
-    # Check if professional exists
-    professional = db.query(Professional).filter(Professional.id == professional_uuid, Professional.is_active).first()
-
-    if not professional:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Professional not found")
-
-    # For now, return empty availability list
-    # In a real app, this would query the availability table
-    return []
 
 
 @router.get("/me/profile", response_model=ProfessionalResponse)
