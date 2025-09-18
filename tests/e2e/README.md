@@ -136,6 +136,10 @@ Tests are designed to handle both populated and empty databases:
 ### Environment Variables
 
 ```bash
+# Test password for e2e tests (used for all test user accounts)
+# Default: TestPassword123!
+E2E_TEST_PASSWORD=TestPassword123!
+
 # Optional: Override base URL
 PLAYWRIGHT_BASE_URL=http://localhost:3000
 
@@ -143,20 +147,33 @@ PLAYWRIGHT_BASE_URL=http://localhost:3000
 CI=true
 ```
 
+#### Creating a .env file
+
+Create a `.env` file in the `tests/e2e/` directory to customize test settings:
+
+```bash
+# Copy the example and modify as needed
+cp tests/e2e/.env.example tests/e2e/.env
+```
+
+**Note**: The `.env` file is gitignored and will not be committed to version control.
+
 ## 📊 Test Data
 
 ### Test Users
 
 - **Email**: `testuser1@example.com`
-- **Password**: `TestPassword123!`
+- **Password**: `E2E_TEST_PASSWORD` (default: `TestPassword123!`)
 - **Name**: Test User 1
 
 ### Test Professionals
 
 - **Email**: `dr.smith@example.com`
-- **Password**: `TestPassword123!`
+- **Password**: `E2E_TEST_PASSWORD` (default: `TestPassword123!`)
 - **Name**: Dr. Sarah Smith
 - **Specialty**: Psicología Clínica
+
+**Note**: All test passwords use the `E2E_TEST_PASSWORD` environment variable. You can customize this by setting the environment variable or creating a `.env` file in the `tests/e2e/` directory.
 
 ## 🐛 Debugging
 
