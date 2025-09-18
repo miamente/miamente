@@ -58,7 +58,26 @@ class Settings(BaseSettings):
         raise ValueError(v)
 
     # Database settings
-    DATABASE_URL: str = "postgresql://manueljurado@localhost:5432/miamente"
+    DATABASE_HOST: str = "localhost"
+    DATABASE_PORT: int = 5432
+    DATABASE_NAME: str = "miamente"
+    DATABASE_USER: str = ""
+    DATABASE_PASSWORD: str = ""
+    DATABASE_URL: str = ""
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        # Validate database credentials
+        if not self.DATABASE_URL and (not self.DATABASE_USER or not self.DATABASE_PASSWORD):
+            raise ValueError(
+                "Database credentials must be provided. Set either DATABASE_URL or both DATABASE_USER and DATABASE_PASSWORD"
+            )
+        # Construct DATABASE_URL from individual components if not provided
+        if not self.DATABASE_URL:
+            self.DATABASE_URL = (
+                f"postgresql://{self.DATABASE_USER}:{self.DATABASE_PASSWORD}"
+                f"@{self.DATABASE_HOST}:{self.DATABASE_PORT}/{self.DATABASE_NAME}"
+            )
 
     # JWT settings
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 8  # 8 days
@@ -71,4 +90,19 @@ class Settings(BaseSettings):
     model_config = ConfigDict(case_sensitive=True, env_file=".env")
 
 
-settings = Settings()
+# Settings will be instantiated when needed
+_settings = None
+
+def get_settings() -> Settings:
+    """Get application settings, creating them if they don't exist."""
+    global _settings
+    if _settings is None:
+        _settings = Settings()
+    return _settings
+
+# For backward compatibility, create settings if environment variables are available
+try:
+    settings = Settings()
+except ValueError:
+    # Settings will be created when needed via get_settings()
+    settings = None

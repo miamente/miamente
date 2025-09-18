@@ -11,7 +11,7 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 
 from app.api.v1.api import api_router
-from app.core.config import settings
+from app.core.config import get_settings
 from app.core.database import Base, get_db
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -64,6 +64,7 @@ def _build_app() -> FastAPI:
 
 def _build_engine_and_session_factory():
     # Use the same database as production but only clean test data
+    settings = get_settings()
     database_url = settings.DATABASE_URL
     engine = create_engine(database_url, poolclass=StaticPool)
     session_factory = sessionmaker(autocommit=False, autoflush=False, bind=engine)

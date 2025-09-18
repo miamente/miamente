@@ -10,9 +10,10 @@ from fastapi.responses import JSONResponse
 
 from app.api.v1.api import api_router
 from app.core.config import settings
-from app.core.database import Base, engine
+from app.core.database import Base, get_engine
 
 # Create database tables
+engine = get_engine()
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI(
