@@ -16,20 +16,33 @@ from app.core.database import get_db
 
 router = APIRouter()
 
+# Directory names
+UPLOADS_DIR = "uploads"
+CERTIFICATIONS_DIR = "certifications"
+PROFILE_PICTURES_DIR = "profile_pictures"
+
 # Create uploads directory if it doesn't exist
-UPLOAD_DIR = "uploads"
+UPLOAD_DIR = UPLOADS_DIR
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 
-# Allowed file types for certifications
-ALLOWED_CERTIFICATION_TYPES = {
-    "application/pdf",
+# Base image types (shared between certifications and profile pictures)
+BASE_IMAGE_TYPES = {
     "image/jpeg",
-    "image/jpg",
+    "image/jpg", 
     "image/png",
 }
 
-# Allowed file types for profile pictures
-ALLOWED_PROFILE_PICTURE_TYPES = {"image/jpeg", "image/jpg", "image/png", "image/gif"}
+# Allowed file types for certifications (PDF + base image types)
+ALLOWED_CERTIFICATION_TYPES = {
+    "application/pdf",
+    *BASE_IMAGE_TYPES,
+}
+
+# Allowed file types for profile pictures (base image types + GIF)
+ALLOWED_PROFILE_PICTURE_TYPES = {
+    *BASE_IMAGE_TYPES,
+    "image/gif",
+}
 
 # Max file size (5MB for certifications, 2MB for profile pictures)
 MAX_FILE_SIZE = 5 * 1024 * 1024
@@ -43,6 +56,21 @@ INVALID_FILENAME_FORMAT_MESSAGE = "Invalid filename format"
 INVALID_PATH_CONSTRUCTION_MESSAGE = "Invalid path construction"
 INVALID_FILE_PATH_CONSTRUCTION_MESSAGE = "Invalid file path construction"
 CAN_ONLY_DELETE_OWN_FILES_MESSAGE = "You can only delete your own files"
+
+# File type error messages
+CERTIFICATION_FILE_TYPE_ERROR = "File type not allowed. Allowed types: PDF, JPG, PNG"
+PROFILE_PICTURE_FILE_TYPE_ERROR = "File type not allowed. Allowed types: JPG, PNG, GIF"
+
+# File size error messages
+FILE_TOO_LARGE_MESSAGE = "File too large. Maximum size:"
+
+# Success messages
+FILE_DELETED_SUCCESS_MESSAGE = "File deleted successfully"
+ERROR_DELETING_FILE_MESSAGE = "Error deleting file:"
+
+# API paths
+CERTIFICATION_API_PATH = "/api/v1/files/certification/"
+PROFILE_PICTURE_API_PATH = "/api/v1/files/profile-picture/"
 
 
 def validate_user_id(user_id: str) -> str:
@@ -108,7 +136,7 @@ def safe_create_user_directory(base_dir: str, sub_dir: str, user_id: str) -> str
     
     Args:
         base_dir: Base directory (e.g., "uploads")
-        sub_dir: Subdirectory (e.g., "certifications", "profile_pictures")
+        sub_dir: Subdirectory (e.g., CERTIFICATIONS_DIR, PROFILE_PICTURES_DIR)
         user_id: User ID to validate and use in path
         
     Returns:
@@ -144,7 +172,7 @@ def safe_construct_file_path(base_dir: str, sub_dir: str, user_id: str, filename
     
     Args:
         base_dir: Base directory (e.g., "uploads")
-        sub_dir: Subdirectory (e.g., "certifications", "profile_pictures")
+        sub_dir: Subdirectory (e.g., CERTIFICATIONS_DIR, PROFILE_PICTURES_DIR)
         user_id: User ID (already validated)
         filename: Filename (already validated)
         
@@ -182,7 +210,7 @@ async def upload_certification_document(
     if file.content_type not in ALLOWED_CERTIFICATION_TYPES:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="File type not allowed. Allowed types: PDF, JPG, PNG",
+            detail=CERTIFICATION_FILE_TYPE_ERROR,
         )
 
     # Validate file size
@@ -190,7 +218,7 @@ async def upload_certification_document(
     if len(file_content) > MAX_FILE_SIZE:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"File too large. Maximum size: {MAX_FILE_SIZE // (1024*1024)}MB",
+            detail=f"{FILE_TOO_LARGE_MESSAGE} {MAX_FILE_SIZE // (1024*1024)}MB",
         )
 
     # Generate unique filename
@@ -198,14 +226,14 @@ async def upload_certification_document(
     unique_filename = f"{uuid.uuid4()}{file_extension}"
 
     # Create user-specific directory safely and construct file path
-    file_path = safe_construct_file_path(UPLOAD_DIR, "certifications", current_user_id, unique_filename)
+    file_path = safe_construct_file_path(UPLOAD_DIR, CERTIFICATIONS_DIR, current_user_id, unique_filename)
 
     # Save file
     async with aiofiles.open(file_path, "wb") as buffer:
         await buffer.write(file_content)
 
     # Return file URL
-    file_url = f"/api/v1/files/certification/{current_user_id}/{unique_filename}"
+    file_url = f"{CERTIFICATION_API_PATH}{current_user_id}/{unique_filename}"
 
     return {
         "filename": file.filename,
@@ -227,7 +255,7 @@ async def upload_profile_picture(
     if file.content_type not in ALLOWED_PROFILE_PICTURE_TYPES:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="File type not allowed. Allowed types: JPG, PNG, GIF",
+            detail=PROFILE_PICTURE_FILE_TYPE_ERROR,
         )
 
     # Validate file size
@@ -235,7 +263,7 @@ async def upload_profile_picture(
     if len(file_content) > MAX_PROFILE_PICTURE_SIZE:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=(f"File too large. Maximum size: {MAX_PROFILE_PICTURE_SIZE // (1024*1024)}MB",),
+            detail=f"{FILE_TOO_LARGE_MESSAGE} {MAX_PROFILE_PICTURE_SIZE // (1024*1024)}MB",
         )
 
     # Generate unique filename
@@ -243,14 +271,14 @@ async def upload_profile_picture(
     unique_filename = f"{uuid.uuid4()}{file_extension}"
 
     # Create user-specific directory safely and construct file path
-    file_path = safe_construct_file_path(UPLOAD_DIR, "profile_pictures", current_user_id, unique_filename)
+    file_path = safe_construct_file_path(UPLOAD_DIR, PROFILE_PICTURES_DIR, current_user_id, unique_filename)
 
     # Save file
     async with aiofiles.open(file_path, "wb") as buffer:
         await buffer.write(file_content)
 
     # Return file URL
-    file_url = f"/api/v1/files/profile-picture/{current_user_id}/{unique_filename}"
+    file_url = f"{PROFILE_PICTURE_API_PATH}{current_user_id}/{unique_filename}"
 
     return {
         "filename": file.filename,
@@ -267,7 +295,7 @@ async def get_profile_picture(user_id: str, filename: str, db: Session = Depends
     # Validate path components to prevent path traversal
     validated_user_id, validated_filename = validate_path_components(user_id, filename)
 
-    file_path = safe_construct_file_path(UPLOAD_DIR, "profile_pictures", validated_user_id, validated_filename)
+    file_path = safe_construct_file_path(UPLOAD_DIR, PROFILE_PICTURES_DIR, validated_user_id, validated_filename)
 
     if not os.path.exists(file_path):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=FILE_NOT_FOUND_MESSAGE)
@@ -282,7 +310,7 @@ async def get_certification_document(user_id: str, filename: str, db: Session = 
     # Validate path components to prevent path traversal
     validated_user_id, validated_filename = validate_path_components(user_id, filename)
 
-    file_path = safe_construct_file_path(UPLOAD_DIR, "certifications", validated_user_id, validated_filename)
+    file_path = safe_construct_file_path(UPLOAD_DIR, CERTIFICATIONS_DIR, validated_user_id, validated_filename)
 
     if not os.path.exists(file_path):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=FILE_NOT_FOUND_MESSAGE)
@@ -309,14 +337,14 @@ async def delete_profile_picture(
             detail=CAN_ONLY_DELETE_OWN_FILES_MESSAGE,
         )
 
-    file_path = safe_construct_file_path(UPLOAD_DIR, "profile_pictures", validated_user_id, validated_filename)
+    file_path = safe_construct_file_path(UPLOAD_DIR, PROFILE_PICTURES_DIR, validated_user_id, validated_filename)
 
     if not os.path.exists(file_path):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=FILE_NOT_FOUND_MESSAGE)
 
     try:
         os.remove(file_path)
-        return {"message": "File deleted successfully"}
+        return {"message": FILE_DELETED_SUCCESS_MESSAGE}
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -343,14 +371,14 @@ async def delete_certification_document(
             detail=CAN_ONLY_DELETE_OWN_FILES_MESSAGE,
         )
 
-    file_path = safe_construct_file_path(UPLOAD_DIR, "certifications", validated_user_id, validated_filename)
+    file_path = safe_construct_file_path(UPLOAD_DIR, CERTIFICATIONS_DIR, validated_user_id, validated_filename)
 
     if not os.path.exists(file_path):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=FILE_NOT_FOUND_MESSAGE)
 
     try:
         os.remove(file_path)
-        return {"message": "File deleted successfully"}
+        return {"message": FILE_DELETED_SUCCESS_MESSAGE}
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
