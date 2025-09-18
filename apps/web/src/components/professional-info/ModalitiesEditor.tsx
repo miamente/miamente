@@ -212,10 +212,14 @@ export function ModalitiesEditor({ disabled = false }: ModalitiesEditorProps) {
 
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                   <div>
-                    <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                    <label
+                      htmlFor={`modality-${index}`}
+                      className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300"
+                    >
                       Modalidad *
                     </label>
                     <Select
+                      id={`modality-${index}`}
                       options={getAvailableModalities(index).map((modality) => ({
                         value: modality.id,
                         label: modality.name,
@@ -232,12 +236,16 @@ export function ModalitiesEditor({ disabled = false }: ModalitiesEditorProps) {
                   </div>
 
                   <div>
-                    <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                    <label
+                      htmlFor={`virtual-price-${index}`}
+                      className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300"
+                    >
                       Precio Virtual (COP) *
                     </label>
                     <div className="relative">
                       <DollarSign className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform text-gray-400" />
                       <Input
+                        id={`virtual-price-${index}`}
                         type="number"
                         {...control.register(`modalities.${index}.virtualPrice`, {
                           valueAsNumber: true,
@@ -268,12 +276,16 @@ export function ModalitiesEditor({ disabled = false }: ModalitiesEditorProps) {
 
                 {modalities?.[index]?.offersPresencial && (
                   <div>
-                    <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                    <label
+                      htmlFor={`presencial-price-${index}`}
+                      className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300"
+                    >
                       Precio Presencial (COP)
                     </label>
                     <div className="relative">
                       <DollarSign className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform text-gray-400" />
                       <Input
+                        id={`presencial-price-${index}`}
                         type="number"
                         {...control.register(`modalities.${index}.presencialPrice`, {
                           valueAsNumber: true,
@@ -287,10 +299,14 @@ export function ModalitiesEditor({ disabled = false }: ModalitiesEditorProps) {
                 )}
 
                 <div>
-                  <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  <label
+                    htmlFor={`description-${index}`}
+                    className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300"
+                  >
                     Descripción
                   </label>
                   <Textarea
+                    id={`description-${index}`}
                     {...control.register(`modalities.${index}.description`)}
                     placeholder="Descripción de la modalidad..."
                     rows={3}

@@ -230,8 +230,9 @@ export const PhoneInputField = React.forwardRef<HTMLInputElement, PhoneInputFiel
           {isDropdownOpen && (
             <div className="phone-input-dropdown bg-popover text-popover-foreground absolute z-[9999] mt-1 max-h-60 w-80 overflow-auto rounded-md border shadow-md">
               {countries.map((country) => (
-                <div
+                <button
                   key={country.code}
+                  type="button"
                   className="hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground relative flex w-full cursor-default items-center rounded-sm px-3 py-2 text-sm outline-none select-none"
                   onClick={() => handleCountryChange(country)}
                 >
@@ -242,7 +243,7 @@ export const PhoneInputField = React.forwardRef<HTMLInputElement, PhoneInputFiel
                     </span>
                     <span className="text-muted-foreground font-mono">+{country.callingCode}</span>
                   </span>
-                </div>
+                </button>
               ))}
             </div>
           )}
