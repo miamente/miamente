@@ -7,7 +7,7 @@ Run with:
 
 from sqlalchemy.orm import Session
 
-from app.core.database import SessionLocal
+from app.core.database import get_session_factory
 from app.models.specialty import Specialty
 from app.models.therapeutic_approach import TherapeuticApproach
 from app.models.modality import Modality
@@ -131,6 +131,7 @@ def seed_professional(db: Session) -> None:
 
 
 def run() -> None:
+    SessionLocal = get_session_factory()
     db = SessionLocal()
     try:
         seed_reference_data(db)

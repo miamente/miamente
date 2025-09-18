@@ -3,6 +3,7 @@ File upload endpoints.
 """
 
 import os
+import re
 import uuid
 
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
@@ -32,6 +33,44 @@ ALLOWED_PROFILE_PICTURE_TYPES = {"image/jpeg", "image/jpg", "image/png", "image/
 # Max file size (5MB for certifications, 2MB for profile pictures)
 MAX_FILE_SIZE = 5 * 1024 * 1024
 MAX_PROFILE_PICTURE_SIZE = 2 * 1024 * 1024
+
+
+def validate_path_components(user_id: str, filename: str) -> tuple[str, str]:
+    """
+    Validate user_id and filename to prevent path traversal attacks.
+    
+    Args:
+        user_id: User ID from URL parameter
+        filename: Filename from URL parameter
+        
+    Returns:
+        Tuple of validated (user_id, filename)
+        
+    Raises:
+        HTTPException: If validation fails
+    """
+    # Validate user_id - should be UUID format
+    if not re.match(r'^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$', user_id):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid user ID format"
+        )
+    
+    # Validate filename - should not contain path traversal characters
+    if not filename or '..' in filename or '/' in filename or '\\' in filename:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid filename"
+        )
+    
+    # Validate filename format - should be UUID + extension
+    if not re.match(r'^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\.[a-zA-Z0-9]+$', filename):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid filename format"
+        )
+    
+    return user_id, filename
 
 
 @router.post("/upload/certification")
@@ -132,24 +171,30 @@ async def upload_profile_picture(
 async def get_profile_picture(user_id: str, filename: str, db: Session = Depends(get_db)):
     """Get a profile picture."""
 
-    file_path = os.path.join(UPLOAD_DIR, "profile_pictures", user_id, filename)
+    # Validate path components to prevent path traversal
+    validated_user_id, validated_filename = validate_path_components(user_id, filename)
+
+    file_path = os.path.join(UPLOAD_DIR, "profile_pictures", validated_user_id, validated_filename)
 
     if not os.path.exists(file_path):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="File not found")
 
-    return FileResponse(path=file_path, filename=filename, media_type="image/jpeg")
+    return FileResponse(path=file_path, filename=validated_filename, media_type="image/jpeg")
 
 
 @router.get("/certification/{user_id}/{filename}")
 async def get_certification_document(user_id: str, filename: str, db: Session = Depends(get_db)):
     """Get a certification document."""
 
-    file_path = os.path.join(UPLOAD_DIR, "certifications", user_id, filename)
+    # Validate path components to prevent path traversal
+    validated_user_id, validated_filename = validate_path_components(user_id, filename)
+
+    file_path = os.path.join(UPLOAD_DIR, "certifications", validated_user_id, validated_filename)
 
     if not os.path.exists(file_path):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="File not found")
 
-    return FileResponse(path=file_path, filename=filename, media_type="application/octet-stream")
+    return FileResponse(path=file_path, filename=validated_filename, media_type="application/octet-stream")
 
 
 @router.delete("/profile-picture/{user_id}/{filename}")
@@ -161,14 +206,17 @@ async def delete_profile_picture(
 ):
     """Delete a profile picture."""
 
+    # Validate path components to prevent path traversal
+    validated_user_id, validated_filename = validate_path_components(user_id, filename)
+
     # Only allow users to delete their own files
-    if user_id != current_user_id:
+    if validated_user_id != current_user_id:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="You can only delete your own files",
         )
 
-    file_path = os.path.join(UPLOAD_DIR, "profile_pictures", user_id, filename)
+    file_path = os.path.join(UPLOAD_DIR, "profile_pictures", validated_user_id, validated_filename)
 
     if not os.path.exists(file_path):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="File not found")
@@ -192,14 +240,17 @@ async def delete_certification_document(
 ):
     """Delete a certification document."""
 
+    # Validate path components to prevent path traversal
+    validated_user_id, validated_filename = validate_path_components(user_id, filename)
+
     # Only allow users to delete their own files
-    if user_id != current_user_id:
+    if validated_user_id != current_user_id:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="You can only delete your own files",
         )
 
-    file_path = os.path.join(UPLOAD_DIR, "certifications", user_id, filename)
+    file_path = os.path.join(UPLOAD_DIR, "certifications", validated_user_id, validated_filename)
 
     if not os.path.exists(file_path):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="File not found")
