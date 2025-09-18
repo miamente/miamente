@@ -49,6 +49,23 @@ export class DataSeeder {
   constructor(private readonly request: APIRequestContext) {}
 
   /**
+   * Generic method to create entities via API with error handling
+   */
+  private async createEntity<T>(
+    endpoint: string,
+    entity: T,
+    entityName: string,
+    entityDisplayName: string,
+  ): Promise<void> {
+    try {
+      await this.request.post(endpoint, { data: entity });
+      console.log(`✅ Created ${entityName}: ${entityDisplayName}`);
+    } catch {
+      console.log(`⚠️ ${entityName} ${entityDisplayName} might already exist`);
+    }
+  }
+
+  /**
    * Check if the database has any data and seed if necessary
    */
   async ensureDataExists(): Promise<void> {
@@ -120,12 +137,7 @@ export class DataSeeder {
     ];
 
     for (const specialty of specialties) {
-      try {
-        await this.request.post("/api/v1/specialties", { data: specialty });
-        console.log(`✅ Created specialty: ${specialty.name}`);
-      } catch {
-        console.log(`⚠️ Specialty ${specialty.name} might already exist`);
-      }
+      await this.createEntity("/api/v1/specialties", specialty, "specialty", specialty.name);
     }
   }
 
@@ -152,12 +164,7 @@ export class DataSeeder {
     ];
 
     for (const modality of modalities) {
-      try {
-        await this.request.post("/api/v1/modalities", { data: modality });
-        console.log(`✅ Created modality: ${modality.name}`);
-      } catch {
-        console.log(`⚠️ Modality ${modality.name} might already exist`);
-      }
+      await this.createEntity("/api/v1/modalities", modality, "modality", modality.name);
     }
   }
 
@@ -189,12 +196,12 @@ export class DataSeeder {
     ];
 
     for (const approach of approaches) {
-      try {
-        await this.request.post("/api/v1/therapeutic-approaches", { data: approach });
-        console.log(`✅ Created therapeutic approach: ${approach.name}`);
-      } catch {
-        console.log(`⚠️ Therapeutic approach ${approach.name} might already exist`);
-      }
+      await this.createEntity(
+        "/api/v1/therapeutic-approaches",
+        approach,
+        "therapeutic approach",
+        approach.name,
+      );
     }
   }
 
@@ -218,12 +225,7 @@ export class DataSeeder {
     ];
 
     for (const user of users) {
-      try {
-        await this.request.post("/api/v1/auth/register/user", { data: user });
-        console.log(`✅ Created user: ${user.email}`);
-      } catch {
-        console.log(`⚠️ User ${user.email} might already exist`);
-      }
+      await this.createEntity("/api/v1/auth/register/user", user, "user", user.email);
     }
   }
 
@@ -268,13 +270,12 @@ export class DataSeeder {
     ];
 
     for (const professional of professionals) {
-      try {
-        // Register the professional
-        await this.request.post("/api/v1/auth/register/professional", { data: professional });
-        console.log(`✅ Created professional: ${professional.email}`);
-      } catch {
-        console.log(`⚠️ Professional ${professional.email} might already exist`);
-      }
+      await this.createEntity(
+        "/api/v1/auth/register/professional",
+        professional,
+        "professional",
+        professional.email,
+      );
     }
   }
 
