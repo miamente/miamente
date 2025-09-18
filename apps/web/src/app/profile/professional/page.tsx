@@ -25,7 +25,7 @@ import {
 } from "@/lib/profiles";
 import type { ProfessionalProfile } from "@/lib/profiles";
 import { professionalProfileSchema, type ProfessionalProfileFormData } from "@/lib/validations";
-import type { AcademicExperience, WorkExperience, Certification } from "@/lib/types";
+import type { Certification } from "@/lib/types";
 
 export default function ProfessionalProfilePage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -188,7 +188,7 @@ export default function ProfessionalProfilePage() {
     };
   };
 
-  const saveProfile = async (profileData: any) => {
+  const saveProfile = async (profileData: Record<string, unknown>) => {
     if (profile) {
       await updateProfessionalProfile(profileData);
     } else {

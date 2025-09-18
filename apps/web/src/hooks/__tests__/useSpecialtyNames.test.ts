@@ -1,4 +1,4 @@
-import { renderHook, waitFor, act } from "@testing-library/react";
+import { renderHook, waitFor } from "@testing-library/react";
 import { vi, describe, it, expect, beforeEach } from "vitest";
 import { useSpecialtyNames } from "../useSpecialtyNames";
 import { apiClient } from "@/lib/api";
@@ -6,7 +6,7 @@ import { apiClient } from "@/lib/api";
 // Mock the API client
 vi.mock("@/lib/api", () => ({
   apiClient: {
-    getSpecialtiesNew: vi.fn(),
+    getSpecialties: vi.fn(),
   },
 }));
 
@@ -17,7 +17,7 @@ describe("useSpecialtyNames", () => {
 
   it("should initialize with loading state", async () => {
     // Mock API to return empty array to avoid undefined error
-    vi.mocked(apiClient.getSpecialtiesNew).mockResolvedValue([]);
+    vi.mocked(apiClient.getSpecialties).mockResolvedValue([]);
 
     const { result } = renderHook(() => useSpecialtyNames());
 
@@ -68,7 +68,7 @@ describe("useSpecialtyNames", () => {
       },
     ];
 
-    vi.mocked(apiClient.getSpecialtiesNew).mockResolvedValue(mockSpecialties);
+    vi.mocked(apiClient.getSpecialties).mockResolvedValue(mockSpecialties);
 
     const { result } = renderHook(() => useSpecialtyNames());
 
@@ -88,7 +88,7 @@ describe("useSpecialtyNames", () => {
   });
 
   it("should handle API errors", async () => {
-    vi.mocked(apiClient.getSpecialtiesNew).mockRejectedValue(new Error("API Error"));
+    vi.mocked(apiClient.getSpecialties).mockRejectedValue(new Error("API Error"));
 
     const { result } = renderHook(() => useSpecialtyNames());
 
@@ -117,7 +117,7 @@ describe("useSpecialtyNames", () => {
       },
     ];
 
-    vi.mocked(apiClient.getSpecialtiesNew).mockResolvedValue(mockSpecialties);
+    vi.mocked(apiClient.getSpecialties).mockResolvedValue(mockSpecialties);
 
     const { result } = renderHook(() => useSpecialtyNames());
 
@@ -135,7 +135,7 @@ describe("useSpecialtyNames", () => {
   });
 
   it("should handle empty specialties array", async () => {
-    vi.mocked(apiClient.getSpecialtiesNew).mockResolvedValue([]);
+    vi.mocked(apiClient.getSpecialties).mockResolvedValue([]);
 
     const { result } = renderHook(() => useSpecialtyNames());
 

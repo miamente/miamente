@@ -71,20 +71,6 @@ export default function AdminAppointments() {
     }
   };
 
-  const handleCancelAppointment = async (appointmentId: string) => {
-    if (!confirm("¿Estás seguro de que quieres cancelar esta cita?")) {
-      return;
-    }
-
-    try {
-      // TODO: Implement cancel appointment function
-      alert(`Cancelar cita ${appointmentId} - Por implementar`);
-    } catch (err) {
-      console.error("Error cancelling appointment:", err);
-      setError("Error al cancelar la cita");
-    }
-  };
-
   const handleResendEmail = async (appointmentId: string) => {
     try {
       // TODO: Implement resend email function

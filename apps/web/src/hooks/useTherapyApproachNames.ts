@@ -13,7 +13,7 @@ export function useTherapyApproachNames(approachIds: string[]) {
   const [error, setError] = useState<string | null>(null);
 
   // Memoize the approachIds to prevent unnecessary re-renders
-  const memoizedApproachIds = useMemo(() => approachIds, [approachIds.join(",")]);
+  const memoizedApproachIds = useMemo(() => approachIds, [approachIds]);
 
   const fetchApproachNames = useCallback(async () => {
     setLoading(true);

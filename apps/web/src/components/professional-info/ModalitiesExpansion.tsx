@@ -3,12 +3,8 @@
 import React, { useEffect } from "react";
 import { useFieldArray, useFormContext } from "react-hook-form";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Select } from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { Badge } from "@/components/ui/badge";
+import { Card, CardContent } from "@/components/ui/card";
+import { Collapsible, CollapsibleContent } from "@/components/ui/collapsible";
 import { Plus } from "lucide-react";
 import type { ProfessionalProfileFormData } from "@/lib/validations";
 import type { ProfessionalModality } from "@/lib/types";
@@ -91,7 +87,7 @@ export function ModalitiesEditor({ disabled = false }: ModalitiesEditorProps) {
   return (
     <Card className={isOpen ? "pt-0" : "p-0"}>
       <Collapsible open={isOpen} onOpenChange={setIsOpen}>
-        <ModalityCardTrigger isOpen={isOpen} onOpenChange={setIsOpen} />
+        <ModalityCardTrigger isOpen={isOpen} />
         <CollapsibleContent>
           <CardContent className="space-y-4">
             {fields.map((field, index) => (
