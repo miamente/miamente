@@ -161,6 +161,44 @@ npm run lint
 npm run build
 ```
 
+### 3. Configuración de Tests E2E
+
+#### Variables de Entorno para Tests
+
+Los tests E2E utilizan la variable de entorno `E2E_TEST_PASSWORD` para las credenciales de prueba:
+
+```bash
+# Test password para tests E2E (usado para todas las cuentas de prueba)
+E2E_TEST_PASSWORD=TestPassword123!
+
+# Opcional: URL base para tests
+PLAYWRIGHT_BASE_URL=http://localhost:3000
+
+# Opcional: Modo CI (habilita reintentos, worker único)
+CI=false
+```
+
+#### Ejecutar Tests E2E
+
+```bash
+# Ejecutar todos los tests E2E
+npm run test:e2e
+
+# Ejecutar tests con UI (modo interactivo)
+npm run test:e2e:ui
+
+# Ejecutar tests en modo headed (ver navegador)
+npm run test:e2e:headed
+
+# Debug tests
+npm run test:e2e:debug
+
+# Ver reporte de tests
+npm run test:e2e:report
+```
+
+**Nota**: Los tests E2E utilizan la variable `E2E_TEST_PASSWORD` para todas las cuentas de prueba (usuarios regulares y profesionales). Puedes personalizar esto creando un archivo `.env` en el directorio `tests/e2e/` o configurando la variable de entorno.
+
 ## 🚀 Deployment
 
 ### Railway (Backend)

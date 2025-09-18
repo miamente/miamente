@@ -5,8 +5,8 @@
 
 import { APIRequestContext } from "@playwright/test";
 
-// Test password constant
-const TEST_PASSWORD = "TestPassword123!";
+// Test password - use environment variable or fallback for test data
+const TEST_PASSWORD = process.env.E2E_TEST_PASSWORD || "TestPassword123!";
 
 export interface TestUser {
   email: string;

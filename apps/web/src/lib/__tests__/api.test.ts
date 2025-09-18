@@ -1,8 +1,8 @@
 import { vi, describe, it, expect, beforeEach, afterEach } from "vitest";
 import { ApiClient } from "../api";
 
-// Test password constant
-const TEST_PASSWORD = "password123";
+// Test password - use environment variable or fallback for test data
+const TEST_PASSWORD = process.env.E2E_TEST_PASSWORD || "password123";
 
 // Mock fetch
 global.fetch = vi.fn();
