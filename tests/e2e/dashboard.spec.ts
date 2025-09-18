@@ -107,7 +107,7 @@ test.describe("Dashboard", () => {
       if (await professionalsLink.isVisible()) {
         await professionalsLink.click();
         await testHelpers.waitForNavigation();
-        await expect(page).toHaveURL(/.*\/professionals/);
+        await expect(page).toHaveURL(/\/professionals/);
       } else {
         console.log("ℹ️ Professionals link not found in dashboard");
         test.skip();
@@ -138,7 +138,7 @@ test.describe("Dashboard", () => {
         await testHelpers.waitForNavigation();
 
         // Should navigate to profile page
-        await expect(page).toHaveURL(/.*\/(profile|perfil)/);
+        await expect(page).toHaveURL(/\/(profile|perfil)/);
 
         // Check for profile form elements
         const profileForm = page.locator("form").or(page.locator('[data-testid="profile-form"]'));
@@ -258,7 +258,7 @@ test.describe("Dashboard", () => {
         await testHelpers.waitForNavigation();
 
         // Should navigate to professional profile page
-        await expect(page).toHaveURL(/.*\/(profile|perfil)/);
+        await expect(page).toHaveURL(/\/(profile|perfil)/);
 
         // Check for professional profile form elements
         const profileForm = page.locator("form").or(page.locator('[data-testid="profile-form"]'));
@@ -286,7 +286,7 @@ test.describe("Dashboard", () => {
         await testHelpers.waitForNavigation();
 
         // Should navigate to availability management page
-        await expect(page).toHaveURL(/.*\/(availability|disponibilidad)/);
+        await expect(page).toHaveURL(/\/(availability|disponibilidad)/);
 
         // Check for availability form elements
         const availabilityForm = page
@@ -369,7 +369,7 @@ test.describe("Dashboard", () => {
 
       // Should redirect to login page
       await testHelpers.waitForNavigation();
-      await expect(page).toHaveURL(/.*\/(login|landing)/);
+      await expect(page).toHaveURL(/\/(login|landing)/);
     });
 
     test.skip("should maintain session across page refreshes", async ({ page }) => {
@@ -405,7 +405,7 @@ test.describe("Dashboard", () => {
       expect(currentUrl).not.toContain("/login");
 
       // Should be on dashboard, verify page, or another authenticated page
-      expect(currentUrl).toMatch(/.*\/(dashboard|verify|professionals)/);
+      expect(currentUrl).toMatch(/\/(dashboard|verify|professionals)/);
 
       // If on verify page, that's expected for unverified users
       if (currentUrl.includes("/verify")) {
@@ -415,7 +415,7 @@ test.describe("Dashboard", () => {
 
       // If on dashboard, verify it's working
       if (currentUrl.includes("/dashboard")) {
-        await expect(page).toHaveURL(/.*\/dashboard/);
+        await expect(page).toHaveURL(/\/dashboard/);
       }
     });
   });

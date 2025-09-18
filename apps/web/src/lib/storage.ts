@@ -42,7 +42,7 @@ export function getStoragePath(filename: string): string {
 
 export function generateUniqueFilename(originalName: string): string {
   const timestamp = Date.now();
-  const random = Math.random().toString(36).substring(2, 15);
+  const random = crypto.randomUUID().replace(/-/g, "");
   const extension = originalName.split(".").pop();
   return `${timestamp}_${random}.${extension}`;
 }
