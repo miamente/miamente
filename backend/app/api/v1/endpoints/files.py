@@ -35,6 +35,29 @@ MAX_FILE_SIZE = 5 * 1024 * 1024
 MAX_PROFILE_PICTURE_SIZE = 2 * 1024 * 1024
 
 
+def validate_user_id(user_id: str) -> str:
+    """
+    Validate user_id to prevent path traversal attacks.
+    
+    Args:
+        user_id: User ID to validate
+        
+    Returns:
+        Validated user_id
+        
+    Raises:
+        HTTPException: If validation fails
+    """
+    # Validate user_id - should be UUID format
+    if not re.match(r'^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$', user_id):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid user ID format"
+        )
+    
+    return user_id
+
+
 def validate_path_components(user_id: str, filename: str) -> tuple[str, str]:
     """
     Validate user_id and filename to prevent path traversal attacks.
@@ -50,11 +73,7 @@ def validate_path_components(user_id: str, filename: str) -> tuple[str, str]:
         HTTPException: If validation fails
     """
     # Validate user_id - should be UUID format
-    if not re.match(r'^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$', user_id):
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Invalid user ID format"
-        )
+    validated_user_id = validate_user_id(user_id)
     
     # Validate filename - should not contain path traversal characters
     if not filename or '..' in filename or '/' in filename or '\\' in filename:
@@ -70,7 +89,34 @@ def validate_path_components(user_id: str, filename: str) -> tuple[str, str]:
             detail="Invalid filename format"
         )
     
-    return user_id, filename
+    return validated_user_id, filename
+
+
+def safe_create_user_directory(base_dir: str, sub_dir: str, user_id: str) -> str:
+    """
+    Safely create a user-specific directory after validating the user_id.
+    
+    Args:
+        base_dir: Base directory (e.g., "uploads")
+        sub_dir: Subdirectory (e.g., "certifications", "profile_pictures")
+        user_id: User ID to validate and use in path
+        
+    Returns:
+        Path to the created directory
+        
+    Raises:
+        HTTPException: If user_id validation fails
+    """
+    # Validate user_id before using it in path construction
+    validated_user_id = validate_user_id(user_id)
+    
+    # Construct the path safely
+    user_upload_dir = os.path.join(base_dir, sub_dir, validated_user_id)
+    
+    # Create directory
+    os.makedirs(user_upload_dir, exist_ok=True)
+    
+    return user_upload_dir
 
 
 @router.post("/upload/certification")
@@ -100,9 +146,8 @@ async def upload_certification_document(
     file_extension = os.path.splitext(file.filename)[1] if file.filename else ".pdf"
     unique_filename = f"{uuid.uuid4()}{file_extension}"
 
-    # Create user-specific directory
-    user_upload_dir = os.path.join(UPLOAD_DIR, "certifications", current_user_id)
-    os.makedirs(user_upload_dir, exist_ok=True)
+    # Create user-specific directory safely
+    user_upload_dir = safe_create_user_directory(UPLOAD_DIR, "certifications", current_user_id)
 
     # Save file
     file_path = os.path.join(user_upload_dir, unique_filename)
@@ -147,9 +192,8 @@ async def upload_profile_picture(
     file_extension = os.path.splitext(file.filename)[1] if file.filename else ".jpg"
     unique_filename = f"{uuid.uuid4()}{file_extension}"
 
-    # Create user-specific directory
-    user_upload_dir = os.path.join(UPLOAD_DIR, "profile_pictures", current_user_id)
-    os.makedirs(user_upload_dir, exist_ok=True)
+    # Create user-specific directory safely
+    user_upload_dir = safe_create_user_directory(UPLOAD_DIR, "profile_pictures", current_user_id)
 
     # Save file
     file_path = os.path.join(user_upload_dir, unique_filename)
