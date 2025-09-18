@@ -37,3 +37,22 @@ secrets/
 # Firebase staging rules
 firestore.staging.rules
 storage.staging.rules
+
+# Upload directories - exclude user uploaded files
+backend/uploads/*
+!backend/uploads/README.*
+uploads/*
+!uploads/README.*
+**/uploads/*
+!**/uploads/README.*
+**/certifications/*
+!**/certifications/README.*
+**/profile_pictures/*
+!**/profile_pictures/README.*
+**/documents/*
+!**/documents/README.*
+
+# TypeScript build cache
+*.tsbuildinfo
+apps/**/tsconfig.tsbuildinfo
+**/tsconfig.tsbuildinfo

@@ -8,7 +8,7 @@ version = "0.1.0"
 description = "Backend API for Miamente platform"
 authors = [{name = "Miamente Team", email = "dev@miamente.com"}]
 readme = "README.md"
-requires-python = ">=3.11"
+requires-python = ">=3.13,<3.14"
 dependencies = [
     "fastapi==0.115.6",
     "uvicorn[standard]==0.32.1",
@@ -17,13 +17,10 @@ dependencies = [
     "sqlalchemy==2.0.36",
     "alembic==1.14.0",
     "psycopg2-binary==2.9.10",
-    "python-jose[cryptography]==3.3.0",
-    "passlib[bcrypt]==1.7.4",
+    "PyJWT==2.8.0",
+    "argon2-cffi==25.1.0",
     "python-multipart==0.0.12",
-    "sendgrid==6.11.0",
-    "redis==5.2.0",
-    "celery==5.4.0",
-    "python-dotenv==1.1.0",
+    "python-dotenv==1.0.1",
     "httpx==0.28.1",
 ]
 
@@ -35,12 +32,18 @@ dev = [
     "black==24.10.0",
     "isort==5.13.2",
     "flake8==7.1.1",
+    "pylint==3.2.7",
     "mypy==1.13.0",
+    "pre-commit==4.0.1",
 ]
 
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["app*"]
+
 [tool.black]
-line-length = 88
-target-version = ['py311']
+line-length = 120
+target-version = ['py313']
 include = '\.pyi?$'
 extend-exclude = '''
 /(
@@ -53,17 +56,98 @@ extend-exclude = '''
   | \.venv
   | build
   | dist
+  | __pycache__
+  | \.pytest_cache
+  | alembic/versions
 )/
 '''
+skip-string-normalization = false
+preview = false
 
 [tool.isort]
 profile = "black"
 multi_line_output = 3
-line_length = 88
+line_length = 120
 known_first_party = ["app"]
 
+[tool.flake8]
+max-line-length = 120  # More lenient, black handles most formatting
+extend-ignore = [
+  "E203",  # whitespace before ':' (conflicts with black)
+  "W503",  # line break before binary operator (black style)
+  "E501",  # line too long (handled by black)
+  "E701",  # multiple statements on one line (colon) - black handles this
+  "E702",  # multiple statements on one line (semicolon) - black handles this
+  "E731",  # do not assign a lambda expression, use a def - sometimes needed for FastAPI
+  "W504",  # line break after binary operator (conflicts with black)
+]
+exclude = [
+  ".git",
+  ".venv",
+  "venv",
+  "build",
+  "dist",
+  "__pycache__",
+  "*.pyc",
+  ".pytest_cache",
+  ".mypy_cache",
+  "alembic/versions",
+]
+per-file-ignores = [
+  "app/models/__init__.py:F401",  # ignore unused imports in models __init__
+  "app/schemas/__init__.py:F401",  # ignore unused imports in schemas __init__
+  "app/services/__init__.py:F401",  # ignore unused imports in services __init__
+  "tests/*:S101",  # allow assert statements in tests
+]
+
+[tool.pylint.MASTER]
+ignore = [
+  ".git",
+  ".venv",
+  "venv",
+  "build",
+  "dist",
+  "__pycache__",
+  "*.pyc",
+  ".pytest_cache",
+  ".mypy_cache",
+  "alembic/versions",
+]
+
+[tool.pylint.'MESSAGES CONTROL']
+disable = [
+  "C0114",  # missing-module-docstring
+  "C0115",  # missing-class-docstring
+  "C0116",  # missing-function-docstring
+  "R0903",  # too-few-public-methods (common for Pydantic models)
+  "C0103",  # invalid-name (conflicts with FastAPI conventions)
+  "R0913",  # too-many-arguments (common in FastAPI endpoints)
+  "R0914",  # too-many-locals (common in complex functions)
+  "W0613",  # unused-argument (common in FastAPI dependency injection)
+  "C0301",  # line too long (handled by black)
+  "E1102",  # func.now is not callable (SQLAlchemy issue)
+  "W0707",  # raise-missing-from (sometimes not needed)
+  "W0718",  # broad-exception-caught (common in API error handling)
+  "R0801",  # duplicate-code (sometimes acceptable)
+  "R0401",  # cyclic-import (sometimes necessary in FastAPI)
+  "C0415",  # import outside toplevel (common in FastAPI)
+  "W0621",  # redefined-outer-name (common in FastAPI)
+]
+
+[tool.pylint.FORMAT]
+max-line-length = 120
+indent-string = "    "  # 4 spaces, same as black
+expected-line-ending-format = "LF"  # Unix line endings
+
+[tool.pylint.'DESIGN']
+max-args = 8
+max-locals = 20
+max-returns = 8
+max-branches = 15
+max-statements = 60
+
 [tool.mypy]
-python_version = "3.11"
+python_version = "3.13"
 warn_return_any = true
 warn_unused_configs = true
 disallow_untyped_defs = true

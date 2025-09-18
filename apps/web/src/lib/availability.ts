@@ -36,7 +36,7 @@ export interface CreateAvailabilityRequest {
 export async function getAvailability(professionalId: string): Promise<Availability[]> {
   try {
     const response = await apiClient.get(`/professionals/${professionalId}/availability`);
-    return (response as any).data;
+    return (response as { data: Availability[] }).data;
   } catch (error) {
     console.error("Get availability error:", error);
     throw error;
@@ -49,7 +49,7 @@ export async function createAvailability(
 ): Promise<Availability> {
   try {
     const response = await apiClient.post(`/professionals/${professionalId}/availability`, data);
-    return (response as any).data;
+    return (response as { data: Availability }).data;
   } catch (error) {
     console.error("Create availability error:", error);
     throw error;
@@ -66,7 +66,7 @@ export async function updateAvailability(
       `/professionals/${professionalId}/availability/${availabilityId}`,
       data,
     );
-    return (response as any).data;
+    return (response as { data: Availability }).data;
   } catch (error) {
     console.error("Update availability error:", error);
     throw error;
@@ -89,7 +89,7 @@ export async function deleteAvailability(
 export async function getNext14DaysFreeSlots(professionalId: string): Promise<AvailabilitySlot[]> {
   try {
     const response = await apiClient.get(`/professionals/${professionalId}/slots`);
-    return (response as any).data;
+    return (response as { data: AvailabilitySlot[] }).data;
   } catch (error) {
     console.error("Get free slots error:", error);
     return [];
@@ -102,7 +102,7 @@ export async function generateSlots(
 ): Promise<GenerateSlotsResponse> {
   try {
     const response = await apiClient.post(`/professionals/${professionalId}/slots`, data);
-    return (response as any).data;
+    return (response as { data: GenerateSlotsResponse }).data;
   } catch (error) {
     console.error("Generate slots error:", error);
     throw error;

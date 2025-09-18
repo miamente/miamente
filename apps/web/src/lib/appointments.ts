@@ -22,7 +22,7 @@ export interface CreateAppointmentRequest {
 export async function createAppointment(data: CreateAppointmentRequest): Promise<Appointment> {
   try {
     const response = await apiClient.post("/appointments", data);
-    return (response as any).data;
+    return (response as { data: Appointment }).data;
   } catch (error) {
     console.error("Create appointment error:", error);
     throw error;
@@ -32,7 +32,7 @@ export async function createAppointment(data: CreateAppointmentRequest): Promise
 export async function getAppointments(): Promise<Appointment[]> {
   try {
     const response = await apiClient.get("/appointments");
-    return (response as any).data;
+    return (response as { data: Appointment[] }).data;
   } catch (error) {
     console.error("Get appointments error:", error);
     throw error;
@@ -42,7 +42,7 @@ export async function getAppointments(): Promise<Appointment[]> {
 export async function getAppointment(id: string): Promise<Appointment> {
   try {
     const response = await apiClient.get(`/appointments/${id}`);
-    return (response as any).data;
+    return (response as { data: Appointment }).data;
   } catch (error) {
     console.error("Get appointment error:", error);
     throw error;
@@ -55,7 +55,7 @@ export async function updateAppointment(
 ): Promise<Appointment> {
   try {
     const response = await apiClient.patch(`/appointments/${id}`, data);
-    return (response as any).data;
+    return (response as { data: Appointment }).data;
   } catch (error) {
     console.error("Update appointment error:", error);
     throw error;
@@ -65,7 +65,7 @@ export async function updateAppointment(
 export async function cancelAppointment(id: string): Promise<Appointment> {
   try {
     const response = await apiClient.patch(`/appointments/${id}`, { status: "cancelled" });
-    return (response as any).data;
+    return (response as { data: Appointment }).data;
   } catch (error) {
     console.error("Cancel appointment error:", error);
     throw error;

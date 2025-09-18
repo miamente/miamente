@@ -1,10 +1,8 @@
 import { useEffect, useState } from "react";
 
 import { useAuth } from "./useAuth";
-
 import { apiClient } from "@/lib/api";
-
-export type UserRole = "user" | "pro" | "admin";
+import { UserRole } from "@/lib/types";
 
 export interface UserProfile {
   id: string;
@@ -36,12 +34,12 @@ export function useRole() {
         const response = await apiClient.get(`/auth/me`);
 
         // The response has structure: {type: "user"|"professional", data: {...}}
-        const userData = (response as any).data;
-        const userType = (response as any).type;
+        const userData = (response as { data: UserProfile }).data;
+        const userType = (response as { type: string }).type;
 
         setUserProfile({
           id: userData.id,
-          role: userType === "professional" ? "pro" : "user",
+          role: userType === "professional" ? UserRole.PROFESSIONAL : UserRole.USER,
           full_name: userData.full_name,
           email: userData.email,
           phone: userData.phone,
@@ -66,9 +64,14 @@ export function useRole() {
     return userProfile ? roles.includes(userProfile.role) : false;
   };
 
-  const isAdmin = (): boolean => hasRole("admin");
-  const isProfessional = (): boolean => hasRole("pro");
-  const isUser = (): boolean => hasRole("user");
+  const isAdmin = (): boolean => hasRole(UserRole.ADMIN);
+  const isProfessional = (): boolean => hasRole(UserRole.PROFESSIONAL);
+  const isUser = (): boolean => hasRole(UserRole.USER);
+
+  const getUserRole = (): string | null => {
+    if (!userProfile) return null;
+    return userProfile.role;
+  };
 
   return {
     userProfile,
@@ -79,5 +82,6 @@ export function useRole() {
     isAdmin,
     isProfessional,
     isUser,
+    getUserRole,
   };
 }

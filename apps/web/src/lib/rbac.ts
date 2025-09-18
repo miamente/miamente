@@ -1,4 +1,4 @@
-export type Role = "user" | "pro" | "admin";
+export type Role = "user" | "professional" | "admin";
 
 export function hasRole(roles: readonly Role[] | undefined, required: Role | Role[]): boolean {
   if (!roles) return false;

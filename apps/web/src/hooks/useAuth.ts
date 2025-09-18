@@ -6,17 +6,14 @@ import { useState, useEffect, useCallback } from "react";
 
 import {
   apiClient,
-  type User,
-  type Professional,
   type LoginRequest,
   type RegisterUserRequest,
   type RegisterProfessionalRequest,
 } from "@/lib/api";
+import type { AuthUser } from "@/lib/types";
 
-export interface AuthUser {
-  type: "user" | "professional";
-  data: User | Professional;
-}
+// Re-export AuthUser from types for backward compatibility
+export type { AuthUser };
 
 // Helper functions to access user properties
 export function getUserEmail(user: AuthUser | null): string | undefined {
@@ -103,28 +100,36 @@ export function useAuth() {
     async (credentials: LoginRequest) => {
       try {
         await apiClient.loginUser(credentials);
+
+        // Use the same checkAuth logic that works for refresh
+        await new Promise((resolve) => setTimeout(resolve, 100));
         await checkAuth();
+
         router.push("/dashboard");
       } catch (error) {
         console.error("User login failed:", error);
         throw error;
       }
     },
-    [checkAuth, router],
+    [router, checkAuth],
   );
 
   const loginProfessional = useCallback(
     async (credentials: LoginRequest) => {
       try {
         await apiClient.loginProfessional(credentials);
+
+        // Use the same checkAuth logic that works for refresh
+        await new Promise((resolve) => setTimeout(resolve, 100));
         await checkAuth();
-        router.push("/professional/dashboard");
+
+        router.push("/dashboard");
       } catch (error) {
         console.error("Professional login failed:", error);
         throw error;
       }
     },
-    [checkAuth, router],
+    [router, checkAuth],
   );
 
   const registerUser = useCallback(
@@ -168,14 +173,20 @@ export function useAuth() {
       isLoading: false,
       isAuthenticated: false,
     });
-    router.push("/");
+    router.push("/login");
   }, [router]);
 
   const refreshUser = useCallback(async () => {
-    if (authState.isAuthenticated) {
-      await checkAuth();
-    }
-  }, [authState.isAuthenticated, checkAuth]);
+    await checkAuth();
+  }, [checkAuth]);
+
+  const getAuthHeaders = useCallback(() => {
+    const token = localStorage.getItem("access_token");
+    return {
+      Authorization: token ? `Bearer ${token}` : "",
+      "Content-Type": "application/json",
+    };
+  }, []);
 
   return {
     ...authState,
@@ -185,5 +196,6 @@ export function useAuth() {
     registerProfessional,
     logout,
     refreshUser,
+    getAuthHeaders,
   };
 }

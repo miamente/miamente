@@ -109,7 +109,7 @@ export default function AdminDashboard() {
                 </svg>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{metrics.totalUsers}</div>
+                <div className="text-2xl font-bold">{metrics.total_users}</div>
                 <p className="text-muted-foreground text-xs">Total de usuarios</p>
               </CardContent>
             </Card>
@@ -132,7 +132,7 @@ export default function AdminDashboard() {
                 </svg>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{metrics.newUsers7Days}</div>
+                <div className="text-2xl font-bold">{metrics.new_users_7_days}</div>
                 <p className="text-muted-foreground text-xs">Últimos 7 días</p>
               </CardContent>
             </Card>
@@ -155,7 +155,7 @@ export default function AdminDashboard() {
                 </svg>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{metrics.newUsers30Days}</div>
+                <div className="text-2xl font-bold">{metrics.new_users_30_days}</div>
                 <p className="text-muted-foreground text-xs">Últimos 30 días</p>
               </CardContent>
             </Card>
@@ -178,9 +178,9 @@ export default function AdminDashboard() {
                 </svg>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{metrics.verifiedProfessionals}</div>
+                <div className="text-2xl font-bold">{metrics.verified_professionals}</div>
                 <p className="text-muted-foreground text-xs">
-                  de {metrics.totalProfessionals} total
+                  de {metrics.total_professionals} total
                 </p>
               </CardContent>
             </Card>
@@ -203,9 +203,9 @@ export default function AdminDashboard() {
                 </svg>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{metrics.confirmedAppointmentsToday}</div>
+                <div className="text-2xl font-bold">{metrics.confirmed_appointments_today}</div>
                 <p className="text-muted-foreground text-xs">
-                  de {metrics.totalAppointmentsToday} total
+                  de {metrics.total_appointments_today} total
                 </p>
               </CardContent>
             </Card>
@@ -228,7 +228,7 @@ export default function AdminDashboard() {
                 </svg>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{metrics.paymentConversionRate}%</div>
+                <div className="text-2xl font-bold">{metrics.payment_conversion_rate}%</div>
                 <p className="text-muted-foreground text-xs">Tasa de conversión</p>
               </CardContent>
             </Card>

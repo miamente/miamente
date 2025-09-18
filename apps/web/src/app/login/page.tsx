@@ -8,15 +8,14 @@ import { useForm } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { useAuth, isUserVerified } from "@/hooks/useAuth";
-import { loginWithEmail } from "@/lib/auth";
+import { useAuthContext, isUserVerified } from "@/contexts/AuthContext";
 import { loginSchema, type LoginFormData } from "@/lib/validations";
 
 export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
-  const { user } = useAuth();
+  const { user, loginUser, loginProfessional } = useAuthContext();
 
   const {
     register,
@@ -30,7 +29,8 @@ export default function LoginPage() {
   React.useEffect(() => {
     if (user) {
       if (isUserVerified(user)) {
-        router.push("/dashboard/user");
+        // Redirect to unified dashboard
+        router.push("/dashboard");
       } else {
         router.push("/verify");
       }
@@ -42,9 +42,15 @@ export default function LoginPage() {
     setError(null);
 
     try {
-      await loginWithEmail(data.email, data.password);
-      // Redirect will happen in useEffect
+      // Use the unified login approach - try professional first, then user
+      try {
+        await loginProfessional(data);
+      } catch (professionalError) {
+        console.log("Professional login failed, trying as user:", professionalError);
+        await loginUser(data);
+      }
     } catch (err) {
+      console.error("Login failed:", err);
       const errorMessage = err instanceof Error ? err.message : "Error al iniciar sesión";
       setError(errorMessage);
     } finally {

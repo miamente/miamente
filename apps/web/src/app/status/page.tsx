@@ -21,13 +21,13 @@ export default function StatusPage() {
   const checkBackendAPI = async (): Promise<StatusItem> => {
     try {
       const response = await apiClient.get("/health");
-      if ((response as any).status === 200) {
+      if ((response as { status: number }).status === 200) {
         return { name: "Backend API", status: "connected", message: "API is responding" };
       } else {
         return {
           name: "Backend API",
           status: "error",
-          message: `Unexpected status: ${(response as any).status}`,
+          message: `Unexpected status: ${(response as { status: number }).status}`,
         };
       }
     } catch (error) {
@@ -38,7 +38,7 @@ export default function StatusPage() {
   const checkDatabase = async (): Promise<StatusItem> => {
     try {
       const response = await apiClient.get("/health");
-      if ((response as any).status === 200) {
+      if ((response as { status: number }).status === 200) {
         return { name: "Database", status: "connected", message: "Database connection successful" };
       } else {
         return { name: "Database", status: "error", message: "Database connection failed" };
@@ -52,9 +52,9 @@ export default function StatusPage() {
     try {
       // Try to access a protected endpoint to test auth
       const response = await apiClient.get("/users/me");
-      if ((response as any).status === 200) {
+      if ((response as { status: number }).status === 200) {
         return { name: "Authentication", status: "connected", message: "Auth service working" };
-      } else if ((response as any).status === 401) {
+      } else if ((response as { status: number }).status === 401) {
         return {
           name: "Authentication",
           status: "connected",
@@ -64,12 +64,12 @@ export default function StatusPage() {
         return {
           name: "Authentication",
           status: "error",
-          message: `Unexpected status: ${(response as any).status}`,
+          message: `Unexpected status: ${(response as { status: number }).status}`,
         };
       }
     } catch (error) {
       // 401 is expected if not authenticated
-      if ((error as any).response?.status === 401) {
+      if ((error as { response?: { status: number } }).response?.status === 401) {
         return {
           name: "Authentication",
           status: "connected",

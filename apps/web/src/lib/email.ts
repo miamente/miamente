@@ -26,7 +26,7 @@ export async function sendEmail(
       subject,
       html,
     });
-    return response as any;
+    return response as SendEmailResponse;
   } catch (error: unknown) {
     console.error("Error sending email:", error);
     return {

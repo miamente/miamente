@@ -30,7 +30,7 @@ export function useAppointments() {
       setError(null);
 
       try {
-        const result = await apiClient.bookAppointment(professionalId, availabilityId);
+        const result = await apiClient.bookAppointmentDirect(professionalId, availabilityId);
         // Refresh appointments after booking
         await fetchAppointments();
         return result;

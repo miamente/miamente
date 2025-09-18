@@ -1,11 +1,29 @@
-import { FullConfig } from "@playwright/test";
+import { request } from "@playwright/test";
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-async function globalSetup(_config: FullConfig) {
+import { DataSeeder } from "./utils/data-seeder";
+
+async function globalSetup() {
   console.log("🚀 Starting E2E test setup...");
 
-  // Optional: Start any required services or setup test data
-  // For now, we'll just log that setup is complete
+  // Create API request context
+  const apiRequest = await request.newContext({
+    baseURL: "http://localhost:8000", // Backend API URL
+  });
+
+  // Initialize data seeder
+  const dataSeeder = new DataSeeder(apiRequest);
+
+  try {
+    // Ensure test data exists
+    await dataSeeder.ensureDataExists();
+    console.log("✅ Test data setup completed");
+  } catch (error) {
+    console.error("❌ Error setting up test data:", error);
+    // Don't fail the setup if data seeding fails
+    // Tests should handle empty data gracefully
+  } finally {
+    await apiRequest.dispose();
+  }
 
   console.log("✅ E2E test setup completed");
 }

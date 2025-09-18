@@ -1,6 +1,8 @@
 import { apiClient } from "./api";
+import type { UserRole, User, LoginResponse, UserCreate } from "./types";
 
-export type UserRole = "user" | "pro" | "admin";
+// Re-export types for backward compatibility
+export type { UserRole, User, LoginResponse, UserCreate };
 
 export interface UserProfile {
   id: string;
@@ -13,12 +15,6 @@ export interface UserProfile {
   updated_at: string;
 }
 
-export interface LoginResponse {
-  access_token: string;
-  token_type: string;
-  user: UserProfile;
-}
-
 export interface RegisterRequest {
   email: string;
   password: string;
@@ -27,10 +23,10 @@ export interface RegisterRequest {
   role?: UserRole;
 }
 
-export async function registerWithEmail(data: RegisterRequest): Promise<UserProfile> {
+export async function registerWithEmail(data: RegisterRequest): Promise<User> {
   try {
     const response = await apiClient.post("/auth/register/user", data);
-    return response as any;
+    return response as User;
   } catch (error) {
     console.error("Registration error:", error);
     throw error;
@@ -39,19 +35,19 @@ export async function registerWithEmail(data: RegisterRequest): Promise<UserProf
 
 export async function loginWithEmail(email: string, password: string): Promise<LoginResponse> {
   try {
-    const response = await apiClient.post("/auth/login/user", {
+    const response = await apiClient.post("/auth/login", {
       email,
       password,
     });
 
     // Store the token
-    const { access_token } = response as any;
+    const { access_token } = response as LoginResponse;
     localStorage.setItem("access_token", access_token);
 
     // Set the token in the API client for future requests
     apiClient.setToken(access_token);
 
-    return response as any;
+    return response as LoginResponse;
   } catch (error) {
     console.error("Login error:", error);
     throw error;
@@ -63,9 +59,16 @@ export async function logout(): Promise<void> {
     // Clear token from API client and localStorage
     // In JWT-based authentication, logout is handled client-side by removing the token
     apiClient.clearToken();
+    // Redirect to login page
+    if (typeof window !== "undefined") {
+      window.location.href = "/login";
+    }
   } catch (error) {
     console.error("Logout error:", error);
-    // Even if there's an error, we should still clear local storage
+    // Even if there's an error, we should still clear local storage and redirect
+    if (typeof window !== "undefined") {
+      window.location.href = "/login";
+    }
   }
 }
 
@@ -78,10 +81,10 @@ export async function resendEmailVerification(): Promise<void> {
   }
 }
 
-export async function getUserProfile(): Promise<UserProfile | null> {
+export async function getUserProfile(): Promise<User | null> {
   try {
     const response = await apiClient.get("/users/me");
-    return (response as any).data;
+    return (response as { data: User }).data;
   } catch (error) {
     console.error("Get user profile error:", error);
     return null;
@@ -94,12 +97,15 @@ export function getStoredToken(): string | null {
 
 export function setAuthToken(token: string): void {
   localStorage.setItem("access_token", token);
-  (apiClient as any).defaults.headers.common["Authorization"] = `Bearer ${token}`;
+  (
+    apiClient as unknown as { defaults: { headers: { common: { [key: string]: string } } } }
+  ).defaults.headers.common["Authorization"] = `Bearer ${token}`;
 }
 
 export function clearAuthToken(): void {
   localStorage.removeItem("access_token");
-  delete (apiClient as any).defaults.headers.common["Authorization"];
+  delete (apiClient as unknown as { defaults: { headers: { common: { [key: string]: string } } } })
+    .defaults.headers.common["Authorization"];
 }
 
 export function isAuthenticated(): boolean {

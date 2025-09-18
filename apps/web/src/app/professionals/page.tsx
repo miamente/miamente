@@ -1,28 +1,56 @@
 "use client";
 import Image from "next/image";
+import Link from "next/link";
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { Select, type SelectOption } from "@/components/ui/select";
+import { ProfessionalCardSkeleton } from "@/components/professional-card-skeleton";
 import { queryProfessionals, type ProfessionalsQueryResult } from "@/lib/profiles";
+import { useSpecialtyNames } from "@/hooks/useSpecialtyNames";
 
-type SpecialtyOption =
-  | "Psicología Clínica"
-  | "Psiquiatría"
-  | "Terapia Ocupacional"
-  | "Trabajo Social"
-  | "Coaching"
-  | "Otra";
+// Helper function to construct full image URLs
+const getImageUrl = (imagePath: string | undefined): string | undefined => {
+  if (!imagePath) return undefined;
+
+  // If it's already a full URL, return as is
+  if (imagePath.startsWith("http")) {
+    return imagePath;
+  }
+
+  // If it's a relative path, prepend the API base URL
+  const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+  return `${API_BASE_URL}${imagePath}`;
+};
+
+const SPECIALTY_OPTIONS: SelectOption[] = [
+  { value: "", label: "Todas las especialidades" },
+  { value: "Psicología Clínica", label: "Psicología Clínica" },
+  { value: "Psiquiatría", label: "Psiquiatría" },
+  { value: "Terapia Ocupacional", label: "Terapia Ocupacional" },
+  { value: "Trabajo Social", label: "Trabajo Social" },
+  { value: "Coaching", label: "Coaching" },
+  { value: "Otra", label: "Otra" },
+];
 
 export default function ProfessionalsPage() {
-  const [specialty, setSpecialty] = useState<SpecialtyOption | "">("");
+  const [specialty, setSpecialty] = useState<string>("");
   const [minPrice, setMinPrice] = useState<string>("");
   const [maxPrice, setMaxPrice] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [items, setItems] = useState<ProfessionalsQueryResult["professionals"]>([]);
+  const [isInitialLoad, setIsInitialLoad] = useState<boolean>(true);
   const lastSnapshotRef = useRef<ProfessionalsQueryResult["lastSnapshot"]>(null);
+
+  // Get specialty names for all professionals
+  const { getNames: getSpecialtyNames, loading: specialtiesLoading } = useSpecialtyNames();
+
+  const handleSpecialtyChange = (value: string) => {
+    setSpecialty(value);
+  };
 
   const parsedMin = useMemo(
     () => (minPrice ? Math.max(0, Number(minPrice)) : undefined),
@@ -49,8 +77,12 @@ export default function ProfessionalsPage() {
         });
         lastSnapshotRef.current = lastSnapshot;
         setItems((prev) => (isFirstPage ? professionals : [...prev, ...professionals]));
+        if (isFirstPage) {
+          setIsInitialLoad(false);
+        }
       } catch (err) {
         setError(err instanceof Error ? err.message : "Error al cargar profesionales");
+        setIsInitialLoad(false);
       } finally {
         setLoading(false);
       }
@@ -79,30 +111,22 @@ export default function ProfessionalsPage() {
       <h1 className="mb-6 text-3xl font-bold">Profesionales</h1>
 
       <form
-        onSubmit={handleApplyFilters}
         className="mb-6 grid gap-4 sm:grid-cols-4"
         aria-label="Filtros"
+        onSubmit={handleApplyFilters}
       >
         <div className="sm:col-span-2">
           <label htmlFor="specialty" className="mb-1 block text-sm font-medium">
             Especialidad
           </label>
-          <Input
+          <Select
             id="specialty"
-            list="specialty-options"
-            placeholder="Ej: Psicología Clínica"
+            options={SPECIALTY_OPTIONS}
             value={specialty}
-            onChange={(e) => setSpecialty(e.target.value as SpecialtyOption | "")}
+            onValueChange={handleSpecialtyChange}
+            placeholder="Selecciona una especialidad"
             aria-describedby="specialty-help"
           />
-          <datalist id="specialty-options">
-            <option value="Psicología Clínica" />
-            <option value="Psiquiatría" />
-            <option value="Terapia Ocupacional" />
-            <option value="Trabajo Social" />
-            <option value="Coaching" />
-            <option value="Otra" />
-          </datalist>
           <p id="specialty-help" className="mt-1 text-xs text-neutral-500 dark:text-neutral-400">
             Filtra por especialidad
           </p>
@@ -169,7 +193,13 @@ export default function ProfessionalsPage() {
         </div>
       )}
 
-      {!loading && items.length === 0 && (
+      {loading && isInitialLoad ? (
+        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          {Array.from({ length: 6 }).map((_, index) => (
+            <ProfessionalCardSkeleton key={index} />
+          ))}
+        </div>
+      ) : !loading && !isInitialLoad && items.length === 0 ? (
         <div role="status" aria-live="polite" className="rounded-md border p-6 text-center">
           <p className="text-neutral-700 dark:text-neutral-300">
             No encontramos profesionales con los filtros seleccionados.
@@ -178,55 +208,76 @@ export default function ProfessionalsPage() {
             Intenta ajustar los filtros.
           </p>
         </div>
+      ) : (
+        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          {items.map((pro) => (
+            <Link key={pro.id} href={`/professionals/${pro.id}`}>
+              <Card className="flex cursor-pointer flex-col transition-shadow duration-200 hover:shadow-lg">
+                <CardHeader>
+                  <CardTitle className="text-xl">{pro.full_name}</CardTitle>
+                  <div className="text-sm text-neutral-600 dark:text-neutral-400">
+                    {specialtiesLoading ? (
+                      <div className="h-4 w-32 animate-pulse rounded bg-neutral-200 dark:bg-neutral-700"></div>
+                    ) : pro.specialty_ids && pro.specialty_ids.length > 0 ? (
+                      <div className="flex flex-wrap gap-1">
+                        {getSpecialtyNames(pro.specialty_ids).map(
+                          (specialty: string, index: number) => (
+                            <span
+                              key={index}
+                              className="rounded-full bg-blue-100 px-2 py-1 text-xs text-blue-800 dark:bg-blue-900 dark:text-blue-200"
+                            >
+                              {specialty}
+                            </span>
+                          ),
+                        )}
+                      </div>
+                    ) : (
+                      "Especialidad no especificada"
+                    )}
+                  </div>
+                  <p className="text-sm text-neutral-600 dark:text-neutral-400">
+                    {(pro.rate_cents / 100).toLocaleString("es-CO", {
+                      minimumFractionDigits: 0,
+                      maximumFractionDigits: 0,
+                    })}{" "}
+                    / hora
+                  </p>
+                </CardHeader>
+                <CardContent className="flex flex-1 flex-col gap-3">
+                  {getImageUrl(pro.profile_picture) ? (
+                    <Image
+                      src={getImageUrl(pro.profile_picture)!}
+                      alt={`Foto del profesional ${pro.full_name}`}
+                      width={400}
+                      height={160}
+                      className="h-40 w-full rounded-md object-cover"
+                      priority={false}
+                    />
+                  ) : (
+                    <div className="flex h-40 w-full items-center justify-center rounded-md bg-neutral-100 text-neutral-500 dark:bg-neutral-900 dark:text-neutral-400">
+                      Sin foto
+                    </div>
+                  )}
+                  <p className="line-clamp-3 text-sm text-neutral-700 dark:text-neutral-300">
+                    {pro.bio}
+                  </p>
+                  <div className="mt-auto">
+                    <Button
+                      className="w-full"
+                      variant="outline"
+                      aria-label={`Ver perfil de ${pro.full_name}`}
+                    >
+                      Ver perfil
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            </Link>
+          ))}
+        </div>
       )}
 
-      <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-        {items.map((pro) => (
-          <Card key={pro.id} className="flex flex-col">
-            <CardHeader>
-              <CardTitle className="text-xl">{pro.full_name}</CardTitle>
-              <p className="text-sm text-neutral-600 dark:text-neutral-400">{pro.specialty}</p>
-              <p className="text-sm text-neutral-600 dark:text-neutral-400">
-                {(pro.rate_cents / 100).toLocaleString("es-CO", {
-                  style: "currency",
-                  currency: "COP",
-                })}{" "}
-                / hora
-              </p>
-            </CardHeader>
-            <CardContent className="flex flex-1 flex-col gap-3">
-              {pro.profile_picture ? (
-                <Image
-                  src={pro.profile_picture}
-                  alt={`Foto del profesional ${pro.full_name}`}
-                  width={400}
-                  height={160}
-                  className="h-40 w-full rounded-md object-cover"
-                  priority={false}
-                />
-              ) : (
-                <div className="flex h-40 w-full items-center justify-center rounded-md bg-neutral-100 text-neutral-500 dark:bg-neutral-900 dark:text-neutral-400">
-                  Sin foto
-                </div>
-              )}
-              <p className="line-clamp-3 text-sm text-neutral-700 dark:text-neutral-300">
-                {pro.bio}
-              </p>
-              <div className="mt-auto">
-                <Button
-                  className="w-full"
-                  variant="outline"
-                  aria-label={`Ver horarios de ${pro.full_name}`}
-                >
-                  Ver horarios
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-
-      {items.length > 0 && (
+      {items.length > 0 && !isInitialLoad && (
         <div className="mt-8 flex justify-center">
           <Button onClick={handleLoadMore} disabled={loading || !canLoadMore}>
             {loading ? "Cargando..." : canLoadMore ? "Cargar más" : "No hay más resultados"}

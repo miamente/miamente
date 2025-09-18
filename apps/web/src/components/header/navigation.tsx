@@ -4,6 +4,7 @@ import { usePathname } from "next/navigation";
 
 import type { NavigationItem } from "@/lib/header-types";
 import { cn } from "@/lib/utils";
+import { UserRole } from "@/lib/types";
 
 interface NavigationProps {
   navigationItems: NavigationItem[];
@@ -15,8 +16,7 @@ export function Navigation({ navigationItems, userRole, className }: NavigationP
   const pathname = usePathname();
 
   const filteredItems = navigationItems.filter(
-    (item) =>
-      !item.roles || (userRole && item.roles.includes(userRole as "user" | "pro" | "admin")),
+    (item) => !item.roles || (userRole && item.roles.includes(userRole as UserRole)),
   );
 
   return (

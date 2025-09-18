@@ -67,8 +67,8 @@ export class MockPaymentAdapter implements PaymentService {
           metadata: {
             provider: "mock",
             autoApproved: true,
-            amount: (appointment as any).payment_amount_cents,
-            currency: (appointment as any).payment_currency,
+            amount: (appointment as { payment_amount_cents?: number }).payment_amount_cents,
+            currency: (appointment as { payment_currency?: string }).payment_currency,
           },
         };
       } else {
@@ -83,8 +83,8 @@ export class MockPaymentAdapter implements PaymentService {
           metadata: {
             provider: "mock",
             autoApproved: false,
-            amount: (appointment as any).payment_amount_cents,
-            currency: (appointment as any).payment_currency,
+            amount: (appointment as { payment_amount_cents?: number }).payment_amount_cents,
+            currency: (appointment as { payment_currency?: string }).payment_currency,
           },
         };
       }
@@ -147,19 +147,19 @@ export class MockPaymentAdapter implements PaymentService {
 
       return {
         status:
-          (appointment as any).status === "confirmed"
+          (appointment as { status?: string }).status === "confirmed"
             ? "confirmed"
-            : (appointment as any).status === "failed"
+            : (appointment as { status?: string }).status === "failed"
               ? "failed"
-              : (appointment as any).status === "cancelled"
+              : (appointment as { status?: string }).status === "cancelled"
                 ? "cancelled"
                 : "pending",
-        amount: (appointment as any).payment_amount_cents,
-        currency: (appointment as any).payment_currency,
-        provider: (appointment as any).payment_provider,
+        amount: (appointment as { payment_amount_cents?: number }).payment_amount_cents,
+        currency: (appointment as { payment_currency?: string }).payment_currency,
+        provider: (appointment as { payment_provider?: string }).payment_provider,
         metadata: {
           appointmentId,
-          lastUpdated: (appointment as any).updated_at,
+          lastUpdated: (appointment as { updated_at?: string }).updated_at,
         },
       };
     } catch (error) {
@@ -245,7 +245,16 @@ export class MockPaymentAdapter implements PaymentService {
       // Get appointment details for email
       const appointment = await apiClient.get(`/appointments/${appointmentId}`);
 
-      await this.sendConfirmationEmail(appointment as any);
+      await this.sendConfirmationEmail(
+        appointment as {
+          id: string;
+          user_id: string;
+          professional_id: string;
+          start: string;
+          end: string;
+          status: string;
+        },
+      );
 
       console.log(
         `[MockPaymentAdapter] Manual approval completed for appointment: ${appointmentId}`,

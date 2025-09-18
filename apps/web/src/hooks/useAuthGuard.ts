@@ -56,9 +56,8 @@ export function useAuthGuard(options: AuthGuardOptions = {}) {
 
     // Role-based access control
     if (requiredRole && user?.type !== requiredRole) {
-      // Redirect to appropriate dashboard based on user's role
-      const roleDashboard = user?.type ? `/dashboard/${user.type}` : "/dashboard/user";
-      router.push(roleDashboard);
+      // Don't redirect automatically, let the component handle it
+      // This prevents infinite redirect loops
       return;
     }
   }, [user, isLoading, requiredRole, requireEmailVerification, redirectTo, router, isDevelopment]);

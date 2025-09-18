@@ -1,4 +1,4 @@
-import type { UserRole } from "@/hooks/useRole";
+import { UserRole } from "@/lib/types";
 
 export interface NavigationItem {
   label: string;
@@ -45,12 +45,12 @@ export const USER_NAVIGATION_ITEMS: NavigationItem[] = [
   {
     label: "Inicio",
     href: "/",
-    roles: ["user", "pro"],
+    roles: [UserRole.USER, UserRole.PROFESSIONAL],
   },
   {
     label: "Profesionales",
     href: "/professionals",
-    roles: ["user", "pro"],
+    roles: [UserRole.USER, UserRole.PROFESSIONAL],
   },
 ];
 
@@ -59,46 +59,41 @@ export const ADMIN_NAVIGATION_ITEMS: NavigationItem[] = [
   {
     label: "Profesionales",
     href: "/admin/professionals",
-    roles: ["admin"],
+    roles: [UserRole.ADMIN],
   },
   {
     label: "Citas",
     href: "/admin/appointments",
-    roles: ["admin"],
+    roles: [UserRole.ADMIN],
   },
   {
     label: "Configuración",
     href: "/admin/feature-flags",
-    roles: ["admin"],
+    roles: [UserRole.ADMIN],
   },
 ];
 
-// User menu options for regular users (user and pro)
+// User menu options for regular users (user and professional)
 export const USER_MENU_OPTIONS: UserMenuOption[] = [
   {
     label: "Dashboard",
-    href: "/dashboard/user",
-    roles: ["user"],
-  },
-  {
-    label: "Dashboard",
-    href: "/dashboard/pro",
-    roles: ["pro"],
+    href: "/dashboard",
+    roles: [UserRole.USER, UserRole.PROFESSIONAL],
   },
   {
     label: "Mi Perfil",
     href: "/profile/user",
-    roles: ["user"],
+    roles: [UserRole.USER],
   },
   {
     label: "Mi Perfil",
     href: "/profile/professional",
-    roles: ["pro"],
+    roles: [UserRole.PROFESSIONAL],
   },
   {
     label: "Cerrar Sesión",
     action: "logout", // Special action identifier
-    roles: ["user", "pro"],
+    roles: [UserRole.USER, UserRole.PROFESSIONAL],
     divider: true,
   },
 ];
@@ -108,17 +103,17 @@ export const ADMIN_MENU_OPTIONS: UserMenuOption[] = [
   {
     label: "Dashboard",
     href: "/admin",
-    roles: ["admin"],
+    roles: [UserRole.ADMIN],
   },
   {
     label: "Configuración",
     href: "/admin/feature-flags",
-    roles: ["admin"],
+    roles: [UserRole.ADMIN],
   },
   {
     label: "Cerrar Sesión",
     action: "logout", // Special action identifier
-    roles: ["admin"],
+    roles: [UserRole.ADMIN],
     divider: true,
   },
 ];

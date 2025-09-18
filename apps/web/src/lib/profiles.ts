@@ -1,57 +1,85 @@
 import { apiClient } from "./api";
+import type { AcademicExperience, WorkExperience, Certification, Professional } from "./types";
 
-export interface ProfessionalProfile {
+// Re-export types for backward compatibility
+export type { AcademicExperience, WorkExperience, Certification };
+
+// Legacy Modality interface for backward compatibility
+export interface Modality {
   id: string;
-  email: string;
-  full_name: string;
-  phone?: string;
-  specialty: string;
-  license_number?: string;
-  years_experience: number;
-  rate_cents: number;
-  currency: string;
-  bio?: string;
-  education?: string;
-  certifications?: string[];
-  languages?: string[];
-  therapy_approaches?: string[];
-  timezone: string;
-  profile_picture?: string;
-  emergency_contact?: string;
-  emergency_phone?: string;
-  is_active: boolean;
-  is_verified: boolean;
-  created_at: string;
-  updated_at?: string;
+  modalityId: string;
+  modalityName: string;
+  virtualPrice: number;
+  presencialPrice: number;
+  offersPresencial: boolean;
+  description?: string;
+  isDefault: boolean;
 }
 
+// Use the comprehensive Professional type from types.ts
+export type ProfessionalProfile = Professional;
+
 export interface UpdateProfessionalProfileRequest {
+  // Basic info
+  full_name?: string;
+  phone_country_code?: string;
+  phone_number?: string;
+
+  // Professional info
   specialty?: string;
+  specialty_ids?: string[];
+  license_number?: string;
+  years_experience?: number;
+  rate_cents?: number;
+  currency?: string;
   bio?: string;
-  experience_years?: number;
-  education?: string;
-  certifications?: string[];
+
+  // Experience arrays
+  academic_experience?: Array<{
+    institution: string;
+    degree: string;
+    field: string;
+    start_date: string;
+    end_date?: string;
+    description?: string;
+  }>;
+
+  work_experience?: Array<{
+    company: string;
+    position: string;
+    start_date: string;
+    end_date?: string;
+    description?: string;
+  }>;
+
+  // Arrays
+  certifications?: Certification[];
   languages?: string[];
-  consultation_fee?: number;
+  therapy_approaches_ids?: string[];
+  modalities?: Modality[];
+
+  // Settings
+  timezone?: string;
+  profile_picture?: string;
 }
 
 export async function getProfessionalProfile(professionalId: string): Promise<ProfessionalProfile> {
   try {
     const response = await apiClient.get(`/professionals/${professionalId}`);
-    return (response as any).data;
+    return response as ProfessionalProfile;
   } catch (error) {
     console.error("Get professional profile error:", error);
     throw error;
   }
 }
 
-export async function updateProfessionalProfile(
+export async function updateProfessionalProfileById(
   professionalId: string,
   data: UpdateProfessionalProfileRequest,
 ): Promise<ProfessionalProfile> {
   try {
     const response = await apiClient.patch(`/professionals/${professionalId}`, data);
-    return (response as any).data;
+    return response as ProfessionalProfile;
   } catch (error) {
     console.error("Update professional profile error:", error);
     throw error;
@@ -60,11 +88,23 @@ export async function updateProfessionalProfile(
 
 export async function getMyProfessionalProfile(): Promise<ProfessionalProfile | null> {
   try {
-    const response = await apiClient.get("/professionals/me");
-    return (response as any).data;
+    const response = await apiClient.get("/professionals/me/profile");
+    return response as ProfessionalProfile;
   } catch (error) {
     console.error("Get my professional profile error:", error);
     return null;
+  }
+}
+
+export async function updateProfessionalProfile(
+  data: UpdateProfessionalProfileRequest,
+): Promise<ProfessionalProfile> {
+  try {
+    const response = await apiClient.put("/professionals/me", data);
+    return response as ProfessionalProfile;
+  } catch (error) {
+    console.error("Update professional profile error:", error);
+    throw error;
   }
 }
 
@@ -73,7 +113,7 @@ export async function createProfessionalProfile(
 ): Promise<ProfessionalProfile> {
   try {
     const response = await apiClient.post("/professionals", data);
-    return (response as any).data;
+    return response as ProfessionalProfile;
   } catch (error) {
     console.error("Create professional profile error:", error);
     throw error;
@@ -94,7 +134,7 @@ export async function queryProfessionals(
     const params = new URLSearchParams();
     if (filters) {
       Object.entries(filters).forEach(([key, value]) => {
-        if (value !== undefined && value !== null) {
+        if (value !== undefined && value !== null && value !== "") {
           params.append(key, String(value));
         }
       });
@@ -124,7 +164,7 @@ export async function queryProfessionals(
 export async function getUserProfile(userId: string): Promise<Record<string, unknown> | null> {
   try {
     const response = await apiClient.get(`/users/${userId}`);
-    return (response as any).data;
+    return response as Record<string, unknown>;
   } catch (error) {
     console.error("Get user profile error:", error);
     return null;
@@ -137,7 +177,7 @@ export async function updateUserProfile(
 ): Promise<Record<string, unknown>> {
   try {
     const response = await apiClient.patch(`/users/${userId}`, data);
-    return (response as any).data;
+    return response as Record<string, unknown>;
   } catch (error) {
     console.error("Update user profile error:", error);
     throw error;

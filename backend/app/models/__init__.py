@@ -1,16 +1,29 @@
 """
 Database models for the Miamente platform.
 """
-from app.models.user import User
-from app.models.professional import Professional
-from app.models.appointment import Appointment
+
 from app.models.availability import Availability
-from app.models.payment import Payment
+from app.models.modality import Modality  # New: intervention modalities
+from app.models.professional import Professional
+from app.models.professional_modality import ProfessionalModality
+from app.models.professional_specialty import (  # Keep for backward compatibility
+    ProfessionalSpecialty,
+)
+from app.models.professional_therapeutic_approach import ProfessionalTherapeuticApproach
+from app.models.specialty import Specialty  # Keep for backward compatibility
+from app.models.therapeutic_approach import (  # New: therapeutic approaches
+    TherapeuticApproach,
+)
+from app.models.user import User
 
 __all__ = [
     "User",
-    "Professional", 
-    "Appointment",
+    "Professional",
     "Availability",
-    "Payment",
+    "Specialty",
+    "ProfessionalSpecialty",
+    "Modality",
+    "TherapeuticApproach",
+    "ProfessionalTherapeuticApproach",
+    "ProfessionalModality",
 ]

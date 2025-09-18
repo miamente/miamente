@@ -18,7 +18,7 @@ export default function AdminAppointments() {
       try {
         setLoading(true);
         setError(null);
-        const data = await getAppointmentsSummary(100); // Load more appointments
+        const data = await getAppointmentsSummary(); // Load appointments
         setAppointments(data);
       } catch (err) {
         console.error("Error loading appointments:", err);

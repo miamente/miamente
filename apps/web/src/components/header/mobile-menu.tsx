@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import type { NavigationItem, UserMenuOption } from "@/lib/header-types";
 import { cn } from "@/lib/utils";
+import { UserRole } from "@/lib/types";
 
 interface MobileMenuProps {
   isOpen: boolean;
@@ -33,13 +34,11 @@ export function MobileMenu({
   if (!isOpen) return null;
 
   const filteredNavItems = navigationItems.filter(
-    (item) =>
-      !item.roles || (userRole && item.roles.includes(userRole as "user" | "pro" | "admin")),
+    (item) => !item.roles || (userRole && item.roles.includes(userRole as UserRole)),
   );
 
   const filteredUserOptions = userMenuOptions.filter(
-    (option) =>
-      !option.roles || (userRole && option.roles.includes(userRole as "user" | "pro" | "admin")),
+    (option) => !option.roles || (userRole && option.roles.includes(userRole as UserRole)),
   );
 
   return (

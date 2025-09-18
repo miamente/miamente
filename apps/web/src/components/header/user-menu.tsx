@@ -7,6 +7,7 @@ import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import type { UserMenuOption } from "@/lib/header-types";
 import { cn } from "@/lib/utils";
+import { UserRole } from "@/lib/types";
 
 interface UserMenuProps {
   userRole?: string;
@@ -56,15 +57,14 @@ export function UserMenu({
   }
 
   const filteredUserOptions = userMenuOptions.filter(
-    (option) =>
-      !option.roles || (userRole && option.roles.includes(userRole as "user" | "pro" | "admin")),
+    (option) => !option.roles || (userRole && option.roles.includes(userRole as UserRole)),
   );
 
   const getRoleIcon = (role?: string) => {
     switch (role) {
       case "admin":
         return <Settings className="h-4 w-4" />;
-      case "pro":
+      case "professional":
         return <User className="h-4 w-4" />;
       default:
         return <User className="h-4 w-4" />;

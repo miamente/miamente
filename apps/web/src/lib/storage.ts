@@ -19,7 +19,7 @@ export async function uploadFile(file: File): Promise<UploadResponse> {
       },
     });
 
-    return (response as any).data;
+    return (response as { data: UploadResponse }).data;
   } catch (error) {
     console.error("File upload error:", error);
     throw error;

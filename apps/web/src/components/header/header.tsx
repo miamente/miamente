@@ -9,8 +9,7 @@ import { Navigation } from "./navigation";
 import { UserMenu } from "./user-menu";
 
 import { Button } from "@/components/ui/button";
-import { useAuth, getUserEmail, getUserFullName } from "@/hooks/useAuth";
-import { useRole } from "@/hooks/useRole";
+import { useAuthContext, getUserEmail, getUserFullName } from "@/contexts/AuthContext";
 import { logout } from "@/lib/auth";
 import {
   DEFAULT_HEADER_CONFIG,
@@ -22,8 +21,7 @@ import { cn } from "@/lib/utils";
 
 export function Header({ config = {}, className }: HeaderProps) {
   const { theme, setTheme } = useTheme();
-  const { user, isLoading: authLoading } = useAuth();
-  const { userProfile, loading: roleLoading } = useRole();
+  const { user, isLoading: authLoading } = useAuthContext();
   const [mounted, setMounted] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -45,12 +43,12 @@ export function Header({ config = {}, className }: HeaderProps) {
 
   const isDark = theme === "dark";
   const isAuthenticated = !!user && !authLoading;
-  const userRole = userProfile?.role;
-  const userName = userProfile?.full_name || getUserFullName(user);
+  const userRole = user?.type;
+  const userName = getUserFullName(user);
   const userEmail = getUserEmail(user);
 
   // Show loading state
-  if (!mounted || authLoading || roleLoading) {
+  if (!mounted || authLoading) {
     return (
       <header
         className={cn(
