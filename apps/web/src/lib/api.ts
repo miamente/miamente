@@ -206,7 +206,7 @@ class ApiClient {
   }
 
   async loginUser(credentials: LoginRequest): Promise<LoginResponse> {
-    const response = await this.post<LoginResponse>("/auth/login", credentials);
+    const response = await this.post<LoginResponse>("/auth/login/user", credentials);
 
     // Store the token
     const { access_token } = response;
@@ -216,7 +216,7 @@ class ApiClient {
   }
 
   async loginProfessional(credentials: LoginRequest): Promise<LoginResponse> {
-    const response = await this.post<LoginResponse>("/auth/login", credentials);
+    const response = await this.post<LoginResponse>("/auth/login/professional", credentials);
 
     // Store the token
     const { access_token } = response;

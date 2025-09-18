@@ -106,6 +106,31 @@ export default function ProfessionalsPage() {
     fetchPage(false);
   };
 
+  const renderSpecialtyInfo = (pro: any) => {
+    if (specialtiesLoading) {
+      return (
+        <div className="h-4 w-32 animate-pulse rounded bg-neutral-200 dark:bg-neutral-700"></div>
+      );
+    }
+
+    if (pro.specialty_ids && pro.specialty_ids.length > 0) {
+      return (
+        <div className="flex flex-wrap gap-1">
+          {getSpecialtyNames(pro.specialty_ids).map((specialty: string, index: number) => (
+            <span
+              key={`${pro.id}-specialty-${specialty}-${index}`}
+              className="rounded-full bg-blue-100 px-2 py-1 text-xs text-blue-800 dark:bg-blue-900 dark:text-blue-200"
+            >
+              {specialty}
+            </span>
+          ))}
+        </div>
+      );
+    }
+
+    return "Especialidad no especificada";
+  };
+
   // Determine what content to render
   const renderContent = () => {
     if (loading && isInitialLoad) {
@@ -139,24 +164,7 @@ export default function ProfessionalsPage() {
               <CardHeader>
                 <CardTitle className="text-xl">{pro.full_name}</CardTitle>
                 <div className="text-sm text-neutral-600 dark:text-neutral-400">
-                  {specialtiesLoading ? (
-                    <div className="h-4 w-32 animate-pulse rounded bg-neutral-200 dark:bg-neutral-700"></div>
-                  ) : pro.specialty_ids && pro.specialty_ids.length > 0 ? (
-                    <div className="flex flex-wrap gap-1">
-                      {getSpecialtyNames(pro.specialty_ids).map(
-                        (specialty: string, index: number) => (
-                          <span
-                            key={`${pro.id}-specialty-${specialty}-${index}`}
-                            className="rounded-full bg-blue-100 px-2 py-1 text-xs text-blue-800 dark:bg-blue-900 dark:text-blue-200"
-                          >
-                            {specialty}
-                          </span>
-                        ),
-                      )}
-                    </div>
-                  ) : (
-                    "Especialidad no especificada"
-                  )}
+                  {renderSpecialtyInfo(pro)}
                 </div>
                 <p className="text-sm text-neutral-600 dark:text-neutral-400">
                   {(pro.rate_cents / 100).toLocaleString("es-CO", {
