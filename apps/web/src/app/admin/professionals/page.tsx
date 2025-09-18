@@ -55,6 +55,13 @@ export default function AdminProfessionals() {
     }
   };
 
+  const getButtonContent = (pro: ProfessionalSummary) => {
+    if (updating === pro.id) {
+      return <div className="h-4 w-4 animate-spin rounded-full border-b-2 border-white"></div>;
+    }
+    return pro.isVerified ? "Revocar" : "Verificar";
+  };
+
   if (loading) {
     return (
       <div className="container mx-auto px-4 py-8">
@@ -174,13 +181,7 @@ export default function AdminProfessionals() {
                               onClick={() => handleVerificationToggle(pro.id, pro.isVerified)}
                               disabled={updating === pro.id}
                             >
-                              {updating === pro.id ? (
-                                <div className="h-4 w-4 animate-spin rounded-full border-b-2 border-white"></div>
-                              ) : pro.isVerified ? (
-                                "Revocar"
-                              ) : (
-                                "Verificar"
-                              )}
+                              {getButtonContent(pro)}
                             </Button>
                             <Button
                               size="sm"
