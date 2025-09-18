@@ -135,7 +135,9 @@ export function ReviewModal({
             )}
 
             <div>
-              <label className="mb-2 block text-sm font-medium">Calificación (1-5 estrellas)</label>
+              <label htmlFor="rating" className="mb-2 block text-sm font-medium">
+                Calificación (1-5 estrellas)
+              </label>
               <div className="flex items-center space-x-4">
                 <StarRating
                   rating={rating}
@@ -144,6 +146,7 @@ export function ReviewModal({
                   disabled={isSubmitting}
                 />
                 <Input
+                  id="rating"
                   type="number"
                   min={1}
                   max={5}

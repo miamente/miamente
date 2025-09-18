@@ -103,10 +103,14 @@ export function WorkExperienceEditor({ disabled = false }: WorkExperienceEditorP
 
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                   <div>
-                    <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                    <label
+                      htmlFor={`workExperience-${index}-company`}
+                      className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300"
+                    >
                       Empresa/Institución *
                     </label>
                     <Input
+                      id={`workExperience-${index}-company`}
                       {...control.register(`workExperience.${index}.company`)}
                       placeholder="Hospital Universitario"
                       disabled={disabled}
@@ -119,10 +123,14 @@ export function WorkExperienceEditor({ disabled = false }: WorkExperienceEditorP
                   </div>
 
                   <div>
-                    <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                    <label
+                      htmlFor={`workExperience-${index}-position`}
+                      className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300"
+                    >
                       Cargo/Posición *
                     </label>
                     <Input
+                      id={`workExperience-${index}-position`}
                       {...control.register(`workExperience.${index}.position`)}
                       placeholder="Psiquiatra"
                       disabled={disabled}
@@ -135,10 +143,14 @@ export function WorkExperienceEditor({ disabled = false }: WorkExperienceEditorP
                   </div>
 
                   <div>
-                    <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                    <label
+                      htmlFor={`workExperience-${index}-start_date`}
+                      className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300"
+                    >
                       Fecha de Inicio *
                     </label>
                     <Input
+                      id={`workExperience-${index}-start_date`}
                       type="date"
                       {...control.register(`workExperience.${index}.start_date`)}
                       disabled={disabled}
@@ -151,10 +163,14 @@ export function WorkExperienceEditor({ disabled = false }: WorkExperienceEditorP
                   </div>
 
                   <div>
-                    <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                    <label
+                      htmlFor={`workExperience-${index}-end_date`}
+                      className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300"
+                    >
                       Fecha de Finalización
                     </label>
                     <Input
+                      id={`workExperience-${index}-end_date`}
                       type="date"
                       {...control.register(`workExperience.${index}.end_date`)}
                       disabled={disabled}
@@ -168,10 +184,14 @@ export function WorkExperienceEditor({ disabled = false }: WorkExperienceEditorP
                 </div>
 
                 <div>
-                  <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  <label
+                    htmlFor={`workExperience-${index}-description`}
+                    className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300"
+                  >
                     Descripción
                   </label>
                   <Textarea
+                    id={`workExperience-${index}-description`}
                     {...control.register(`workExperience.${index}.description`)}
                     placeholder="Tratamiento de pacientes con trastornos mentales severos..."
                     rows={3}

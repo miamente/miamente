@@ -32,7 +32,7 @@ vi.mock("@/hooks/useSpecialtyNames", () => ({
 
 // Mock Next.js Image component
 vi.mock("next/image", () => ({
-  default: ({ alt }: { alt: string }) => <div role="img" aria-label={alt} />,
+  default: ({ alt, ...props }: { alt: string; [key: string]: any }) => <img alt={alt} {...props} />,
 }));
 
 const mockUseRouter = vi.mocked(useRouter);

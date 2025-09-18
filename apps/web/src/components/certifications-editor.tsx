@@ -233,10 +233,14 @@ export function CertificationsEditor({ disabled = false }: CertificationsEditorP
 
                     <div className="space-y-4">
                       <div>
-                        <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                        <label
+                          htmlFor={`certification-name-${index}`}
+                          className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300"
+                        >
                           Nombre de la Certificación *
                         </label>
                         <Input
+                          id={`certification-name-${index}`}
                           {...control.register(`certifications.${index}.name`)}
                           placeholder="Certificación en Terapia Cognitivo-Conductual"
                           disabled={disabled}
@@ -251,7 +255,10 @@ export function CertificationsEditor({ disabled = false }: CertificationsEditorP
                       </div>
 
                       <div>
-                        <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                        <label
+                          htmlFor={`certification-file-${index}`}
+                          className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300"
+                        >
                           Documento de Certificación *
                         </label>
                         <div className="mt-1">
@@ -267,6 +274,7 @@ export function CertificationsEditor({ disabled = false }: CertificationsEditorP
                             } `}
                           >
                             <input
+                              id={`certification-file-${index}`}
                               type="file"
                               accept=".pdf,.jpg,.jpeg,.png"
                               onChange={(e) => handleFileChange(e, index)}

@@ -46,7 +46,7 @@ export interface TestTherapeuticApproach {
 }
 
 export class DataSeeder {
-  constructor(private request: APIRequestContext) {}
+  constructor(private readonly request: APIRequestContext) {}
 
   /**
    * Check if the database has any data and seed if necessary

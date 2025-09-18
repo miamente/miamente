@@ -66,8 +66,7 @@ export default function LandingPage() {
       <section className="container mx-auto px-4 py-16 text-center">
         <div className="mx-auto max-w-4xl">
           <h1 className="mb-6 text-5xl font-bold text-gray-900 md:text-6xl dark:text-white">
-            Cuidamos tu
-            <span className="text-blue-600 dark:text-blue-400"> bienestar mental</span>
+            Cuidamos tu <span className="text-blue-600 dark:text-blue-400">bienestar mental</span>
           </h1>
           <p className="mx-auto mb-8 max-w-2xl text-xl text-gray-600 dark:text-gray-300">
             Conecta con profesionales de la salud mental certificados para sesiones virtuales

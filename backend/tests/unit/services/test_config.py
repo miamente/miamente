@@ -19,7 +19,7 @@ class Settings(BaseSettings):
     
     # Server settings
     SERVER_NAME: str = "localhost"
-    SERVER_HOST: AnyHttpUrl = "http://localhost:8000"
+    SERVER_HOST: str = "http://localhost:8000"
     
     # CORS settings
     BACKEND_CORS_ORIGINS: List[str] = ["http://localhost:3000", "http://localhost:3001", "http://localhost:8000"]
@@ -27,6 +27,7 @@ class Settings(BaseSettings):
     @field_validator("BACKEND_CORS_ORIGINS", mode="before")
     @classmethod
     def assemble_cors_origins(cls, v: Union[str, List[str]]) -> List[str]:
+        """Parse CORS origins from string or list format."""
         if isinstance(v, str):
             return [i.strip() for i in v.split(",")]
         elif isinstance(v, list):
@@ -39,6 +40,7 @@ class Settings(BaseSettings):
     @field_validator("ALLOWED_HOSTS", mode="before")
     @classmethod
     def assemble_allowed_hosts(cls, v: Union[str, List[str]]) -> List[str]:
+        """Parse allowed hosts from string or list format."""
         if isinstance(v, str):
             return [i.strip() for i in v.split(",")]
         elif isinstance(v, list):

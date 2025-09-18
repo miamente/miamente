@@ -27,7 +27,7 @@ export function useTherapyApproachNames(approachIds: string[]) {
       const nameMap: Record<string, string> = {};
       if (approaches && Array.isArray(approaches)) {
         approaches.forEach((approach) => {
-          if (approach && approach.id && approach.name) {
+          if (approach?.id && approach?.name) {
             nameMap[approach.id] = approach.name;
           }
         });

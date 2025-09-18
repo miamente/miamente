@@ -130,11 +130,15 @@ describe("Accessibility Tests", () => {
           Menu
         </button>
         <ul id="menu" role="menu" aria-hidden="true">
-          <li role="menuitem">
-            <a href="/item1">Item 1</a>
+          <li>
+            <a href="/item1" role="menuitem">
+              Item 1
+            </a>
           </li>
-          <li role="menuitem">
-            <a href="/item2">Item 2</a>
+          <li>
+            <a href="/item2" role="menuitem">
+              Item 2
+            </a>
           </li>
         </ul>
       </div>,
@@ -147,7 +151,7 @@ describe("Accessibility Tests", () => {
     const { container } = render(
       <div>
         <Image src="/test-image.jpg" alt="Test image description" width={100} height={100} />
-        <Image src="/decorative-image.jpg" alt="" role="presentation" width={100} height={100} />
+        <Image src="/decorative-image.jpg" alt="" width={100} height={100} />
       </div>,
     );
     const results = await axe(container);

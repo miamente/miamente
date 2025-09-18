@@ -105,10 +105,14 @@ export function AcademicExperienceEditor({ disabled = false }: AcademicExperienc
 
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                   <div>
-                    <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                    <label
+                      htmlFor={`institution-${index}`}
+                      className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300"
+                    >
                       Institución *
                     </label>
                     <Input
+                      id={`institution-${index}`}
                       {...control.register(`academicExperience.${index}.institution`)}
                       placeholder="Universidad del Rosario"
                       disabled={disabled}
@@ -121,10 +125,14 @@ export function AcademicExperienceEditor({ disabled = false }: AcademicExperienc
                   </div>
 
                   <div>
-                    <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                    <label
+                      htmlFor={`degree-${index}`}
+                      className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300"
+                    >
                       Título/Degree *
                     </label>
                     <Input
+                      id={`degree-${index}`}
                       {...control.register(`academicExperience.${index}.degree`)}
                       placeholder="Medicina"
                       disabled={disabled}
@@ -137,10 +145,14 @@ export function AcademicExperienceEditor({ disabled = false }: AcademicExperienc
                   </div>
 
                   <div>
-                    <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                    <label
+                      htmlFor={`field-${index}`}
+                      className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300"
+                    >
                       Campo de Estudio *
                     </label>
                     <Input
+                      id={`field-${index}`}
                       {...control.register(`academicExperience.${index}.field`)}
                       placeholder="Medicina General"
                       disabled={disabled}
@@ -153,10 +165,14 @@ export function AcademicExperienceEditor({ disabled = false }: AcademicExperienc
                   </div>
 
                   <div>
-                    <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                    <label
+                      htmlFor={`start-date-${index}`}
+                      className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300"
+                    >
                       Fecha de Inicio *
                     </label>
                     <Input
+                      id={`start-date-${index}`}
                       type="date"
                       {...control.register(`academicExperience.${index}.start_date`)}
                       disabled={disabled}
@@ -169,10 +185,14 @@ export function AcademicExperienceEditor({ disabled = false }: AcademicExperienc
                   </div>
 
                   <div>
-                    <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                    <label
+                      htmlFor={`end-date-${index}`}
+                      className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300"
+                    >
                       Fecha de Finalización
                     </label>
                     <Input
+                      id={`end-date-${index}`}
                       type="date"
                       {...control.register(`academicExperience.${index}.end_date`)}
                       disabled={disabled}
@@ -186,10 +206,14 @@ export function AcademicExperienceEditor({ disabled = false }: AcademicExperienc
                 </div>
 
                 <div>
-                  <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  <label
+                    htmlFor={`description-${index}`}
+                    className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300"
+                  >
                     Descripción
                   </label>
                   <Textarea
+                    id={`description-${index}`}
                     {...control.register(`academicExperience.${index}.description`)}
                     placeholder="Formación médica general con enfoque en..."
                     rows={3}

@@ -151,6 +151,29 @@ export default function ProfessionalProfilePage() {
     });
   };
 
+  const renderSpecialtyInfo = () => {
+    if (specialtiesLoading) {
+      return <Skeleton className="h-4 w-32" />;
+    }
+
+    if (professional.specialty_ids && professional.specialty_ids.length > 0) {
+      return (
+        <div className="flex flex-wrap gap-1">
+          {getSpecialtyNames(professional.specialty_ids).map((specialty: string, index: number) => (
+            <span
+              key={index}
+              className="rounded-full bg-blue-100 px-2 py-1 text-xs text-blue-800 dark:bg-blue-900 dark:text-blue-200"
+            >
+              {specialty}
+            </span>
+          ))}
+        </div>
+      );
+    }
+
+    return "Especialidad no especificada";
+  };
+
   return (
     <div className="container mx-auto px-4 py-8">
       {/* Header */}
@@ -199,24 +222,7 @@ export default function ProfessionalProfilePage() {
 
               <CardTitle className="text-xl">{professional.full_name}</CardTitle>
               <div className="text-sm text-gray-600 dark:text-gray-400">
-                {specialtiesLoading ? (
-                  <Skeleton className="h-4 w-32" />
-                ) : professional.specialty_ids && professional.specialty_ids.length > 0 ? (
-                  <div className="flex flex-wrap gap-1">
-                    {getSpecialtyNames(professional.specialty_ids).map(
-                      (specialty: string, index: number) => (
-                        <span
-                          key={index}
-                          className="rounded-full bg-blue-100 px-2 py-1 text-xs text-blue-800 dark:bg-blue-900 dark:text-blue-200"
-                        >
-                          {specialty}
-                        </span>
-                      ),
-                    )}
-                  </div>
-                ) : (
-                  "Especialidad no especificada"
-                )}
+                {renderSpecialtyInfo()}
               </div>
 
               {professional.is_verified && (
