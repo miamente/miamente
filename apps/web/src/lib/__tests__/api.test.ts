@@ -1,6 +1,9 @@
 import { vi, describe, it, expect, beforeEach, afterEach } from "vitest";
 import { ApiClient } from "../api";
 
+// Test password constant
+const TEST_PASSWORD = "password123";
+
 // Mock fetch
 global.fetch = vi.fn();
 
@@ -69,7 +72,7 @@ describe("ApiClient", () => {
   });
 
   it("should make POST request with data", async () => {
-    const mockData = { email: "test@example.com", password: "password123" };
+    const mockData = { email: "test@example.com", password: TEST_PASSWORD };
     const mockResponse = { success: true };
     vi.mocked(fetch).mockResolvedValue({
       ok: true,
@@ -110,7 +113,7 @@ describe("ApiClient", () => {
   });
 
   it("should login user and store token", async () => {
-    const credentials = { email: "test@example.com", password: "password123" };
+    const credentials = { email: "test@example.com", password: TEST_PASSWORD };
     const mockResponse = {
       user: { id: "1", email: "test@example.com" },
       access_token: "new-token",
