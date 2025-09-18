@@ -8,6 +8,9 @@ Create Date: 2025-09-18 12:50:38.215577
 from alembic import op
 import sqlalchemy as sa
 
+# Constants for duplicated literals
+NOW_FUNCTION = NOW_FUNCTION
+PROFESSIONALS_ID_REF = PROFESSIONALS_ID_REF
 
 # revision identifiers, used by Alembic.
 revision = '8896a8b86d20'
@@ -28,8 +31,8 @@ def upgrade() -> None:
         sa.Column('emergency_phone', sa.String(length=20), nullable=True),
         sa.Column('hashed_password', sa.String(length=255), nullable=False),
         sa.Column('is_active', sa.Boolean(), nullable=True),
-        sa.Column('created_at', sa.DateTime(), server_default=sa.text('now()'), nullable=True),
-        sa.Column('updated_at', sa.DateTime(), server_default=sa.text('now()'), nullable=True),
+        sa.Column('created_at', sa.DateTime(), server_default=sa.text(NOW_FUNCTION), nullable=True),
+        sa.Column('updated_at', sa.DateTime(), server_default=sa.text(NOW_FUNCTION), nullable=True),
         sa.PrimaryKeyConstraint('id'),
         sa.UniqueConstraint('email')
     )
@@ -51,8 +54,8 @@ def upgrade() -> None:
         sa.Column('timezone', sa.String(length=50), nullable=True),
         sa.Column('hashed_password', sa.String(length=255), nullable=False),
         sa.Column('is_active', sa.Boolean(), nullable=True),
-        sa.Column('created_at', sa.DateTime(), server_default=sa.text('now()'), nullable=True),
-        sa.Column('updated_at', sa.DateTime(), server_default=sa.text('now()'), nullable=True),
+        sa.Column('created_at', sa.DateTime(), server_default=sa.text(NOW_FUNCTION), nullable=True),
+        sa.Column('updated_at', sa.DateTime(), server_default=sa.text(NOW_FUNCTION), nullable=True),
         sa.PrimaryKeyConstraint('id'),
         sa.UniqueConstraint('email')
     )
@@ -63,8 +66,8 @@ def upgrade() -> None:
         sa.Column('name', sa.String(length=255), nullable=False),
         sa.Column('description', sa.Text(), nullable=True),
         sa.Column('is_active', sa.Boolean(), nullable=True),
-        sa.Column('created_at', sa.DateTime(), server_default=sa.text('now()'), nullable=True),
-        sa.Column('updated_at', sa.DateTime(), server_default=sa.text('now()'), nullable=True),
+        sa.Column('created_at', sa.DateTime(), server_default=sa.text(NOW_FUNCTION), nullable=True),
+        sa.Column('updated_at', sa.DateTime(), server_default=sa.text(NOW_FUNCTION), nullable=True),
         sa.PrimaryKeyConstraint('id'),
         sa.UniqueConstraint('name')
     )
@@ -75,8 +78,8 @@ def upgrade() -> None:
         sa.Column('name', sa.String(length=255), nullable=False),
         sa.Column('category', sa.String(length=100), nullable=True),
         sa.Column('is_active', sa.Boolean(), nullable=True),
-        sa.Column('created_at', sa.DateTime(), server_default=sa.text('now()'), nullable=True),
-        sa.Column('updated_at', sa.DateTime(), server_default=sa.text('now()'), nullable=True),
+        sa.Column('created_at', sa.DateTime(), server_default=sa.text(NOW_FUNCTION), nullable=True),
+        sa.Column('updated_at', sa.DateTime(), server_default=sa.text(NOW_FUNCTION), nullable=True),
         sa.PrimaryKeyConstraint('id'),
         sa.UniqueConstraint('name')
     )
@@ -87,8 +90,8 @@ def upgrade() -> None:
         sa.Column('name', sa.String(length=255), nullable=False),
         sa.Column('description', sa.Text(), nullable=True),
         sa.Column('is_active', sa.Boolean(), nullable=True),
-        sa.Column('created_at', sa.DateTime(), server_default=sa.text('now()'), nullable=True),
-        sa.Column('updated_at', sa.DateTime(), server_default=sa.text('now()'), nullable=True),
+        sa.Column('created_at', sa.DateTime(), server_default=sa.text(NOW_FUNCTION), nullable=True),
+        sa.Column('updated_at', sa.DateTime(), server_default=sa.text(NOW_FUNCTION), nullable=True),
         sa.PrimaryKeyConstraint('id'),
         sa.UniqueConstraint('name')
     )
@@ -99,8 +102,8 @@ def upgrade() -> None:
         sa.Column('name', sa.String(length=255), nullable=False),
         sa.Column('description', sa.Text(), nullable=True),
         sa.Column('is_active', sa.Boolean(), nullable=True),
-        sa.Column('created_at', sa.DateTime(), server_default=sa.text('now()'), nullable=True),
-        sa.Column('updated_at', sa.DateTime(), server_default=sa.text('now()'), nullable=True),
+        sa.Column('created_at', sa.DateTime(), server_default=sa.text(NOW_FUNCTION), nullable=True),
+        sa.Column('updated_at', sa.DateTime(), server_default=sa.text(NOW_FUNCTION), nullable=True),
         sa.PrimaryKeyConstraint('id'),
         sa.UniqueConstraint('name')
     )
@@ -116,9 +119,9 @@ def upgrade() -> None:
         sa.Column('currency', sa.String(length=3), nullable=True),
         sa.Column('is_default', sa.Boolean(), nullable=True),
         sa.Column('is_active', sa.Boolean(), nullable=True),
-        sa.Column('created_at', sa.String(length=255), server_default=sa.text('now()'), nullable=True),
+        sa.Column('created_at', sa.String(length=255), server_default=sa.text(NOW_FUNCTION), nullable=True),
         sa.Column('updated_at', sa.String(length=255), nullable=True),
-        sa.ForeignKeyConstraint(['professional_id'], ['professionals.id'], ),
+        sa.ForeignKeyConstraint(['professional_id'], [PROFESSIONALS_ID_REF], ),
         sa.ForeignKeyConstraint(['specialty_id'], ['specialties.id'], ),
         sa.PrimaryKeyConstraint('id')
     )
@@ -128,8 +131,8 @@ def upgrade() -> None:
         sa.Column('id', sa.UUID(), nullable=False),
         sa.Column('professional_id', sa.UUID(), nullable=False),
         sa.Column('specialty_id', sa.UUID(), nullable=False),
-        sa.Column('created_at', sa.String(length=255), server_default=sa.text('now()'), nullable=True),
-        sa.ForeignKeyConstraint(['professional_id'], ['professionals.id'], ),
+        sa.Column('created_at', sa.String(length=255), server_default=sa.text(NOW_FUNCTION), nullable=True),
+        sa.ForeignKeyConstraint(['professional_id'], [PROFESSIONALS_ID_REF], ),
         sa.ForeignKeyConstraint(['specialty_id'], ['specialties_new.id'], ),
         sa.PrimaryKeyConstraint('id')
     )
@@ -139,9 +142,9 @@ def upgrade() -> None:
         sa.Column('id', sa.UUID(), nullable=False),
         sa.Column('professional_id', sa.UUID(), nullable=False),
         sa.Column('modality_id', sa.UUID(), nullable=False),
-        sa.Column('created_at', sa.DateTime(), server_default=sa.text('now()'), nullable=True),
+        sa.Column('created_at', sa.DateTime(), server_default=sa.text(NOW_FUNCTION), nullable=True),
         sa.ForeignKeyConstraint(['modality_id'], ['modalities.id'], ),
-        sa.ForeignKeyConstraint(['professional_id'], ['professionals.id'], ),
+        sa.ForeignKeyConstraint(['professional_id'], [PROFESSIONALS_ID_REF], ),
         sa.PrimaryKeyConstraint('id')
     )
 
@@ -150,8 +153,8 @@ def upgrade() -> None:
         sa.Column('id', sa.UUID(), nullable=False),
         sa.Column('professional_id', sa.UUID(), nullable=False),
         sa.Column('therapeutic_approach_id', sa.UUID(), nullable=False),
-        sa.Column('created_at', sa.DateTime(), server_default=sa.text('now()'), nullable=True),
-        sa.ForeignKeyConstraint(['professional_id'], ['professionals.id'], ),
+        sa.Column('created_at', sa.DateTime(), server_default=sa.text(NOW_FUNCTION), nullable=True),
+        sa.ForeignKeyConstraint(['professional_id'], [PROFESSIONALS_ID_REF], ),
         sa.ForeignKeyConstraint(['therapeutic_approach_id'], ['therapeutic_approaches.id'], ),
         sa.PrimaryKeyConstraint('id')
     )
@@ -164,9 +167,9 @@ def upgrade() -> None:
         sa.Column('start_time', sa.Time(), nullable=False),
         sa.Column('end_time', sa.Time(), nullable=False),
         sa.Column('is_available', sa.Boolean(), nullable=True),
-        sa.Column('created_at', sa.DateTime(), server_default=sa.text('now()'), nullable=True),
-        sa.Column('updated_at', sa.DateTime(), server_default=sa.text('now()'), nullable=True),
-        sa.ForeignKeyConstraint(['professional_id'], ['professionals.id'], ),
+        sa.Column('created_at', sa.DateTime(), server_default=sa.text(NOW_FUNCTION), nullable=True),
+        sa.Column('updated_at', sa.DateTime(), server_default=sa.text(NOW_FUNCTION), nullable=True),
+        sa.ForeignKeyConstraint(['professional_id'], [PROFESSIONALS_ID_REF], ),
         sa.PrimaryKeyConstraint('id')
     )
 
