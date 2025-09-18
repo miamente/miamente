@@ -17,6 +17,7 @@ depends_on = None
 
 # Constants
 NOW_FUNCTION = 'now()'
+PROFESSIONALS_ID_REF = 'professionals.id'
 
 
 def upgrade() -> None:
@@ -122,7 +123,7 @@ def upgrade() -> None:
         sa.Column('professional_id', postgresql.UUID(as_uuid=True), nullable=False),
         sa.Column('specialty_id', postgresql.UUID(as_uuid=True), nullable=False),
         sa.Column('created_at', sa.String(length=255), server_default=sa.text(NOW_FUNCTION), nullable=True),
-        sa.ForeignKeyConstraint(['professional_id'], ['professionals.id'], ),
+        sa.ForeignKeyConstraint(['professional_id'], [PROFESSIONALS_ID_REF], ),
         sa.ForeignKeyConstraint(['specialty_id'], ['specialties.id'], ),
         sa.PrimaryKeyConstraint('id')
     )
@@ -143,7 +144,7 @@ def upgrade() -> None:
         sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text(NOW_FUNCTION), nullable=True),
         sa.Column('updated_at', sa.DateTime(timezone=True), nullable=True),
         sa.ForeignKeyConstraint(['modality_id'], ['modalities.id'], ),
-        sa.ForeignKeyConstraint(['professional_id'], ['professionals.id'], ),
+        sa.ForeignKeyConstraint(['professional_id'], [PROFESSIONALS_ID_REF], ),
         sa.PrimaryKeyConstraint('id')
     )
 
@@ -153,7 +154,7 @@ def upgrade() -> None:
         sa.Column('professional_id', postgresql.UUID(as_uuid=True), nullable=False),
         sa.Column('therapeutic_approach_id', postgresql.UUID(as_uuid=True), nullable=False),
         sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text(NOW_FUNCTION), nullable=True),
-        sa.ForeignKeyConstraint(['professional_id'], ['professionals.id'], ),
+        sa.ForeignKeyConstraint(['professional_id'], [PROFESSIONALS_ID_REF], ),
         sa.ForeignKeyConstraint(['therapeutic_approach_id'], ['therapeutic_approaches.id'], ),
         sa.PrimaryKeyConstraint('id')
     )

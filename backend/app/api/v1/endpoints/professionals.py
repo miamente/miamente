@@ -18,6 +18,13 @@ from app.services.auth_service import AuthService
 
 router = APIRouter()
 
+# Constants
+PROFESSIONAL_NOT_FOUND_MESSAGE = "Professional not found"
+
+# Fields that require special handling
+JSON_FIELDS = ["academic_experience", "work_experience", "certifications"]
+SPECIAL_FIELDS = ["specialty_ids", "therapy_approaches_ids", "modalities"]
+
 
 def parse_professional_data(professional: Professional) -> dict:
     """Parse professional data including JSON fields."""
@@ -122,7 +129,7 @@ async def get_professional(professional_id: str, db: Session = Depends(get_db)):
     professional = db.query(Professional).filter(Professional.id == professional_uuid, Professional.is_active).first()
 
     if not professional:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Professional not found")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=PROFESSIONAL_NOT_FOUND_MESSAGE)
 
     return parse_professional_data(professional)
 
@@ -136,9 +143,86 @@ async def get_current_professional(current_user_id: str = Depends(get_current_us
     professional = auth_service.get_professional_by_id(current_user_id)
 
     if not professional:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Professional not found")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=PROFESSIONAL_NOT_FOUND_MESSAGE)
 
     return parse_professional_data(professional)
+
+
+def _update_json_fields(professional: Professional, update_data: dict) -> None:
+    """Update JSON fields in the professional model."""
+    for field in JSON_FIELDS:
+        if field in update_data:
+            setattr(professional, field, json.dumps(update_data[field]))
+
+
+def _update_modalities(professional: Professional, update_data: dict, db: Session) -> None:
+    """Update professional modalities relationship."""
+    if "modalities" not in update_data:
+        return
+    
+    print(f"DEBUG: Processing modalities data: {update_data['modalities']}")
+    
+    # Remove existing modalities
+    db.query(ProfessionalModality).filter(ProfessionalModality.professional_id == professional.id).delete()
+    
+    # Add new modalities
+    for modality_data in update_data["modalities"]:
+        print(f"DEBUG: Creating modality with data: {modality_data}")
+        new_modality = ProfessionalModality(
+            professional_id=professional.id,
+            modality_id=uuid.UUID(modality_data["modalityId"]),
+            modality_name=modality_data["modalityName"],
+            virtual_price=modality_data["virtualPrice"],
+            presencial_price=modality_data.get("presencialPrice", 0),
+            offers_presencial=modality_data.get("offersPresencial", False),
+            description=modality_data.get("description"),
+            is_default=modality_data.get("isDefault", False),
+        )
+        db.add(new_modality)
+        print(f"DEBUG: Added modality to database: {new_modality}")
+    
+    # Flush to ensure the modalities are saved before commit
+    db.flush()
+    print(f"DEBUG: Flushed {len(update_data['modalities'])} modalities to database")
+
+
+def _update_other_fields(professional: Professional, update_data: dict) -> None:
+    """Update other fields in the professional model."""
+    excluded_fields = JSON_FIELDS + SPECIAL_FIELDS
+    
+    for field, value in update_data.items():
+        if field not in excluded_fields and hasattr(professional, field):
+            # Map hourly_rate_cents to rate_cents
+            if field == "hourly_rate_cents":
+                professional.rate_cents = value
+            else:
+                setattr(professional, field, value)
+
+
+def _commit_changes(professional: Professional, db: Session) -> Professional:
+    """Commit changes to database and refresh the professional."""
+    try:
+        print("DEBUG: Committing changes to database...")
+        db.commit()
+        print("DEBUG: Changes committed successfully")
+        db.refresh(professional)
+        print("DEBUG: Professional refreshed from database")
+        
+        # Explicitly reload the modalities relationship
+        db.refresh(professional, ["professional_modalities"])
+        modalities_count_after = (
+            len(professional.professional_modalities) if professional.professional_modalities else 0
+        )
+        print(f"DEBUG: After refresh, modalities count: {modalities_count_after}")
+        
+        return professional
+    except Exception as e:
+        print(f"DEBUG: Error during commit: {str(e)}")
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error updating professional: {str(e)}",
+        )
 
 
 @router.put("/me", response_model=ProfessionalResponse)
@@ -152,19 +236,14 @@ async def update_current_professional(
     professional = auth_service.get_professional_by_id(current_user_id)
 
     if not professional:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Professional not found")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=PROFESSIONAL_NOT_FOUND_MESSAGE)
 
     # Update professional fields
     update_data = professional_update.dict(exclude_unset=True)
 
-    # Handle JSON fields
-    if "academic_experience" in update_data:
-        professional.academic_experience = json.dumps(update_data["academic_experience"])
-    if "work_experience" in update_data:
-        professional.work_experience = json.dumps(update_data["work_experience"])
-    if "certifications" in update_data:
-        professional.certifications = json.dumps(update_data["certifications"])
-
+    # Handle different types of field updates
+    _update_json_fields(professional, update_data)
+    
     # Handle specialty_ids - update directly in the professional model
     if "specialty_ids" in update_data:
         professional.specialty_ids = update_data["specialty_ids"]
@@ -174,71 +253,13 @@ async def update_current_professional(
         professional.therapy_approaches_ids = update_data["therapy_approaches_ids"]
 
     # Handle modalities - update professional_modalities relationship
-    if "modalities" in update_data:
-
-        print(f"DEBUG: Processing modalities data: {update_data['modalities']}")
-
-        # Remove existing modalities
-        db.query(ProfessionalModality).filter(ProfessionalModality.professional_id == professional.id).delete()
-
-        # Add new modalities
-        for modality_data in update_data["modalities"]:
-            print(f"DEBUG: Creating modality with data: {modality_data}")
-            new_modality = ProfessionalModality(
-                professional_id=professional.id,
-                modality_id=uuid.UUID(modality_data["modalityId"]),
-                modality_name=modality_data["modalityName"],
-                virtual_price=modality_data["virtualPrice"],
-                presencial_price=modality_data.get("presencialPrice", 0),
-                offers_presencial=modality_data.get("offersPresencial", False),
-                description=modality_data.get("description"),
-                is_default=modality_data.get("isDefault", False),
-            )
-            db.add(new_modality)
-            print(f"DEBUG: Added modality to database: {new_modality}")
-
-        # Flush to ensure the modalities are saved before commit
-        db.flush()
-        print(f"DEBUG: Flushed {len(update_data['modalities'])} modalities to database")
+    _update_modalities(professional, update_data, db)
 
     # Update other fields
-    for field, value in update_data.items():
-        if field not in [
-            "academic_experience",
-            "work_experience",
-            "certifications",
-            "specialty_ids",
-            "therapy_approaches_ids",
-            "modalities",
-        ] and hasattr(professional, field):
-            # Map hourly_rate_cents to rate_cents
-            if field == "hourly_rate_cents":
-                professional.rate_cents = value
-            else:
-                setattr(professional, field, value)
+    _update_other_fields(professional, update_data)
 
-    try:
-        print("DEBUG: Committing changes to database...")
-        db.commit()
-        print("DEBUG: Changes committed successfully")
-        db.refresh(professional)
-        print("DEBUG: Professional refreshed from database")
-
-        # Explicitly reload the modalities relationship
-        db.refresh(professional, ["professional_modalities"])
-        modalities_count_after = (
-            len(professional.professional_modalities) if professional.professional_modalities else 0
-        )
-        print(f"DEBUG: After refresh, modalities count: {modalities_count_after}")
-
-        return professional
-    except Exception as e:
-        print(f"DEBUG: Error during commit: {str(e)}")
-        db.rollback()
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Error updating professional: {str(e)}",
-        )
+    # Commit changes and return updated professional
+    return _commit_changes(professional, db)
 
 
 @router.get("/me/appointments")

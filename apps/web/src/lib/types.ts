@@ -8,28 +8,11 @@
 // ============================================================================
 
 export enum AppointmentStatus {
-  PENDING_PAYMENT = "pending_payment",
-  PAID = "paid",
   CONFIRMED = "confirmed",
   IN_PROGRESS = "in_progress",
   COMPLETED = "completed",
   CANCELLED = "cancelled",
   NO_SHOW = "no_show",
-}
-
-export enum PaymentStatus {
-  PENDING = "pending",
-  PROCESSING = "processing",
-  COMPLETED = "completed",
-  FAILED = "failed",
-  CANCELLED = "cancelled",
-  REFUNDED = "refunded",
-}
-
-export enum PaymentProvider {
-  MOCK = "mock",
-  STRIPE = "stripe",
-  PAYPAL = "paypal",
 }
 
 export enum UserRole {
@@ -188,7 +171,6 @@ export interface Appointment extends BaseEntity {
   user_id: string;
   professional_id: string;
   status: AppointmentStatus;
-  paid: boolean;
 
   // Time information
   start_time: string;
@@ -201,13 +183,6 @@ export interface Appointment extends BaseEntity {
   session_notes?: string;
   session_rating?: number;
   session_feedback?: string;
-
-  // Payment information
-  payment_amount_cents: number;
-  payment_currency: string;
-  payment_provider: string;
-  payment_status: string;
-  payment_id?: string;
 
   // Metadata
   cancelled_at?: string;
@@ -336,45 +311,6 @@ export interface ProfessionalModality {
 }
 
 // ============================================================================
-// PAYMENT TYPES
-// ============================================================================
-
-export interface Payment extends BaseEntity {
-  appointment_id: string;
-  user_id: string;
-  amount_cents: number;
-  currency: string;
-  provider: PaymentProvider;
-  status: PaymentStatus;
-  provider_payment_id?: string;
-  provider_transaction_id?: string;
-  provider_response?: Record<string, unknown>;
-  description?: string;
-  payment_metadata?: Record<string, unknown>;
-  processed_at?: string;
-  failed_at?: string;
-}
-
-export interface PaymentCreate {
-  appointment_id: string;
-  user_id: string;
-  amount_cents: number;
-  currency?: string;
-  provider?: PaymentProvider;
-  description?: string;
-  payment_metadata?: Record<string, unknown>;
-}
-
-export interface PaymentUpdate {
-  status?: PaymentStatus;
-  provider_payment_id?: string;
-  provider_transaction_id?: string;
-  provider_response?: Record<string, unknown>;
-  processed_at?: string;
-  failed_at?: string;
-}
-
-// ============================================================================
 // STRUCTURED DATA TYPES
 // ============================================================================
 
@@ -478,7 +414,6 @@ export interface AdminMetrics {
   total_professionals: number;
   confirmed_appointments_today: number;
   total_appointments_today: number;
-  payment_conversion_rate: number;
 }
 
 export interface ProfessionalSpecialty {
@@ -572,7 +507,6 @@ export interface AdminMetrics {
   total_professionals: number;
   confirmed_appointments_today: number;
   total_appointments_today: number;
-  payment_conversion_rate: number;
 }
 
 export interface EventLogEntry {
@@ -605,30 +539,6 @@ export interface AppointmentSummary {
   user_full_name?: string;
   professional_full_name?: string;
   professional_specialty?: string;
-}
-
-// ============================================================================
-// PAYMENT SERVICE TYPES
-// ============================================================================
-
-export interface PaymentCheckoutResult {
-  redirectUrl: string;
-  sessionId: string;
-  metadata?: Record<string, unknown>;
-}
-
-export interface PaymentReturnParams {
-  sessionId: string;
-  status: "success" | "failed" | "cancelled";
-  metadata?: Record<string, unknown>;
-}
-
-export interface PaymentStatusResult {
-  status: "pending" | "confirmed" | "failed" | "cancelled";
-  amount?: number;
-  currency?: string;
-  provider?: string;
-  metadata?: Record<string, unknown>;
 }
 
 // ============================================================================
@@ -698,6 +608,4 @@ export interface ConversionFunnelData {
   profile_completions: number;
   slot_creations: number;
   appointment_confirmations: number;
-  payment_attempts: number;
-  payment_successes: number;
 }

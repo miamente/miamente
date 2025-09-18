@@ -110,13 +110,54 @@ def safe_create_user_directory(base_dir: str, sub_dir: str, user_id: str) -> str
     # Validate user_id before using it in path construction
     validated_user_id = validate_user_id(user_id)
     
-    # Construct the path safely
-    user_upload_dir = os.path.join(base_dir, sub_dir, validated_user_id)
+    # Construct the path safely using only validated components
+    # Use os.path.normpath to prevent path traversal
+    user_upload_dir = os.path.normpath(os.path.join(base_dir, sub_dir, validated_user_id))
+    
+    # Additional security check: ensure the path is within the expected directory
+    expected_base = os.path.normpath(base_dir)
+    if not user_upload_dir.startswith(expected_base):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid path construction"
+        )
     
     # Create directory
     os.makedirs(user_upload_dir, exist_ok=True)
     
     return user_upload_dir
+
+
+def safe_construct_file_path(base_dir: str, sub_dir: str, user_id: str, filename: str) -> str:
+    """
+    Safely construct a file path without using user-controlled data directly.
+    
+    Args:
+        base_dir: Base directory (e.g., "uploads")
+        sub_dir: Subdirectory (e.g., "certifications", "profile_pictures")
+        user_id: User ID (already validated)
+        filename: Filename (already validated)
+        
+    Returns:
+        Safe file path
+        
+    Raises:
+        HTTPException: If path construction fails security checks
+    """
+    # Get the safe user directory
+    user_upload_dir = safe_create_user_directory(base_dir, sub_dir, user_id)
+    
+    # Construct the file path using only validated components
+    file_path = os.path.normpath(os.path.join(user_upload_dir, filename))
+    
+    # Additional security check: ensure the file path is within the user directory
+    if not file_path.startswith(user_upload_dir):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid file path construction"
+        )
+    
+    return file_path
 
 
 @router.post("/upload/certification")
@@ -146,11 +187,10 @@ async def upload_certification_document(
     file_extension = os.path.splitext(file.filename)[1] if file.filename else ".pdf"
     unique_filename = f"{uuid.uuid4()}{file_extension}"
 
-    # Create user-specific directory safely
-    user_upload_dir = safe_create_user_directory(UPLOAD_DIR, "certifications", current_user_id)
+    # Create user-specific directory safely and construct file path
+    file_path = safe_construct_file_path(UPLOAD_DIR, "certifications", current_user_id, unique_filename)
 
     # Save file
-    file_path = os.path.join(user_upload_dir, unique_filename)
     with open(file_path, "wb") as buffer:
         buffer.write(file_content)
 
@@ -192,11 +232,10 @@ async def upload_profile_picture(
     file_extension = os.path.splitext(file.filename)[1] if file.filename else ".jpg"
     unique_filename = f"{uuid.uuid4()}{file_extension}"
 
-    # Create user-specific directory safely
-    user_upload_dir = safe_create_user_directory(UPLOAD_DIR, "profile_pictures", current_user_id)
+    # Create user-specific directory safely and construct file path
+    file_path = safe_construct_file_path(UPLOAD_DIR, "profile_pictures", current_user_id, unique_filename)
 
     # Save file
-    file_path = os.path.join(user_upload_dir, unique_filename)
     with open(file_path, "wb") as buffer:
         buffer.write(file_content)
 
@@ -218,7 +257,7 @@ async def get_profile_picture(user_id: str, filename: str, db: Session = Depends
     # Validate path components to prevent path traversal
     validated_user_id, validated_filename = validate_path_components(user_id, filename)
 
-    file_path = os.path.join(UPLOAD_DIR, "profile_pictures", validated_user_id, validated_filename)
+    file_path = safe_construct_file_path(UPLOAD_DIR, "profile_pictures", validated_user_id, validated_filename)
 
     if not os.path.exists(file_path):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="File not found")
@@ -233,7 +272,7 @@ async def get_certification_document(user_id: str, filename: str, db: Session = 
     # Validate path components to prevent path traversal
     validated_user_id, validated_filename = validate_path_components(user_id, filename)
 
-    file_path = os.path.join(UPLOAD_DIR, "certifications", validated_user_id, validated_filename)
+    file_path = safe_construct_file_path(UPLOAD_DIR, "certifications", validated_user_id, validated_filename)
 
     if not os.path.exists(file_path):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="File not found")
@@ -260,7 +299,7 @@ async def delete_profile_picture(
             detail="You can only delete your own files",
         )
 
-    file_path = os.path.join(UPLOAD_DIR, "profile_pictures", validated_user_id, validated_filename)
+    file_path = safe_construct_file_path(UPLOAD_DIR, "profile_pictures", validated_user_id, validated_filename)
 
     if not os.path.exists(file_path):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="File not found")
@@ -294,7 +333,7 @@ async def delete_certification_document(
             detail="You can only delete your own files",
         )
 
-    file_path = os.path.join(UPLOAD_DIR, "certifications", validated_user_id, validated_filename)
+    file_path = safe_construct_file_path(UPLOAD_DIR, "certifications", validated_user_id, validated_filename)
 
     if not os.path.exists(file_path):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="File not found")

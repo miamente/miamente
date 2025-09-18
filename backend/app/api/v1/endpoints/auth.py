@@ -30,6 +30,9 @@ from app.services.auth_service import AuthService
 router = APIRouter()
 security = HTTPBearer(auto_error=False)
 
+# Constants
+INCORRECT_CREDENTIALS_MESSAGE = "Incorrect email or password"
+
 
 def get_current_user_id(
     credentials: Optional[HTTPAuthorizationCredentials] = Depends(security),
@@ -81,7 +84,7 @@ async def login_user(user_login: UserLogin, db: Session = Depends(get_db)):
     if not user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Incorrect email or password",
+            detail=INCORRECT_CREDENTIALS_MESSAGE,
             headers={"WWW-Authenticate": "Bearer"},
         )
 
@@ -108,7 +111,7 @@ async def login_professional(professional_login: ProfessionalLogin, db: Session 
     if not professional:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Incorrect email or password",
+            detail=INCORRECT_CREDENTIALS_MESSAGE,
             headers={"WWW-Authenticate": "Bearer"},
         )
 
@@ -174,7 +177,7 @@ async def login_unified(login_data: UnifiedLogin, db: Session = Depends(get_db))
     # If neither worked, return authentication error
     raise HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Incorrect email or password",
+        detail=INCORRECT_CREDENTIALS_MESSAGE,
         headers={"WWW-Authenticate": "Bearer"},
     )
 

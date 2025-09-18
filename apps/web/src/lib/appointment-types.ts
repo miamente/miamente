@@ -1,9 +1,4 @@
-export type AppointmentStatus =
-  | "pending_payment"
-  | "paid"
-  | "confirmed"
-  | "completed"
-  | "cancelled";
+export type AppointmentStatus = "paid" | "confirmed" | "completed" | "cancelled";
 
 export interface Appointment {
   userId: string;

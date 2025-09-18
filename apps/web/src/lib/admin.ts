@@ -8,7 +8,6 @@ export interface AdminMetrics {
   total_professionals: number;
   confirmed_appointments_today: number;
   total_appointments_today: number;
-  payment_conversion_rate: number;
 }
 
 export interface EventLogEntry {
@@ -58,7 +57,6 @@ export async function getAdminMetrics(): Promise<AdminMetrics> {
       total_professionals: data.total_professionals,
       confirmed_appointments_today: data.confirmed_appointments_today,
       total_appointments_today: data.total_appointments_today,
-      payment_conversion_rate: data.payment_conversion_rate,
     };
   } catch (error) {
     console.error("Error fetching admin metrics:", error);

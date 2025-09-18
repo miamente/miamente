@@ -14,7 +14,7 @@ test.describe("Professionals Page", () => {
   test.skip("should display professionals page elements", async ({ page }) => {
     // SKIPPED: Disabled per request
     // Check that the page loads
-    await expect(page).toHaveURL(/.*\/professionals/);
+    await expect(page).toHaveURL(/\/professionals/);
 
     // Check for page title
     await expect(page.getByRole("heading", { name: /Profesionales/i })).toBeVisible();
@@ -124,7 +124,7 @@ test.describe("Professionals Page", () => {
 
       // Should navigate to professional profile
       await testHelpers.waitForNavigation();
-      await expect(page).toHaveURL(/.*\/professionals\/\d+/);
+      await expect(page).toHaveURL(/\/professionals\/\d+/);
 
       // Check for professional profile elements
       const profileTitle = page
