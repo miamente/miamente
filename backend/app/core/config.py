@@ -2,10 +2,12 @@
 Application configuration settings.
 """
 
-from typing import List, Union
-from pydantic import AnyHttpUrl, field_validator, ConfigDict
-from pydantic_settings import BaseSettings
 import secrets
+from typing import List, Union
+
+from pydantic import AnyHttpUrl, ConfigDict, field_validator
+from pydantic_settings import BaseSettings
+
 
 class Settings(BaseSettings):
     """Application settings."""
@@ -34,7 +36,7 @@ class Settings(BaseSettings):
     def assemble_cors_origins(cls, v: Union[str, List[str]]) -> List[str]:
         if isinstance(v, str):
             return [i.strip() for i in v.split(",")]
-        elif isinstance(v, list):
+        if isinstance(v, list):
             return v
         raise ValueError(v)
 
@@ -51,7 +53,7 @@ class Settings(BaseSettings):
     def assemble_allowed_hosts(cls, v: Union[str, List[str]]) -> List[str]:
         if isinstance(v, str):
             return [i.strip() for i in v.split(",")]
-        elif isinstance(v, list):
+        if isinstance(v, list):
             return v
         raise ValueError(v)
 
@@ -67,5 +69,6 @@ class Settings(BaseSettings):
     TIMEZONE: str = "America/Bogota"
 
     model_config = ConfigDict(case_sensitive=True, env_file=".env")
+
 
 settings = Settings()

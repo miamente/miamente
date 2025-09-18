@@ -2,9 +2,11 @@
 Professional Modality schemas.
 """
 
-from typing import Optional
-from pydantic import BaseModel, ConfigDict
 import uuid
+from typing import Optional
+
+from pydantic import BaseModel, ConfigDict
+
 
 class ProfessionalModalityBase(BaseModel):
     """Base professional modality schema."""
@@ -17,10 +19,12 @@ class ProfessionalModalityBase(BaseModel):
     is_default: bool = False
     is_active: bool = True
 
+
 class ProfessionalModalityCreate(ProfessionalModalityBase):
     """Professional modality creation schema."""
 
     professional_id: str
+
 
 class ProfessionalModalityUpdate(BaseModel):
     """Professional modality update schema."""
@@ -32,6 +36,7 @@ class ProfessionalModalityUpdate(BaseModel):
     currency: Optional[str] = None
     is_default: Optional[bool] = None
     is_active: Optional[bool] = None
+
 
 class ProfessionalModalityResponse(ProfessionalModalityBase):
     """Professional modality response schema."""

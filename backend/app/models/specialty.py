@@ -2,12 +2,13 @@
 Specialty model for the Miamente platform.
 """
 
-from sqlalchemy import Column, String, Integer, Text
-from sqlalchemy.dialects.postgresql import UUID
-
 import uuid
 
+from sqlalchemy import Column, Integer, String, Text
+from sqlalchemy.dialects.postgresql import UUID
+
 from app.core.database import Base
+
 
 class Specialty(Base):
     """Specialty model."""

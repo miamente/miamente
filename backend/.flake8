@@ -1,11 +1,9 @@
 [flake8]
-max-line-length = 88
-extend-ignore = E203,W503
-exclude =
-    .git,
-    .venv,
-    venv,
-    build,
-    dist,
-    __pycache__
-
+max-line-length = 120
+extend-ignore = E203,W503,E501,E701,E702,E731,W504
+exclude = .git,.venv,venv,build,dist,__pycache__,*.pyc,.pytest_cache,.mypy_cache,alembic/versions
+per-file-ignores = 
+    app/models/__init__.py:F401
+    app/schemas/__init__.py:F401
+    app/services/__init__.py:F401
+    tests/*:S101

@@ -2,13 +2,14 @@
 Specialty model for the Miamente platform.
 """
 
+import uuid
+
 from sqlalchemy import Column, String
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.sql import func
 
-import uuid
-
 from app.core.database import Base
+
 
 class Specialty(Base):
     """Specialty model - Academic or regulated professional fields."""

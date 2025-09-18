@@ -2,10 +2,12 @@
 User schemas.
 """
 
+import uuid
 from datetime import datetime
 from typing import Optional
-from pydantic import BaseModel, EmailStr, field_validator, ConfigDict
-import uuid
+
+from pydantic import BaseModel, ConfigDict, EmailStr, field_validator
+
 
 class UserBase(BaseModel):
     """Base user schema."""
@@ -16,6 +18,7 @@ class UserBase(BaseModel):
     date_of_birth: Optional[datetime] = None
     emergency_contact: Optional[str] = None
     emergency_phone: Optional[str] = None
+
 
 class UserCreate(UserBase):
     """User creation schema."""
@@ -29,6 +32,7 @@ class UserCreate(UserBase):
             raise ValueError("Password must be at least 8 characters long")
         return v
 
+
 class UserUpdate(BaseModel):
     """User update schema."""
 
@@ -39,6 +43,7 @@ class UserUpdate(BaseModel):
     emergency_phone: Optional[str] = None
     profile_picture: Optional[str] = None
     is_verified: Optional[bool] = None
+
 
 class UserResponse(UserBase):
     """User response schema."""
@@ -51,6 +56,7 @@ class UserResponse(UserBase):
     updated_at: Optional[datetime] = None
 
     model_config = ConfigDict(from_attributes=True)
+
 
 class UserLogin(BaseModel):
     """User login schema."""

@@ -2,14 +2,14 @@
 Pydantic schemas for request/response validation.
 """
 
-from app.schemas.user import UserCreate, UserUpdate, UserResponse, UserLogin
+from app.schemas.auth import Token, TokenData
+from app.schemas.availability import AvailabilityCreate, AvailabilityResponse
 from app.schemas.professional import (
     ProfessionalCreate,
-    ProfessionalUpdate,
     ProfessionalResponse,
+    ProfessionalUpdate,
 )
-from app.schemas.availability import AvailabilityCreate, AvailabilityResponse
-from app.schemas.auth import Token, TokenData
+from app.schemas.user import UserCreate, UserLogin, UserResponse, UserUpdate
 
 __all__ = [
     "UserCreate",

@@ -1,8 +1,9 @@
+import uuid
 from datetime import datetime
 from typing import Optional
-import uuid
 
 from pydantic import BaseModel, ConfigDict, Field
+
 
 class ModalityBase(BaseModel):
     """Base modality schema."""
@@ -14,10 +15,10 @@ class ModalityBase(BaseModel):
     default_price_cents: int = Field(default=0, ge=0)
     is_active: bool = True
 
+
 class ModalityCreate(ModalityBase):
     """Schema for creating a modality."""
 
-    pass
 
 class ModalityUpdate(BaseModel):
     """Schema for updating a modality."""
@@ -29,6 +30,7 @@ class ModalityUpdate(BaseModel):
     default_price_cents: Optional[int] = Field(None, ge=0)
     is_active: Optional[bool] = None
 
+
 class ModalityResponse(ModalityBase):
     """Schema for modality response."""
 
@@ -37,6 +39,7 @@ class ModalityResponse(ModalityBase):
     updated_at: Optional[datetime] = None
 
     model_config = ConfigDict(from_attributes=True)
+
 
 class ProfessionalModalityBase(BaseModel):
     """Base professional modality schema."""
@@ -49,10 +52,10 @@ class ProfessionalModalityBase(BaseModel):
     description: Optional[str] = Field(None, max_length=1000)
     is_default: bool = False
 
+
 class ProfessionalModalityCreate(ProfessionalModalityBase):
     """Schema for creating a professional modality."""
 
-    pass
 
 class ProfessionalModalityUpdate(BaseModel):
     """Schema for updating a professional modality."""
@@ -64,6 +67,7 @@ class ProfessionalModalityUpdate(BaseModel):
     offers_presencial: Optional[bool] = None
     description: Optional[str] = Field(None, max_length=1000)
     is_default: Optional[bool] = None
+
 
 class ProfessionalModalityResponse(ProfessionalModalityBase):
     """Schema for professional modality response."""

@@ -3,20 +3,21 @@ API v1 router configuration.
 """
 
 from fastapi import APIRouter
+
 from app.api.v1.endpoints import (
     auth,
-    users,
-    professionals,
     availability,
     files,
-    specialties,
-    professional_specialties,
     modalities,
-    therapeutic_approaches,
-    specialties_new,
     professional_modalities,
+    professional_specialties,
     professional_specialties_new,
     professional_therapeutic_approaches,
+    professionals,
+    specialties,
+    specialties_new,
+    therapeutic_approaches,
+    users,
 )
 
 api_router = APIRouter()
@@ -24,12 +25,18 @@ api_router = APIRouter()
 # Include all endpoint routers
 api_router.include_router(auth.router, prefix="/auth", tags=["authentication"])
 api_router.include_router(users.router, prefix="/users", tags=["users"])
-api_router.include_router(professionals.router, prefix="/professionals", tags=["professionals"])
-api_router.include_router(availability.router, prefix="/availability", tags=["availability"])
+api_router.include_router(
+    professionals.router, prefix="/professionals", tags=["professionals"]
+)
+api_router.include_router(
+    availability.router, prefix="/availability", tags=["availability"]
+)
 api_router.include_router(files.router, prefix="/files", tags=["files"])
 
 # Legacy endpoints (keep for backward compatibility)
-api_router.include_router(specialties.router, prefix="/specialties", tags=["specialties"])
+api_router.include_router(
+    specialties.router, prefix="/specialties", tags=["specialties"]
+)
 api_router.include_router(
     professional_specialties.router,
     prefix="/professional-specialties",
@@ -43,7 +50,9 @@ api_router.include_router(
     prefix="/therapeutic-approaches",
     tags=["therapeutic-approaches"],
 )
-api_router.include_router(specialties_new.router, prefix="/specialties-new", tags=["specialties-new"])
+api_router.include_router(
+    specialties_new.router, prefix="/specialties-new", tags=["specialties-new"]
+)
 api_router.include_router(
     professional_modalities.router,
     prefix="/professional-modalities",

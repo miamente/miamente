@@ -2,13 +2,14 @@
 Therapeutic Approach model for the Miamente platform.
 """
 
+import uuid
+
 from sqlalchemy import Column, String, Text
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.sql import func
 
-import uuid
-
 from app.core.database import Base
+
 
 class TherapeuticApproach(Base):
     """Therapeutic Approach model - Theoretical and methodological currents."""

@@ -2,24 +2,29 @@
 Professional Specialty New schemas.
 """
 
-from typing import Optional
-from pydantic import BaseModel, ConfigDict
 import uuid
+from typing import Optional
+
+from pydantic import BaseModel, ConfigDict
+
 
 class ProfessionalSpecialtyBase(BaseModel):
     """Base professional specialty schema."""
 
     specialty_id: str
 
+
 class ProfessionalSpecialtyCreate(ProfessionalSpecialtyBase):
     """Professional specialty creation schema."""
 
     professional_id: str
 
+
 class ProfessionalSpecialtyUpdate(BaseModel):
     """Professional specialty update schema."""
 
     specialty_id: Optional[str] = None
+
 
 class ProfessionalSpecialtyResponse(ProfessionalSpecialtyBase):
     """Professional specialty response schema."""

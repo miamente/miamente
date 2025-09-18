@@ -8,17 +8,19 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
-from app.services.professional_modality_service import ProfessionalModalityService
 from app.schemas.professional_modality import (
-    ProfessionalModalityResponse,
     ProfessionalModalityCreate,
+    ProfessionalModalityResponse,
     ProfessionalModalityUpdate,
 )
+from app.services.professional_modality_service import ProfessionalModalityService
 
 router = APIRouter()
 
 
-@router.get("/professional/{professional_id}", response_model=List[ProfessionalModalityResponse])
+@router.get(
+    "/professional/{professional_id}", response_model=List[ProfessionalModalityResponse]
+)
 def get_professional_modalities(professional_id: str, db: Session = Depends(get_db)):
     """Get all modalities for a professional."""
     service = ProfessionalModalityService(db)
@@ -30,7 +32,9 @@ def get_professional_modalities(professional_id: str, db: Session = Depends(get_
     "/professional/{professional_id}/default",
     response_model=ProfessionalModalityResponse,
 )
-def get_default_professional_modality(professional_id: str, db: Session = Depends(get_db)):
+def get_default_professional_modality(
+    professional_id: str, db: Session = Depends(get_db)
+):
     """Get the default modality for a professional."""
     service = ProfessionalModalityService(db)
     modality = service.get_default_professional_modality(professional_id)
@@ -56,7 +60,9 @@ def get_professional_modality(modality_id: str, db: Session = Depends(get_db)):
 
 
 @router.post("/", response_model=ProfessionalModalityResponse)
-def create_professional_modality(modality: ProfessionalModalityCreate, db: Session = Depends(get_db)):
+def create_professional_modality(
+    modality: ProfessionalModalityCreate, db: Session = Depends(get_db)
+):
     """Create a new professional modality."""
     service = ProfessionalModalityService(db)
     return service.create_professional_modality(modality)

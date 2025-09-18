@@ -3,23 +3,22 @@ Specialty endpoints.
 """
 
 import uuid
-
 from typing import List
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
-from app.core.database import get_db
 from app.api.v1.endpoints.auth import get_current_user_id
-from app.schemas.specialty import (
-    SpecialtyCreate,
-    SpecialtyUpdate,
-    SpecialtyResponse,
-    ProfessionalSpecialtyUpdate,
-)
-from app.models.specialty import Specialty
+from app.core.database import get_db
 from app.models.professional import Professional
 from app.models.professional_specialty import ProfessionalSpecialty
+from app.models.specialty import Specialty
+from app.schemas.specialty import (
+    ProfessionalSpecialtyUpdate,
+    SpecialtyCreate,
+    SpecialtyResponse,
+    SpecialtyUpdate,
+)
 
 router = APIRouter()
 
@@ -41,7 +40,9 @@ async def get_specialties(
     # If exclude_assigned is True, filter out specialties already assigned to the current professional
     if exclude_assigned:
         # Check if current user is a professional
-        professional = db.query(Professional).filter(Professional.id == current_user_id).first()
+        professional = (
+            db.query(Professional).filter(Professional.id == current_user_id).first()
+        )
         if professional:
             # Get specialty IDs already assigned to this professional
             assigned_specialty_ids = (
@@ -78,7 +79,9 @@ async def get_specialty(specialty_id: str, db: Session = Depends(get_db)):
     specialty = db.query(Specialty).filter(Specialty.id == specialty_uuid).first()
 
     if not specialty:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Specialty not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Specialty not found"
+        )
 
     return specialty
 
@@ -94,7 +97,9 @@ async def create_specialty(
     # For now, we'll allow any authenticated user to create specialties
 
     # Check if specialty name already exists
-    existing_specialty = db.query(Specialty).filter(Specialty.name == specialty.name).first()
+    existing_specialty = (
+        db.query(Specialty).filter(Specialty.name == specialty.name).first()
+    )
     if existing_specialty:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -128,7 +133,9 @@ async def update_specialty(
     specialty = db.query(Specialty).filter(Specialty.id == specialty_uuid).first()
 
     if not specialty:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Specialty not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Specialty not found"
+        )
 
     # Update specialty fields
     update_data = specialty_update.dict(exclude_unset=True)
@@ -149,10 +156,14 @@ async def update_professional_specialty(
 ):
     """Update professional's specialty and custom pricing."""
     # Get professional
-    professional = db.query(Professional).filter(Professional.id == current_user_id).first()
+    professional = (
+        db.query(Professional).filter(Professional.id == current_user_id).first()
+    )
 
     if not professional:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Professional not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Professional not found"
+        )
 
     # Get specialty
     try:
@@ -166,7 +177,9 @@ async def update_professional_specialty(
     specialty = db.query(Specialty).filter(Specialty.id == specialty_uuid).first()
 
     if not specialty:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Specialty not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Specialty not found"
+        )
 
     # Update professional's specialty
     professional.specialty_id = specialty_uuid

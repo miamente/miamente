@@ -3,18 +3,19 @@ Professional service for business logic.
 """
 
 from typing import List, Optional
+
 from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
 
 from app.models.professional import Professional
 from app.schemas.professional import ProfessionalUpdate
+from app.services.professional_modality_service import ProfessionalModalityService
 from app.services.professional_specialty_new_service import (
     ProfessionalSpecialtyNewService,
 )
 from app.services.professional_therapeutic_approach_service import (
     ProfessionalTherapeuticApproachService,
 )
-from app.services.professional_modality_service import ProfessionalModalityService
 
 
 class ProfessionalService:
@@ -28,7 +29,11 @@ class ProfessionalService:
 
     def get_professional_by_id(self, professional_id: str) -> Optional[Professional]:
         """Get professional by ID."""
-        return self.db.query(Professional).filter(Professional.id == professional_id).first()
+        return (
+            self.db.query(Professional)
+            .filter(Professional.id == professional_id)
+            .first()
+        )
 
     def get_professional_by_email(self, email: str) -> Optional[Professional]:
         """Get professional by email."""
@@ -36,7 +41,13 @@ class ProfessionalService:
 
     def get_professionals(self, skip: int = 0, limit: int = 100) -> List[Professional]:
         """Get all active professionals."""
-        return self.db.query(Professional).filter(Professional.is_active).offset(skip).limit(limit).all()
+        return (
+            self.db.query(Professional)
+            .filter(Professional.is_active)
+            .offset(skip)
+            .limit(limit)
+            .all()
+        )
 
     def get_professionals_by_specialty(self, specialty: str) -> List[Professional]:
         """Get professionals by specialty."""
@@ -49,7 +60,9 @@ class ProfessionalService:
             .all()
         )
 
-    def update_professional(self, professional_id: str, update_data: ProfessionalUpdate) -> Optional[Professional]:
+    def update_professional(
+        self, professional_id: str, update_data: ProfessionalUpdate
+    ) -> Optional[Professional]:
         """Update professional."""
         professional = self.get_professional_by_id(professional_id)
         if not professional:
@@ -58,7 +71,9 @@ class ProfessionalService:
         try:
             # Handle new specialty_ids field
             if update_data.specialty_ids is not None:
-                self.specialty_service.add_specialties_to_professional(professional_id, update_data.specialty_ids)
+                self.specialty_service.add_specialties_to_professional(
+                    professional_id, update_data.specialty_ids
+                )
 
             # Handle new modality_ids field (this would need to be implemented based on requirements)
             # if update_data.modality_ids is not None:

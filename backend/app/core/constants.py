@@ -16,7 +16,8 @@ MENTAL_HEALTH_SPECIALTIES = [
     "Consejería/Orientación psicológica",
 ]
 
-# 🔎 Enfoques terapéuticos (Corrientes teóricas y metodológicas; un profesional puede combinar varios)
+# 🔎 Enfoques terapéuticos (Corrientes teóricas y metodológicas;
+# un profesional puede combinar varios)
 THERAPEUTIC_APPROACHES = [
     "Cognitivo-conductual (TCC)",
     "Terapias de tercera generación (ACT, DBT, Mindfulness, etc.)",
@@ -31,7 +32,8 @@ THERAPEUTIC_APPROACHES = [
     "Coaching psicológico (en algunos contextos, como acompañamiento no clínico)",
 ]
 
-# 👥 Modalidades de intervención (Definen el formato, destinatario o contexto de la terapia)
+# 👥 Modalidades de intervención (Definen el formato, destinatario o contexto
+# de la terapia)
 INTERVENTION_MODALITIES = [
     {
         "name": "Individual",

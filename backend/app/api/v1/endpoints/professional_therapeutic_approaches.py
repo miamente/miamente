@@ -8,13 +8,13 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
+from app.schemas.professional_therapeutic_approach import (
+    ProfessionalTherapeuticApproachCreate,
+    ProfessionalTherapeuticApproachResponse,
+    ProfessionalTherapeuticApproachUpdate,
+)
 from app.services.professional_therapeutic_approach_service import (
     ProfessionalTherapeuticApproachService,
-)
-from app.schemas.professional_therapeutic_approach import (
-    ProfessionalTherapeuticApproachResponse,
-    ProfessionalTherapeuticApproachCreate,
-    ProfessionalTherapeuticApproachUpdate,
 )
 
 router = APIRouter()
@@ -24,7 +24,9 @@ router = APIRouter()
     "/professional/{professional_id}",
     response_model=List[ProfessionalTherapeuticApproachResponse],
 )
-def get_professional_therapeutic_approaches(professional_id: str, db: Session = Depends(get_db)):
+def get_professional_therapeutic_approaches(
+    professional_id: str, db: Session = Depends(get_db)
+):
     """Get all therapeutic approaches for a professional."""
     service = ProfessionalTherapeuticApproachService(db)
     approaches = service.get_professional_therapeutic_approaches(professional_id)
@@ -32,7 +34,9 @@ def get_professional_therapeutic_approaches(professional_id: str, db: Session = 
 
 
 @router.get("/{approach_id}", response_model=ProfessionalTherapeuticApproachResponse)
-def get_professional_therapeutic_approach(approach_id: str, db: Session = Depends(get_db)):
+def get_professional_therapeutic_approach(
+    approach_id: str, db: Session = Depends(get_db)
+):
     """Get a professional therapeutic approach by ID."""
     service = ProfessionalTherapeuticApproachService(db)
     approach = service.get_professional_therapeutic_approach(approach_id)
@@ -45,7 +49,9 @@ def get_professional_therapeutic_approach(approach_id: str, db: Session = Depend
 
 
 @router.post("/", response_model=ProfessionalTherapeuticApproachResponse)
-def create_professional_therapeutic_approach(approach: ProfessionalTherapeuticApproachCreate, db: Session = Depends(get_db)):
+def create_professional_therapeutic_approach(
+    approach: ProfessionalTherapeuticApproachCreate, db: Session = Depends(get_db)
+):
     """Create a new professional therapeutic approach."""
     service = ProfessionalTherapeuticApproachService(db)
     return service.create_professional_therapeutic_approach(approach)
@@ -59,7 +65,9 @@ def update_professional_therapeutic_approach(
 ):
     """Update a professional therapeutic approach."""
     service = ProfessionalTherapeuticApproachService(db)
-    approach = service.update_professional_therapeutic_approach(approach_id, approach_update)
+    approach = service.update_professional_therapeutic_approach(
+        approach_id, approach_update
+    )
     if not approach:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -69,7 +77,9 @@ def update_professional_therapeutic_approach(
 
 
 @router.delete("/{approach_id}")
-def delete_professional_therapeutic_approach(approach_id: str, db: Session = Depends(get_db)):
+def delete_professional_therapeutic_approach(
+    approach_id: str, db: Session = Depends(get_db)
+):
     """Delete a professional therapeutic approach."""
     service = ProfessionalTherapeuticApproachService(db)
     success = service.delete_professional_therapeutic_approach(approach_id)
@@ -82,8 +92,14 @@ def delete_professional_therapeutic_approach(approach_id: str, db: Session = Dep
 
 
 @router.put("/professional/{professional_id}/approaches")
-def update_professional_therapeutic_approaches(professional_id: str, approach_ids: List[str], db: Session = Depends(get_db)):
+def update_professional_therapeutic_approaches(
+    professional_id: str, approach_ids: List[str], db: Session = Depends(get_db)
+):
     """Update therapeutic approaches for a professional."""
     service = ProfessionalTherapeuticApproachService(db)
-    approaches = service.add_therapeutic_approaches_to_professional(professional_id, approach_ids)
-    return {"message": f"Updated {len(approaches)} therapeutic approaches for professional"}
+    approaches = service.add_therapeutic_approaches_to_professional(
+        professional_id, approach_ids
+    )
+    return {
+        "message": f"Updated {len(approaches)} therapeutic approaches for professional"
+    }

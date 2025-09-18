@@ -3,9 +3,11 @@ Authentication schemas.
 """
 
 from typing import Optional
+
 from pydantic import BaseModel
-from app.schemas.user import UserResponse
+
 from app.schemas.professional import ProfessionalResponse
+from app.schemas.user import UserResponse
 
 
 class Token(BaseModel):

@@ -2,16 +2,16 @@
 Availability model for the Miamente platform.
 """
 
-from sqlalchemy import Column, String, DateTime, Integer, ForeignKey, Enum
-from sqlalchemy.dialects.postgresql import UUID
+import enum
+import uuid
 
+from sqlalchemy import Column, DateTime, Enum, ForeignKey, Integer, String
+from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 
-import uuid
-import enum
-
 from app.core.database import Base
+
 
 class SlotStatus(str, enum.Enum):
     """Slot status enumeration."""
@@ -21,13 +21,16 @@ class SlotStatus(str, enum.Enum):
     BOOKED = "booked"
     CANCELLED = "cancelled"
 
+
 class Availability(Base):
     """Availability model for professional time slots."""
 
     __tablename__ = "availability"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    professional_id = Column(UUID(as_uuid=True), ForeignKey("professionals.id"), nullable=False)
+    professional_id = Column(
+        UUID(as_uuid=True), ForeignKey("professionals.id"), nullable=False
+    )
 
     # Time information
     date = Column(DateTime(timezone=True), nullable=False)

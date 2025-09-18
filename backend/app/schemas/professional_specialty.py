@@ -2,10 +2,12 @@
 Professional Specialty schemas for the Miamente platform.
 """
 
-from typing import Optional
-from pydantic import BaseModel, ConfigDict, field_validator
 from datetime import datetime
+from typing import Optional
 from uuid import UUID
+
+from pydantic import BaseModel, ConfigDict, field_validator
+
 
 class ProfessionalSpecialtyBase(BaseModel):
     """Base professional specialty schema."""
@@ -17,11 +19,13 @@ class ProfessionalSpecialtyBase(BaseModel):
     is_default: bool = False
     is_active: bool = True
 
+
 class ProfessionalSpecialtyCreate(ProfessionalSpecialtyBase):
     """Professional specialty creation schema."""
 
     specialty_id: Optional[str] = None  # Reference to default specialty
     is_active: Optional[bool] = True  # Default to active
+
 
 class ProfessionalSpecialtyUpdate(BaseModel):
     """Professional specialty update schema."""
@@ -32,6 +36,7 @@ class ProfessionalSpecialtyUpdate(BaseModel):
     currency: Optional[str] = None
     is_active: Optional[bool] = None
     is_default: Optional[bool] = None
+
 
 class ProfessionalSpecialtyResponse(ProfessionalSpecialtyBase):
     """Professional specialty response schema."""
@@ -65,6 +70,7 @@ class ProfessionalSpecialtyResponse(ProfessionalSpecialtyBase):
         return v
 
     model_config = ConfigDict(from_attributes=True)
+
 
 class ProfessionalSpecialtyWithDefault(ProfessionalSpecialtyResponse):
     """Professional specialty with default specialty information."""

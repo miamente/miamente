@@ -2,11 +2,14 @@
 Availability schemas.
 """
 
+import uuid
 from datetime import datetime
 from typing import Optional
+
 from pydantic import BaseModel, ConfigDict
+
 from app.models.availability import SlotStatus
-import uuid
+
 
 class AvailabilityBase(BaseModel):
     """Base availability schema."""
@@ -17,10 +20,10 @@ class AvailabilityBase(BaseModel):
     duration: int = 60
     timezone: str = "America/Bogota"
 
+
 class AvailabilityCreate(AvailabilityBase):
     """Availability creation schema."""
 
-    pass
 
 class AvailabilityUpdate(BaseModel):
     """Availability update schema."""
@@ -28,6 +31,7 @@ class AvailabilityUpdate(BaseModel):
     status: Optional[SlotStatus] = None
     held_by: Optional[uuid.UUID] = None
     held_at: Optional[datetime] = None
+
 
 class AvailabilityResponse(AvailabilityBase):
     """Availability response schema."""
@@ -40,6 +44,7 @@ class AvailabilityResponse(AvailabilityBase):
     updated_at: Optional[datetime] = None
 
     model_config = ConfigDict(from_attributes=True)
+
 
 class BulkAvailabilityCreate(BaseModel):
     """Bulk availability creation schema."""

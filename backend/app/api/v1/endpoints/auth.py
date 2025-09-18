@@ -2,32 +2,34 @@
 Authentication endpoints.
 """
 
-from fastapi import APIRouter, Depends, HTTPException, status
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
-from sqlalchemy.orm import Session
 from typing import Optional
+
+from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from sqlalchemy.orm import Session
 
 from app.core.database import get_db
 from app.core.security import verify_token
-from app.services.auth_service import AuthService
 from app.schemas.auth import (
-    Token,
-    UserLogin,
-    RefreshToken,
-    UserTokenResponse,
     ProfessionalTokenResponse,
+    RefreshToken,
+    Token,
     UnifiedLogin,
     UnifiedLoginResponse,
+    UserLogin,
+    UserTokenResponse,
 )
-from app.schemas.user import UserCreate, UserResponse
 from app.schemas.professional import (
     ProfessionalCreate,
-    ProfessionalResponse,
     ProfessionalLogin,
+    ProfessionalResponse,
 )
+from app.schemas.user import UserCreate, UserResponse
+from app.services.auth_service import AuthService
 
 router = APIRouter()
 security = HTTPBearer(auto_error=False)
+
 
 def get_current_user_id(
     credentials: Optional[HTTPAuthorizationCredentials] = Depends(security),
@@ -49,23 +51,30 @@ def get_current_user_id(
         )
     return user_id
 
-@router.post("/register/user", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
+
+@router.post(
+    "/register/user", response_model=UserResponse, status_code=status.HTTP_201_CREATED
+)
 async def register_user(user_data: UserCreate, db: Session = Depends(get_db)):
     """Register a new user."""
     auth_service = AuthService(db)
     user = auth_service.create_user(user_data)
     return user
 
+
 @router.post(
     "/register/professional",
     response_model=ProfessionalResponse,
     status_code=status.HTTP_201_CREATED,
 )
-async def register_professional(professional_data: ProfessionalCreate, db: Session = Depends(get_db)):
+async def register_professional(
+    professional_data: ProfessionalCreate, db: Session = Depends(get_db)
+):
     """Register a new professional."""
     auth_service = AuthService(db)
     professional = auth_service.create_professional(professional_data)
     return professional
+
 
 @router.post("/login/user", response_model=UserTokenResponse)
 async def login_user(user_login: UserLogin, db: Session = Depends(get_db)):
@@ -81,7 +90,9 @@ async def login_user(user_login: UserLogin, db: Session = Depends(get_db)):
         )
 
     if not user.is_active:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Inactive user")
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="Inactive user"
+        )
 
     from app.core.security import create_token_response
 
@@ -93,11 +104,16 @@ async def login_user(user_login: UserLogin, db: Session = Depends(get_db)):
         user=user,
     )
 
+
 @router.post("/login/professional", response_model=ProfessionalTokenResponse)
-async def login_professional(professional_login: ProfessionalLogin, db: Session = Depends(get_db)):
+async def login_professional(
+    professional_login: ProfessionalLogin, db: Session = Depends(get_db)
+):
     """Login professional."""
     auth_service = AuthService(db)
-    professional = auth_service.authenticate_professional(professional_login.email, professional_login.password)
+    professional = auth_service.authenticate_professional(
+        professional_login.email, professional_login.password
+    )
 
     if not professional:
         raise HTTPException(
@@ -107,7 +123,9 @@ async def login_professional(professional_login: ProfessionalLogin, db: Session 
         )
 
     if not professional.is_active:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Inactive professional")
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="Inactive professional"
+        )
 
     from app.core.security import create_token_response
 
@@ -119,13 +137,16 @@ async def login_professional(professional_login: ProfessionalLogin, db: Session 
         professional=professional,
     )
 
+
 @router.post("/login", response_model=UnifiedLoginResponse)
 async def login_unified(login_data: UnifiedLogin, db: Session = Depends(get_db)):
     """Unified login for both users and professionals."""
     auth_service = AuthService(db)
 
     # Try to authenticate as professional first
-    professional = auth_service.authenticate_professional(login_data.email, login_data.password)
+    professional = auth_service.authenticate_professional(
+        login_data.email, login_data.password
+    )
     if professional and professional.is_active:
         from app.core.security import create_token_response
 
@@ -171,8 +192,11 @@ async def login_unified(login_data: UnifiedLogin, db: Session = Depends(get_db))
         headers={"WWW-Authenticate": "Bearer"},
     )
 
+
 @router.post("/simulate-verification")
-async def simulate_email_verification(user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)):
+async def simulate_email_verification(
+    user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)
+):
     """Simulate email verification for development purposes."""
     auth_service = AuthService(db)
 
@@ -195,6 +219,7 @@ async def simulate_email_verification(user_id: str = Depends(get_current_user_id
 
     raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
 
+
 @router.post("/refresh", response_model=Token)
 async def refresh_token(refresh_data: RefreshToken, db: Session = Depends(get_db)):
     """Refresh access token."""
@@ -211,8 +236,11 @@ async def refresh_token(refresh_data: RefreshToken, db: Session = Depends(get_db
 
     return create_token_response(user_id)
 
+
 @router.get("/me")
-async def get_current_user_info(current_user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)):
+async def get_current_user_info(
+    current_user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)
+):
     """Get current user information."""
     auth_service = AuthService(db)
 

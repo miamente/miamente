@@ -2,11 +2,13 @@
 Professional schemas.
 """
 
-from datetime import datetime
-from typing import Optional, List
-from pydantic import BaseModel, EmailStr, field_validator, ConfigDict
-import uuid
 import json
+import uuid
+from datetime import datetime
+from typing import List, Optional
+
+from pydantic import BaseModel, ConfigDict, EmailStr, field_validator
+
 
 class ProfessionalBase(BaseModel):
     """Base professional schema."""
@@ -17,7 +19,9 @@ class ProfessionalBase(BaseModel):
     phone_number: Optional[str] = None
     # New fields for specialties, therapeutic approaches, and modalities
     specialty_ids: Optional[List[str]] = None  # New: list of specialty IDs
-    modalities: Optional[List[dict]] = None  # New: list of modality objects with full details
+    modalities: Optional[List[dict]] = (
+        None  # New: list of modality objects with full details
+    )
     license_number: Optional[str] = None
     years_experience: int = 0
     rate_cents: int = 50000  # Default rate in cents (500 COP)
@@ -25,10 +29,15 @@ class ProfessionalBase(BaseModel):
     bio: Optional[str] = None
     academic_experience: Optional[List[dict]] = None  # Structured academic experience
     work_experience: Optional[List[dict]] = None  # Structured work experience
-    certifications: Optional[List[dict]] = None  # Structured certifications with name and document_url
+    certifications: Optional[List[dict]] = (
+        None  # Structured certifications with name and document_url
+    )
     languages: Optional[List[str]] = None
-    therapy_approaches_ids: Optional[List[str]] = None  # List of therapeutic approach IDs
+    therapy_approaches_ids: Optional[List[str]] = (
+        None  # List of therapeutic approach IDs
+    )
     timezone: str = "America/Bogota"
+
 
 class ProfessionalCreate(ProfessionalBase):
     """Professional creation schema."""
@@ -42,6 +51,7 @@ class ProfessionalCreate(ProfessionalBase):
             raise ValueError("Password must be at least 8 characters long")
         return v
 
+
 class ProfessionalUpdate(BaseModel):
     """Professional update schema."""
 
@@ -52,7 +62,9 @@ class ProfessionalUpdate(BaseModel):
     specialty_id: Optional[str] = None  # Keep for backward compatibility
     # New fields for specialties, therapeutic approaches, and modalities
     specialty_ids: Optional[List[str]] = None  # New: list of specialty IDs
-    modalities: Optional[List[dict]] = None  # New: list of modality objects with full details
+    modalities: Optional[List[dict]] = (
+        None  # New: list of modality objects with full details
+    )
     license_number: Optional[str] = None
     years_experience: Optional[int] = None
     rate_cents: Optional[int] = None
@@ -69,6 +81,7 @@ class ProfessionalUpdate(BaseModel):
     emergency_contact: Optional[str] = None
     emergency_phone: Optional[str] = None
     is_verified: Optional[bool] = None
+
 
 class ProfessionalResponse(ProfessionalBase):
     """Professional response schema."""
@@ -131,6 +144,7 @@ class ProfessionalResponse(ProfessionalBase):
         return v or []
 
     model_config = ConfigDict(from_attributes=True)
+
 
 class ProfessionalLogin(BaseModel):
     """Professional login schema."""

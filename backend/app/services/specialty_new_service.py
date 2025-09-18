@@ -3,7 +3,9 @@ Specialty service for managing specialties (new version without price/descriptio
 """
 
 from typing import List, Optional
+
 from sqlalchemy.orm import Session
+
 from app.models.specialty_new import Specialty
 from app.schemas.specialty_new import SpecialtyCreate, SpecialtyUpdate
 
@@ -34,7 +36,9 @@ class SpecialtyNewService:
         self.db.refresh(db_specialty)
         return db_specialty
 
-    def update_specialty(self, specialty_id: str, specialty_update: SpecialtyUpdate) -> Optional[Specialty]:
+    def update_specialty(
+        self, specialty_id: str, specialty_update: SpecialtyUpdate
+    ) -> Optional[Specialty]:
         """Update a specialty."""
         db_specialty = self.get_specialty(specialty_id)
         if not db_specialty:
