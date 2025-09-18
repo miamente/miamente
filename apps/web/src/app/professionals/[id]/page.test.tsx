@@ -186,12 +186,9 @@ describe("ProfessionalProfilePage", () => {
 
     render(<ProfessionalProfilePage />);
 
-    await waitFor(
-      () => {
-        expect(screen.getByText("Perfil del Profesional")).toBeInTheDocument();
-      },
-      { timeout: 1000 },
-    );
+    await waitFor(() => {
+      expect(screen.getByText("Perfil del Profesional")).toBeInTheDocument();
+    });
 
     expect(screen.getByText("Psicología Clínica")).toBeInTheDocument();
     expect(screen.getByText("800 / hora")).toBeInTheDocument();
@@ -221,12 +218,9 @@ describe("ProfessionalProfilePage", () => {
 
     render(<ProfessionalProfilePage />);
 
-    await waitFor(
-      () => {
-        expect(screen.getAllByText("Profesional no encontrado")).toHaveLength(2);
-      },
-      { timeout: 1000 },
-    );
+    await waitFor(() => {
+      expect(screen.getAllByText("Profesional no encontrado")).toHaveLength(2);
+    });
 
     expect(screen.getByText("Professional not found")).toBeInTheDocument();
     expect(screen.getByText("Ver todos los profesionales")).toBeInTheDocument();
@@ -237,12 +231,9 @@ describe("ProfessionalProfilePage", () => {
 
     render(<ProfessionalProfilePage />);
 
-    await waitFor(
-      () => {
-        expect(screen.getByText("Perfil del Profesional")).toBeInTheDocument();
-      },
-      { timeout: 1000 },
-    );
+    await waitFor(() => {
+      expect(screen.getByText("Perfil del Profesional")).toBeInTheDocument();
+    });
 
     // Check that breadcrumbs are present
     expect(screen.getByText("Profesionales")).toBeInTheDocument();
@@ -258,12 +249,9 @@ describe("ProfessionalProfilePage", () => {
 
     render(<ProfessionalProfilePage />);
 
-    await waitFor(
-      () => {
-        expect(screen.getAllByText("Profesional no encontrado")).toHaveLength(2);
-      },
-      { timeout: 1000 },
-    );
+    await waitFor(() => {
+      expect(screen.getAllByText("Profesional no encontrado")).toHaveLength(2);
+    });
 
     const allProfessionalsButton = screen.getByText("Ver todos los profesionales");
     allProfessionalsButton.click();
@@ -286,12 +274,9 @@ describe("ProfessionalProfilePage", () => {
 
     render(<ProfessionalProfilePage />);
 
-    await waitFor(
-      () => {
-        expect(screen.getByText("Perfil del Profesional")).toBeInTheDocument();
-      },
-      { timeout: 1000 },
-    );
+    await waitFor(() => {
+      expect(screen.getByText("Perfil del Profesional")).toBeInTheDocument();
+    });
 
     // Should not render sections for undefined fields
     expect(screen.queryByText("Sobre mí")).not.toBeInTheDocument();
@@ -306,12 +291,9 @@ describe("ProfessionalProfilePage", () => {
 
     render(<ProfessionalProfilePage />);
 
-    await waitFor(
-      () => {
-        expect(screen.getByText("800 / hora")).toBeInTheDocument();
-      },
-      { timeout: 1000 },
-    );
+    await waitFor(() => {
+      expect(screen.getByText("800 / hora")).toBeInTheDocument();
+    });
   });
 
   it("shows verification badge for verified professionals", async () => {
@@ -319,12 +301,9 @@ describe("ProfessionalProfilePage", () => {
 
     render(<ProfessionalProfilePage />);
 
-    await waitFor(
-      () => {
-        expect(screen.getByText("Verificado")).toBeInTheDocument();
-      },
-      { timeout: 1000 },
-    );
+    await waitFor(() => {
+      expect(screen.getByText("Verificado")).toBeInTheDocument();
+    });
   });
 
   it("does not show verification badge for unverified professionals", async () => {
@@ -337,12 +316,9 @@ describe("ProfessionalProfilePage", () => {
 
     render(<ProfessionalProfilePage />);
 
-    await waitFor(
-      () => {
-        expect(screen.getByText("Perfil del Profesional")).toBeInTheDocument();
-      },
-      { timeout: 1000 },
-    );
+    await waitFor(() => {
+      expect(screen.getByText("Perfil del Profesional")).toBeInTheDocument();
+    });
 
     expect(screen.queryByText("Verificado")).not.toBeInTheDocument();
   });
@@ -352,12 +328,9 @@ describe("ProfessionalProfilePage", () => {
 
     render(<ProfessionalProfilePage />);
 
-    await waitFor(
-      () => {
-        expect(screen.getByText("Formación Académica")).toBeInTheDocument();
-      },
-      { timeout: 1000 },
-    );
+    await waitFor(() => {
+      expect(screen.getByText("Formación Académica")).toBeInTheDocument();
+    });
 
     expect(screen.getByText("Formación Académica")).toBeInTheDocument();
 
@@ -369,12 +342,9 @@ describe("ProfessionalProfilePage", () => {
 
     render(<ProfessionalProfilePage />);
 
-    await waitFor(
-      () => {
-        expect(screen.getByText("Formación Académica")).toBeInTheDocument();
-      },
-      { timeout: 1000 },
-    );
+    await waitFor(() => {
+      expect(screen.getByText("Formación Académica")).toBeInTheDocument();
+    });
 
     expect(screen.getByText("Formación Académica")).toBeInTheDocument();
     // Just verify the section exists
@@ -389,12 +359,9 @@ describe("ProfessionalProfilePage", () => {
 
     render(<ProfessionalProfilePage />);
 
-    await waitFor(
-      () => {
-        expect(screen.getByText("Perfil del Profesional")).toBeInTheDocument();
-      },
-      { timeout: 1000 },
-    );
+    await waitFor(() => {
+      expect(screen.getByText("Perfil del Profesional")).toBeInTheDocument();
+    });
 
     expect(screen.queryByText("Formación Académica")).not.toBeInTheDocument();
   });
@@ -408,12 +375,9 @@ describe("ProfessionalProfilePage", () => {
 
     render(<ProfessionalProfilePage />);
 
-    await waitFor(
-      () => {
-        expect(screen.getByText("Perfil del Profesional")).toBeInTheDocument();
-      },
-      { timeout: 1000 },
-    );
+    await waitFor(() => {
+      expect(screen.getByText("Perfil del Profesional")).toBeInTheDocument();
+    });
 
     expect(screen.queryByText("Experiencia Laboral")).not.toBeInTheDocument();
   });
@@ -428,12 +392,9 @@ describe("ProfessionalProfilePage", () => {
 
     render(<ProfessionalProfilePage />);
 
-    await waitFor(
-      () => {
-        expect(screen.getByText("Perfil del Profesional")).toBeInTheDocument();
-      },
-      { timeout: 1000 },
-    );
+    await waitFor(() => {
+      expect(screen.getByText("Perfil del Profesional")).toBeInTheDocument();
+    });
 
     expect(screen.queryByText("Formación Académica")).not.toBeInTheDocument();
     expect(screen.queryByText("Experiencia Laboral")).not.toBeInTheDocument();
