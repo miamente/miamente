@@ -5,7 +5,7 @@ Constants for the Miamente platform.
 # 🧠 Especialidades en salud mental (Formación académica o campo profesional regulado)
 MENTAL_HEALTH_SPECIALTIES = [
     "Psiquiatría",
-    "Psicología clínica", 
+    "Psicología clínica",
     "Psicología educativa",
     "Psicología organizacional/ocupacional",
     "Psicología de la salud",
@@ -48,7 +48,7 @@ INTERVENTION_MODALITIES = [
     {
         "name": "Familiar",
         "description": "Terapia familiar para dinámicas y conflictos familiares",
-        "category": "Formato", 
+        "category": "Formato",
         "default_price_cents": 100000,  # $1,000 COP
     },
     {

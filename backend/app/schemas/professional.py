@@ -1,15 +1,16 @@
 """
 Professional schemas.
 """
+
 from datetime import datetime
 from typing import Optional, List
 from pydantic import BaseModel, EmailStr, field_validator, ConfigDict
 import uuid
 import json
 
-
 class ProfessionalBase(BaseModel):
     """Base professional schema."""
+
     email: EmailStr
     full_name: str
     phone_country_code: Optional[str] = None
@@ -29,21 +30,21 @@ class ProfessionalBase(BaseModel):
     therapy_approaches_ids: Optional[List[str]] = None  # List of therapeutic approach IDs
     timezone: str = "America/Bogota"
 
-
 class ProfessionalCreate(ProfessionalBase):
     """Professional creation schema."""
+
     password: str
-    
-    @field_validator('password')
+
+    @field_validator("password")
     @classmethod
     def validate_password(cls, v):
         if len(v) < 8:
-            raise ValueError('Password must be at least 8 characters long')
+            raise ValueError("Password must be at least 8 characters long")
         return v
-
 
 class ProfessionalUpdate(BaseModel):
     """Professional update schema."""
+
     full_name: Optional[str] = None
     phone_country_code: Optional[str] = None
     phone_number: Optional[str] = None
@@ -69,17 +70,17 @@ class ProfessionalUpdate(BaseModel):
     emergency_phone: Optional[str] = None
     is_verified: Optional[bool] = None
 
-
 class ProfessionalResponse(ProfessionalBase):
     """Professional response schema."""
+
     id: uuid.UUID
     is_active: bool
     is_verified: bool
     profile_picture: Optional[str] = None
     created_at: datetime
     updated_at: Optional[datetime] = None
-    
-    @field_validator('academic_experience', mode='before')
+
+    @field_validator("academic_experience", mode="before")
     @classmethod
     def parse_academic_experience(cls, v):
         if isinstance(v, str):
@@ -88,8 +89,8 @@ class ProfessionalResponse(ProfessionalBase):
             except json.JSONDecodeError:
                 return []
         return v or []
-    
-    @field_validator('work_experience', mode='before')
+
+    @field_validator("work_experience", mode="before")
     @classmethod
     def parse_work_experience(cls, v):
         if isinstance(v, str):
@@ -98,8 +99,8 @@ class ProfessionalResponse(ProfessionalBase):
             except json.JSONDecodeError:
                 return []
         return v or []
-    
-    @field_validator('certifications', mode='before')
+
+    @field_validator("certifications", mode="before")
     @classmethod
     def parse_certifications(cls, v):
         if isinstance(v, str):
@@ -108,8 +109,8 @@ class ProfessionalResponse(ProfessionalBase):
             except json.JSONDecodeError:
                 return []
         return v or []
-    
-    @field_validator('languages', mode='before')
+
+    @field_validator("languages", mode="before")
     @classmethod
     def parse_languages(cls, v):
         if isinstance(v, str):
@@ -118,8 +119,8 @@ class ProfessionalResponse(ProfessionalBase):
             except json.JSONDecodeError:
                 return []
         return v or []
-    
-    @field_validator('therapy_approaches_ids', mode='before')
+
+    @field_validator("therapy_approaches_ids", mode="before")
     @classmethod
     def parse_therapy_approaches_ids(cls, v):
         if isinstance(v, str):
@@ -128,9 +129,11 @@ class ProfessionalResponse(ProfessionalBase):
             except json.JSONDecodeError:
                 return []
         return v or []
-    
+
     model_config = ConfigDict(from_attributes=True)
+
 class ProfessionalLogin(BaseModel):
     """Professional login schema."""
+
     email: EmailStr
     password: str

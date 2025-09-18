@@ -1,31 +1,30 @@
 """
 Authentication service.
 """
-import uuid
-from datetime import timedelta
-from typing import Optional
-from sqlalchemy.orm import Session
-from fastapi import HTTPException, status
 
-from app.core.config import settings
+import uuid
+
+from typing import Optional
+from fastapi import HTTPException, status
+from sqlalchemy.orm import Session
+
 from app.core.security import (
     verify_password,
     get_password_hash,
-    create_token_response,
     verify_token,
 )
 from app.models.user import User
 from app.models.professional import Professional
-from app.schemas.user import UserCreate, UserLogin
-from app.schemas.professional import ProfessionalCreate, ProfessionalLogin
+from app.schemas.user import UserCreate
+from app.schemas.professional import ProfessionalCreate
 
 
 class AuthService:
     """Authentication service."""
-    
+
     def __init__(self, db: Session):
         self.db = db
-    
+
     def authenticate_user(self, email: str, password: str) -> Optional[User]:
         """Authenticate user with email and password."""
         user = self.db.query(User).filter(User.email == email).first()
@@ -34,7 +33,7 @@ class AuthService:
         if not verify_password(password, user.hashed_password):
             return None
         return user
-    
+
     def authenticate_professional(self, email: str, password: str) -> Optional[Professional]:
         """Authenticate professional with email and password."""
         professional = self.db.query(Professional).filter(Professional.email == email).first()
@@ -43,7 +42,7 @@ class AuthService:
         if not verify_password(password, professional.hashed_password):
             return None
         return professional
-    
+
     def create_user(self, user_data: UserCreate) -> User:
         """Create new user."""
         # Check if user already exists
@@ -51,9 +50,9 @@ class AuthService:
         if existing_user:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Email already registered"
+                detail="Email already registered",
             )
-        
+
         # Create new user
         hashed_password = get_password_hash(user_data.password)
         db_user = User(
@@ -65,24 +64,22 @@ class AuthService:
             emergency_phone=user_data.emergency_phone,
             hashed_password=hashed_password,
         )
-        
+
         self.db.add(db_user)
         self.db.commit()
         self.db.refresh(db_user)
         return db_user
-    
+
     def create_professional(self, professional_data: ProfessionalCreate) -> Professional:
         """Create new professional."""
         # Check if professional already exists
-        existing_professional = self.db.query(Professional).filter(
-            Professional.email == professional_data.email
-        ).first()
+        existing_professional = self.db.query(Professional).filter(Professional.email == professional_data.email).first()
         if existing_professional:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Email already registered"
+                detail="Email already registered",
             )
-        
+
         # Create new professional
         hashed_password = get_password_hash(professional_data.password)
         db_professional = Professional(
@@ -102,12 +99,12 @@ class AuthService:
             timezone=professional_data.timezone,
             hashed_password=hashed_password,
         )
-        
+
         self.db.add(db_professional)
         self.db.commit()
         self.db.refresh(db_professional)
         return db_professional
-    
+
     def get_user_by_id(self, user_id: str) -> Optional[User]:
         """Get user by ID."""
         try:
@@ -115,7 +112,7 @@ class AuthService:
         except ValueError:
             return None
         return self.db.query(User).filter(User.id == user_uuid).first()
-    
+
     def get_professional_by_id(self, professional_id: str) -> Optional[Professional]:
         """Get professional by ID."""
         try:
@@ -123,14 +120,14 @@ class AuthService:
         except ValueError:
             return None
         return self.db.query(Professional).filter(Professional.id == professional_uuid).first()
-    
+
     def get_current_user(self, token: str) -> Optional[User]:
         """Get current user from token."""
         user_id = verify_token(token)
         if user_id is None:
             return None
         return self.get_user_by_id(user_id)
-    
+
     def get_current_professional(self, token: str) -> Optional[Professional]:
         """Get current professional from token."""
         professional_id = verify_token(token)

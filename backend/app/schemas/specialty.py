@@ -1,6 +1,7 @@
 """
 Specialty schemas for the Miamente platform.
 """
+
 from typing import Optional
 from uuid import UUID
 from pydantic import BaseModel, ConfigDict
@@ -8,6 +9,7 @@ from pydantic import BaseModel, ConfigDict
 
 class SpecialtyBase(BaseModel):
     """Base specialty schema."""
+
     name: str
     description: str
     default_price_cents: int
@@ -17,11 +19,11 @@ class SpecialtyBase(BaseModel):
 
 class SpecialtyCreate(SpecialtyBase):
     """Specialty creation schema."""
-    pass
 
 
 class SpecialtyUpdate(BaseModel):
     """Specialty update schema."""
+
     name: Optional[str] = None
     description: Optional[str] = None
     default_price_cents: Optional[int] = None
@@ -31,10 +33,14 @@ class SpecialtyUpdate(BaseModel):
 
 class SpecialtyResponse(SpecialtyBase):
     """Specialty response schema."""
+
     id: UUID
-    
+
     model_config = ConfigDict(from_attributes=True)
+
+
 class ProfessionalSpecialtyUpdate(BaseModel):
     """Professional specialty update schema."""
+
     specialty_id: str
     custom_price_cents: Optional[int] = None

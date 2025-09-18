@@ -1,22 +1,30 @@
 """
 Professional specialty (new version) endpoints.
 """
+
 from typing import List
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
-from app.services.professional_specialty_new_service import ProfessionalSpecialtyNewService
-from app.schemas.professional_specialty_new import ProfessionalSpecialtyResponse, ProfessionalSpecialtyCreate, ProfessionalSpecialtyUpdate
+from app.services.professional_specialty_new_service import (
+    ProfessionalSpecialtyNewService,
+)
+from app.schemas.professional_specialty_new import (
+    ProfessionalSpecialtyResponse,
+    ProfessionalSpecialtyCreate,
+    ProfessionalSpecialtyUpdate,
+)
 
 router = APIRouter()
 
 
-@router.get("/professional/{professional_id}", response_model=List[ProfessionalSpecialtyResponse])
-def get_professional_specialties(
-    professional_id: str,
-    db: Session = Depends(get_db)
-):
+@router.get(
+    "/professional/{professional_id}",
+    response_model=List[ProfessionalSpecialtyResponse],
+)
+def get_professional_specialties(professional_id: str, db: Session = Depends(get_db)):
     """Get all specialties for a professional."""
     service = ProfessionalSpecialtyNewService(db)
     specialties = service.get_professional_specialties(professional_id)
@@ -24,26 +32,20 @@ def get_professional_specialties(
 
 
 @router.get("/{specialty_id}", response_model=ProfessionalSpecialtyResponse)
-def get_professional_specialty(
-    specialty_id: str,
-    db: Session = Depends(get_db)
-):
+def get_professional_specialty(specialty_id: str, db: Session = Depends(get_db)):
     """Get a professional specialty by ID."""
     service = ProfessionalSpecialtyNewService(db)
     specialty = service.get_professional_specialty(specialty_id)
     if not specialty:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Professional specialty not found"
+            detail="Professional specialty not found",
         )
     return specialty
 
 
 @router.post("/", response_model=ProfessionalSpecialtyResponse)
-def create_professional_specialty(
-    specialty: ProfessionalSpecialtyCreate,
-    db: Session = Depends(get_db)
-):
+def create_professional_specialty(specialty: ProfessionalSpecialtyCreate, db: Session = Depends(get_db)):
     """Create a new professional specialty."""
     service = ProfessionalSpecialtyNewService(db)
     return service.create_professional_specialty(specialty)
@@ -53,7 +55,7 @@ def create_professional_specialty(
 def update_professional_specialty(
     specialty_id: str,
     specialty_update: ProfessionalSpecialtyUpdate,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
 ):
     """Update a professional specialty."""
     service = ProfessionalSpecialtyNewService(db)
@@ -61,33 +63,26 @@ def update_professional_specialty(
     if not specialty:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Professional specialty not found"
+            detail="Professional specialty not found",
         )
     return specialty
 
 
 @router.delete("/{specialty_id}")
-def delete_professional_specialty(
-    specialty_id: str,
-    db: Session = Depends(get_db)
-):
+def delete_professional_specialty(specialty_id: str, db: Session = Depends(get_db)):
     """Delete a professional specialty."""
     service = ProfessionalSpecialtyNewService(db)
     success = service.delete_professional_specialty(specialty_id)
     if not success:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Professional specialty not found"
+            detail="Professional specialty not found",
         )
     return {"message": "Professional specialty deleted successfully"}
 
 
 @router.put("/professional/{professional_id}/specialties")
-def update_professional_specialties(
-    professional_id: str,
-    specialty_ids: List[str],
-    db: Session = Depends(get_db)
-):
+def update_professional_specialties(professional_id: str, specialty_ids: List[str], db: Session = Depends(get_db)):
     """Update specialties for a professional."""
     service = ProfessionalSpecialtyNewService(db)
     specialties = service.add_specialties_to_professional(professional_id, specialty_ids)

@@ -1,4 +1,5 @@
 from typing import List
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
@@ -11,11 +12,9 @@ router = APIRouter()
 
 
 @router.get("/", response_model=List[ModalityResponse])
-async def get_modalities(
-    db: Session = Depends(get_db)
-):
+async def get_modalities(db: Session = Depends(get_db)):
     """Get all active modalities."""
-    modalities = db.query(Modality).filter(Modality.is_active == True).all()
+    modalities = db.query(Modality).filter(Modality.is_active).all()
     return modalities
 
 
@@ -23,15 +22,12 @@ async def get_modalities(
 async def get_modality(
     modality_id: str,
     db: Session = Depends(get_db),
-    current_user_id: str = Depends(get_current_user_id)
+    current_user_id: str = Depends(get_current_user_id),
 ):
     """Get a specific modality by ID."""
     modality = db.query(Modality).filter(Modality.id == modality_id).first()
     if not modality:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Modality not found"
-        )
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Modality not found")
     return modality
 
 
@@ -39,7 +35,7 @@ async def get_modality(
 async def create_modality(
     modality: ModalityCreate,
     db: Session = Depends(get_db),
-    current_user_id: str = Depends(get_current_user_id)
+    current_user_id: str = Depends(get_current_user_id),
 ):
     """Create a new modality."""
     # Check if modality with same name already exists
@@ -47,9 +43,9 @@ async def create_modality(
     if existing_modality:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Modality with this name already exists"
+            detail="Modality with this name already exists",
         )
-    
+
     db_modality = Modality(**modality.dict())
     db.add(db_modality)
     db.commit()
@@ -62,20 +58,17 @@ async def update_modality(
     modality_id: str,
     modality_update: ModalityUpdate,
     db: Session = Depends(get_db),
-    current_user_id: str = Depends(get_current_user_id)
+    current_user_id: str = Depends(get_current_user_id),
 ):
     """Update a modality."""
     modality = db.query(Modality).filter(Modality.id == modality_id).first()
     if not modality:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Modality not found"
-        )
-    
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Modality not found")
+
     update_data = modality_update.dict(exclude_unset=True)
     for field, value in update_data.items():
         setattr(modality, field, value)
-    
+
     db.commit()
     db.refresh(modality)
     return modality
@@ -85,16 +78,13 @@ async def update_modality(
 async def delete_modality(
     modality_id: str,
     db: Session = Depends(get_db),
-    current_user_id: str = Depends(get_current_user_id)
+    current_user_id: str = Depends(get_current_user_id),
 ):
     """Delete a modality (soft delete by setting is_active to False)."""
     modality = db.query(Modality).filter(Modality.id == modality_id).first()
     if not modality:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Modality not found"
-        )
-    
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Modality not found")
+
     modality.is_active = False
     db.commit()
     return {"message": "Modality deleted successfully"}
