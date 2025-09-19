@@ -29,9 +29,7 @@ SPECIAL_FIELDS = ["specialty_ids", "therapy_approaches_ids", "modalities"]
 def parse_professional_data(professional: Professional) -> dict:
     """Parse professional data including JSON fields."""
     print(f"DEBUG: Parsing professional data for {professional.id}")
-    modalities_count = (
-        len(professional.professional_modalities) if professional.professional_modalities else 0
-    )
+    modalities_count = len(professional.professional_modalities) if professional.professional_modalities else 0
     print(f"DEBUG: Professional modalities count: {modalities_count}")
     if professional.professional_modalities:
         for pm in professional.professional_modalities:
@@ -51,9 +49,7 @@ def parse_professional_data(professional: Professional) -> dict:
             {
                 "id": str(ps.id),
                 "name": ps.specialty.name if ps.specialty else "Unknown Specialty",
-                "description": (
-                    ps.specialty.category if ps.specialty else "No description available"
-                ),
+                "description": (ps.specialty.category if ps.specialty else "No description available"),
                 "price_cents": professional.rate_cents,  # Use professional's rate
                 "currency": professional.currency,
                 "is_default": False,  # Determined by business logic
@@ -84,9 +80,7 @@ def parse_professional_data(professional: Professional) -> dict:
             if pm.is_active
         ],
         "timezone": professional.timezone,
-        "working_hours": (
-            json.loads(professional.working_hours) if professional.working_hours else None
-        ),
+        "working_hours": (json.loads(professional.working_hours) if professional.working_hours else None),
         "profile_picture": professional.profile_picture,
         "is_active": professional.is_active,
         "is_verified": professional.is_verified,
@@ -132,32 +126,22 @@ async def get_professional(professional_id: str, db: Session = Depends(get_db)):
     except ValueError:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid ID format")
 
-    professional = (
-        db.query(Professional)
-        .filter(Professional.id == professional_uuid, Professional.is_active)
-        .first()
-    )
+    professional = db.query(Professional).filter(Professional.id == professional_uuid, Professional.is_active).first()
 
     if not professional:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail=PROFESSIONAL_NOT_FOUND_MESSAGE
-        )
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=PROFESSIONAL_NOT_FOUND_MESSAGE)
 
     return parse_professional_data(professional)
 
 
 @router.get("/me/profile", response_model=ProfessionalResponse)
-async def get_current_professional(
-    current_user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)
-):
+async def get_current_professional(current_user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)):
     """Get current professional profile."""
     auth_service = AuthService(db)
     professional = auth_service.get_professional_by_id(current_user_id)
 
     if not professional:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail=PROFESSIONAL_NOT_FOUND_MESSAGE
-        )
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=PROFESSIONAL_NOT_FOUND_MESSAGE)
 
     return parse_professional_data(professional)
 
@@ -177,9 +161,7 @@ def _update_modalities(professional: Professional, update_data: dict, db: Sessio
     print(f"DEBUG: Processing modalities data: {update_data['modalities']}")
 
     # Remove existing modalities
-    db.query(ProfessionalModality).filter(
-        ProfessionalModality.professional_id == professional.id
-    ).delete()
+    db.query(ProfessionalModality).filter(ProfessionalModality.professional_id == professional.id).delete()
 
     # Add new modalities
     for modality_data in update_data["modalities"]:
@@ -252,9 +234,7 @@ async def update_current_professional(
     professional = auth_service.get_professional_by_id(current_user_id)
 
     if not professional:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail=PROFESSIONAL_NOT_FOUND_MESSAGE
-        )
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=PROFESSIONAL_NOT_FOUND_MESSAGE)
 
     # Update professional fields
     update_data = professional_update.dict(exclude_unset=True)
