@@ -21,9 +21,7 @@ class ProfessionalTherapeuticApproach(Base):
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     professional_id = Column(UUID(as_uuid=True), ForeignKey("professionals.id"), nullable=False)
-    therapeutic_approach_id = Column(
-        UUID(as_uuid=True), ForeignKey("therapeutic_approaches.id"), nullable=False
-    )
+    therapeutic_approach_id = Column(UUID(as_uuid=True), ForeignKey("therapeutic_approaches.id"), nullable=False)
 
     created_at = Column(String(255), server_default=func.now())
 

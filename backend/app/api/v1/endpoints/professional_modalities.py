@@ -59,9 +59,7 @@ def get_professional_modality(modality_id: str, db: Session = Depends(get_db)):
 
 
 @router.post("/", response_model=ProfessionalModalityResponse)
-def create_professional_modality(
-    modality: ProfessionalModalityCreate, db: Session = Depends(get_db)
-):
+def create_professional_modality(modality: ProfessionalModalityCreate, db: Session = Depends(get_db)):
     """Create a new professional modality."""
     service = ProfessionalModalityService(db)
     return service.create_professional_modality(modality)

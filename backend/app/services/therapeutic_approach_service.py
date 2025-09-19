@@ -21,27 +21,17 @@ class TherapeuticApproachService:
 
     def get_therapeutic_approach(self, approach_id: str) -> Optional[TherapeuticApproach]:
         """Get a therapeutic approach by ID."""
-        return (
-            self.db.query(TherapeuticApproach).filter(TherapeuticApproach.id == approach_id).first()
-        )
+        return self.db.query(TherapeuticApproach).filter(TherapeuticApproach.id == approach_id).first()
 
-    def get_therapeutic_approaches(
-        self, skip: int = 0, limit: int = 100
-    ) -> List[TherapeuticApproach]:
+    def get_therapeutic_approaches(self, skip: int = 0, limit: int = 100) -> List[TherapeuticApproach]:
         """Get all therapeutic approaches."""
         return self.db.query(TherapeuticApproach).offset(skip).limit(limit).all()
 
     def get_therapeutic_approaches_by_category(self, category: str) -> List[TherapeuticApproach]:
         """Get therapeutic approaches by category."""
-        return (
-            self.db.query(TherapeuticApproach)
-            .filter(TherapeuticApproach.category == category)
-            .all()
-        )
+        return self.db.query(TherapeuticApproach).filter(TherapeuticApproach.category == category).all()
 
-    def create_therapeutic_approach(
-        self, approach: TherapeuticApproachCreate
-    ) -> TherapeuticApproach:
+    def create_therapeutic_approach(self, approach: TherapeuticApproachCreate) -> TherapeuticApproach:
         """Create a new therapeutic approach."""
         db_approach = TherapeuticApproach(**approach.dict())
         self.db.add(db_approach)

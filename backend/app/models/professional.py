@@ -35,15 +35,11 @@ class Professional(Base):
     custom_rate_cents = Column(Integer, nullable=True)  # Custom rate override
     currency = Column(String(3), default="COP")
     bio = Column(Text, nullable=True)
-    academic_experience = Column(
-        Text, nullable=True
-    )  # JSON string for structured academic experience
+    academic_experience = Column(Text, nullable=True)  # JSON string for structured academic experience
     work_experience = Column(Text, nullable=True)  # JSON string for structured work experience
     certifications = Column(Text, nullable=True)  # JSON string for structured certifications
     languages = Column(ARRAY(String), nullable=True)
-    therapy_approaches_ids = Column(
-        ARRAY(String), nullable=True
-    )  # List of therapeutic approach IDs
+    therapy_approaches_ids = Column(ARRAY(String), nullable=True)  # List of therapeutic approach IDs
     specialty_ids = Column(ARRAY(String), nullable=True)  # New: list of specialty IDs
 
     # Availability settings
@@ -72,4 +68,6 @@ class Professional(Base):
     )
 
     def __repr__(self):
-        return f"<Professional(id={self.id}, email={self.email}, full_name={self.full_name}, specialty={self.specialty})>"
+        return (
+            f"<Professional(id={self.id}, email={self.email}, full_name={self.full_name}, specialty={self.specialty})>"
+        )

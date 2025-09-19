@@ -53,9 +53,7 @@ async def get_user_by_id(user_id: str, db: Session = Depends(get_db)):
 
 
 @router.get("/me", response_model=UserResponse)
-async def get_current_user(
-    current_user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)
-):
+async def get_current_user(current_user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)):
     """Get current user profile."""
     auth_service = AuthService(db)
     user = auth_service.get_user_by_id(current_user_id)
@@ -97,9 +95,7 @@ async def update_current_user(
 
 
 @router.delete("/me", status_code=status.HTTP_204_NO_CONTENT)
-async def delete_current_user(
-    current_user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)
-):
+async def delete_current_user(current_user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)):
     """Delete current user account."""
     auth_service = AuthService(db)
     user = auth_service.get_user_by_id(current_user_id)
