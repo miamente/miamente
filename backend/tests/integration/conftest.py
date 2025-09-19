@@ -139,10 +139,6 @@ def _cleanup_test_data(session_factory):
                 WHERE professional_id IN ('{professional_ids_str}')
             """))
             
-            session.execute(text(f"""
-                DELETE FROM availability 
-                WHERE professional_id IN ('{professional_ids_str}')
-            """))
         
         # Clean test data from reference tables (only test-specific data)
         session.execute(text("""
