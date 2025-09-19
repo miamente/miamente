@@ -21,9 +21,16 @@ describe("useTherapyApproachNames", () => {
 
     const { result } = renderHook(() => useTherapyApproachNames(["approach-1"]));
 
-    expect(result.current.loading).toBe(true);
     expect(result.current.error).toBe(null);
     expect(typeof result.current.getNames).toBe("function");
+
+    // Wait for the effect to start loading
+    await waitFor(
+      () => {
+        expect(result.current.loading).toBe(true);
+      },
+      { timeout: 100 },
+    );
 
     // Wait for the async effect to complete
     await waitFor(

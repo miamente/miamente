@@ -38,12 +38,12 @@ export function getUserFullName(user: AuthUser | null): string | undefined {
 
 export function isUserVerified(user: AuthUser | null): boolean {
   if (!user) return false;
-  return user.data.is_verified;
+  return user.data.is_verified ?? false;
 }
 
 export function isEmailVerified(user: AuthUser | null): boolean {
   if (!user) return false;
-  return user.data.is_verified; // email verification is the same as user verification
+  return user.data.is_verified ?? false; // email verification is the same as user verification
 }
 
 export interface AuthState {
