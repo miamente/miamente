@@ -20,9 +20,7 @@ class ProfessionalTherapeuticApproachService:
     def __init__(self, db: Session):
         self.db = db
 
-    def get_professional_therapeutic_approach(
-        self, approach_id: str
-    ) -> Optional[ProfessionalTherapeuticApproach]:
+    def get_professional_therapeutic_approach(self, approach_id: str) -> Optional[ProfessionalTherapeuticApproach]:
         """Get a professional therapeutic approach by ID."""
         return (
             self.db.query(ProfessionalTherapeuticApproach)
@@ -30,9 +28,7 @@ class ProfessionalTherapeuticApproachService:
             .first()
         )
 
-    def get_professional_therapeutic_approaches(
-        self, professional_id: str
-    ) -> List[ProfessionalTherapeuticApproach]:
+    def get_professional_therapeutic_approaches(self, professional_id: str) -> List[ProfessionalTherapeuticApproach]:
         """Get all therapeutic approaches for a professional."""
         return (
             self.db.query(ProfessionalTherapeuticApproach)

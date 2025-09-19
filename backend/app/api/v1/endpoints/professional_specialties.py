@@ -48,9 +48,7 @@ def get_professional_specialty(specialty_id: str, db: Session = Depends(get_db))
 
 
 @router.post("/", response_model=ProfessionalSpecialtyResponse)
-def create_professional_specialty(
-    specialty: ProfessionalSpecialtyCreate, db: Session = Depends(get_db)
-):
+def create_professional_specialty(specialty: ProfessionalSpecialtyCreate, db: Session = Depends(get_db)):
     """Create a new professional specialty."""
     service = ProfessionalSpecialtyService(db)
     return service.create_professional_specialty(specialty)
@@ -87,9 +85,7 @@ def delete_professional_specialty(specialty_id: str, db: Session = Depends(get_d
 
 
 @router.put("/professional/{professional_id}/specialties")
-def update_professional_specialties(
-    professional_id: str, specialty_ids: List[str], db: Session = Depends(get_db)
-):
+def update_professional_specialties(professional_id: str, specialty_ids: List[str], db: Session = Depends(get_db)):
     """Update specialties for a professional."""
     service = ProfessionalSpecialtyService(db)
     specialties = service.add_specialties_to_professional(professional_id, specialty_ids)
