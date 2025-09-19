@@ -155,9 +155,11 @@ jobs:
       needs:
         - unit-tests
         - integration-tests
-      if: |
-        github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop') ||
-        github.event_name == 'pull_request' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop')
+      if: >
+        (github.event_name == 'push' &&
+          (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop')) ||
+        (github.event_name == 'pull_request' &&
+          (github.base_ref == 'main' || github.base_ref == 'develop'))
       defaults:
         run:
           working-directory: backend
