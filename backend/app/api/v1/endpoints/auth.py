@@ -72,7 +72,9 @@ async def register_user(user_data: UserCreate, db: Session = Depends(get_db)):
     response_model=ProfessionalResponse,
     status_code=status.HTTP_201_CREATED,
 )
-async def register_professional(professional_data: ProfessionalCreate, db: Session = Depends(get_db)):
+async def register_professional(
+    professional_data: ProfessionalCreate, db: Session = Depends(get_db)
+):
     """Register a new professional."""
     auth_service = AuthService(db)
     professional = auth_service.create_professional(professional_data)
@@ -110,7 +112,9 @@ async def login_user(user_login: UserLogin, db: Session = Depends(get_db)):
 async def login_professional(professional_login: ProfessionalLogin, db: Session = Depends(get_db)):
     """Login professional."""
     auth_service = AuthService(db)
-    professional = auth_service.authenticate_professional(professional_login.email, professional_login.password)
+    professional = auth_service.authenticate_professional(
+        professional_login.email, professional_login.password
+    )
 
     if not professional:
         raise HTTPException(
@@ -187,7 +191,9 @@ async def login_unified(login_data: UnifiedLogin, db: Session = Depends(get_db))
 
 
 @router.post("/simulate-verification")
-async def simulate_email_verification(user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)):
+async def simulate_email_verification(
+    user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)
+):
     """Simulate email verification for development purposes."""
     auth_service = AuthService(db)
 
@@ -229,7 +235,9 @@ async def refresh_token(refresh_data: RefreshToken, db: Session = Depends(get_db
 
 
 @router.get("/me")
-async def get_current_user_info(current_user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)):
+async def get_current_user_info(
+    current_user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)
+):
     """Get current user information."""
     auth_service = AuthService(db)
 

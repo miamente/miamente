@@ -21,7 +21,11 @@ class ProfessionalModalityService:
 
     def get_professional_modality(self, modality_id: str) -> Optional[ProfessionalModality]:
         """Get a professional modality by ID."""
-        return self.db.query(ProfessionalModality).filter(ProfessionalModality.id == modality_id).first()
+        return (
+            self.db.query(ProfessionalModality)
+            .filter(ProfessionalModality.id == modality_id)
+            .first()
+        )
 
     def get_professional_modalities(self, professional_id: str) -> List[ProfessionalModality]:
         """Get all modalities for a professional."""
@@ -34,7 +38,9 @@ class ProfessionalModalityService:
             .all()
         )
 
-    def get_default_professional_modality(self, professional_id: str) -> Optional[ProfessionalModality]:
+    def get_default_professional_modality(
+        self, professional_id: str
+    ) -> Optional[ProfessionalModality]:
         """Get the default modality for a professional."""
         return (
             self.db.query(ProfessionalModality)
@@ -46,7 +52,9 @@ class ProfessionalModalityService:
             .first()
         )
 
-    def create_professional_modality(self, modality: ProfessionalModalityCreate) -> ProfessionalModality:
+    def create_professional_modality(
+        self, modality: ProfessionalModalityCreate
+    ) -> ProfessionalModality:
         """Create a new professional modality."""
         # If this is being marked as default, remove default flag from other modalities
         if modality.is_default:

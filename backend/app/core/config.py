@@ -93,12 +93,14 @@ class Settings(BaseSettings):
 # Settings will be instantiated when needed
 _settings = None
 
+
 def get_settings() -> Settings:
     """Get application settings, creating them if they don't exist."""
     global _settings
     if _settings is None:
         _settings = Settings()
     return _settings
+
 
 # For backward compatibility, create settings if environment variables are available
 try:

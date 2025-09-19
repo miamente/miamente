@@ -70,7 +70,9 @@ class AuthService:
         """Create new professional."""
         # Check if professional already exists
         existing_professional = (
-            self.db.query(Professional).filter(Professional.email == professional_data.email).first()
+            self.db.query(Professional)
+            .filter(Professional.email == professional_data.email)
+            .first()
         )
         if existing_professional:
             raise HTTPException(
