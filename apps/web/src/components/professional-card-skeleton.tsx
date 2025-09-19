@@ -4,7 +4,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 export function ProfessionalCardSkeleton() {
   return (
-    <Card className="flex flex-col">
+    <Card className="flex flex-col" data-testid="professional-card-skeleton">
       <CardHeader>
         <Skeleton className="mb-2 h-6 w-3/4" />
         <Skeleton className="mb-1 h-4 w-1/2" />
