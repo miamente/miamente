@@ -70,7 +70,8 @@ class Settings(BaseSettings):
         # Validate database credentials
         if not self.DATABASE_URL and (not self.DATABASE_USER or not self.DATABASE_PASSWORD):
             raise ValueError(
-                "Database credentials must be provided. Set either DATABASE_URL or both DATABASE_USER and DATABASE_PASSWORD"
+                "Database credentials must be provided. "
+                "Set either DATABASE_URL or both DATABASE_USER and DATABASE_PASSWORD"
             )
         # Construct DATABASE_URL from individual components if not provided
         if not self.DATABASE_URL:

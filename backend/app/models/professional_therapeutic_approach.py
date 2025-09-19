@@ -36,4 +36,10 @@ class ProfessionalTherapeuticApproach(Base):
     )
 
     def __repr__(self):
-        return f"<ProfessionalTherapeuticApproach(id={self.id}, professional_id={self.professional_id}, therapeutic_approach_id={self.therapeutic_approach_id})>"
+        return (
+            f"<ProfessionalTherapeuticApproach("
+            f"id={self.id}, "
+            f"professional_id={self.professional_id}, "
+            f"therapeutic_approach_id={self.therapeutic_approach_id}"
+            f")>"
+        )

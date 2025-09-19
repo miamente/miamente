@@ -33,4 +33,10 @@ class ProfessionalSpecialty(Base):
     specialty = relationship("app.models.specialty.Specialty", foreign_keys=[specialty_id])
 
     def __repr__(self):
-        return f"<ProfessionalSpecialty(id={self.id}, professional_id={self.professional_id}, specialty_id={self.specialty_id})>"
+        return (
+            f"<ProfessionalSpecialty("
+            f"id={self.id}, "
+            f"professional_id={self.professional_id}, "
+            f"specialty_id={self.specialty_id}"
+            f")>"
+        )
