@@ -1,0 +1,193 @@
+name: Backend CI
+
+on:
+  push:
+    branches: ['**']
+    paths:
+      - 'backend/**'
+      - '.github/workflows/backend-ci.yml'
+  pull_request:
+    branches: [main, develop]
+    paths:
+      - 'backend/**'
+      - '.github/workflows/backend-ci.yml'
+
+env:
+  PROJECT_NAME: ${{ secrets.PROJECT_NAME }}
+  VERSION: ${{ secrets.VERSION }}
+  API_V1_STR: ${{ secrets.API_V1_STR }}
+  DEBUG: ${{ secrets.DEBUG }}
+  ALGORITHM: ${{ secrets.ALGORITHM }}
+  ACCESS_TOKEN_EXPIRE_MINUTES: ${{ secrets.ACCESS_TOKEN_EXPIRE_MINUTES }}
+  REFRESH_TOKEN_EXPIRE_MINUTES: ${{ secrets.REFRESH_TOKEN_EXPIRE_MINUTES }}
+  SERVER_NAME: ${{ secrets.SERVER_NAME }}
+  SERVER_HOST: ${{ secrets.SERVER_HOST }}
+  ALLOWED_HOSTS: ${{ secrets.ALLOWED_HOSTS }}
+  BACKEND_CORS_ORIGINS: ${{ secrets.BACKEND_CORS_ORIGINS }}
+  TIMEZONE: ${{ secrets.TIMEZONE }}
+  SECRET_KEY: ${{ secrets.SECRET_KEY }}
+  DATABASE_URL: ${{ secrets.DATABASE_URL }}
+
+defaults:
+  run:
+    working-directory: backend
+
+jobs:
+  lint:
+    name: Lint and Format
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' || github.event_name == 'pull_request'
+    steps: 
+      - uses: actions/checkout@v4
+
+      - name: Setup Python & deps
+        uses: ./.github/actions/setup-backend
+        with:
+          python-version: '3.13'
+
+      - name: Run Black (Formatter)
+        run: black app --check
+
+      - name: Run Pylint (Linter)
+        run: pylint app --output-format=text --fail-under=9 > pylint-report.txt || true
+
+      - name: Run Flake8 (Linter)
+        run: flake8 app --output-file=flake8-report.txt || true
+      
+      - name: Upload Lint Artifacts
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: lint-reports
+          path: |
+            backend/flake8-report.txt
+            backend/pylint-report.txt
+
+  unit-tests:
+    name: Unit Tests
+    runs-on: ubuntu-latest
+    needs: 
+      - lint
+    if: github.event_name == 'push' || github.event_name == 'pull_request'
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Python & deps
+        uses: ./.github/actions/setup-backend
+        with:
+          python-version: '3.13'
+
+      - name: Run Unit Tests with pytest and Coverage
+        run: |
+          pytest \
+            --ignore=tests/integration \
+            --cov=app \
+            --cov-report=xml:unit_coverage.xml \
+            --cov-report=html \
+            --html=unit_report.html \
+            --self-contained-html
+
+      - name: Upload Test Reports Artifacts
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: unit-test-reports
+          path: |
+            backend/unit_report.html
+            backend/unit_coverage.xml
+
+  integration-tests:
+    name: Integration Tests
+    runs-on: ubuntu-latest
+    if: |
+      (github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop')) ||
+      (github.event_name == 'pull_request' && (github.base_ref == 'main' || github.base_ref == 'develop'))
+
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
+          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+          POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U user -d miamente"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=20
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Python & deps
+        uses: ./.github/actions/setup-backend
+        with:
+          python-version: '3.13'
+
+      - name: Run DB migrations
+        run: alembic upgrade head
+
+      - name: Run Integration Tests
+        run: |
+          uvicorn app.main:app --host 0.0.0.0 --port 8000 &
+          sleep 8
+          pytest tests/integration \
+            --cov=app \
+            --cov-report=xml:integration_coverage.xml \
+            --html=integration_report.html \
+            --self-contained-html
+
+
+      - name: Upload Test Reports Artifacts
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: integration-test-reports
+          path: |
+            backend/integration_report.html
+            backend/integration_coverage.xml
+
+
+  sonar:
+      name: SonarCloud (aggregate coverage)
+      runs-on: ubuntu-latest
+      needs:
+        - unit-tests
+        - integration-tests
+      if: |
+        github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop')
+      defaults:
+        run:
+          working-directory: backend
+      steps:
+        - uses: actions/checkout@v4
+
+        - name: Download lint artifacts
+          uses: actions/download-artifact@v4
+          with:
+            name: lint-reports
+            path: backend/artifacts-downloaded
+      
+        - name: Download unit artifacts
+          uses: actions/download-artifact@v4
+          with:
+            name: unit-test-reports
+            path: backend/artifacts-downloaded
+
+        - name: Download integration artifacts
+          uses: actions/download-artifact@v4
+          with:
+            name: integration-test-reports
+            path: backend/artifacts-downloaded
+
+        - name: List downloaded files
+          run: ls -la artifacts-downloaded
+
+        - name: SonarCloud Scan (aggregate)
+          uses: SonarSource/sonarqube-scan-action@v5.0.0
+          with:
+            projectBaseDir: ./backend
+          env:
+            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+            SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
