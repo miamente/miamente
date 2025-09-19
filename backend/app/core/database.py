@@ -26,15 +26,15 @@ def get_engine():
 
 
 # Create session factory (will be initialized when engine is created)
-SessionLocal = None
+session_local = None
 
 
 def get_session_factory():
     """Get session factory, creating it if it doesn't exist."""
-    global SessionLocal
-    if SessionLocal is None:
-        SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=get_engine())
-    return SessionLocal
+    global session_local
+    if session_local is None:
+        session_local = sessionmaker(autocommit=False, autoflush=False, bind=get_engine())
+    return session_local
 
 
 # Create base class for models
@@ -43,8 +43,8 @@ Base = declarative_base()
 
 def get_db():
     """Get database session."""
-    SessionLocal = get_session_factory()
-    db = SessionLocal()
+    session_local = get_session_factory()
+    db = session_local()
     try:
         yield db
     finally:

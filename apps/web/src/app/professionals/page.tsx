@@ -141,6 +141,12 @@ export default function ProfessionalsPage() {
     return "Especialidad no especificada";
   };
 
+  const getLoadMoreButtonText = () => {
+    if (loading) return "Cargando...";
+    if (canLoadMore) return "Cargar más";
+    return "No hay más resultados";
+  };
+
   // Determine what content to render
   const renderContent = () => {
     if (loading && isInitialLoad) {
@@ -155,14 +161,14 @@ export default function ProfessionalsPage() {
 
     if (!loading && !isInitialLoad && items.length === 0) {
       return (
-        <div role="status" aria-live="polite" className="rounded-md border p-6 text-center">
+        <output className="rounded-md border p-6 text-center">
           <p className="text-neutral-700 dark:text-neutral-300">
             No encontramos profesionales con los filtros seleccionados.
           </p>
           <p className="text-sm text-neutral-500 dark:text-neutral-400">
             Intenta ajustar los filtros.
           </p>
-        </div>
+        </output>
       );
     }
 
@@ -192,7 +198,6 @@ export default function ProfessionalsPage() {
                     width={400}
                     height={160}
                     className="h-40 w-full rounded-md object-cover"
-                    priority={false}
                   />
                 ) : (
                   <div className="flex h-40 w-full items-center justify-center rounded-md bg-neutral-100 text-neutral-500 dark:bg-neutral-900 dark:text-neutral-400">
@@ -297,13 +302,9 @@ export default function ProfessionalsPage() {
       </form>
 
       {error && (
-        <div
-          role="status"
-          aria-live="polite"
-          className="mb-6 rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-600 dark:border-red-800 dark:bg-red-900/20 dark:text-red-400"
-        >
+        <output className="mb-6 rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-600 dark:border-red-800 dark:bg-red-900/20 dark:text-red-400">
           {error}
-        </div>
+        </output>
       )}
 
       {renderContent()}
@@ -311,7 +312,7 @@ export default function ProfessionalsPage() {
       {items.length > 0 && !isInitialLoad && (
         <div className="mt-8 flex justify-center">
           <Button onClick={handleLoadMore} disabled={loading || !canLoadMore}>
-            {loading ? "Cargando..." : canLoadMore ? "Cargar más" : "No hay más resultados"}
+            {getLoadMoreButtonText()}
           </Button>
         </div>
       )}

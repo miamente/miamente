@@ -76,7 +76,6 @@ export default function UserProfilePage() {
     try {
       // Upload new photo if selected
       if (photoFile) {
-        // const photoPath = getStoragePath(generateUniqueFilename(photoFile.name));
         await uploadFile(photoFile);
       }
 

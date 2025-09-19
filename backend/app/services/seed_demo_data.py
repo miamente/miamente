@@ -131,8 +131,8 @@ def seed_professional(db: Session) -> None:
 
 
 def run() -> None:
-    SessionLocal = get_session_factory()
-    db = SessionLocal()
+    session_local = get_session_factory()
+    db = session_local()
     try:
         seed_reference_data(db)
         seed_users(db)

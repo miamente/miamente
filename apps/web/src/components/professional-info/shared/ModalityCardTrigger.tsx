@@ -6,7 +6,7 @@ import { CollapsibleTrigger } from "@/components/ui/collapsible";
 import { ChevronDown, ChevronRight, Star } from "lucide-react";
 
 interface ModalityCardTriggerProps {
-  isOpen: boolean;
+  readonly isOpen: boolean;
 }
 
 export function ModalityCardTrigger({ isOpen }: ModalityCardTriggerProps) {

@@ -6,13 +6,13 @@ import { Badge } from "@/components/ui/badge";
 import { Trash2, Star, StarOff } from "lucide-react";
 
 interface ModalityCardHeaderProps {
-  index: number;
-  modalityName?: string;
-  offersPresencial?: boolean;
-  isDefault?: boolean;
-  disabled?: boolean;
-  onSetDefault?: (index: number) => void;
-  onRemove?: (index: number) => void;
+  readonly index: number;
+  readonly modalityName?: string;
+  readonly offersPresencial?: boolean;
+  readonly isDefault?: boolean;
+  readonly disabled?: boolean;
+  readonly onSetDefault?: (index: number) => void;
+  readonly onRemove?: (index: number) => void;
 }
 
 export function ModalityCardHeader({
