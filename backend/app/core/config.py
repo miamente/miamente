@@ -5,8 +5,10 @@ Application configuration settings.
 import secrets
 from typing import List, Union
 
+from functools import lru_cache
 from pydantic import AnyHttpUrl, ConfigDict, field_validator
 from pydantic_settings import BaseSettings
+
 
 
 class Settings(BaseSettings):
@@ -33,12 +35,13 @@ class Settings(BaseSettings):
 
     @field_validator("BACKEND_CORS_ORIGINS", mode="before")
     @classmethod
-    def assemble_cors_origins(cls, v: Union[str, List[str]]) -> List[str]:
-        if isinstance(v, str):
-            return [i.strip() for i in v.split(",")]
-        if isinstance(v, list):
-            return v
-        raise ValueError(v)
+    def assemble_cors_origins(cls, value: Union[str, List[str]]) -> List[str]:
+        """Accept a CSV string or list for CORS origins and normalize to list[str]."""
+        if isinstance(value, str):
+            return [item.strip() for item in value.split(",")]
+        if isinstance(value, list):
+            return value
+        raise ValueError(value)
 
     # Allowed hosts
     ALLOWED_HOSTS: List[str] = [
@@ -50,12 +53,13 @@ class Settings(BaseSettings):
 
     @field_validator("ALLOWED_HOSTS", mode="before")
     @classmethod
-    def assemble_allowed_hosts(cls, v: Union[str, List[str]]) -> List[str]:
-        if isinstance(v, str):
-            return [i.strip() for i in v.split(",")]
-        if isinstance(v, list):
-            return v
-        raise ValueError(v)
+    def assemble_allowed_hosts(cls, value: Union[str, List[str]]) -> List[str]:
+        """Accept a CSV string or list for allowed hosts and normalize to list[str]."""
+        if isinstance(value, str):
+            return [item.strip() for item in value.split(",")]
+        if isinstance(value, list):
+            return value
+        raise ValueError(value)
 
     # Database settings
     DATABASE_HOST: str = "localhost"
@@ -75,10 +79,11 @@ class Settings(BaseSettings):
             )
         # Construct DATABASE_URL from individual components if not provided
         if not self.DATABASE_URL:
-            self.DATABASE_URL = (
+            url = (
                 f"postgresql://{self.DATABASE_USER}:{self.DATABASE_PASSWORD}"
                 f"@{self.DATABASE_HOST}:{self.DATABASE_PORT}/{self.DATABASE_NAME}"
             )
+            self.DATABASE_URL = url # pylint: disable=invalid-name
 
     # JWT settings
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 8  # 8 days
@@ -91,21 +96,7 @@ class Settings(BaseSettings):
     model_config = ConfigDict(case_sensitive=True, env_file=".env")
 
 
-# Settings will be instantiated when needed
-_settings = None
-
-
+@lru_cache(maxsize=1)
 def get_settings() -> Settings:
-    """Get application settings, creating them if they don't exist."""
-    global _settings
-    if _settings is None:
-        _settings = Settings()
-    return _settings
-
-
-# For backward compatibility, create settings if environment variables are available
-try:
-    settings = Settings()
-except ValueError:
-    # Settings will be created when needed via get_settings()
-    settings = None
+    """Return a cached Settings instance (singleton)."""
+    return Settings()
