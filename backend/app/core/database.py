@@ -35,8 +35,8 @@ def get_session_factory() -> sessionmaker:
 
 def get_db() -> Generator[Session, None, None]:
     """Yield a database session and ensure it is closed afterwards."""
-    SessionLocal = get_session_factory()
-    db = SessionLocal()
+    session_factory = get_session_factory()
+    db = session_factory()
     try:
         yield db
     finally:
