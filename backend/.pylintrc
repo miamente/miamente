@@ -53,7 +53,8 @@ disable=raw-checker-failed,
         file-ignored,
         suppressed-message,
         useless-suppression,
-        deprecated-pragma
+        deprecated-pragma,
+        too-few-public-methods
 
 [REPORTS]
 # Set the output format. Available formats are text, parseable, json and msvs
