@@ -4,10 +4,9 @@ Professional Therapeutic Approach model for the Miamente platform.
 
 import uuid
 
-from sqlalchemy import Column, ForeignKey, String
+from sqlalchemy import Column, ForeignKey, DateTime, text
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
-from sqlalchemy.sql import func
 
 from app.core.database import Base
 
@@ -23,7 +22,12 @@ class ProfessionalTherapeuticApproach(Base):
     professional_id = Column(UUID(as_uuid=True), ForeignKey("professionals.id"), nullable=False)
     therapeutic_approach_id = Column(UUID(as_uuid=True), ForeignKey("therapeutic_approaches.id"), nullable=False)
 
-    created_at = Column(String(255), server_default=func.now())
+    # Proper timestamp type + SQL-standard default (avoids pylint E1102)
+    created_at = Column(
+        DateTime(timezone=True),
+        server_default=text("CURRENT_TIMESTAMP"),
+        nullable=False,
+    )
 
     # Relationships
     professional = relationship(

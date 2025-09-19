@@ -54,7 +54,7 @@ disable=raw-checker-failed,
         suppressed-message,
         useless-suppression,
         deprecated-pragma,
-        too-few-public-methods
+        too-few-public-methods,
 
 [REPORTS]
 # Set the output format. Available formats are text, parseable, json and msvs
@@ -110,7 +110,7 @@ attr-rgx=[a-z_][a-z0-9_]{2,30}$
 argument-rgx=[a-z_][a-z0-9_]{2,30}$
 
 # Regular expression matching correct class attribute names
-class-attribute-rgx=([A-Za-z_][A-Za-z0-9_]{2,30}|(__.*__))$
+class-attribute-rgx=([A-Za-z_][A-Za-z0-9_]{2,50}|(__.*__))$
 
 # Regular expression matching correct inline iteration names
 inlinevar-rgx=[A-Za-z_][A-Za-z0-9_]*$
