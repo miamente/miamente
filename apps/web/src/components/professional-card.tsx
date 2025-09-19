@@ -1,15 +1,36 @@
 import React from "react";
 import Image from "next/image";
-import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { StarRating } from "@/components/star-rating";
-import { getImageUrl } from "@/lib/storage";
-import type { ProfessionalProfile } from "@/lib/types";
+
+// Helper function to construct full image URLs
+const getImageUrl = (imagePath: string | undefined): string | undefined => {
+  if (!imagePath) return undefined;
+
+  // If it's already a full URL, return as is
+  if (imagePath.startsWith("http")) {
+    return imagePath;
+  }
+
+  // If it's a relative path, prepend the API base URL
+  const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+  return `${API_BASE_URL}${imagePath}`;
+};
+
+interface ProfessionalCardData {
+  id: string;
+  full_name: string;
+  bio?: string;
+  profile_picture?: string;
+  specialties?: Array<{ id: string; name: string }>;
+  rating?: number;
+  total_reviews?: number;
+}
 
 interface ProfessionalCardProps {
-  professional: ProfessionalProfile;
+  professional: ProfessionalCardData;
   onViewProfile?: (professionalId: string) => void;
 }
 
@@ -55,7 +76,7 @@ export function ProfessionalCard({ professional, onViewProfile }: ProfessionalCa
 
         {professional.specialties && professional.specialties.length > 0 && (
           <div className="flex flex-wrap gap-1">
-            {professional.specialties.map((specialty) => (
+            {professional.specialties.map((specialty: { id: string; name: string }) => (
               <Badge key={specialty.id} variant="secondary" className="text-xs">
                 {specialty.name}
               </Badge>

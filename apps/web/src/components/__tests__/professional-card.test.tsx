@@ -2,7 +2,10 @@ import React from "react";
 import { render, screen, fireEvent } from "@testing-library/react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { ProfessionalCard } from "../professional-card";
-import type { ProfessionalProfile } from "@/lib/types";
+// Mock the getImageUrl function
+vi.mock("@/lib/storage", () => ({
+  getImageUrl: vi.fn((url: string) => url),
+}));
 
 // Mock Next.js Image component
 vi.mock("next/image", () => ({
@@ -18,30 +21,17 @@ vi.mock("@/lib/storage", () => ({
 }));
 
 describe("ProfessionalCard", () => {
-  const mockProfessional: ProfessionalProfile = {
+  const mockProfessional = {
     id: "1",
     full_name: "Dr. John Doe",
-    email: "john.doe@example.com",
-    phone_country_code: "+1",
-    phone_number: "1234567890",
     bio: "Experienced therapist with 10+ years of experience",
     specialties: [
       { id: "1", name: "Anxiety" },
       { id: "2", name: "Depression" },
     ],
-    modalities: [
-      { id: "1", name: "Individual Therapy" },
-      { id: "2", name: "Group Therapy" },
-    ],
-    therapeutic_approaches: [
-      { id: "1", name: "CBT" },
-      { id: "2", name: "DBT" },
-    ],
     profile_picture: "https://example.com/profile.jpg",
     rating: 4.5,
     total_reviews: 10,
-    created_at: "2023-01-01T00:00:00Z",
-    updated_at: "2023-01-01T00:00:00Z",
   };
 
   const defaultProps = {
@@ -97,7 +87,7 @@ describe("ProfessionalCard", () => {
   it("should handle professional without profile picture", () => {
     const professionalWithoutPicture = {
       ...mockProfessional,
-      profile_picture: null,
+      profile_picture: undefined,
     };
 
     render(<ProfessionalCard {...defaultProps} professional={professionalWithoutPicture} />);
@@ -109,7 +99,7 @@ describe("ProfessionalCard", () => {
   it("should handle professional without bio", () => {
     const professionalWithoutBio = {
       ...mockProfessional,
-      bio: null,
+      bio: undefined,
     };
 
     render(<ProfessionalCard {...defaultProps} professional={professionalWithoutBio} />);
@@ -138,7 +128,7 @@ describe("ProfessionalCard", () => {
   it("should handle professional without rating", () => {
     const professionalWithoutRating = {
       ...mockProfessional,
-      rating: null,
+      rating: undefined,
       total_reviews: 0,
     };
 
