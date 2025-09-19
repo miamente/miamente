@@ -159,10 +159,10 @@ describe("Input", () => {
   });
 
   it("should pass through all input props", () => {
-    render(<Input data-testid="test-input" aria-label="Test input" tabIndex={1} />);
+    render(<Input data-testid="test-input" aria-label="Test input" tabIndex={0} />);
 
     const input = screen.getByTestId("test-input");
     expect(input).toHaveAttribute("aria-label", "Test input");
-    expect(input).toHaveAttribute("tabindex", "1");
+    expect(input).toHaveAttribute("tabindex", "0");
   });
 });

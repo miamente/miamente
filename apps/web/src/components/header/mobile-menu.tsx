@@ -44,7 +44,12 @@ export function MobileMenu({
   return (
     <div className="fixed inset-0 z-50 lg:hidden">
       {/* Backdrop */}
-      <div className="fixed inset-0 bg-black/50" onClick={onClose} />
+      <button
+        className="fixed inset-0 bg-black/50"
+        onClick={onClose}
+        aria-label="Cerrar menú"
+        type="button"
+      />
 
       {/* Menu Panel */}
       <div className="fixed top-0 right-0 h-full w-80 bg-white shadow-xl dark:bg-neutral-900">

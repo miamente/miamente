@@ -30,7 +30,7 @@ describe("useTherapyApproachNames", () => {
       () => {
         expect(result.current.loading).toBe(false);
       },
-      { timeout: 1000 },
+      { timeout: 100 },
     );
   });
 
@@ -57,7 +57,7 @@ describe("useTherapyApproachNames", () => {
       () => {
         expect(result.current.loading).toBe(false);
       },
-      { timeout: 1000 },
+      { timeout: 100 },
     );
 
     expect(result.current.error).toBe(null);
@@ -77,7 +77,7 @@ describe("useTherapyApproachNames", () => {
       () => {
         expect(result.current.loading).toBe(false);
       },
-      { timeout: 1000 },
+      { timeout: 100 },
     );
 
     expect(result.current.error).toBe("API Error");
@@ -97,7 +97,7 @@ describe("useTherapyApproachNames", () => {
       () => {
         expect(result.current.loading).toBe(false);
       },
-      { timeout: 1000 },
+      { timeout: 100 },
     );
 
     expect(result.current.getNames(["approach-1", "unknown-approach"])).toEqual([
@@ -115,7 +115,7 @@ describe("useTherapyApproachNames", () => {
       () => {
         expect(result.current.loading).toBe(false);
       },
-      { timeout: 1000 },
+      { timeout: 100 },
     );
 
     expect(result.current.error).toBe(null);

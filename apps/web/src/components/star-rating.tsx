@@ -30,6 +30,13 @@ export function StarRating({
     }
   };
 
+  const getStarColor = (isFilled: boolean, isHalfFilled: boolean) => {
+    if (isFilled || isHalfFilled) {
+      return "text-yellow-400";
+    }
+    return "text-neutral-300 dark:text-neutral-600";
+  };
+
   return (
     <div className="flex items-center space-x-1">
       {Array.from({ length: maxRating }, (_, index) => {
@@ -47,13 +54,7 @@ export function StarRating({
               interactive && !disabled
                 ? "cursor-pointer transition-transform hover:scale-110"
                 : "cursor-default"
-            } ${
-              isFilled
-                ? "text-yellow-400"
-                : isHalfFilled
-                  ? "text-yellow-400"
-                  : "text-neutral-300 dark:text-neutral-600"
-            }`}
+            } ${getStarColor(isFilled, isHalfFilled)}`}
             aria-label={`${starRating} estrella${starRating > 1 ? "s" : ""}`}
           >
             {isHalfFilled ? "☆" : "★"}

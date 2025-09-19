@@ -41,13 +41,12 @@ describe("Card Components", () => {
 
     it("should pass through all div props", () => {
       render(
-        <Card data-testid="test-card" role="article" aria-label="Test card">
+        <Card data-testid="test-card" aria-label="Test card">
           Card content
         </Card>,
       );
 
       const card = screen.getByTestId("test-card");
-      expect(card).toHaveAttribute("role", "article");
       expect(card).toHaveAttribute("aria-label", "Test card");
     });
   });
