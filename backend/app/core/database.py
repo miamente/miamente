@@ -10,6 +10,7 @@ from app.core.config import get_settings
 # Lazy-loaded database engine
 _engine = None
 
+
 def get_engine():
     """Get database engine, creating it if it doesn't exist."""
     global _engine
@@ -23,8 +24,10 @@ def get_engine():
         )
     return _engine
 
+
 # Create session factory (will be initialized when engine is created)
 SessionLocal = None
+
 
 def get_session_factory():
     """Get session factory, creating it if it doesn't exist."""
@@ -32,6 +35,7 @@ def get_session_factory():
     if SessionLocal is None:
         SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=get_engine())
     return SessionLocal
+
 
 # Create base class for models
 Base = declarative_base()

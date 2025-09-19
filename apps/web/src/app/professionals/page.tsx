@@ -8,7 +8,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Select, type SelectOption } from "@/components/ui/select";
 import { ProfessionalCardSkeleton } from "@/components/professional-card-skeleton";
-import { queryProfessionals, type ProfessionalsQueryResult } from "@/lib/profiles";
+import {
+  queryProfessionals,
+  type ProfessionalsQueryResult,
+  type ProfessionalProfile,
+} from "@/lib/profiles";
 import { useSpecialtyNames } from "@/hooks/useSpecialtyNames";
 
 // Helper function to construct full image URLs
@@ -112,7 +116,7 @@ export default function ProfessionalsPage() {
     fetchPage(false);
   };
 
-  const renderSpecialtyInfo = (pro: any) => {
+  const renderSpecialtyInfo = (pro: ProfessionalProfile) => {
     if (specialtiesLoading) {
       return (
         <div className="h-4 w-32 animate-pulse rounded bg-neutral-200 dark:bg-neutral-700"></div>

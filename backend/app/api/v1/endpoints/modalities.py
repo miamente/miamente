@@ -30,7 +30,9 @@ async def get_modality(
     """Get a specific modality by ID."""
     modality = db.query(Modality).filter(Modality.id == modality_id).first()
     if not modality:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=MODALITY_NOT_FOUND_MESSAGE)
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail=MODALITY_NOT_FOUND_MESSAGE
+        )
     return modality
 
 
@@ -66,7 +68,9 @@ async def update_modality(
     """Update a modality."""
     modality = db.query(Modality).filter(Modality.id == modality_id).first()
     if not modality:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=MODALITY_NOT_FOUND_MESSAGE)
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail=MODALITY_NOT_FOUND_MESSAGE
+        )
 
     update_data = modality_update.dict(exclude_unset=True)
     for field, value in update_data.items():
@@ -86,7 +90,9 @@ async def delete_modality(
     """Delete a modality (soft delete by setting is_active to False)."""
     modality = db.query(Modality).filter(Modality.id == modality_id).first()
     if not modality:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=MODALITY_NOT_FOUND_MESSAGE)
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail=MODALITY_NOT_FOUND_MESSAGE
+        )
 
     modality.is_active = False
     db.commit()

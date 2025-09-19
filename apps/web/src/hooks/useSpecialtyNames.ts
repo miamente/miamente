@@ -10,7 +10,7 @@ export function useSpecialtyNames() {
     setLoading(true);
     setError(null);
     try {
-      const allSpecialties = await apiClient.getSpecialtiesNew();
+      const allSpecialties = await apiClient.getSpecialties();
       const newNamesMap = new Map<string, string>();
 
       // Safety check: ensure allSpecialties is an array

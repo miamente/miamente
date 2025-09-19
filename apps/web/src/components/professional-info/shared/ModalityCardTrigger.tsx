@@ -7,10 +7,9 @@ import { ChevronDown, ChevronRight, Star } from "lucide-react";
 
 interface ModalityCardTriggerProps {
   isOpen: boolean;
-  onOpenChange: (open: boolean) => void;
 }
 
-export function ModalityCardTrigger({ isOpen, onOpenChange }: ModalityCardTriggerProps) {
+export function ModalityCardTrigger({ isOpen }: ModalityCardTriggerProps) {
   return (
     <CollapsibleTrigger asChild>
       <CardHeader className="group cursor-pointer py-6 transition-colors duration-200 hover:bg-purple-50/30 dark:hover:bg-purple-900/10">

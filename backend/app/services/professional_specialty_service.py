@@ -21,15 +21,23 @@ class ProfessionalSpecialtyService:
 
     def get_professional_specialty(self, specialty_id: str) -> Optional[ProfessionalSpecialty]:
         """Get a professional specialty by ID."""
-        return self.db.query(ProfessionalSpecialty).filter(ProfessionalSpecialty.id == specialty_id).first()
+        return (
+            self.db.query(ProfessionalSpecialty)
+            .filter(ProfessionalSpecialty.id == specialty_id)
+            .first()
+        )
 
     def get_professional_specialties(self, professional_id: str) -> List[ProfessionalSpecialty]:
         """Get all specialties for a professional."""
         return (
-            self.db.query(ProfessionalSpecialty).filter(ProfessionalSpecialty.professional_id == professional_id).all()
+            self.db.query(ProfessionalSpecialty)
+            .filter(ProfessionalSpecialty.professional_id == professional_id)
+            .all()
         )
 
-    def create_professional_specialty(self, specialty: ProfessionalSpecialtyCreate) -> ProfessionalSpecialty:
+    def create_professional_specialty(
+        self, specialty: ProfessionalSpecialtyCreate
+    ) -> ProfessionalSpecialty:
         """Create a new professional specialty."""
         db_specialty = ProfessionalSpecialty(**specialty.dict())
         self.db.add(db_specialty)
@@ -68,12 +76,16 @@ class ProfessionalSpecialtyService:
     ) -> List[ProfessionalSpecialty]:
         """Add multiple specialties to a professional."""
         # Remove existing specialties for this professional
-        self.db.query(ProfessionalSpecialty).filter(ProfessionalSpecialty.professional_id == professional_id).delete()
+        self.db.query(ProfessionalSpecialty).filter(
+            ProfessionalSpecialty.professional_id == professional_id
+        ).delete()
 
         # Add new specialties
         new_specialties = []
         for specialty_id in specialty_ids:
-            specialty = ProfessionalSpecialtyCreate(professional_id=professional_id, specialty_id=specialty_id)
+            specialty = ProfessionalSpecialtyCreate(
+                professional_id=professional_id, specialty_id=specialty_id
+            )
             db_specialty = ProfessionalSpecialty(**specialty.dict())
             self.db.add(db_specialty)
             new_specialties.append(db_specialty)

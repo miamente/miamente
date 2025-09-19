@@ -27,7 +27,9 @@ class ProfessionalBase(BaseModel):
     bio: Optional[str] = None
     academic_experience: Optional[List[dict]] = None  # Structured academic experience
     work_experience: Optional[List[dict]] = None  # Structured work experience
-    certifications: Optional[List[dict]] = None  # Structured certifications with name and document_url
+    certifications: Optional[List[dict]] = (
+        None  # Structured certifications with name and document_url
+    )
     languages: Optional[List[str]] = None
     therapy_approaches_ids: Optional[List[str]] = None  # List of therapeutic approach IDs
     timezone: str = "America/Bogota"

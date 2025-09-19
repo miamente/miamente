@@ -32,7 +32,10 @@ vi.mock("@/hooks/useSpecialtyNames", () => ({
 
 // Mock Next.js Image component
 vi.mock("next/image", () => ({
-  default: ({ alt, ...props }: { alt: string; [key: string]: any }) => <img alt={alt} {...props} />,
+  default: ({ alt, ...props }: { alt: string; [key: string]: unknown }) => (
+    // eslint-disable-next-line @next/next/no-img-element
+    <img alt={alt} {...(props as React.ImgHTMLAttributes<HTMLImageElement>)} />
+  ),
 }));
 
 const mockUseRouter = vi.mocked(useRouter);

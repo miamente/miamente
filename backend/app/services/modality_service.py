@@ -36,7 +36,9 @@ class ModalityService:
         self.db.refresh(db_modality)
         return db_modality
 
-    def update_modality(self, modality_id: str, modality_update: ModalityUpdate) -> Optional[Modality]:
+    def update_modality(
+        self, modality_id: str, modality_update: ModalityUpdate
+    ) -> Optional[Modality]:
         """Update a modality."""
         db_modality = self.get_modality(modality_id)
         if not db_modality:

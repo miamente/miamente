@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { Control, FieldPath } from "react-hook-form";
+import { Control } from "react-hook-form";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
