@@ -120,8 +120,7 @@ jobs:
         if: always()
         with:
           name: frontend-build
-          path: |
-            apps/web/.next/
+          path: apps/web/.next
           retention-days: 1
 
   sonar:
@@ -154,7 +153,7 @@ jobs:
           path: apps/web/artifacts-downloaded
 
       - name: List downloaded files
-        run: ls -la artifacts-downloaded
+        run: ls -la apps/web/artifacts-downloaded
 
       - name: SonarCloud Scan (Frontend)
         uses: SonarSource/sonarqube-scan-action@v5.0.0
