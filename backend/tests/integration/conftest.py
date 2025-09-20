@@ -2,8 +2,10 @@
 Pytest configuration and fixtures for integration tests (real Postgres connection).
 Uses precise test data identification to avoid affecting production data.
 """
+
 import pytest
-import uuid
+
+# import uuid  # Unused import
 from datetime import datetime
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine, text
@@ -90,79 +92,117 @@ def _cleanup_test_data(session_factory):
             "full_name = 'Test Professional'",
             "full_name = 'Test User 1'",
             "full_name = 'Test User 2'",
-            "full_name = 'Updated Name'"
+            "full_name = 'Updated Name'",
         ]
-        
-        where_clause = ' OR '.join(test_patterns)
-        
+
+        where_clause = " OR ".join(test_patterns)
+
         # Get test user IDs before deletion for related data cleanup
-        test_user_ids = session.execute(text(f"""
-            SELECT id FROM users WHERE {where_clause}
-        """)).fetchall()
-        
+        # test_user_ids = session.execute(
+        #     text(
+        #         f"""
+        #     SELECT id FROM users WHERE {where_clause}
+        # """
+        #     )
+        # ).fetchall()
+
         # Get test professional IDs before deletion for related data cleanup
-        test_professional_ids = session.execute(text(f"""
+        test_professional_ids = session.execute(
+            text(
+                f"""
             SELECT id FROM professionals WHERE {where_clause}
-        """)).fetchall()
-        
+        """
+            )
+        ).fetchall()
+
         # Clean test users
-        result = session.execute(text(f"""
+        result = session.execute(
+            text(
+                f"""
             DELETE FROM users WHERE {where_clause}
-        """))
+        """
+            )
+        )
         deleted_users = result.rowcount
-        
+
         # Clean test professionals
-        result = session.execute(text(f"""
+        result = session.execute(
+            text(
+                f"""
             DELETE FROM professionals WHERE {where_clause}
-        """))
+        """
+            )
+        )
         deleted_professionals = result.rowcount
-        
+
         # Clean related data only for test professionals
         if test_professional_ids:
             professional_id_list = [str(row[0]) for row in test_professional_ids]
             professional_ids_str = "', '".join(professional_id_list)
-            
+
             # Clean professional-related tables
-            session.execute(text(f"""
-                DELETE FROM professional_specialties 
+            session.execute(
+                text(
+                    f"""
+                DELETE FROM professional_specialties
                 WHERE professional_id IN ('{professional_ids_str}')
-            """))
-            
-            
-            session.execute(text(f"""
-                DELETE FROM professional_modalities 
+            """
+                )
+            )
+
+            session.execute(
+                text(
+                    f"""
+                DELETE FROM professional_modalities
                 WHERE professional_id IN ('{professional_ids_str}')
-            """))
-            
-            session.execute(text(f"""
-                DELETE FROM professional_therapeutic_approaches 
+            """
+                )
+            )
+
+            session.execute(
+                text(
+                    f"""
+                DELETE FROM professional_therapeutic_approaches
                 WHERE professional_id IN ('{professional_ids_str}')
-            """))
-            
-        
+            """
+                )
+            )
+
         # Clean test data from reference tables (only test-specific data)
-        session.execute(text("""
-            DELETE FROM specialties 
-            WHERE name LIKE 'Test %' 
+        session.execute(
+            text(
+                """
+            DELETE FROM specialties
+            WHERE name LIKE 'Test %'
             OR name LIKE '% Test'
             OR name = 'psychology'
-        """))
-        
-        session.execute(text("""
-            DELETE FROM therapeutic_approaches 
-            WHERE name LIKE 'Test %' 
+        """
+            )
+        )
+
+        session.execute(
+            text(
+                """
+            DELETE FROM therapeutic_approaches
+            WHERE name LIKE 'Test %'
             OR name LIKE '% Test'
-        """))
-        
-        session.execute(text("""
-            DELETE FROM modalities 
-            WHERE name LIKE 'Test %' 
+        """
+            )
+        )
+
+        session.execute(
+            text(
+                """
+            DELETE FROM modalities
+            WHERE name LIKE 'Test %'
             OR name LIKE '% Test'
-        """))
-        
+        """
+            )
+        )
+
         session.commit()
         print(f"✅ Test data cleanup completed: {deleted_users} users, {deleted_professionals} professionals removed")
-        
+
     except Exception as e:
         session.rollback()
         print(f"⚠️ Warning: Could not clean test data: {e}")
@@ -236,14 +276,15 @@ def test_name_generator():
 @pytest.fixture
 def test_data_factory():
     """Provide test data factory with safe test data generation."""
+
     def create_test_user_data(name_suffix="user"):
         return {
             "email": generate_test_email(name_suffix),
             "password": "testpassword123",
             "full_name": generate_test_name(name_suffix.title()),
-            "phone": "+1234567890"
+            "phone": "+1234567890",
         }
-    
+
     def create_test_professional_data(name_suffix="professional"):
         return {
             "email": generate_test_email(name_suffix),
@@ -251,12 +292,7 @@ def test_data_factory():
             "full_name": generate_test_name(name_suffix.title()),
             "specialty_ids": ["psychology"],
             "bio": f"Test bio for {name_suffix}",
-            "rate_cents": 50000
+            "rate_cents": 50000,
         }
-    
-    return {
-        "user": create_test_user_data,
-        "professional": create_test_professional_data
-    }
 
-
+    return {"user": create_test_user_data, "professional": create_test_professional_data}

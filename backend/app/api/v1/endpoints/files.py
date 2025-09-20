@@ -202,7 +202,7 @@ async def upload_certification_document(
     if len(file_content) > MAX_FILE_SIZE:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"{FILE_TOO_LARGE_MESSAGE} {MAX_FILE_SIZE // (1024*1024)}MB",
+            detail=f"{FILE_TOO_LARGE_MESSAGE} {MAX_FILE_SIZE // (1024 * 1024)}MB",
         )
 
     # Generate unique filename
@@ -247,7 +247,7 @@ async def upload_profile_picture(
     if len(file_content) > MAX_PROFILE_PICTURE_SIZE:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"{FILE_TOO_LARGE_MESSAGE} {MAX_PROFILE_PICTURE_SIZE // (1024*1024)}MB",
+            detail=f"{FILE_TOO_LARGE_MESSAGE} {MAX_PROFILE_PICTURE_SIZE // (1024 * 1024)}MB",
         )
 
     # Generate unique filename

@@ -43,7 +43,7 @@ class ProfessionalService:
         return (
             self.db.query(Professional)
             .filter(
-                Professional.specialty.ilike(f"%{specialty}%"),
+                Professional.specialty_ids.any(specialty),
                 Professional.is_active,
             )
             .all()

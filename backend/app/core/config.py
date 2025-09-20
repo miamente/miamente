@@ -66,7 +66,7 @@ class Settings(BaseSettings):
     DATABASE_NAME: str = "miamente"
     DATABASE_USER: str = ""
     DATABASE_PASSWORD: str = ""
-    DATABASE_URL: str = ""
+    DATABASE_URL: str = ""  # pylint: disable=invalid-name
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
