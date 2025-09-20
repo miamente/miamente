@@ -91,9 +91,6 @@ jobs:
     needs:
       - lint
     if: github.event_name == 'push' || github.event_name == 'pull_request'
-    defaults:
-      run:
-        working-directory: apps/web
     steps:
       - uses: actions/checkout@v4
 
@@ -103,9 +100,12 @@ jobs:
           node-version: "22"
 
       - name: Run Accessibility Tests
+        working-directory: apps/web
         run: |
           mkdir -p accessibility-results
-          npm run test:accessibility > accessibility-results/accessibility-report.txt 2>&1 || true
+          npm run test:accessibility 2>&1 | tee accessibility-results/accessibility-report.txt || echo "Accessibility tests completed with issues"
+          echo "Test completed at $(date)" >> accessibility-results/accessibility-report.txt
+          ls -la accessibility-results/
 
       - name: Upload Accessibility Reports
         uses: actions/upload-artifact@v4
@@ -113,7 +113,7 @@ jobs:
         with:
           name: frontend-accessibility-reports
           path: |
-            accessibility-results/
+            apps/web/accessibility-results/
 
   build-test:
     name: Build Test
@@ -121,9 +121,6 @@ jobs:
     needs:
       - lint
     if: github.event_name == 'push' || github.event_name == 'pull_request'
-    defaults:
-      run:
-        working-directory: apps/web
     steps:
       - uses: actions/checkout@v4
 
@@ -133,9 +130,20 @@ jobs:
           node-version: "22"
 
       - name: Build Application
+        working-directory: apps/web
         run: |
+          echo "Current directory: $(pwd)"
+          echo "Running npm run build..."
           npm run build
-          ls -la .next/ || echo "Build directory not found at expected location"
+          echo "Build completed. Checking for .next directory..."
+          if [ -d ".next" ]; then
+            echo "✅ .next directory found!"
+            ls -la .next/
+          else
+            echo "❌ .next directory not found"
+            echo "Current directory contents:"
+            ls -la
+          fi
 
       - name: Upload Build Artifacts
         uses: actions/upload-artifact@v4
@@ -143,7 +151,7 @@ jobs:
         with:
           name: frontend-build
           path: |
-            .next/
+            apps/web/.next/
           retention-days: 1
 
   e2e-tests:
