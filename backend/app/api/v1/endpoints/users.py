@@ -4,6 +4,7 @@ User endpoints.
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
+from sqlalchemy.exc import SQLAlchemyError
 
 from app.api.v1.endpoints.auth import get_current_user_id
 from app.core.database import get_db
@@ -37,7 +38,7 @@ def parse_user_data(user: User) -> dict:
 
 
 @router.get("/", response_model=list[UserResponse])
-async def get_users(db: Session = Depends(get_db)):
+async def get_users(_db: Session = Depends(get_db)):
     """Get all users (admin only - for now returns 401)."""
     # For now, this endpoint requires authentication
     # In a real app, this would check for admin role
@@ -45,7 +46,7 @@ async def get_users(db: Session = Depends(get_db)):
 
 
 @router.get("/{user_id}", response_model=UserResponse)
-async def get_user_by_id(user_id: str, db: Session = Depends(get_db)):
+async def get_user_by_id(user_id: str, _db: Session = Depends(get_db)):
     """Get user by ID (admin only - for now returns 401)."""
     # For now, this endpoint requires authentication
     # In a real app, this would check for admin role
@@ -86,12 +87,12 @@ async def update_current_user(
         db.refresh(user)
         return user
 
-    except Exception:
+    except SQLAlchemyError as exc:
         db.rollback()
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to update user",
-        )
+        ) from exc
 
 
 @router.delete("/me", status_code=status.HTTP_204_NO_CONTENT)
@@ -109,9 +110,9 @@ async def delete_current_user(current_user_id: str = Depends(get_current_user_id
         db.commit()
         return None
 
-    except Exception:
+    except SQLAlchemyError as exc:
         db.rollback()
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to delete user",
-        )
+        ) from exc

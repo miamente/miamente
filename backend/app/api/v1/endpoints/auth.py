@@ -9,7 +9,7 @@ from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
-from app.core.security import verify_token
+from app.core.security import verify_token, create_token_response
 from app.schemas.auth import (
     ProfessionalTokenResponse,
     RefreshToken,
@@ -95,8 +95,6 @@ async def login_user(user_login: UserLogin, db: Session = Depends(get_db)):
     if not user.is_active:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Inactive user")
 
-    from app.core.security import create_token_response
-
     token_response = create_token_response(str(user.id))
     return UserTokenResponse(
         access_token=token_response["access_token"],
@@ -122,8 +120,6 @@ async def login_professional(professional_login: ProfessionalLogin, db: Session 
     if not professional.is_active:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Inactive professional")
 
-    from app.core.security import create_token_response
-
     token_response = create_token_response(str(professional.id))
     return ProfessionalTokenResponse(
         access_token=token_response["access_token"],
@@ -141,12 +137,12 @@ async def login_unified(login_data: UnifiedLogin, db: Session = Depends(get_db))
     # Try to authenticate as professional first
     professional = auth_service.authenticate_professional(login_data.email, login_data.password)
     if professional and professional.is_active:
-        from app.core.security import create_token_response
-
         token_response = create_token_response(str(professional.id))
 
         # Convert professional to response format
-        from app.api.v1.endpoints.professionals import parse_professional_data
+        from app.api.v1.endpoints.professionals import (  # pylint: disable=import-outside-toplevel
+            parse_professional_data,
+        )
 
         professional_data = parse_professional_data(professional)
 
@@ -161,12 +157,10 @@ async def login_unified(login_data: UnifiedLogin, db: Session = Depends(get_db))
     # Try to authenticate as regular user
     user = auth_service.authenticate_user(login_data.email, login_data.password)
     if user and user.is_active:
-        from app.core.security import create_token_response
-
         token_response = create_token_response(str(user.id))
 
         # Convert user to response format
-        from app.api.v1.endpoints.users import parse_user_data
+        from app.api.v1.endpoints.users import parse_user_data  # pylint: disable=import-outside-toplevel
 
         user_data = parse_user_data(user)
 
@@ -212,7 +206,7 @@ async def simulate_email_verification(user_id: str = Depends(get_current_user_id
 
 
 @router.post("/refresh", response_model=Token)
-async def refresh_token(refresh_data: RefreshToken, db: Session = Depends(get_db)):
+async def refresh_token(refresh_data: RefreshToken, _db: Session = Depends(get_db)):
     """Refresh access token."""
     user_id = verify_token(refresh_data.refresh_token)
 
@@ -222,8 +216,6 @@ async def refresh_token(refresh_data: RefreshToken, db: Session = Depends(get_db
             detail=INVALID_REFRESH_TOKEN_MESSAGE,
             headers={"WWW-Authenticate": "Bearer"},
         )
-
-    from app.core.security import create_token_response
 
     return create_token_response(user_id)
 

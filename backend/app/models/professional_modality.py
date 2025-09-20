@@ -1,15 +1,16 @@
+"""Association between a Professional and a Modality, including pricing/config flags."""
+
 import uuid
 
-from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, String
+from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, String, text
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
-from sqlalchemy.sql import func
 
 from app.core.database import Base
 
 
 class ProfessionalModality(Base):
-    """Professional modality model for professional's intervention modalities."""
+    """Professional modality model for a professional's intervention modalities."""
 
     __tablename__ = "professional_modalities"
 
@@ -23,12 +24,23 @@ class ProfessionalModality(Base):
     description = Column(String(1000), nullable=True)
     is_default = Column(Boolean, default=False, nullable=False)
     is_active = Column(Boolean, default=True, nullable=False)
-    created_at = Column(DateTime(timezone=True), server_default=func.now())
-    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+
+    # Proper timestamp columns with SQL-standard defaults (avoids pylint E1102)
+    created_at = Column(
+        DateTime(timezone=True),
+        server_default=text("CURRENT_TIMESTAMP"),
+        nullable=False,
+    )
+    updated_at = Column(
+        DateTime(timezone=True),
+        server_default=text("CURRENT_TIMESTAMP"),
+        onupdate=text("CURRENT_TIMESTAMP"),
+        nullable=False,
+    )
 
     # Relationships
     professional = relationship("app.models.professional.Professional", back_populates="professional_modalities")
     modality = relationship("app.models.modality.Modality")
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"<ProfessionalModality(id={self.id}, modality='{self.modality_name}')>"

@@ -66,7 +66,6 @@ FILE_TOO_LARGE_MESSAGE = "File too large. Maximum size:"
 
 # Success messages
 FILE_DELETED_SUCCESS_MESSAGE = "File deleted successfully"
-ERROR_DELETING_FILE_MESSAGE = "Error deleting file:"
 
 # API paths
 CERTIFICATION_API_PATH = "/api/v1/files/certification/"
@@ -187,7 +186,7 @@ def safe_construct_file_path(base_dir: str, sub_dir: str, user_id: str, filename
 async def upload_certification_document(
     file: UploadFile = File(...),
     current_user_id: str = Depends(get_current_user_id),
-    db: Session = Depends(get_db),
+    _db: Session = Depends(get_db),
 ):
     """Upload a certification document."""
 
@@ -232,7 +231,7 @@ async def upload_certification_document(
 async def upload_profile_picture(
     file: UploadFile = File(...),
     current_user_id: str = Depends(get_current_user_id),
-    db: Session = Depends(get_db),
+    _db: Session = Depends(get_db),
 ):
     """Upload a profile picture."""
 
@@ -274,7 +273,7 @@ async def upload_profile_picture(
 
 
 @router.get("/profile-picture/{user_id}/{filename}")
-async def get_profile_picture(user_id: str, filename: str, db: Session = Depends(get_db)):
+async def get_profile_picture(user_id: str, filename: str, _db: Session = Depends(get_db)):
     """Get a profile picture."""
 
     # Validate path components to prevent path traversal
@@ -289,7 +288,7 @@ async def get_profile_picture(user_id: str, filename: str, db: Session = Depends
 
 
 @router.get("/certification/{user_id}/{filename}")
-async def get_certification_document(user_id: str, filename: str, db: Session = Depends(get_db)):
+async def get_certification_document(user_id: str, filename: str, _db: Session = Depends(get_db)):
     """Get a certification document."""
 
     # Validate path components to prevent path traversal
@@ -308,7 +307,7 @@ async def delete_profile_picture(
     user_id: str,
     filename: str,
     current_user_id: str = Depends(get_current_user_id),
-    db: Session = Depends(get_db),
+    _db: Session = Depends(get_db),
 ):
     """Delete a profile picture."""
 
@@ -330,11 +329,11 @@ async def delete_profile_picture(
     try:
         os.remove(file_path)
         return {"message": FILE_DELETED_SUCCESS_MESSAGE}
-    except Exception as e:
+    except OSError as exc:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Error deleting file: {str(e)}",
-        )
+            detail=f"Error deleting file: {exc}",
+        ) from exc
 
 
 @router.delete("/certification/{user_id}/{filename}")
@@ -342,7 +341,7 @@ async def delete_certification_document(
     user_id: str,
     filename: str,
     current_user_id: str = Depends(get_current_user_id),
-    db: Session = Depends(get_db),
+    _db: Session = Depends(get_db),
 ):
     """Delete a certification document."""
 
@@ -364,8 +363,8 @@ async def delete_certification_document(
     try:
         os.remove(file_path)
         return {"message": FILE_DELETED_SUCCESS_MESSAGE}
-    except Exception as e:
+    except OSError as exc:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Error deleting file: {str(e)}",
-        )
+            detail=f"Error deleting file: {exc}",
+        ) from exc

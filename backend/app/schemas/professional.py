@@ -40,10 +40,11 @@ class ProfessionalCreate(ProfessionalBase):
 
     @field_validator("password")
     @classmethod
-    def validate_password(cls, v):
-        if len(v) < 8:
+    def validate_password(cls, value: str) -> str:
+        """Ensure password has a minimum length of 8 characters."""
+        if len(value) < 8:
             raise ValueError("Password must be at least 8 characters long")
-        return v
+        return value
 
 
 class ProfessionalUpdate(BaseModel):

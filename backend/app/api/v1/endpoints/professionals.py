@@ -32,8 +32,8 @@ def parse_professional_data(professional: Professional) -> dict:
     modalities_count = len(professional.professional_modalities) if professional.professional_modalities else 0
     print(f"DEBUG: Professional modalities count: {modalities_count}")
     if professional.professional_modalities:
-        for pm in professional.professional_modalities:
-            print(f"DEBUG: Modality: {pm.modality_name}, Active: {pm.is_active}")
+        for pmod in professional.professional_modalities:
+            print(f"DEBUG: Modality: {pmod.modality_name}, Active: {pmod.is_active}")
 
     return {
         "id": professional.id,
@@ -56,7 +56,7 @@ def parse_professional_data(professional: Professional) -> dict:
                 "is_active": True,  # All specialties are considered active
             }
             for ps in professional.professional_specialties
-            if ps.specialty  # Only include if specialty exists
+            if ps.specialty
         ],
         "bio": professional.bio,
         "academic_experience": professional.academic_experience,
@@ -67,17 +67,17 @@ def parse_professional_data(professional: Professional) -> dict:
         "specialty_ids": professional.specialty_ids,
         "modalities": [
             {
-                "id": str(pm.id),
-                "modalityId": str(pm.modality_id),
-                "modalityName": pm.modality_name,
-                "virtualPrice": pm.virtual_price,
-                "presencialPrice": pm.presencial_price,
-                "offersPresencial": pm.offers_presencial,
-                "description": pm.description,
-                "isDefault": pm.is_default,
+                "id": str(pmod.id),
+                "modalityId": str(pmod.modality_id),
+                "modalityName": pmod.modality_name,
+                "virtualPrice": pmod.virtual_price,
+                "presencialPrice": pmod.presencial_price,
+                "offersPresencial": pmod.offers_presencial,
+                "description": pmod.description,
+                "isDefault": pmod.is_default,
             }
-            for pm in professional.professional_modalities
-            if pm.is_active
+            for pmod in professional.professional_modalities
+            if pmod.is_active
         ],
         "timezone": professional.timezone,
         "working_hours": (json.loads(professional.working_hours) if professional.working_hours else None),
@@ -123,8 +123,8 @@ async def get_professional(professional_id: str, db: Session = Depends(get_db)):
     """Get professional by ID."""
     try:
         professional_uuid = uuid.UUID(professional_id)
-    except ValueError:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid ID format")
+    except ValueError as exc:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid ID format") from exc
 
     professional = db.query(Professional).filter(Professional.id == professional_uuid, Professional.is_active).first()
 
@@ -135,7 +135,10 @@ async def get_professional(professional_id: str, db: Session = Depends(get_db)):
 
 
 @router.get("/me/profile", response_model=ProfessionalResponse)
-async def get_current_professional(current_user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)):
+async def get_current_professional(
+    current_user_id: str = Depends(get_current_user_id),
+    db: Session = Depends(get_db),
+):
     """Get current professional profile."""
     auth_service = AuthService(db)
     professional = auth_service.get_professional_by_id(current_user_id)
@@ -214,13 +217,13 @@ def _commit_changes(professional: Professional, db: Session) -> Professional:
         print(f"DEBUG: After refresh, modalities count: {modalities_count_after}")
 
         return professional
-    except Exception as e:
-        print(f"DEBUG: Error during commit: {str(e)}")
+    except Exception as exc:  # pylint: disable=broad-exception-caught
+        print(f"DEBUG: Error during commit: {str(exc)}")
         db.rollback()
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Error updating professional: {str(e)}",
-        )
+            detail=f"Error updating professional: {str(exc)}",
+        ) from exc
 
 
 @router.put("/me", response_model=ProfessionalResponse)
@@ -250,20 +253,4 @@ async def update_current_professional(
     if "therapy_approaches_ids" in update_data:
         professional.therapy_approaches_ids = update_data["therapy_approaches_ids"]
 
-    # Handle modalities - update professional_modalities relationship
-    _update_modalities(professional, update_data, db)
-
-    # Update other fields
-    _update_other_fields(professional, update_data)
-
-    # Commit changes and return updated professional
-    return _commit_changes(professional, db)
-
-
-@router.get("/me/appointments")
-async def get_current_professional_appointments(
-    current_user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)
-):
-    """Get current professional appointments."""
-    # Appointment service will be implemented in a future release
-    return {"message": "Appointment service not yet implemented", "appointments": []}
+    # Handle modalities - update professi

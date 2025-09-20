@@ -4,9 +4,8 @@ Therapeutic Approach model for the Miamente platform.
 
 import uuid
 
-from sqlalchemy import Column, String, Text
+from sqlalchemy import Column, String, Text, DateTime, text
 from sqlalchemy.dialects.postgresql import UUID
-from sqlalchemy.sql import func
 
 from app.core.database import Base
 
@@ -21,8 +20,18 @@ class TherapeuticApproach(Base):
     description = Column(Text, nullable=True)  # Optional description for reference
     category = Column(String(100), nullable=True)  # Optional category grouping
 
-    created_at = Column(String(255), server_default=func.now())
-    updated_at = Column(String(255), onupdate=func.now())
+    # Proper timestamp types with SQL defaults; avoids pylint E1102
+    created_at = Column(
+        DateTime(timezone=True),
+        server_default=text("CURRENT_TIMESTAMP"),
+        nullable=False,
+    )
+    updated_at = Column(
+        DateTime(timezone=True),
+        server_default=text("CURRENT_TIMESTAMP"),
+        onupdate=text("CURRENT_TIMESTAMP"),
+        nullable=False,
+    )
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"<TherapeuticApproach(id={self.id}, name={self.name})>"
