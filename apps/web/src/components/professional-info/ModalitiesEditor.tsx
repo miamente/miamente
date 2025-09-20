@@ -30,11 +30,22 @@ export function ModalitiesEditor({
   const [isOpen, setIsOpen] = React.useState(false);
   const [modalities, setModalities] = useState<ProfessionalModality[]>(value);
   const isInternalUpdate = useRef(false);
+  const previousValue = useRef<ProfessionalModality[]>(value);
 
   // Update local state when value prop changes (but not from internal updates)
   useEffect(() => {
     if (!isInternalUpdate.current) {
-      setModalities(value);
+      // Only update if the value actually changed (deep comparison)
+      const valueChanged =
+        previousValue.current.length !== value.length ||
+        previousValue.current.some(
+          (prev, index) => !value[index] || JSON.stringify(prev) !== JSON.stringify(value[index]),
+        );
+
+      if (valueChanged) {
+        setModalities(value);
+        previousValue.current = value;
+      }
     }
     isInternalUpdate.current = false;
   }, [value]);
