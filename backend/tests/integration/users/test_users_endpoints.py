@@ -168,7 +168,8 @@ class TestUsersEndpoints:
         client.app.dependency_overrides[get_current_user_id] = lambda: "550e8400-e29b-41d4-a716-446655440002"
 
         # Mock database operations to raise exception
-        mock_db.commit = Mock(side_effect=Exception("Database error"))
+        from sqlalchemy.exc import SQLAlchemyError
+        mock_db.commit = Mock(side_effect=SQLAlchemyError("Database error"))
         mock_db.rollback = Mock()
 
         with patch("app.api.v1.endpoints.users.AuthService") as mock_service_class:
@@ -259,7 +260,8 @@ class TestUsersEndpoints:
         client.app.dependency_overrides[get_current_user_id] = lambda: "550e8400-e29b-41d4-a716-446655440002"
 
         # Mock database operations to raise exception
-        mock_db.commit = Mock(side_effect=Exception("Database error"))
+        from sqlalchemy.exc import SQLAlchemyError
+        mock_db.commit = Mock(side_effect=SQLAlchemyError("Database error"))
         mock_db.rollback = Mock()
 
         with patch("app.api.v1.endpoints.users.AuthService") as mock_service_class:

@@ -1,3 +1,5 @@
+""" Schemas for modality and professional modality. """
+
 import uuid
 from datetime import datetime
 from typing import Optional

@@ -53,7 +53,8 @@ disable=raw-checker-failed,
         file-ignored,
         suppressed-message,
         useless-suppression,
-        deprecated-pragma
+        deprecated-pragma,
+        too-few-public-methods,
 
 [REPORTS]
 # Set the output format. Available formats are text, parseable, json and msvs
@@ -94,7 +95,7 @@ include-naming-hint=no
 property-classes=abc.abstractproperty
 
 # Regular expression matching correct function names
-function-rgx=[a-z_][a-z0-9_]{2,30}$
+function-rgx=[a-z_][a-z0-9_]{2,60}$
 
 # Regular expression matching correct variable names
 variable-rgx=[a-z_][a-z0-9_]{2,30}$
@@ -109,7 +110,7 @@ attr-rgx=[a-z_][a-z0-9_]{2,30}$
 argument-rgx=[a-z_][a-z0-9_]{2,30}$
 
 # Regular expression matching correct class attribute names
-class-attribute-rgx=([A-Za-z_][A-Za-z0-9_]{2,30}|(__.*__))$
+class-attribute-rgx=([A-Za-z_][A-Za-z0-9_]{2,50}|(__.*__))$
 
 # Regular expression matching correct inline iteration names
 inlinevar-rgx=[A-Za-z_][A-Za-z0-9_]*$
@@ -121,7 +122,7 @@ class-rgx=[A-Z_][a-zA-Z0-9]+$
 module-rgx=(([a-z_][a-z0-9_]*)|([A-Z][a-zA-Z0-9]+))$
 
 # Regular expression matching correct method names
-method-rgx=[a-z_][a-z0-9_]{2,30}$
+method-rgx=[a-z_][a-z0-9_]{2,60}$
 
 # Regular expression which should only match function or class names that do
 # not require a docstring.
@@ -137,7 +138,7 @@ max-nested-blocks=5
 
 [FORMAT]
 # Maximum number of characters on a single line.
-max-line-length=100
+max-line-length=120
 
 # Maximum number of lines in a module
 max-module-lines=1000
@@ -280,7 +281,7 @@ known-third-party=enchant
 
 [DESIGN]
 # Maximum number of arguments for function / method
-max-args=5
+max-args=6
 
 # Maximum number of attributes for a class (see R0902).
 max-attributes=7

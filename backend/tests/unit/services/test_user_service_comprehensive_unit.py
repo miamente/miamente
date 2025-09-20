@@ -222,7 +222,8 @@ class TestUserServiceComprehensiveUnit:
 
         # Mock get_user_by_id to return our sample user
         user_service.get_user_by_id = Mock(return_value=sample_user)
-        mock_db.commit = Mock(side_effect=Exception("Database error"))
+        from sqlalchemy.exc import SQLAlchemyError
+        mock_db.commit = Mock(side_effect=SQLAlchemyError("Database error"))
         mock_db.rollback = Mock()
 
         # Act & Assert
@@ -272,7 +273,8 @@ class TestUserServiceComprehensiveUnit:
 
         # Mock get_user_by_id to return our sample user
         user_service.get_user_by_id = Mock(return_value=sample_user)
-        mock_db.commit = Mock(side_effect=Exception("Database error"))
+        from sqlalchemy.exc import SQLAlchemyError
+        mock_db.commit = Mock(side_effect=SQLAlchemyError("Database error"))
         mock_db.rollback = Mock()
 
         # Act

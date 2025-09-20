@@ -6,6 +6,7 @@ from typing import List, Optional
 
 from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
+from sqlalchemy.exc import SQLAlchemyError
 
 from app.models.professional import Professional
 from app.schemas.professional import ProfessionalUpdate
@@ -75,12 +76,12 @@ class ProfessionalService:
             self.db.refresh(professional)
             return professional
 
-        except Exception:
+        except SQLAlchemyError as exc:
             self.db.rollback()
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail="Failed to update professional",
-            )
+            ) from exc
 
     def deactivate_professional(self, professional_id: str) -> bool:
         """Deactivate professional."""
@@ -93,6 +94,6 @@ class ProfessionalService:
             self.db.commit()
             return True
 
-        except Exception:
+        except SQLAlchemyError:
             self.db.rollback()
             return False
