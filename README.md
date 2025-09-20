@@ -4,7 +4,7 @@
 
 ## 🎉 ¡Migración Completada!
 
-Tu plataforma Miamente ha sido migrada exitosamente de Firebase a una arquitectura moderna con **FastAPI + PostgreSQL + Railway** para el backend y **Next.js + Vercel** para el frontend.
+Tu plataforma Miamente ha sido migrada exitosamente de Firebase a una arquitectura moderna con **FastAPI + PostgreSQL** para el backend y **Next.js + Vercel** para el frontend.
 
 ## 📋 Estructura del Proyecto
 
@@ -62,7 +62,7 @@ BACKEND_CORS_ORIGINS=["http://localhost:3000", "http://localhost:3001", "https:/
 
 # Server
 DEBUG=true
-ALLOWED_HOSTS=["localhost", "127.0.0.1", "*.railway.app", "*.vercel.app"]
+ALLOWED_HOSTS=["localhost", "127.0.0.1", "*.vercel.app"]
 ```
 
 #### Configuración de Base de Datos
@@ -97,8 +97,8 @@ Crea un archivo `.env.local` en el directorio `apps/web/`:
 # API Configuration
 NEXT_PUBLIC_API_URL=http://localhost:8001
 
-# For production, use your Railway backend URL:
-# NEXT_PUBLIC_API_URL=https://your-app-name.railway.app
+# For production, use your backend URL:
+# NEXT_PUBLIC_API_URL=https://your-backend-domain.com
 ```
 
 #### Ejecutar el Frontend
@@ -201,16 +201,16 @@ npm run test:e2e:report
 
 ## 🚀 Deployment
 
-### Railway (Backend)
+### Backend Deployment
 
-1. Conecta tu repositorio GitHub a Railway
-2. Configura las variables de entorno en Railway
-3. Railway detectará automáticamente el proyecto Python
+1. Configura tu plataforma de despliegue preferida (AWS, Google Cloud, Azure, etc.)
+2. Configura las variables de entorno en tu plataforma
+3. Configura la aplicación FastAPI
 
 ### Vercel (Frontend)
 
 1. Conecta tu repositorio GitHub a Vercel
-2. Configura la variable `NEXT_PUBLIC_API_URL` con tu URL de Railway
+2. Configura la variable `NEXT_PUBLIC_API_URL` con tu URL de backend
 3. Vercel detectará automáticamente el proyecto Next.js
 
 ### Manual Deployment
@@ -289,7 +289,7 @@ npm run test:e2e:report
 1. **Configurar variables de entorno** según las instrucciones
 2. **Ejecutar las migraciones** de base de datos
 3. **Probar la aplicación** en desarrollo
-4. **Configurar deployment** en Railway y Vercel
+4. **Configurar deployment** en tu plataforma de backend preferida y Vercel
 5. **Migrar datos existentes** (si aplica) usando el script de migración
 
 ## 🤝 Contribución

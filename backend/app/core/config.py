@@ -46,7 +46,6 @@ class Settings(BaseSettings):
     ALLOWED_HOSTS: List[str] = [
         "localhost",
         "127.0.0.1",
-        "*.railway.app",
         "*.vercel.app",
     ]
 
