@@ -4,7 +4,7 @@
 
 ## 🎉 ¡Migración Completada!
 
-Tu plataforma Miamente ha sido migrada exitosamente de Firebase a una arquitectura moderna con **FastAPI + PostgreSQL** para el backend y **Next.js + Vercel** para el frontend.
+Tu plataforma Miamente ha sido migrada exitosamente de Firebase a una arquitectura moderna con **FastAPI + PostgreSQL** para el backend y **Next.js** para el frontend.
 
 ## 📋 Estructura del Proyecto
 
@@ -58,11 +58,11 @@ SENDGRID_FROM_EMAIL=noreply@miamente.com
 SENDGRID_FROM_NAME=Miamente
 
 # CORS
-BACKEND_CORS_ORIGINS=["http://localhost:3000", "http://localhost:3001", "https://miamente.vercel.app"]
+BACKEND_CORS_ORIGINS=["http://localhost:3000", "http://localhost:3001"]
 
 # Server
 DEBUG=true
-ALLOWED_HOSTS=["localhost", "127.0.0.1", "*.vercel.app"]
+ALLOWED_HOSTS=["localhost", "127.0.0.1"]
 ```
 
 #### Configuración de Base de Datos
@@ -207,11 +207,11 @@ npm run test:e2e:report
 2. Configura las variables de entorno en tu plataforma
 3. Configura la aplicación FastAPI
 
-### Vercel (Frontend)
+### Frontend Deployment
 
-1. Conecta tu repositorio GitHub a Vercel
+1. Configura tu plataforma de despliegue preferida (AWS S3+CloudFront, Netlify, etc.)
 2. Configura la variable `NEXT_PUBLIC_API_URL` con tu URL de backend
-3. Vercel detectará automáticamente el proyecto Next.js
+3. Configura el build del proyecto Next.js
 
 ### Manual Deployment
 
@@ -289,7 +289,7 @@ npm run test:e2e:report
 1. **Configurar variables de entorno** según las instrucciones
 2. **Ejecutar las migraciones** de base de datos
 3. **Probar la aplicación** en desarrollo
-4. **Configurar deployment** en tu plataforma de backend preferida y Vercel
+4. **Configurar deployment** en tus plataformas de backend y frontend preferidas
 5. **Migrar datos existentes** (si aplica) usando el script de migración
 
 ## 🤝 Contribución

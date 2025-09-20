@@ -29,7 +29,6 @@ class Settings(BaseSettings):
         "http://localhost:3000",
         "http://localhost:3001",
         "http://localhost:8000",
-        "https://miamente.vercel.app",
     ]
 
     @field_validator("BACKEND_CORS_ORIGINS", mode="before")
@@ -46,7 +45,6 @@ class Settings(BaseSettings):
     ALLOWED_HOSTS: List[str] = [
         "localhost",
         "127.0.0.1",
-        "*.vercel.app",
     ]
 
     @field_validator("ALLOWED_HOSTS", mode="before")
