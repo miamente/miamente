@@ -55,8 +55,8 @@ jobs:
         with:
           name: frontend-lint-reports
           path: |
-            apps/web/eslint-report.json
-            apps/web/typecheck-report.txt
+            eslint-report.json
+            typecheck-report.txt
 
   unit-tests:
     name: Unit & Accessibility Tests
@@ -82,8 +82,8 @@ jobs:
         with:
           name: frontend-unit-test-reports
           path: |
-            apps/web/coverage/
-            apps/web/test-results/
+            coverage/
+            test-results/
 
   build-test:
     name: Build Test
@@ -142,18 +142,29 @@ jobs:
 
       - name: Download lint artifacts
         uses: actions/download-artifact@v4
+        continue-on-error: true
         with:
           name: frontend-lint-reports
           path: apps/web/artifacts-downloaded
 
       - name: Download unit test artifacts
         uses: actions/download-artifact@v4
+        continue-on-error: true
         with:
           name: frontend-unit-test-reports
           path: apps/web/artifacts-downloaded
 
       - name: List downloaded files
-        run: ls -la apps/web/artifacts-downloaded
+        run: |
+          echo "Checking for downloaded artifacts..."
+          if [ -d "apps/web/artifacts-downloaded" ]; then
+            echo "✅ Artifacts directory found:"
+            ls -la apps/web/artifacts-downloaded
+          else
+            echo "⚠️ No artifacts directory found"
+            echo "Current directory contents:"
+            ls -la apps/web/ || echo "apps/web directory not found"
+          fi
 
       - name: SonarCloud Scan (Frontend)
         uses: SonarSource/sonarqube-scan-action@v5.0.0
