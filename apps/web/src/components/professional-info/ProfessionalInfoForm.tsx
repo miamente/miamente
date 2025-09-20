@@ -12,6 +12,7 @@ import { TherapeuticApproachesSelector } from "./TherapeuticApproachesSelector";
 import { ModalitiesEditor } from "./ModalitiesEditor";
 import { useProfessionalSpecialties } from "@/hooks/useProfessionalSpecialties";
 import { useProfessionalTherapeuticApproaches } from "@/hooks/useProfessionalTherapeuticApproaches";
+import type { ProfessionalModality } from "@/lib/types";
 
 interface ProfessionalInfoFormProps {
   professionalId: string;
@@ -22,6 +23,7 @@ interface ProfessionalInfoFormProps {
     yearsExperience?: number;
     specialtyIds?: string[];
     therapeuticApproachIds?: string[];
+    modalities?: ProfessionalModality[];
   };
   onSave?: (data: Record<string, unknown>) => void;
   disabled?: boolean;
@@ -40,6 +42,7 @@ export function ProfessionalInfoForm({
     yearsExperience: initialData?.yearsExperience || 0,
     specialtyIds: initialData?.specialtyIds || [],
     therapeuticApproachIds: initialData?.therapeuticApproachIds || [],
+    modalities: initialData?.modalities || [],
   });
 
   const [saving, setSaving] = useState(false);
@@ -149,7 +152,11 @@ export function ProfessionalInfoForm({
       />
 
       {/* Modalidades */}
-      <ModalitiesEditor disabled={disabled} />
+      <ModalitiesEditor
+        disabled={disabled}
+        value={formData.modalities}
+        onChange={(modalities) => handleInputChange("modalities", modalities)}
+      />
 
       {/* Botón de Guardar */}
       <div className="flex justify-end">
