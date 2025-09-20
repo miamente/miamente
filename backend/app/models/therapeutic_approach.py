@@ -7,13 +7,14 @@ such as Cognitive Behavioral Therapy, Psychoanalysis, etc.
 
 import uuid
 
-from sqlalchemy import Column, String, Text, DateTime, text
+from sqlalchemy import Column, String, Text
 from sqlalchemy.dialects.postgresql import UUID
 
 from app.core.database import Base
+from app.models.mixins import TimestampMixin
 
 
-class TherapeuticApproach(Base):
+class TherapeuticApproach(Base, TimestampMixin):
     """Therapeutic Approach model - Theoretical and methodological currents."""
 
     __tablename__ = "therapeutic_approaches"
@@ -22,19 +23,6 @@ class TherapeuticApproach(Base):
     name = Column(String(255), nullable=False, unique=True)
     description = Column(Text, nullable=True)  # Optional description for reference
     category = Column(String(100), nullable=True)  # Optional category grouping
-
-    # Proper timestamp types with SQL defaults; avoids pylint E1102
-    created_at = Column(
-        DateTime(timezone=True),
-        server_default=text("CURRENT_TIMESTAMP"),
-        nullable=False,
-    )
-    updated_at = Column(
-        DateTime(timezone=True),
-        server_default=text("CURRENT_TIMESTAMP"),
-        onupdate=text("CURRENT_TIMESTAMP"),
-        nullable=False,
-    )
 
     def __repr__(self) -> str:
         return f"<TherapeuticApproach(id={self.id}, name={self.name})>"

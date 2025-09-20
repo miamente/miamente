@@ -7,14 +7,15 @@ therapeutic approaches, allowing professionals to specialize in multiple approac
 
 import uuid
 
-from sqlalchemy import Column, ForeignKey, DateTime, text
+from sqlalchemy import Column, ForeignKey
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 
 from app.core.database import Base
+from app.models.mixins import TimestampMixin
 
 
-class ProfessionalTherapeuticApproach(Base):
+class ProfessionalTherapeuticApproach(Base, TimestampMixin):
     """Professional Therapeutic Approach model - Many-to-many relationship between profe
     ssionals and
     therapeutic approaches."""
@@ -24,13 +25,6 @@ class ProfessionalTherapeuticApproach(Base):
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     professional_id = Column(UUID(as_uuid=True), ForeignKey("professionals.id"), nullable=False)
     therapeutic_approach_id = Column(UUID(as_uuid=True), ForeignKey("therapeutic_approaches.id"), nullable=False)
-
-    # Proper timestamp type + SQL-standard default (avoids pylint E1102)
-    created_at = Column(
-        DateTime(timezone=True),
-        server_default=text("CURRENT_TIMESTAMP"),
-        nullable=False,
-    )
 
     # Relationships
     professional = relationship(
