@@ -11,11 +11,11 @@ from sqlalchemy import Column, DateTime, text
 class TimestampMixin:
     """
     Mixin class providing common timestamp fields for database models.
-    
+
     This mixin adds created_at and updated_at timestamp fields with proper
     timezone support and SQL defaults to avoid pylint E1102 warnings.
     """
-    
+
     created_at = Column(
         DateTime(timezone=True),
         server_default=text("CURRENT_TIMESTAMP"),

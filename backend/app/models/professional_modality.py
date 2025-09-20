@@ -2,14 +2,15 @@
 
 import uuid
 
-from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, String, text
+from sqlalchemy import Boolean, Column, ForeignKey, Integer, String
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 
 from app.core.database import Base
+from app.models.mixins import TimestampMixin
 
 
-class ProfessionalModality(Base):
+class ProfessionalModality(Base, TimestampMixin):
     """Professional modality model for a professional's intervention modalities."""
 
     __tablename__ = "professional_modalities"
@@ -24,19 +25,6 @@ class ProfessionalModality(Base):
     description = Column(String(1000), nullable=True)
     is_default = Column(Boolean, default=False, nullable=False)
     is_active = Column(Boolean, default=True, nullable=False)
-
-    # Proper timestamp columns with SQL-standard defaults (avoids pylint E1102)
-    created_at = Column(
-        DateTime(timezone=True),
-        server_default=text("CURRENT_TIMESTAMP"),
-        nullable=False,
-    )
-    updated_at = Column(
-        DateTime(timezone=True),
-        server_default=text("CURRENT_TIMESTAMP"),
-        onupdate=text("CURRENT_TIMESTAMP"),
-        nullable=False,
-    )
 
     # Relationships
     professional = relationship("app.models.professional.Professional", back_populates="professional_modalities")
