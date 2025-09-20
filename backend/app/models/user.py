@@ -4,13 +4,14 @@ User model for the Miamente platform.
 
 import uuid
 
-from sqlalchemy import Boolean, Column, DateTime, String, Text, text
+from sqlalchemy import Boolean, Column, DateTime, String, Text
 from sqlalchemy.dialects.postgresql import UUID
 
 from app.core.database import Base
+from app.models.mixins import TimestampMixin
 
 
-class User(Base):
+class User(Base, TimestampMixin):
     """User model."""
 
     __tablename__ = "users"
@@ -27,19 +28,6 @@ class User(Base):
     emergency_contact = Column(String(255), nullable=True)
     emergency_phone = Column(String(20), nullable=True)
     preferences = Column(Text, nullable=True)  # JSON string for user preferences
-
-    # Proper timestamps (avoid pylint E1102)
-    created_at = Column(
-        DateTime(timezone=True),
-        server_default=text("CURRENT_TIMESTAMP"),
-        nullable=False,
-    )
-    updated_at = Column(
-        DateTime(timezone=True),
-        server_default=text("CURRENT_TIMESTAMP"),
-        onupdate=text("CURRENT_TIMESTAMP"),
-        nullable=False,
-    )
 
     # Relationships
 

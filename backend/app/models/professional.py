@@ -4,14 +4,15 @@ Professional model for the Miamente platform.
 
 import uuid
 
-from sqlalchemy import ARRAY, Boolean, Column, DateTime, Integer, String, Text, text
+from sqlalchemy import ARRAY, Boolean, Column, Integer, String, Text
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 
 from app.core.database import Base
+from app.models.mixins import TimestampMixin
 
 
-class Professional(Base):
+class Professional(Base, TimestampMixin):
     """Professional model."""
 
     __tablename__ = "professionals"
@@ -54,19 +55,6 @@ class Professional(Base):
     # Contact information
     emergency_contact = Column(String(255), nullable=True)
     emergency_phone = Column(String(20), nullable=True)
-
-    # Timestamps (avoid pylint E1102 using SQL text defaults)
-    created_at = Column(
-        DateTime(timezone=True),
-        server_default=text("CURRENT_TIMESTAMP"),
-        nullable=False,
-    )
-    updated_at = Column(
-        DateTime(timezone=True),
-        server_default=text("CURRENT_TIMESTAMP"),
-        onupdate=text("CURRENT_TIMESTAMP"),
-        nullable=False,
-    )
 
     # Relationships
     professional_specialties = relationship(
