@@ -29,6 +29,7 @@ export default defineConfig({
     outputFile: {
       json: "./test-results/results.json",
       html: "./test-results/results.html",
+      junit: "./test-results/junit.xml",
     },
   },
   resolve: {
