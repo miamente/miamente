@@ -1,5 +1,8 @@
 """
-Professional Therapeutic Approach model for the Miamente platform.
+Professional Therapeutic Approach model - Junction table for professional-therapeutic approach relationships.
+
+This model manages the many-to-many relationship between professionals and their
+therapeutic approaches, allowing professionals to specialize in multiple approaches.
 """
 
 import uuid

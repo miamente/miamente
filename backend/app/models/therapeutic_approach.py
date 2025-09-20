@@ -1,5 +1,8 @@
 """
-Therapeutic Approach model for the Miamente platform.
+Therapeutic Approach model - Defines theoretical and methodological currents in therapy.
+
+This model represents the different therapeutic approaches available in the platform,
+such as Cognitive Behavioral Therapy, Psychoanalysis, etc.
 """
 
 import uuid
