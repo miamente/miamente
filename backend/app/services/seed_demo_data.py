@@ -5,6 +5,8 @@ Run with:
   python -m app.services.seed_demo_data
 """
 
+from typing import Any, Dict, Optional, Tuple, Type, TypeVar
+
 from sqlalchemy.orm import Session
 
 from app.core.database import get_session_factory
@@ -15,6 +17,7 @@ from app.models.user import User
 from app.models.professional import Professional
 from app.core.security import get_password_hash
 
+T = TypeVar("T")
 
 SPECIALTIES = [
     "Psiquiatría",
@@ -58,14 +61,31 @@ MODALITIES = [
 ]
 
 
-def get_or_create(model, db: Session, defaults=None, **kwargs):
+def get_or_create(
+    model: Type[T],
+    db: Session,
+    defaults: Optional[Dict[str, Any]] = None,
+    **kwargs: Any,
+) -> Tuple[T, bool]:
+    """Return an existing row matching filters or create it if missing.
+
+    Args:
+        model: SQLAlchemy model class to query/insert.
+        db: Active database session.
+        defaults: Field values to use on creation (merged with kwargs).
+        **kwargs: Fields used for ``filter_by`` (and part of creation).
+
+    Returns:
+        A tuple ``(instance, created)`` where ``created`` is True if a new
+        row was inserted, False if an existing one was found.
+    """
     instance = db.query(model).filter_by(**kwargs).first()
     if instance:
         return instance, False
-    params = {**kwargs}
+    params: Dict[str, Any] = {**kwargs}
     if defaults:
         params.update(defaults)
-    instance = model(**params)
+    instance = model(**params)  # type: ignore[call-arg]
     db.add(instance)
     db.commit()
     db.refresh(instance)
@@ -73,13 +93,12 @@ def get_or_create(model, db: Session, defaults=None, **kwargs):
 
 
 def seed_reference_data(db: Session) -> None:
+    """Insert reference data (specialties, approaches, modalities) idempotently."""
     for name in SPECIALTIES:
         get_or_create(
             Specialty,
             db,
-            defaults={
-                "category": "General",
-            },
+            defaults={"category": "General"},
             name=name,
         )
     for name in APPROACHES:
@@ -90,11 +109,16 @@ def seed_reference_data(db: Session) -> None:
             name=name,
         )
     for name in MODALITIES:
-        get_or_create(Modality, db, defaults={"description": name, "is_active": True}, name=name)
+        get_or_create(
+            Modality,
+            db,
+            defaults={"description": name, "is_active": True},
+            name=name,
+        )
 
 
 def seed_users(db: Session) -> None:
-    # Regular verified user
+    """Create demo users (idempotent)."""
     get_or_create(
         User,
         db,
@@ -110,7 +134,7 @@ def seed_users(db: Session) -> None:
 
 
 def seed_professional(db: Session) -> None:
-    # Ensure key specialty exists
+    """Create a demo professional and link to a specialty if available."""
     specialty = db.query(Specialty).filter_by(name="Psicología clínica").first()
     get_or_create(
         Professional,
@@ -124,13 +148,14 @@ def seed_professional(db: Session) -> None:
             "rate_cents": 50000,
             "is_active": True,
             "is_verified": True,
-            # Optional arrays can be linked later through M2M tables; keep simple here
+            # Optional arrays can be linked later via M2M tables; keep it simple here
             "specialty_ids": [str(getattr(specialty, "id", ""))] if specialty else None,
         },
     )
 
 
 def run() -> None:
+    """Entry point: open a DB session and perform the full seeding."""
     session_local = get_session_factory()
     db = session_local()
     try:

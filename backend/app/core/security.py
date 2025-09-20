@@ -7,8 +7,10 @@ from typing import Any, Optional, Union
 
 import jwt
 from argon2 import PasswordHasher
+from argon2.exceptions import VerificationError
 
-from app.core.config import settings
+
+from app.core.config import get_settings
 
 # Password hashing - using argon2 for modern, secure password hashing
 ph = PasswordHasher()
@@ -19,10 +21,10 @@ def create_access_token(subject: Union[str, Any], expires_delta: Optional[timede
     if expires_delta:
         expire = datetime.now(timezone.utc) + expires_delta
     else:
-        expire = datetime.now(timezone.utc) + timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
+        expire = datetime.now(timezone.utc) + timedelta(minutes=get_settings().ACCESS_TOKEN_EXPIRE_MINUTES)
 
     to_encode = {"exp": expire, "sub": str(subject)}
-    encoded_jwt = jwt.encode(to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
+    encoded_jwt = jwt.encode(to_encode, get_settings().SECRET_KEY, algorithm=get_settings().ALGORITHM)
     return encoded_jwt
 
 
@@ -31,17 +33,17 @@ def create_refresh_token(subject: Union[str, Any], expires_delta: Optional[timed
     if expires_delta:
         expire = datetime.now(timezone.utc) + expires_delta
     else:
-        expire = datetime.now(timezone.utc) + timedelta(minutes=settings.REFRESH_TOKEN_EXPIRE_MINUTES)
+        expire = datetime.now(timezone.utc) + timedelta(minutes=get_settings().REFRESH_TOKEN_EXPIRE_MINUTES)
 
     to_encode = {"exp": expire, "sub": str(subject), "type": "refresh"}
-    encoded_jwt = jwt.encode(to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
+    encoded_jwt = jwt.encode(to_encode, get_settings().SECRET_KEY, algorithm=get_settings().ALGORITHM)
     return encoded_jwt
 
 
 def verify_token(token: str) -> Optional[str]:
     """Verify and decode token."""
     try:
-        payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
+        payload = jwt.decode(token, get_settings().SECRET_KEY, algorithms=[get_settings().ALGORITHM])
         user_id: str = payload.get("sub")
         if user_id is None:
             return None
@@ -54,9 +56,9 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
     """Verify password against hash."""
     try:
         ph.verify(hashed_password, plain_password)
-        return True
-    except Exception:
+    except VerificationError:
         return False
+    return True
 
 
 def get_password_hash(password: str) -> str:

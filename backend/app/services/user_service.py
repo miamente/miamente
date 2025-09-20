@@ -6,6 +6,7 @@ from typing import List, Optional
 
 from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
+from sqlalchemy.exc import SQLAlchemyError
 
 from app.models.user import User
 from app.schemas.user import UserUpdate
@@ -44,12 +45,12 @@ class UserService:
             self.db.refresh(user)
             return user
 
-        except Exception:
+        except SQLAlchemyError as exc:
             self.db.rollback()
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail="Failed to update user",
-            )
+            ) from exc
 
     def deactivate_user(self, user_id: str) -> bool:
         """Deactivate user."""
@@ -62,6 +63,6 @@ class UserService:
             self.db.commit()
             return True
 
-        except Exception:
+        except SQLAlchemyError:
             self.db.rollback()
             return False

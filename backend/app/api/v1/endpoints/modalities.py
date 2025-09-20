@@ -1,3 +1,5 @@
+"""Endpoints for managing intervention modalities."""
+
 from typing import List
 
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -25,7 +27,7 @@ async def get_modalities(db: Session = Depends(get_db)):
 async def get_modality(
     modality_id: str,
     db: Session = Depends(get_db),
-    current_user_id: str = Depends(get_current_user_id),
+    _user_id: str = Depends(get_current_user_id),  # auth enforced, value not used
 ):
     """Get a specific modality by ID."""
     modality = db.query(Modality).filter(Modality.id == modality_id).first()
@@ -38,7 +40,7 @@ async def get_modality(
 async def create_modality(
     modality: ModalityCreate,
     db: Session = Depends(get_db),
-    current_user_id: str = Depends(get_current_user_id),
+    _user_id: str = Depends(get_current_user_id),
 ):
     """Create a new modality."""
     # Check if modality with same name already exists
@@ -61,7 +63,7 @@ async def update_modality(
     modality_id: str,
     modality_update: ModalityUpdate,
     db: Session = Depends(get_db),
-    current_user_id: str = Depends(get_current_user_id),
+    _user_id: str = Depends(get_current_user_id),
 ):
     """Update a modality."""
     modality = db.query(Modality).filter(Modality.id == modality_id).first()
@@ -81,7 +83,7 @@ async def update_modality(
 async def delete_modality(
     modality_id: str,
     db: Session = Depends(get_db),
-    current_user_id: str = Depends(get_current_user_id),
+    _user_id: str = Depends(get_current_user_id),
 ):
     """Delete a modality (soft delete by setting is_active to False)."""
     modality = db.query(Modality).filter(Modality.id == modality_id).first()

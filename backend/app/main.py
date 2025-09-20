@@ -9,7 +9,7 @@ from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from fastapi.responses import JSONResponse
 
 from app.api.v1.api import api_router
-from app.core.config import settings
+from app.core.config import get_settings
 from app.core.database import Base, get_engine
 
 # Create database tables
@@ -17,10 +17,10 @@ engine = get_engine()
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI(
-    title=settings.PROJECT_NAME,
-    version=settings.VERSION,
+    title=get_settings().PROJECT_NAME,
+    version=get_settings().VERSION,
     description="Backend API for Miamente mental health platform",
-    openapi_url=f"{settings.API_V1_STR}/openapi.json",
+    openapi_url=f"{get_settings().API_V1_STR}/openapi.json",
     docs_url="/docs",
     redoc_url="/redoc",
 )
@@ -28,7 +28,7 @@ app = FastAPI(
 # Set up CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.BACKEND_CORS_ORIGINS,
+    allow_origins=get_settings().BACKEND_CORS_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -37,11 +37,11 @@ app.add_middleware(
 # Add trusted host middleware
 app.add_middleware(
     TrustedHostMiddleware,
-    allowed_hosts=settings.ALLOWED_HOSTS,
+    allowed_hosts=get_settings().ALLOWED_HOSTS,
 )
 
 # Include API router
-app.include_router(api_router, prefix=settings.API_V1_STR)
+app.include_router(api_router, prefix=get_settings().API_V1_STR)
 
 
 @app.get("/")
@@ -50,7 +50,7 @@ async def root():
     return JSONResponse(
         content={
             "message": "Miamente Backend API",
-            "version": settings.VERSION,
+            "version": get_settings().VERSION,
             "docs": "/docs",
         }
     )
@@ -67,6 +67,6 @@ if __name__ == "__main__":
         "app.main:app",
         host="0.0.0.0",
         port=8000,
-        reload=settings.DEBUG,
+        reload=get_settings().DEBUG,
         log_level="info",
     )
