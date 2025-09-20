@@ -91,6 +91,9 @@ jobs:
     needs:
       - lint
     if: github.event_name == 'push' || github.event_name == 'pull_request'
+    defaults:
+      run:
+        working-directory: apps/web
     steps:
       - uses: actions/checkout@v4
 
@@ -110,7 +113,7 @@ jobs:
         with:
           name: frontend-accessibility-reports
           path: |
-            apps/web/accessibility-results/
+            accessibility-results/
 
   build-test:
     name: Build Test
@@ -118,6 +121,9 @@ jobs:
     needs:
       - lint
     if: github.event_name == 'push' || github.event_name == 'pull_request'
+    defaults:
+      run:
+        working-directory: apps/web
     steps:
       - uses: actions/checkout@v4
 
@@ -137,7 +143,7 @@ jobs:
         with:
           name: frontend-build
           path: |
-            apps/web/.next/
+            .next/
           retention-days: 1
 
   e2e-tests:
