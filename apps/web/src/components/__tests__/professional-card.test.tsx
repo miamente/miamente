@@ -1,7 +1,9 @@
 import React from "react";
 import { render, screen, fireEvent } from "@testing-library/react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
+import "@testing-library/jest-dom";
 import { ProfessionalCard } from "../professional-card";
+import { testAccessibility, commonAccessibilityTests } from "../../__tests__/utils/accessibility";
 // Mock the getImageUrl function
 vi.mock("@/lib/storage", () => ({
   getImageUrl: vi.fn((url: string) => url),
@@ -192,5 +194,50 @@ describe("ProfessionalCard", () => {
     expect(screen.getByText("Depression")).toBeInTheDocument();
     expect(screen.getByText("PTSD")).toBeInTheDocument();
     expect(screen.getByText("OCD")).toBeInTheDocument();
+  });
+
+  describe("Accessibility", () => {
+    it("should pass accessibility tests for professional card", async () => {
+      const renderResult = render(<ProfessionalCard {...defaultProps} />);
+      await testAccessibility(renderResult);
+    });
+
+    it("should pass accessibility tests for professional card without image", async () => {
+      const professionalWithoutImage = {
+        ...mockProfessional,
+        profile_picture: undefined,
+      };
+      const renderResult = render(
+        <ProfessionalCard {...defaultProps} professional={professionalWithoutImage} />,
+      );
+      await testAccessibility(renderResult);
+    });
+
+    it("should have proper interactive element accessibility", async () => {
+      const renderResult = render(<ProfessionalCard {...defaultProps} />);
+      await commonAccessibilityTests.interactiveElements(renderResult);
+    });
+
+    it("should have proper image accessibility", async () => {
+      const renderResult = render(<ProfessionalCard {...defaultProps} />);
+      await commonAccessibilityTests.imageAccessibility(renderResult);
+    });
+
+    it("should have proper focus management", async () => {
+      const renderResult = render(<ProfessionalCard {...defaultProps} />);
+      await commonAccessibilityTests.focusManagement(renderResult);
+    });
+
+    it("should pass accessibility tests for card without rating", async () => {
+      const professionalWithoutRating = {
+        ...mockProfessional,
+        rating: undefined,
+        total_reviews: 0,
+      };
+      const renderResult = render(
+        <ProfessionalCard {...defaultProps} professional={professionalWithoutRating} />,
+      );
+      await testAccessibility(renderResult);
+    });
   });
 });

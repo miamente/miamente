@@ -1,7 +1,12 @@
 import React from "react";
 import { render, screen, fireEvent } from "@testing-library/react";
 import { describe, it, expect, vi } from "vitest";
+import "@testing-library/jest-dom";
 import { Button } from "../button";
+import {
+  testAccessibility,
+  commonAccessibilityTests,
+} from "../../../__tests__/utils/accessibility";
 
 describe("Button", () => {
   it("should render with default props", () => {
@@ -151,5 +156,70 @@ describe("Button", () => {
 
     const button = screen.getByRole("button");
     expect(button).toHaveClass("transition-all");
+  });
+
+  describe("Accessibility", () => {
+    it("should pass accessibility tests for all button variants", async () => {
+      const variants = [
+        { variant: "default" as const, children: "Default Button" },
+        { variant: "destructive" as const, children: "Delete" },
+        { variant: "outline" as const, children: "Outline Button" },
+        { variant: "secondary" as const, children: "Secondary Button" },
+        { variant: "ghost" as const, children: "Ghost Button" },
+        { variant: "link" as const, children: "Link Button" },
+      ];
+
+      for (const props of variants) {
+        const renderResult = render(<Button {...props} />);
+        await testAccessibility(renderResult);
+        renderResult.unmount();
+      }
+    });
+
+    it("should pass accessibility tests for button sizes", async () => {
+      const sizes = [
+        { size: "sm" as const, children: "Small" },
+        { size: "default" as const, children: "Default" },
+        { size: "lg" as const, children: "Large" },
+        { size: "icon" as const, "aria-label": "Icon button" },
+      ];
+
+      for (const props of sizes) {
+        const renderResult = render(<Button {...props} />);
+        await testAccessibility(renderResult);
+        renderResult.unmount();
+      }
+    });
+
+    it("should pass accessibility tests for disabled state", async () => {
+      const renderResult = render(
+        <Button disabled aria-label="Disabled button">
+          Disabled Button
+        </Button>,
+      );
+      await testAccessibility(renderResult);
+    });
+
+    it("should pass accessibility tests for button with icon", async () => {
+      const renderResult = render(
+        <Button aria-label="Save document">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+            <path d="M17 3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.11 0 2-.9 2-2V7l-4-4z" />
+          </svg>
+          Save
+        </Button>,
+      );
+      await testAccessibility(renderResult);
+    });
+
+    it("should have proper interactive element accessibility", async () => {
+      const renderResult = render(<Button>Interactive Button</Button>);
+      await commonAccessibilityTests.interactiveElements(renderResult);
+    });
+
+    it("should have proper focus management", async () => {
+      const renderResult = render(<Button>Focusable Button</Button>);
+      await commonAccessibilityTests.focusManagement(renderResult);
+    });
   });
 });

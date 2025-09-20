@@ -1,7 +1,9 @@
 import React from "react";
 import { render, screen } from "@testing-library/react";
 import { vi, describe, it, expect, beforeEach } from "vitest";
+import "@testing-library/jest-dom";
 import { Footer } from "../footer";
+import { testAccessibility, commonAccessibilityTests } from "../../__tests__/utils/accessibility";
 
 // Mock Next.js Link component
 vi.mock("next/link", () => ({
@@ -168,5 +170,57 @@ describe("Footer", () => {
       .getByText("Cumplimiento: Ley 1581 de 2012 - Protección de Datos Personales")
       .closest("div");
     expect(complianceText).toHaveClass("text-center", "md:text-right");
+  });
+
+  describe("Accessibility", () => {
+    it("should pass accessibility tests", async () => {
+      const renderResult = render(<Footer />);
+      await testAccessibility(renderResult);
+    });
+
+    it("should have proper focus management for links", async () => {
+      const renderResult = render(<Footer />);
+      await commonAccessibilityTests.focusManagement(renderResult);
+    });
+
+    it("should have proper interactive elements accessibility", async () => {
+      const renderResult = render(<Footer />);
+      await commonAccessibilityTests.interactiveElements(renderResult);
+    });
+
+    it("should have proper semantic structure", async () => {
+      const renderResult = render(<Footer />);
+
+      // Verify semantic structure
+      expect(screen.getByRole("contentinfo")).toBeInTheDocument();
+
+      // Verify headings structure
+      const headings = screen.getAllByRole("heading", { level: 3 });
+      expect(headings).toHaveLength(4);
+
+      // Verify navigation landmarks
+      const links = screen.getAllByRole("link");
+      expect(links.length).toBeGreaterThan(0);
+
+      await testAccessibility(renderResult);
+    });
+
+    it("should have accessible contact information", async () => {
+      const renderResult = render(<Footer />);
+
+      // Email links should be accessible
+      const emailLinks = screen
+        .getAllByRole("link")
+        .filter((link) => link.getAttribute("href")?.startsWith("mailto:"));
+      expect(emailLinks.length).toBeGreaterThan(0);
+
+      // Phone links should be accessible
+      const phoneLinks = screen
+        .getAllByRole("link")
+        .filter((link) => link.getAttribute("href")?.startsWith("tel:"));
+      expect(phoneLinks.length).toBeGreaterThan(0);
+
+      await testAccessibility(renderResult);
+    });
   });
 });
