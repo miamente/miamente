@@ -179,9 +179,6 @@ jobs:
           name: integration-test-reports
           path: artifacts-downloaded
 
-      - name: List downloaded files
-        run: ls -la artifacts-downloaded
-
       - name: SonarCloud Scan (Backend)
         uses: SonarSource/sonarqube-scan-action@v5.0.0
         with:
