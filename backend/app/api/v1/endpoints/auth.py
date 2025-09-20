@@ -6,7 +6,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
-from app.core.security import create_token_response
+from app.core.security import create_token_response, verify_token
 from app.utils.auth import get_current_user_id
 from app.schemas.auth import (
     ProfessionalTokenResponse,
@@ -31,8 +31,6 @@ router = APIRouter()
 INCORRECT_CREDENTIALS_MESSAGE = "Incorrect email or password"
 USER_NOT_FOUND_MESSAGE = "User not found"
 INVALID_REFRESH_TOKEN_MESSAGE = "Invalid refresh token"
-
-
 
 
 @router.post("/register/user", response_model=UserResponse, status_code=status.HTTP_201_CREATED)

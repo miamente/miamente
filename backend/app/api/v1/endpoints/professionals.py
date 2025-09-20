@@ -27,10 +27,9 @@ JSON_FIELDS = ["academic_experience", "work_experience", "certifications"]
 SPECIAL_FIELDS = ["specialty_ids", "therapy_approaches_ids", "modalities"]
 
 
-
-
 @router.get("/", response_model=List[ProfessionalResponse])
 async def get_professionals(
+    *,
     skip: int = 0,
     limit: int = 100,
     specialty: str = None,
@@ -41,6 +40,17 @@ async def get_professionals(
     """Get all active professionals with optional filtering."""
     query = db.query(Professional).filter(Professional.is_active)
 
+    # Apply filters
+    query = _apply_professional_filters(query, specialty, min_rate_cents, max_rate_cents)
+
+    professionals = query.offset(skip).limit(limit).all()
+
+    # Parse JSON fields for each professional
+    return [parse_professional_data(professional) for professional in professionals]
+
+
+def _apply_professional_filters(query, specialty, min_rate_cents, max_rate_cents):
+    """Apply filtering parameters to the professionals query."""
     # Filter by specialty if provided
     if specialty:
         query = query.filter(Professional.specialty.ilike(f"%{specialty}%"))
@@ -52,10 +62,7 @@ async def get_professionals(
     if max_rate_cents is not None:
         query = query.filter(Professional.rate_cents <= max_rate_cents)
 
-    professionals = query.offset(skip).limit(limit).all()
-
-    # Parse JSON fields for each professional
-    return [parse_professional_data(professional) for professional in professionals]
+    return query
 
 
 @router.get("/{professional_id}", response_model=ProfessionalResponse)

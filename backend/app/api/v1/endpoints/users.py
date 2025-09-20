@@ -8,17 +8,13 @@ from sqlalchemy.exc import SQLAlchemyError
 
 from app.utils.auth import get_current_user_id
 from app.core.database import get_db
-from app.models.user import User
 from app.schemas.user import UserResponse, UserUpdate
 from app.services.auth_service import AuthService
-from app.utils.parsers import parse_user_data
 
 router = APIRouter()
 
 # Error messages
 USER_NOT_FOUND_MESSAGE = "User not found"
-
-
 
 
 @router.get("/", response_model=list[UserResponse])
