@@ -93,8 +93,8 @@ jobs:
         with:
           name: unit-test-reports
           path: |
-            backend/unit_report.html
-            backend/unit_coverage.xml
+            unit_report.html
+            unit_coverage.xml
 
   integration-tests:
     name: Integration Tests
@@ -144,8 +144,8 @@ jobs:
         with:
           name: integration-test-reports
           path: |
-            backend/integration_report.html
-            backend/integration_coverage.xml
+            integration_report.html
+            integration_coverage.xml
 
   sonar:
     name: SonarCloud (aggregate coverage)
@@ -168,19 +168,19 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: lint-reports
-          path: backend/artifacts-downloaded
+          path: artifacts-downloaded
 
       - name: Download unit artifacts
         uses: actions/download-artifact@v4
         with:
           name: unit-test-reports
-          path: backend/artifacts-downloaded
+          path: artifacts-downloaded
 
       - name: Download integration artifacts
         uses: actions/download-artifact@v4
         with:
           name: integration-test-reports
-          path: backend/artifacts-downloaded
+          path: artifacts-downloaded
 
       - name: List downloaded files
         run: ls -la artifacts-downloaded
