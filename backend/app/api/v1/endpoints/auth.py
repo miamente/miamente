@@ -140,9 +140,7 @@ async def login_unified(login_data: UnifiedLogin, db: Session = Depends(get_db))
         token_response = create_token_response(str(professional.id))
 
         # Convert professional to response format
-        from app.api.v1.endpoints.professionals import (  # pylint: disable=import-outside-toplevel
-            parse_professional_data,
-        )
+        from app.utils.parsers import parse_professional_data  # pylint: disable=import-outside-toplevel
 
         professional_data = parse_professional_data(professional)
 
@@ -160,7 +158,7 @@ async def login_unified(login_data: UnifiedLogin, db: Session = Depends(get_db))
         token_response = create_token_response(str(user.id))
 
         # Convert user to response format
-        from app.api.v1.endpoints.users import parse_user_data  # pylint: disable=import-outside-toplevel
+        from app.utils.parsers import parse_user_data  # pylint: disable=import-outside-toplevel
 
         user_data = parse_user_data(user)
 
