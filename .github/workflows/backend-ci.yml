@@ -93,8 +93,8 @@ jobs:
         with:
           name: unit-test-reports
           path: |
-            unit_report.html
-            unit_coverage.xml
+            backend/unit_report.html
+            backend/unit_coverage.xml
 
   integration-tests:
     name: Integration Tests
@@ -144,8 +144,8 @@ jobs:
         with:
           name: integration-test-reports
           path: |
-            integration_report.html
-            integration_coverage.xml
+            backend/integration_report.html
+            backend/integration_coverage.xml
 
   sonar:
     name: SonarCloud (aggregate coverage)
@@ -158,9 +158,6 @@ jobs:
         (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop')) ||
       (github.event_name == 'pull_request' &&
         (github.base_ref == 'main' || github.base_ref == 'develop'))
-    defaults:
-      run:
-        working-directory: backend
     steps:
       - uses: actions/checkout@v4
 

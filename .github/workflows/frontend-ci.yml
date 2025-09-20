@@ -43,9 +43,17 @@ jobs:
       - name: Run ESLint
         run: |
           echo "Running ESLint..."
-          npm run lint -- --output-file=eslint-report.json --format=json || echo "ESLint completed with issues"
+          # Run normal lint for console output
+          npm run lint || echo "ESLint found issues"
+          # Generate JSON report separately to ensure it's always created
+          npm run lint:json || echo "ESLint JSON report generated with issues"
           echo "ESLint report created:"
           ls -la eslint-report.json || echo "❌ eslint-report.json not found"
+          # Verify JSON is valid
+          if [ -f "eslint-report.json" ]; then
+            echo "ESLint report size: $(wc -c < eslint-report.json) bytes"
+            head -5 eslint-report.json || echo "Report content preview failed"
+          fi
 
       - name: Run Prettier Check
         run: |
@@ -168,9 +176,6 @@ jobs:
         (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop')) ||
       (github.event_name == 'pull_request' &&
         (github.base_ref == 'main' || github.base_ref == 'develop'))
-    defaults:
-      run:
-        working-directory: apps/web
     steps:
       - uses: actions/checkout@v4
 
