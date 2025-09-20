@@ -90,9 +90,9 @@ jobs:
         with:
           name: frontend-lint-reports
           path: |
-            eslint-report.json
-            typecheck-report.txt
-            prettier-report.txt
+            apps/web/eslint-report.json
+            apps/web/typecheck-report.txt
+            apps/web/prettier-report.txt
 
   unit-tests:
     name: Unit & Accessibility Tests
@@ -125,8 +125,8 @@ jobs:
         with:
           name: frontend-unit-test-reports
           path: |
-            coverage/
-            test-results/
+            apps/web/coverage/
+            apps/web/test-results/
 
   build-test:
     name: Build Test
