@@ -6,9 +6,8 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import SQLAlchemyError
 
-from app.api.v1.endpoints.auth import get_current_user_id
+from app.utils.auth import get_current_user_id
 from app.core.database import get_db
-from app.models.user import User
 from app.schemas.user import UserResponse, UserUpdate
 from app.services.auth_service import AuthService
 
@@ -16,25 +15,6 @@ router = APIRouter()
 
 # Error messages
 USER_NOT_FOUND_MESSAGE = "User not found"
-
-
-def parse_user_data(user: User) -> dict:
-    """Parse user data for API response."""
-    return {
-        "id": str(user.id),
-        "email": user.email,
-        "full_name": user.full_name,
-        "phone": user.phone,
-        "is_active": user.is_active,
-        "is_verified": user.is_verified,
-        "profile_picture": user.profile_picture,
-        "date_of_birth": user.date_of_birth,
-        "emergency_contact": user.emergency_contact,
-        "emergency_phone": user.emergency_phone,
-        "preferences": user.preferences,
-        "created_at": user.created_at,
-        "updated_at": user.updated_at,
-    }
 
 
 @router.get("/", response_model=list[UserResponse])

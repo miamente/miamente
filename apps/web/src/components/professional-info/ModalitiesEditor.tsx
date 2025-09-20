@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Collapsible, CollapsibleContent } from "@/components/ui/collapsible";
@@ -29,18 +29,37 @@ export function ModalitiesEditor({
   } = useModalities();
   const [isOpen, setIsOpen] = React.useState(false);
   const [modalities, setModalities] = useState<ProfessionalModality[]>(value);
+  const isInternalUpdate = useRef(false);
+  const previousValue = useRef<ProfessionalModality[]>(value);
 
-  // Update local state when value prop changes
+  // Update local state when value prop changes (but not from internal updates)
   useEffect(() => {
-    setModalities(value);
+    if (!isInternalUpdate.current) {
+      // Only update if the value actually changed (deep comparison)
+      const valueChanged =
+        previousValue.current.length !== value.length ||
+        previousValue.current.some(
+          (prev, index) => !value[index] || JSON.stringify(prev) !== JSON.stringify(value[index]),
+        );
+
+      if (valueChanged) {
+        setModalities(value);
+        previousValue.current = value;
+      }
+    }
+    isInternalUpdate.current = false;
   }, [value]);
 
   // Notify parent of changes
-  useEffect(() => {
-    if (onChange) {
-      onChange(modalities);
-    }
-  }, [modalities, onChange]);
+  const notifyParent = useCallback(
+    (newModalities: ProfessionalModality[]) => {
+      if (onChange) {
+        isInternalUpdate.current = true;
+        onChange(newModalities);
+      }
+    },
+    [onChange],
+  );
 
   const addModality = () => {
     const newModality: ProfessionalModality = {
@@ -53,7 +72,9 @@ export function ModalitiesEditor({
       description: "",
       isDefault: false, // New modalities are not default by default
     };
-    setModalities((prev) => [...prev, newModality]);
+    const newModalities = [...modalities, newModality];
+    setModalities(newModalities);
+    notifyParent(newModalities);
   };
 
   const removeModality = (index: number) => {
@@ -66,6 +87,7 @@ export function ModalitiesEditor({
     }
 
     setModalities(newModalities);
+    notifyParent(newModalities);
   };
 
   const setDefaultModality = (index: number) => {
@@ -74,6 +96,7 @@ export function ModalitiesEditor({
       isDefault: idx === index,
     }));
     setModalities(newModalities);
+    notifyParent(newModalities);
   };
 
   const updateModality = (index: number, field: keyof ProfessionalModality, value: unknown) => {
@@ -81,6 +104,7 @@ export function ModalitiesEditor({
       idx === index ? { ...modality, [field]: value } : modality,
     );
     setModalities(newModalities);
+    notifyParent(newModalities);
   };
 
   const getModalityName = (modalityId: string) => {
