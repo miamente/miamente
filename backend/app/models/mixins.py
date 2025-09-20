@@ -6,7 +6,7 @@ to avoid code duplication and maintain consistency.
 """
 
 import uuid
-from sqlalchemy import Column, DateTime, ForeignKey, String, text
+from sqlalchemy import Column, DateTime, ForeignKey, String, Text, text
 from sqlalchemy.dialects.postgresql import UUID
 
 
@@ -58,3 +58,14 @@ class BaseJunctionModelMixin:
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     professional_id = Column(UUID(as_uuid=True), ForeignKey("professionals.id"), nullable=False)
+
+
+class DescriptionMixin:
+    """
+    Mixin class providing description field for models that need it.
+
+    This mixin adds a common description field that is shared across
+    multiple model classes to avoid code duplication.
+    """
+
+    description = Column(Text, nullable=True)

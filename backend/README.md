@@ -32,7 +32,7 @@ Backend API for the Miamente mental health platform built with FastAPI.
 This project uses Python 3.13.7. The following files ensure version consistency:
 
 - `.python-version` - For pyenv users
-- `runtime.txt` - For deployment platforms (Heroku, Railway, etc.)
+- `runtime.txt` - For deployment platforms (Heroku, etc.)
 - `pyproject.toml` - Specifies `requires-python = ">=3.13,<3.14"` and manages all dependencies
 
 > **Note**: This project uses `pyproject.toml` as the single source of truth for dependencies. No `requirements.txt` files are used.
@@ -227,11 +227,11 @@ mypy .
 
 ## Deployment
 
-### Railway
+### Cloud Deployment
 
-1. Connect your GitHub repository to Railway
-2. Add environment variables in Railway dashboard
-3. Deploy automatically on push to main branch
+1. Choose your preferred cloud platform (AWS, Google Cloud, Azure, etc.)
+2. Add environment variables in your deployment platform
+3. Configure automatic deployment on push to main branch
 
 ### Environment Variables for Production
 
