@@ -3,7 +3,7 @@ Unit tests for ModalityService.
 """
 
 import pytest
-from unittest.mock import Mock, MagicMock
+from unittest.mock import Mock
 from sqlalchemy.orm import Session
 
 from app.services.modality_service import ModalityService

@@ -3,9 +3,11 @@ Test configuration settings for backend tests.
 """
 
 from typing import List, Union
-from pydantic import AnyHttpUrl, field_validator, ConfigDict
+
+from pydantic import field_validator, ConfigDict
 from pydantic_settings import BaseSettings
-import secrets
+
+# import secrets  # Unused import
 
 
 class Settings(BaseSettings):

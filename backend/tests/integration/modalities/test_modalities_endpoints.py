@@ -52,6 +52,7 @@ class TestModalitiesEndpoints:
 
         # Override the dependency
         from app.core.database import get_db
+
         client.app.dependency_overrides[get_db] = lambda: mock_db
 
         # Act
@@ -62,7 +63,7 @@ class TestModalitiesEndpoints:
         data = response.json()
         assert len(data) == 1
         assert data[0]["name"] == "Individual Therapy"
-        
+
         # Clean up
         client.app.dependency_overrides.clear()
 
@@ -78,6 +79,7 @@ class TestModalitiesEndpoints:
         # Override the dependencies
         from app.core.database import get_db
         from app.api.v1.endpoints.auth import get_current_user_id
+
         client.app.dependency_overrides[get_db] = lambda: mock_db
         client.app.dependency_overrides[get_current_user_id] = lambda: "test-user-id"
 
@@ -89,7 +91,7 @@ class TestModalitiesEndpoints:
         data = response.json()
         assert data["name"] == "Individual Therapy"
         assert data["id"] == "550e8400-e29b-41d4-a716-446655440000"
-        
+
         # Clean up
         client.app.dependency_overrides.clear()
 
@@ -105,6 +107,7 @@ class TestModalitiesEndpoints:
         # Override the dependencies
         from app.core.database import get_db
         from app.api.v1.endpoints.auth import get_current_user_id
+
         client.app.dependency_overrides[get_db] = lambda: mock_db
         client.app.dependency_overrides[get_current_user_id] = lambda: "test-user-id"
 
@@ -115,7 +118,7 @@ class TestModalitiesEndpoints:
         assert response.status_code == 404
         data = response.json()
         assert data["detail"] == "Modality not found"
-        
+
         # Clean up
         client.app.dependency_overrides.clear()
 
@@ -137,6 +140,7 @@ class TestModalitiesEndpoints:
         # Override the dependencies
         from app.core.database import get_db
         from app.api.v1.endpoints.auth import get_current_user_id
+
         client.app.dependency_overrides[get_db] = lambda: mock_db
         client.app.dependency_overrides[get_current_user_id] = lambda: "test-user-id"
 
@@ -160,7 +164,7 @@ class TestModalitiesEndpoints:
             assert response.status_code == 200
             data = response.json()
             assert data["name"] == "Individual Therapy"
-            
+
             # Clean up
             client.app.dependency_overrides.clear()
 
@@ -177,6 +181,7 @@ class TestModalitiesEndpoints:
         # Override the dependencies
         from app.core.database import get_db
         from app.api.v1.endpoints.auth import get_current_user_id
+
         client.app.dependency_overrides[get_db] = lambda: mock_db
         client.app.dependency_overrides[get_current_user_id] = lambda: "test-user-id"
 
@@ -196,7 +201,7 @@ class TestModalitiesEndpoints:
         assert response.status_code == 400
         data = response.json()
         assert data["detail"] == "Modality with this name already exists"
-        
+
         # Clean up
         client.app.dependency_overrides.clear()
 
@@ -217,6 +222,7 @@ class TestModalitiesEndpoints:
         # Override the dependencies
         from app.core.database import get_db
         from app.api.v1.endpoints.auth import get_current_user_id
+
         client.app.dependency_overrides[get_db] = lambda: mock_db
         client.app.dependency_overrides[get_current_user_id] = lambda: "test-user-id"
 
@@ -231,7 +237,7 @@ class TestModalitiesEndpoints:
         assert response.status_code == 200
         data = response.json()
         assert data["name"] == "Updated Individual Therapy"
-        
+
         # Clean up
         client.app.dependency_overrides.clear()
 
@@ -248,6 +254,7 @@ class TestModalitiesEndpoints:
         # Override the dependencies
         from app.core.database import get_db
         from app.api.v1.endpoints.auth import get_current_user_id
+
         client.app.dependency_overrides[get_db] = lambda: mock_db
         client.app.dependency_overrides[get_current_user_id] = lambda: "test-user-id"
 
@@ -262,7 +269,7 @@ class TestModalitiesEndpoints:
         assert response.status_code == 404
         data = response.json()
         assert data["detail"] == "Modality not found"
-        
+
         # Clean up
         client.app.dependency_overrides.clear()
 
@@ -282,6 +289,7 @@ class TestModalitiesEndpoints:
         # Override the dependencies
         from app.core.database import get_db
         from app.api.v1.endpoints.auth import get_current_user_id
+
         client.app.dependency_overrides[get_db] = lambda: mock_db
         client.app.dependency_overrides[get_current_user_id] = lambda: "test-user-id"
 
@@ -293,7 +301,7 @@ class TestModalitiesEndpoints:
         data = response.json()
         assert data["message"] == "Modality deleted successfully"
         assert sample_modality.is_active is False
-        
+
         # Clean up
         client.app.dependency_overrides.clear()
 
@@ -310,6 +318,7 @@ class TestModalitiesEndpoints:
         # Override the dependencies
         from app.core.database import get_db
         from app.api.v1.endpoints.auth import get_current_user_id
+
         client.app.dependency_overrides[get_db] = lambda: mock_db
         client.app.dependency_overrides[get_current_user_id] = lambda: "test-user-id"
 
@@ -320,6 +329,6 @@ class TestModalitiesEndpoints:
         assert response.status_code == 404
         data = response.json()
         assert data["detail"] == "Modality not found"
-        
+
         # Clean up
         client.app.dependency_overrides.clear()

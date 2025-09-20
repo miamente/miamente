@@ -75,14 +75,14 @@ class TestUsersEndpoints:
 
     def test_get_current_user_success(self, client, mock_db, sample_user):
         """Test getting current user profile successfully."""
-        # NOTE: This test is currently skipped due to a FastAPI/TestClient issue where 
+        # NOTE: This test is currently skipped due to a FastAPI/TestClient issue where
         # dependency overrides don't work properly for GET endpoints with authentication.
         # The same authentication logic is tested through PUT/DELETE tests which work correctly.
         pytest.skip("Dependency override issue with GET endpoint authentication")
 
     def test_get_current_user_not_found(self, client, mock_db):
         """Test getting current user when user doesn't exist."""
-        # NOTE: This test is currently skipped due to a FastAPI/TestClient issue where 
+        # NOTE: This test is currently skipped due to a FastAPI/TestClient issue where
         # dependency overrides don't work properly for GET endpoints with authentication.
         # The same authentication logic is tested through PUT/DELETE tests which work correctly.
         pytest.skip("Dependency override issue with GET endpoint authentication")
@@ -93,10 +93,11 @@ class TestUsersEndpoints:
         # Mock the AuthService
         mock_service = Mock()
         mock_service.get_user_by_id.return_value = sample_user
-        
+
         # Override the dependencies
         from app.core.database import get_db
         from app.api.v1.endpoints.auth import get_current_user_id
+
         client.app.dependency_overrides[get_db] = lambda: mock_db
         client.app.dependency_overrides[get_current_user_id] = lambda: "550e8400-e29b-41d4-a716-446655440002"
 
@@ -106,7 +107,7 @@ class TestUsersEndpoints:
 
         with patch("app.api.v1.endpoints.users.AuthService") as mock_service_class:
             mock_service_class.return_value = mock_service
-            
+
             # Act
             response = client.put(
                 "/api/v1/users/me",
@@ -121,7 +122,7 @@ class TestUsersEndpoints:
             assert data["phone"] == "+9876543210"
             mock_db.commit.assert_called_once()
             mock_db.refresh.assert_called_once()
-            
+
         # Clean up
         client.app.dependency_overrides.clear()
 
@@ -131,26 +132,25 @@ class TestUsersEndpoints:
         # Mock the AuthService
         mock_service = Mock()
         mock_service.get_user_by_id.return_value = None
-        
+
         # Override the dependencies
         from app.core.database import get_db
         from app.api.v1.endpoints.auth import get_current_user_id
+
         client.app.dependency_overrides[get_db] = lambda: mock_db
         client.app.dependency_overrides[get_current_user_id] = lambda: "550e8400-e29b-41d4-a716-446655440002"
 
         with patch("app.api.v1.endpoints.users.AuthService") as mock_service_class:
             mock_service_class.return_value = mock_service
-            
+
             # Act
-            response = client.put(
-                "/api/v1/users/me", json={"full_name": "Updated Name"}, headers={"host": "localhost"}
-            )
+            response = client.put("/api/v1/users/me", json={"full_name": "Updated Name"}, headers={"host": "localhost"})
 
             # Assert
             assert response.status_code == 404
             data = response.json()
             assert data["detail"] == "User not found"
-            
+
         # Clean up
         client.app.dependency_overrides.clear()
 
@@ -160,32 +160,32 @@ class TestUsersEndpoints:
         # Mock the AuthService
         mock_service = Mock()
         mock_service.get_user_by_id.return_value = sample_user
-        
+
         # Override the dependencies
         from app.core.database import get_db
         from app.api.v1.endpoints.auth import get_current_user_id
+
         client.app.dependency_overrides[get_db] = lambda: mock_db
         client.app.dependency_overrides[get_current_user_id] = lambda: "550e8400-e29b-41d4-a716-446655440002"
 
         # Mock database operations to raise exception
         from sqlalchemy.exc import SQLAlchemyError
+
         mock_db.commit = Mock(side_effect=SQLAlchemyError("Database error"))
         mock_db.rollback = Mock()
 
         with patch("app.api.v1.endpoints.users.AuthService") as mock_service_class:
             mock_service_class.return_value = mock_service
-            
+
             # Act
-            response = client.put(
-                "/api/v1/users/me", json={"full_name": "Updated Name"}, headers={"host": "localhost"}
-            )
+            response = client.put("/api/v1/users/me", json={"full_name": "Updated Name"}, headers={"host": "localhost"})
 
             # Assert
             assert response.status_code == 500
             data = response.json()
             assert data["detail"] == "Failed to update user"
             mock_db.rollback.assert_called_once()
-            
+
         # Clean up
         client.app.dependency_overrides.clear()
 
@@ -195,10 +195,11 @@ class TestUsersEndpoints:
         # Mock the AuthService
         mock_service = Mock()
         mock_service.get_user_by_id.return_value = sample_user
-        
+
         # Override the dependencies
         from app.core.database import get_db
         from app.api.v1.endpoints.auth import get_current_user_id
+
         client.app.dependency_overrides[get_db] = lambda: mock_db
         client.app.dependency_overrides[get_current_user_id] = lambda: "550e8400-e29b-41d4-a716-446655440002"
 
@@ -207,7 +208,7 @@ class TestUsersEndpoints:
 
         with patch("app.api.v1.endpoints.users.AuthService") as mock_service_class:
             mock_service_class.return_value = mock_service
-            
+
             # Act
             response = client.delete("/api/v1/users/me", headers={"host": "localhost"})
 
@@ -215,7 +216,7 @@ class TestUsersEndpoints:
             assert response.status_code == 204
             assert sample_user.is_active is False
             mock_db.commit.assert_called_once()
-            
+
         # Clean up
         client.app.dependency_overrides.clear()
 
@@ -225,16 +226,17 @@ class TestUsersEndpoints:
         # Mock the AuthService
         mock_service = Mock()
         mock_service.get_user_by_id.return_value = None
-        
+
         # Override the dependencies
         from app.core.database import get_db
         from app.api.v1.endpoints.auth import get_current_user_id
+
         client.app.dependency_overrides[get_db] = lambda: mock_db
         client.app.dependency_overrides[get_current_user_id] = lambda: "550e8400-e29b-41d4-a716-446655440002"
 
         with patch("app.api.v1.endpoints.users.AuthService") as mock_service_class:
             mock_service_class.return_value = mock_service
-            
+
             # Act
             response = client.delete("/api/v1/users/me", headers={"host": "localhost"})
 
@@ -242,7 +244,7 @@ class TestUsersEndpoints:
             assert response.status_code == 404
             data = response.json()
             assert data["detail"] == "User not found"
-            
+
         # Clean up
         client.app.dependency_overrides.clear()
 
@@ -252,21 +254,23 @@ class TestUsersEndpoints:
         # Mock the AuthService
         mock_service = Mock()
         mock_service.get_user_by_id.return_value = sample_user
-        
+
         # Override the dependencies
         from app.core.database import get_db
         from app.api.v1.endpoints.auth import get_current_user_id
+
         client.app.dependency_overrides[get_db] = lambda: mock_db
         client.app.dependency_overrides[get_current_user_id] = lambda: "550e8400-e29b-41d4-a716-446655440002"
 
         # Mock database operations to raise exception
         from sqlalchemy.exc import SQLAlchemyError
+
         mock_db.commit = Mock(side_effect=SQLAlchemyError("Database error"))
         mock_db.rollback = Mock()
 
         with patch("app.api.v1.endpoints.users.AuthService") as mock_service_class:
             mock_service_class.return_value = mock_service
-            
+
             # Act
             response = client.delete("/api/v1/users/me", headers={"host": "localhost"})
 
@@ -275,6 +279,6 @@ class TestUsersEndpoints:
             data = response.json()
             assert data["detail"] == "Failed to delete user"
             mock_db.rollback.assert_called_once()
-            
+
         # Clean up
         client.app.dependency_overrides.clear()

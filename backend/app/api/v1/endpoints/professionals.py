@@ -253,4 +253,22 @@ async def update_current_professional(
     if "therapy_approaches_ids" in update_data:
         professional.therapy_approaches_ids = update_data["therapy_approaches_ids"]
 
-    # Handle modalities - update professi
+    # Handle modalities - update professional modalities
+    if "modalities" in update_data:
+        _update_modalities(professional, update_data, db)
+
+    # Update other fields
+    for field, value in update_data.items():
+        if field not in SPECIAL_FIELDS and field not in JSON_FIELDS:
+            setattr(professional, field, value)
+
+    try:
+        db.commit()
+        db.refresh(professional)
+        return parse_professional_data(professional)
+    except Exception as exc:
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error updating professional: {str(exc)}",
+        ) from exc

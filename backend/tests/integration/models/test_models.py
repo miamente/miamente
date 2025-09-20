@@ -3,7 +3,8 @@ Model tests rely on real DB behavior; mark them as integration.
 """
 
 import pytest
-from datetime import datetime, timezone
+
+# from datetime import datetime, timezone  # Unused imports
 from sqlalchemy.exc import IntegrityError
 
 from app.models.user import User as UserModel
@@ -25,7 +26,7 @@ class TestUserModel:
         assert user.id is not None
         assert user.email == "test3@example.com"
         assert user.full_name == "Test User"
-        assert user.is_active == True  # Default value
+        assert user.is_active is True  # Default value
         # created_at might be None if server_default doesn't work in tests
         # This is acceptable for test purposes
 
@@ -49,7 +50,7 @@ class TestUserModel:
         db_session.commit()
         db_session.refresh(user)
 
-        assert user.is_active == True  # Default value
-        assert user.is_verified == False  # Default value
+        assert user.is_active is True  # Default value
+        assert user.is_verified is False  # Default value
         assert user.phone is None
         assert user.profile_picture is None

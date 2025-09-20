@@ -3,7 +3,7 @@ Unit tests for SpecialtyService.
 """
 
 import pytest
-from unittest.mock import Mock, MagicMock
+from unittest.mock import Mock
 from sqlalchemy.orm import Session
 
 from app.services.specialty_service import SpecialtyService

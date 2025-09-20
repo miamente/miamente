@@ -3,7 +3,7 @@ Unit tests for ProfessionalTherapeuticApproachService.
 """
 
 import pytest
-from unittest.mock import Mock, MagicMock
+from unittest.mock import Mock
 from sqlalchemy.orm import Session
 
 from app.services.professional_therapeutic_approach_service import ProfessionalTherapeuticApproachService

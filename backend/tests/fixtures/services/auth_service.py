@@ -8,11 +8,11 @@ from sqlalchemy.orm import Session
 from app.core.security import (
     verify_password,
     get_password_hash,
-    create_token_response,
+    # create_token_response,  # Unused import
     verify_token,
 )
 from app.models.user import User as UserModel
-from app.schemas.user import UserCreate, UserLogin
+from app.schemas.user import UserCreate  # , UserLogin  # Unused import
 
 
 class AuthService:

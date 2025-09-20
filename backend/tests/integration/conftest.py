@@ -4,7 +4,8 @@ Uses precise test data identification to avoid affecting production data.
 """
 
 import pytest
-import uuid
+
+# import uuid  # Unused import
 from datetime import datetime
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine, text
@@ -97,13 +98,13 @@ def _cleanup_test_data(session_factory):
         where_clause = " OR ".join(test_patterns)
 
         # Get test user IDs before deletion for related data cleanup
-        test_user_ids = session.execute(
-            text(
-                f"""
-            SELECT id FROM users WHERE {where_clause}
-        """
-            )
-        ).fetchall()
+        # test_user_ids = session.execute(
+        #     text(
+        #         f"""
+        #     SELECT id FROM users WHERE {where_clause}
+        # """
+        #     )
+        # ).fetchall()
 
         # Get test professional IDs before deletion for related data cleanup
         test_professional_ids = session.execute(
@@ -143,7 +144,7 @@ def _cleanup_test_data(session_factory):
             session.execute(
                 text(
                     f"""
-                DELETE FROM professional_specialties 
+                DELETE FROM professional_specialties
                 WHERE professional_id IN ('{professional_ids_str}')
             """
                 )
@@ -152,7 +153,7 @@ def _cleanup_test_data(session_factory):
             session.execute(
                 text(
                     f"""
-                DELETE FROM professional_modalities 
+                DELETE FROM professional_modalities
                 WHERE professional_id IN ('{professional_ids_str}')
             """
                 )
@@ -161,7 +162,7 @@ def _cleanup_test_data(session_factory):
             session.execute(
                 text(
                     f"""
-                DELETE FROM professional_therapeutic_approaches 
+                DELETE FROM professional_therapeutic_approaches
                 WHERE professional_id IN ('{professional_ids_str}')
             """
                 )
@@ -171,8 +172,8 @@ def _cleanup_test_data(session_factory):
         session.execute(
             text(
                 """
-            DELETE FROM specialties 
-            WHERE name LIKE 'Test %' 
+            DELETE FROM specialties
+            WHERE name LIKE 'Test %'
             OR name LIKE '% Test'
             OR name = 'psychology'
         """
@@ -182,8 +183,8 @@ def _cleanup_test_data(session_factory):
         session.execute(
             text(
                 """
-            DELETE FROM therapeutic_approaches 
-            WHERE name LIKE 'Test %' 
+            DELETE FROM therapeutic_approaches
+            WHERE name LIKE 'Test %'
             OR name LIKE '% Test'
         """
             )
@@ -192,8 +193,8 @@ def _cleanup_test_data(session_factory):
         session.execute(
             text(
                 """
-            DELETE FROM modalities 
-            WHERE name LIKE 'Test %' 
+            DELETE FROM modalities
+            WHERE name LIKE 'Test %'
             OR name LIKE '% Test'
         """
             )
