@@ -44,16 +44,37 @@ jobs:
         run: |
           echo "Running ESLint..."
           npm run lint -- --output-file=eslint-report.json --format=json || echo "ESLint completed with issues"
+          echo "ESLint report created:"
+          ls -la eslint-report.json || echo "❌ eslint-report.json not found"
 
       - name: Run Prettier Check
         run: |
           echo "Running Prettier check..."
           npm run format:check > prettier-report.txt 2>&1 || echo "Prettier check completed with issues"
+          echo "Prettier report created:"
+          ls -la prettier-report.txt || echo "❌ prettier-report.txt not found"
 
       - name: Run TypeScript Check
         run: |
           echo "Running TypeScript check..."
           npm run typecheck > typecheck-report.txt 2>&1 || echo "TypeScript check completed with issues"
+          echo "TypeScript report created:"
+          ls -la typecheck-report.txt || echo "❌ typecheck-report.txt not found"
+
+      - name: List all report files
+        run: |
+          echo "Current working directory: $(pwd)"
+          echo "All files in current directory:"
+          ls -la
+          echo "Looking for report files:"
+          find . -name "*report*" -type f || echo "No report files found"
+
+      - name: Ensure report files exist
+        run: |
+          echo "Ensuring all report files exist..."
+          touch eslint-report.json typecheck-report.txt prettier-report.txt
+          echo "Report files after touch:"
+          ls -la *report*.* || echo "No report files found"
 
       - name: Upload Lint Artifacts
         uses: actions/upload-artifact@v4
