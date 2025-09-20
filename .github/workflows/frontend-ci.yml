@@ -145,13 +145,13 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: frontend-lint-reports
-          path: artifacts-downloaded
+          path: apps/web/artifacts-downloaded
 
       - name: Download unit test artifacts
         uses: actions/download-artifact@v4
         with:
           name: frontend-unit-test-reports
-          path: artifacts-downloaded
+          path: apps/web/artifacts-downloaded
 
       - name: SonarCloud Scan (Frontend)
         uses: SonarSource/sonarqube-scan-action@v5.0.0
