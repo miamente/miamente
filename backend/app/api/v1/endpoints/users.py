@@ -6,7 +6,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import SQLAlchemyError
 
-from app.api.v1.endpoints.auth import get_current_user_id
+from app.utils.auth import get_current_user_id
 from app.core.database import get_db
 from app.models.user import User
 from app.schemas.user import UserResponse, UserUpdate

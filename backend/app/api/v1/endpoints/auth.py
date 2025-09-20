@@ -2,14 +2,12 @@
 Authentication endpoints.
 """
 
-from typing import Optional
-
 from fastapi import APIRouter, Depends, HTTPException, status
-from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
-from app.core.security import verify_token, create_token_response
+from app.core.security import create_token_response
+from app.utils.auth import get_current_user_id
 from app.schemas.auth import (
     ProfessionalTokenResponse,
     RefreshToken,
@@ -32,31 +30,9 @@ router = APIRouter()
 # Error messages
 INCORRECT_CREDENTIALS_MESSAGE = "Incorrect email or password"
 USER_NOT_FOUND_MESSAGE = "User not found"
-INVALID_AUTH_CREDENTIALS_MESSAGE = "Invalid authentication credentials"
 INVALID_REFRESH_TOKEN_MESSAGE = "Invalid refresh token"
 
-security = HTTPBearer(auto_error=False)
 
-
-def get_current_user_id(
-    credentials: Optional[HTTPAuthorizationCredentials] = Depends(security),
-) -> str:
-    """Get current user ID from token."""
-    if not credentials:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Not authenticated",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
-    token = credentials.credentials
-    user_id = verify_token(token)
-    if user_id is None:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail=INVALID_AUTH_CREDENTIALS_MESSAGE,
-            headers={"WWW-Authenticate": "Bearer"},
-        )
-    return user_id
 
 
 @router.post("/register/user", response_model=UserResponse, status_code=status.HTTP_201_CREATED)

@@ -5,7 +5,7 @@ from typing import List
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
-from app.api.v1.endpoints.auth import get_current_user_id
+from app.utils.auth import get_current_user_id
 from app.core.database import get_db
 from app.models.modality import Modality
 from app.schemas.modality import ModalityCreate, ModalityResponse, ModalityUpdate
