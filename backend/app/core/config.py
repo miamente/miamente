@@ -10,7 +10,6 @@ from pydantic import AnyHttpUrl, ConfigDict, field_validator
 from pydantic_settings import BaseSettings
 
 
-
 class Settings(BaseSettings):
     """Application settings."""
 
@@ -83,7 +82,7 @@ class Settings(BaseSettings):
                 f"postgresql://{self.DATABASE_USER}:{self.DATABASE_PASSWORD}"
                 f"@{self.DATABASE_HOST}:{self.DATABASE_PORT}/{self.DATABASE_NAME}"
             )
-            self.DATABASE_URL = url # pylint: disable=invalid-name
+            self.DATABASE_URL = url  # pylint: disable=invalid-name
 
     # JWT settings
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 8  # 8 days

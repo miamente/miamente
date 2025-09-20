@@ -17,7 +17,7 @@ class TherapeuticApproach(Base):
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     name = Column(String(255), nullable=False, unique=True)
-    description = Column(Text, nullable=True)   # Optional description for reference
+    description = Column(Text, nullable=True)  # Optional description for reference
     category = Column(String(100), nullable=True)  # Optional category grouping
 
     # Proper timestamp types with SQL defaults; avoids pylint E1102
