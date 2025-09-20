@@ -3,7 +3,7 @@ import { render, screen } from "@testing-library/react";
 import { vi, describe, it, expect, beforeEach } from "vitest";
 import "@testing-library/jest-dom";
 import { Footer } from "../footer";
-import { testAccessibility, commonAccessibilityTests } from "../../__tests__/utils/accessibility";
+import { testAccessibility, commonAccessibilityTests } from "@/lib/test-utils";
 
 // Mock Next.js Link component
 vi.mock("next/link", () => ({

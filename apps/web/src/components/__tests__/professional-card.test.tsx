@@ -3,7 +3,7 @@ import { render, screen, fireEvent } from "@testing-library/react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import "@testing-library/jest-dom";
 import { ProfessionalCard } from "../professional-card";
-import { testAccessibility, commonAccessibilityTests } from "../../__tests__/utils/accessibility";
+import { testAccessibility, commonAccessibilityTests } from "@/lib/test-utils";
 // Mock the getImageUrl function
 vi.mock("@/lib/storage", () => ({
   getImageUrl: vi.fn((url: string) => url),

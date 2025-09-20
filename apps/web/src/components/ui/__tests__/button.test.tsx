@@ -3,10 +3,7 @@ import { render, screen, fireEvent } from "@testing-library/react";
 import { describe, it, expect, vi } from "vitest";
 import "@testing-library/jest-dom";
 import { Button } from "../button";
-import {
-  testAccessibility,
-  commonAccessibilityTests,
-} from "../../../__tests__/utils/accessibility";
+import { testAccessibility, commonAccessibilityTests } from "@/lib/test-utils";
 
 describe("Button", () => {
   it("should render with default props", () => {
