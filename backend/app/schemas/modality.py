@@ -1,4 +1,4 @@
-""" Schemas for modality and professional modality. """
+"""Schemas for modality and professional modality."""
 
 import uuid
 from datetime import datetime

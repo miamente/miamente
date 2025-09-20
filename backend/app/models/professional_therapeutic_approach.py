@@ -32,7 +32,7 @@ class ProfessionalTherapeuticApproach(Base):
     # Relationships
     professional = relationship(
         "app.models.professional.Professional",
-        back_populates="professional_therapeutic_approaches",
+        back_populates="therapeutic_approaches",
     )
     therapeutic_approach = relationship(
         "app.models.therapeutic_approach.TherapeuticApproach",

@@ -34,16 +34,22 @@ class Professional(Base):
     custom_rate_cents = Column(Integer, nullable=True)  # Custom rate override
     currency = Column(String(3), default="COP")
     bio = Column(Text, nullable=True)
-    academic_experience = Column(Text, nullable=True)  # JSON string for structured academic experience
-    work_experience = Column(Text, nullable=True)  # JSON string for structured work experience
-    certifications = Column(Text, nullable=True)  # JSON string for structured certifications
+    # JSON string for structured academic experience
+    academic_experience = Column(Text, nullable=True)
+    # JSON string for structured work experience
+    work_experience = Column(Text, nullable=True)
+    # JSON string for structured certifications
+    certifications = Column(Text, nullable=True)
     languages = Column(ARRAY(String), nullable=True)
-    therapy_approaches_ids = Column(ARRAY(String), nullable=True)  # List of therapeutic approach IDs
-    specialty_ids = Column(ARRAY(String), nullable=True)  # New: list of specialty IDs
+    # List of therapeutic approach IDs
+    therapy_approaches_ids = Column(ARRAY(String), nullable=True)
+    # New: list of specialty IDs
+    specialty_ids = Column(ARRAY(String), nullable=True)
 
     # Availability settings
     timezone = Column(String(50), default="America/Bogota")
-    working_hours = Column(Text, nullable=True)  # JSON string
+    # JSON string
+    working_hours = Column(Text, nullable=True)
 
     # Contact information
     emergency_contact = Column(String(255), nullable=True)
@@ -67,7 +73,7 @@ class Professional(Base):
         "app.models.professional_specialty.ProfessionalSpecialty",
         back_populates="professional",
     )
-    professional_therapeutic_approaches = relationship(
+    therapeutic_approaches = relationship(
         "app.models.professional_therapeutic_approach.ProfessionalTherapeuticApproach",
         back_populates="professional",
     )
@@ -78,5 +84,6 @@ class Professional(Base):
 
     def __repr__(self):
         return (
-            f"<Professional(id={self.id}, email={self.email}, full_name={self.full_name}, specialty={self.specialty})>"
+            f"<Professional(id={self.id}, email={self.email}, "
+            f"full_name={self.full_name}, specialty={self.specialty})>"
         )
