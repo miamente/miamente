@@ -16,12 +16,17 @@ describe("useModalities", () => {
     vi.clearAllMocks();
   });
 
-  it("should initialize with loading state", () => {
+  it("should initialize with loading state", async () => {
     const { result } = renderHook(() => useModalities());
 
     expect(result.current.modalities).toEqual([]);
     expect(result.current.loading).toBe(true);
     expect(result.current.error).toBe(null);
+
+    // Wait for the effect to complete
+    await waitFor(() => {
+      expect(result.current.loading).toBe(false);
+    });
   });
 
   it("should fetch modalities successfully", async () => {

@@ -45,19 +45,24 @@ describe("useProfessionalSpecialties", () => {
     vi.clearAllMocks();
   });
 
-  it("should initialize with loading state when professionalId is provided", () => {
+  it("should initialize with loading state when professionalId is provided", async () => {
     const { result } = renderHook(() => useProfessionalSpecialties("prof-123"));
 
     expect(result.current.specialties).toEqual([]);
     expect(result.current.loading).toBe(true);
     expect(result.current.error).toBe(null);
+
+    // Wait for the effect to complete
+    await waitFor(() => {
+      expect(result.current.loading).toBe(false);
+    });
   });
 
-  it("should not load when professionalId is not provided", () => {
+  it("should not load when professionalId is not provided", async () => {
     const { result } = renderHook(() => useProfessionalSpecialties());
 
     expect(result.current.specialties).toEqual([]);
-    expect(result.current.loading).toBe(false);
+    expect(result.current.loading).toBe(false); // Immediately false when no professionalId
     expect(result.current.error).toBe(null);
   });
 

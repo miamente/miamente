@@ -1,26 +1,27 @@
 "use client";
 
 import React from "react";
-import { Control } from "react-hook-form";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { DollarSign } from "lucide-react";
-import type { ProfessionalProfileFormData } from "@/lib/validations";
+import type { ProfessionalModality } from "@/lib/types";
 
 interface ModalityFormFieldsProps {
   readonly index: number;
-  readonly control: Control<ProfessionalProfileFormData>;
+  readonly value: ProfessionalModality;
   readonly disabled?: boolean;
   readonly availableModalities: Array<{ id: string; name: string }>;
+  readonly onChange?: (field: keyof ProfessionalModality, value: unknown) => void;
   readonly onModalityChange?: (value: string) => void;
 }
 
 export function ModalityFormFields({
   index,
-  control,
+  value,
   disabled = false,
   availableModalities,
+  onChange,
   onModalityChange,
 }: ModalityFormFieldsProps) {
   return (
@@ -39,6 +40,7 @@ export function ModalityFormFields({
               value: modality.id,
               label: modality.name,
             }))}
+            value={value.modalityId}
             onValueChange={onModalityChange}
             placeholder="Seleccionar modalidad..."
             className="w-full"
@@ -57,9 +59,8 @@ export function ModalityFormFields({
             <Input
               id={`virtual-price-${index}`}
               type="number"
-              {...control.register(`modalities.${index}.virtualPrice`, {
-                valueAsNumber: true,
-              })}
+              value={value.virtualPrice}
+              onChange={(e) => onChange?.("virtualPrice", parseFloat(e.target.value) || 0)}
               placeholder="0"
               disabled={disabled}
               className="pl-10"
@@ -72,7 +73,8 @@ export function ModalityFormFields({
         <input
           type="checkbox"
           id={`offers-presencial-${index}`}
-          {...control.register(`modalities.${index}.offersPresencial`)}
+          checked={value.offersPresencial}
+          onChange={(e) => onChange?.("offersPresencial", e.target.checked)}
           disabled={disabled}
           className="h-4 w-4 rounded border-gray-300 text-purple-600 focus:ring-purple-500"
         />
@@ -93,7 +95,8 @@ export function ModalityFormFields({
         </label>
         <Textarea
           id={`description-${index}`}
-          {...control.register(`modalities.${index}.description`)}
+          value={value.description}
+          onChange={(e) => onChange?.("description", e.target.value)}
           placeholder="Descripción de la modalidad..."
           rows={3}
           disabled={disabled}
@@ -105,14 +108,16 @@ export function ModalityFormFields({
 
 interface PresencialPriceFieldProps {
   readonly index: number;
-  readonly control: Control<ProfessionalProfileFormData>;
+  readonly value: number;
   readonly disabled?: boolean;
+  readonly onChange?: (value: number) => void;
 }
 
 export function PresencialPriceField({
   index,
-  control,
+  value,
   disabled = false,
+  onChange,
 }: PresencialPriceFieldProps) {
   return (
     <div>
@@ -127,9 +132,8 @@ export function PresencialPriceField({
         <Input
           id={`presencial-price-${index}`}
           type="number"
-          {...control.register(`modalities.${index}.presencialPrice`, {
-            valueAsNumber: true,
-          })}
+          value={value}
+          onChange={(e) => onChange?.(parseFloat(e.target.value) || 0)}
           placeholder="0"
           disabled={disabled}
           className="pl-10"

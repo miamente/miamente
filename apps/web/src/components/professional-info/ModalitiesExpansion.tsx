@@ -104,17 +104,40 @@ export function ModalitiesEditor({ disabled = false }: ModalitiesEditorProps) {
 
                 <ModalityFormFields
                   index={index}
-                  control={control}
+                  value={
+                    modalities?.[index] || {
+                      id: "",
+                      modalityId: "",
+                      modalityName: "",
+                      virtualPrice: 0,
+                      presencialPrice: 0,
+                      offersPresencial: false,
+                      description: "",
+                      isDefault: false,
+                    }
+                  }
                   disabled={disabled}
                   availableModalities={AVAILABLE_MODALITIES}
-                  onModalityChange={() => {
-                    // This would need to be implemented with form state management
-                    // Update the form field
+                  onChange={(field, value) => {
+                    // Type assertion needed for dynamic field paths in React Hook Form
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    setValue(`modalities.${index}.${field}` as any, value);
+                  }}
+                  onModalityChange={(value) => {
+                    const modalityName =
+                      AVAILABLE_MODALITIES.find((m) => m.id === value)?.name || "";
+                    setValue(`modalities.${index}.modalityId`, value);
+                    setValue(`modalities.${index}.modalityName`, modalityName);
                   }}
                 />
 
                 {modalities?.[index]?.offersPresencial && (
-                  <PresencialPriceField index={index} control={control} disabled={disabled} />
+                  <PresencialPriceField
+                    index={index}
+                    value={modalities?.[index]?.presencialPrice || 0}
+                    disabled={disabled}
+                    onChange={(value) => setValue(`modalities.${index}.presencialPrice`, value)}
+                  />
                 )}
               </div>
             ))}

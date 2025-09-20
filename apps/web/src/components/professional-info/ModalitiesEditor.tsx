@@ -1,12 +1,10 @@
 "use client";
 
-import React, { useEffect } from "react";
-import { useFieldArray, useFormContext } from "react-hook-form";
+import React, { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Collapsible, CollapsibleContent } from "@/components/ui/collapsible";
 import { Plus, Star } from "lucide-react";
-import type { ProfessionalProfileFormData } from "@/lib/validations";
 import { useModalities } from "@/hooks/useModalities";
 import type { ProfessionalModality } from "@/lib/types";
 import { ModalityCardTrigger } from "./shared/ModalityCardTrigger";
@@ -15,43 +13,37 @@ import { ModalityFormFields, PresencialPriceField } from "./shared/ModalityFormF
 
 interface ModalitiesEditorProps {
   disabled?: boolean;
+  value?: ProfessionalModality[];
+  onChange?: (modalities: ProfessionalModality[]) => void;
 }
 
-export function ModalitiesEditor({ disabled = false }: ModalitiesEditorProps) {
+export function ModalitiesEditor({
+  disabled = false,
+  value = [],
+  onChange,
+}: ModalitiesEditorProps) {
   const {
     modalities: availableModalities,
     loading: modalitiesLoading,
     error: modalitiesError,
   } = useModalities();
   const [isOpen, setIsOpen] = React.useState(false);
-  const { control, watch, setValue } = useFormContext<ProfessionalProfileFormData>();
+  const [modalities, setModalities] = useState<ProfessionalModality[]>(value);
 
-  const { fields, append, remove } = useFieldArray({
-    control,
-    name: "modalities",
-  });
-
-  // Watch the modalities data
-  const modalities = watch("modalities");
-
-  // Initialize fields when data is loaded
+  // Update local state when value prop changes
   useEffect(() => {
-    if (modalities && modalities.length > 0 && fields.length === 0) {
-      // Clear existing fields and add the loaded data
-      modalities.forEach((modality: ProfessionalModality) => {
-        append(modality);
-      });
+    setModalities(value);
+  }, [value]);
 
-      // If no modality is marked as default, make the first one default
-      const hasDefault = modalities.some((m: unknown) => (m as { isDefault?: boolean }).isDefault);
-      if (!hasDefault && modalities.length > 0) {
-        setValue(`modalities.0.isDefault`, true);
-      }
+  // Notify parent of changes
+  useEffect(() => {
+    if (onChange) {
+      onChange(modalities);
     }
-  }, [modalities, fields.length, append, setValue]);
+  }, [modalities, onChange]);
 
   const addModality = () => {
-    append({
+    const newModality: ProfessionalModality = {
       id: crypto.randomUUID(),
       modalityId: "",
       modalityName: "Modalidad",
@@ -60,26 +52,35 @@ export function ModalitiesEditor({ disabled = false }: ModalitiesEditorProps) {
       offersPresencial: false,
       description: "",
       isDefault: false, // New modalities are not default by default
-    });
+    };
+    setModalities((prev) => [...prev, newModality]);
   };
 
   const removeModality = (index: number) => {
-    const wasDefault = modalities?.[index]?.isDefault;
-    remove(index);
+    const wasDefault = modalities[index]?.isDefault;
+    const newModalities = modalities.filter((_, idx) => idx !== index);
 
     // If we removed the default modality, make the first remaining one default
-    if (wasDefault && modalities && modalities.length > 1) {
-      setValue(`modalities.0.isDefault`, true);
+    if (wasDefault && newModalities.length > 0) {
+      newModalities[0].isDefault = true;
     }
+
+    setModalities(newModalities);
   };
 
   const setDefaultModality = (index: number) => {
-    // Set all modalities to not default first
-    modalities?.forEach((_, idx) => {
-      setValue(`modalities.${idx}.isDefault`, false);
-    });
-    // Set the selected modality as default
-    setValue(`modalities.${index}.isDefault`, true);
+    const newModalities = modalities.map((modality, idx) => ({
+      ...modality,
+      isDefault: idx === index,
+    }));
+    setModalities(newModalities);
+  };
+
+  const updateModality = (index: number, field: keyof ProfessionalModality, value: unknown) => {
+    const newModalities = modalities.map((modality, idx) =>
+      idx === index ? { ...modality, [field]: value } : modality,
+    );
+    setModalities(newModalities);
   };
 
   const getModalityName = (modalityId: string) => {
@@ -89,21 +90,11 @@ export function ModalitiesEditor({ disabled = false }: ModalitiesEditorProps) {
 
   const getAvailableModalities = (currentIndex: number) => {
     // Get modalities that are not already selected by other items
-    const usedModalityIds =
-      modalities
-        ?.map((m: unknown, idx: number) =>
-          idx !== currentIndex ? (m as { modalityId?: string }).modalityId : null,
-        )
-        .filter(Boolean) || [];
+    const usedModalityIds = modalities
+      .map((m, idx) => (idx !== currentIndex ? m.modalityId : null))
+      .filter(Boolean);
     return availableModalities.filter((m) => !usedModalityIds.includes(m.id));
   };
-
-  // Debug information
-  console.log("ModalitiesEditor - Loading:", modalitiesLoading);
-  console.log("ModalitiesEditor - Error:", modalitiesError);
-  console.log("ModalitiesEditor - Available modalities:", availableModalities);
-  console.log("ModalitiesEditor - Current modalities from form:", modalities);
-  console.log("ModalitiesEditor - Fields:", fields);
 
   // Show loading state
   if (modalitiesLoading) {
@@ -145,13 +136,13 @@ export function ModalitiesEditor({ disabled = false }: ModalitiesEditorProps) {
         <ModalityCardTrigger isOpen={isOpen} />
         <CollapsibleContent>
           <CardContent className="space-y-4">
-            {fields.map((field, index) => (
-              <div key={field.id} className="space-y-4 rounded-lg border p-4">
+            {modalities.map((modality, index) => (
+              <div key={modality.id} className="space-y-4 rounded-lg border p-4">
                 <ModalityCardHeader
                   index={index}
-                  modalityName={modalities?.[index]?.modalityName}
-                  offersPresencial={modalities?.[index]?.offersPresencial}
-                  isDefault={modalities?.[index]?.isDefault}
+                  modalityName={modality.modalityName}
+                  offersPresencial={modality.offersPresencial}
+                  isDefault={modality.isDefault}
                   disabled={disabled}
                   onSetDefault={setDefaultModality}
                   onRemove={removeModality}
@@ -159,18 +150,26 @@ export function ModalitiesEditor({ disabled = false }: ModalitiesEditorProps) {
 
                 <ModalityFormFields
                   index={index}
-                  control={control}
+                  value={modality}
                   disabled={disabled}
                   availableModalities={getAvailableModalities(index)}
-                  onModalityChange={(value) => {
+                  onChange={(field: keyof ProfessionalModality, value: unknown) =>
+                    updateModality(index, field, value)
+                  }
+                  onModalityChange={(value: string) => {
                     const modalityName = getModalityName(value);
-                    setValue(`modalities.${index}.modalityId`, value);
-                    setValue(`modalities.${index}.modalityName`, modalityName);
+                    updateModality(index, "modalityId", value);
+                    updateModality(index, "modalityName", modalityName);
                   }}
                 />
 
-                {modalities?.[index]?.offersPresencial && (
-                  <PresencialPriceField index={index} control={control} disabled={disabled} />
+                {modality.offersPresencial && (
+                  <PresencialPriceField
+                    index={index}
+                    value={modality.presencialPrice}
+                    disabled={disabled}
+                    onChange={(value: number) => updateModality(index, "presencialPrice", value)}
+                  />
                 )}
               </div>
             ))}
