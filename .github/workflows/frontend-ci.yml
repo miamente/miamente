@@ -92,9 +92,6 @@ jobs:
     needs:
       - lint
     if: github.event_name == 'push' || github.event_name == 'pull_request'
-    defaults:
-      run:
-        working-directory: apps/web
     steps:
       - uses: actions/checkout@v4
 
@@ -138,7 +135,6 @@ jobs:
           node-version: "22"
 
       - name: Build Application
-        working-directory: apps/web
         run: |
           echo "Current directory: $(pwd)"
           echo "Running npm run build..."
