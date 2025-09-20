@@ -8,12 +8,12 @@ from sqlalchemy.orm import declarative_base, sessionmaker
 from app.core.config import get_settings
 
 # Lazy-loaded database engine
-_engine = None
+_engine = None  # pylint: disable=invalid-name
 
 
 def get_engine():
     """Get database engine, creating it if it doesn't exist."""
-    global _engine
+    global _engine  # pylint: disable=global-statement
     if _engine is None:
         settings = get_settings()
         _engine = create_engine(
@@ -26,12 +26,12 @@ def get_engine():
 
 
 # Create session factory (will be initialized when engine is created)
-session_local = None
+session_local = None  # pylint: disable=invalid-name
 
 
 def get_session_factory():
     """Get session factory, creating it if it doesn't exist."""
-    global session_local
+    global session_local  # pylint: disable=global-statement
     if session_local is None:
         session_local = sessionmaker(autocommit=False, autoflush=False, bind=get_engine())
     return session_local
@@ -43,8 +43,8 @@ Base = declarative_base()
 
 def get_db():
     """Get database session."""
-    session_local = get_session_factory()
-    db = session_local()
+    session_factory = get_session_factory()
+    db = session_factory()
     try:
         yield db
     finally:

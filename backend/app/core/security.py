@@ -55,7 +55,8 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
     try:
         ph.verify(hashed_password, plain_password)
         return True
-    except Exception:
+    except Exception:  # pylint: disable=broad-exception-caught
+        # Catch any password verification error (invalid hash, wrong password, etc.)
         return False
 
 

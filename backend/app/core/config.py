@@ -33,12 +33,12 @@ class Settings(BaseSettings):
 
     @field_validator("BACKEND_CORS_ORIGINS", mode="before")
     @classmethod
-    def assemble_cors_origins(cls, v: Union[str, List[str]]) -> List[str]:
-        if isinstance(v, str):
-            return [i.strip() for i in v.split(",")]
-        if isinstance(v, list):
-            return v
-        raise ValueError(v)
+    def assemble_cors_origins(cls, value: Union[str, List[str]]) -> List[str]:
+        if isinstance(value, str):
+            return [i.strip() for i in value.split(",")]
+        if isinstance(value, list):
+            return value
+        raise ValueError(value)
 
     # Allowed hosts
     ALLOWED_HOSTS: List[str] = [
@@ -50,12 +50,12 @@ class Settings(BaseSettings):
 
     @field_validator("ALLOWED_HOSTS", mode="before")
     @classmethod
-    def assemble_allowed_hosts(cls, v: Union[str, List[str]]) -> List[str]:
-        if isinstance(v, str):
-            return [i.strip() for i in v.split(",")]
-        if isinstance(v, list):
-            return v
-        raise ValueError(v)
+    def assemble_allowed_hosts(cls, value: Union[str, List[str]]) -> List[str]:
+        if isinstance(value, str):
+            return [i.strip() for i in value.split(",")]
+        if isinstance(value, list):
+            return value
+        raise ValueError(value)
 
     # Database settings
     DATABASE_HOST: str = "localhost"
@@ -63,14 +63,15 @@ class Settings(BaseSettings):
     DATABASE_NAME: str = "miamente"
     DATABASE_USER: str = ""
     DATABASE_PASSWORD: str = ""
-    DATABASE_URL: str = ""
+    DATABASE_URL: str = ""  # pylint: disable=invalid-name
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         # Validate database credentials
         if not self.DATABASE_URL and (not self.DATABASE_USER or not self.DATABASE_PASSWORD):
             raise ValueError(
-                "Database credentials must be provided. Set either DATABASE_URL or both DATABASE_USER and DATABASE_PASSWORD"
+                "Database credentials must be provided. Set either DATABASE_URL or "
+                "both DATABASE_USER and DATABASE_PASSWORD"
             )
         # Construct DATABASE_URL from individual components if not provided
         if not self.DATABASE_URL:
@@ -91,12 +92,12 @@ class Settings(BaseSettings):
 
 
 # Settings will be instantiated when needed
-_settings = None
+_settings = None  # pylint: disable=invalid-name
 
 
 def get_settings() -> Settings:
     """Get application settings, creating them if they don't exist."""
-    global _settings
+    global _settings  # pylint: disable=global-statement
     if _settings is None:
         _settings = Settings()
     return _settings
@@ -104,7 +105,7 @@ def get_settings() -> Settings:
 
 # For backward compatibility, create settings if environment variables are available
 try:
-    settings = Settings()
+    settings = Settings()  # pylint: disable=invalid-name
 except ValueError:
     # Settings will be created when needed via get_settings()
     settings = None

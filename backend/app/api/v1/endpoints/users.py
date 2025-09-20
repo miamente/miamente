@@ -86,12 +86,12 @@ async def update_current_user(
         db.refresh(user)
         return user
 
-    except Exception:
+    except Exception as exc:
         db.rollback()
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to update user",
-        )
+        ) from exc
 
 
 @router.delete("/me", status_code=status.HTTP_204_NO_CONTENT)
@@ -109,9 +109,9 @@ async def delete_current_user(current_user_id: str = Depends(get_current_user_id
         db.commit()
         return None
 
-    except Exception:
+    except Exception as exc:
         db.rollback()
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to delete user",
-        )
+        ) from exc
