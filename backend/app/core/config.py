@@ -3,7 +3,7 @@ Application configuration settings.
 """
 
 import secrets
-from typing import List, Union
+from typing import List
 
 from functools import lru_cache
 from pydantic import AnyHttpUrl, ConfigDict, field_validator
@@ -34,7 +34,7 @@ class Settings(BaseSettings):
 
     @field_validator("BACKEND_CORS_ORIGINS", mode="before")
     @classmethod
-    def assemble_cors_origins(cls, value: Union[str, List[str]]) -> List[str]:
+    def assemble_cors_origins(cls, value: str | List[str]) -> List[str]:
         """Accept a CSV string or list for CORS origins and normalize to list[str]."""
         if isinstance(value, str):
             return [item.strip() for item in value.split(",")]
@@ -52,7 +52,7 @@ class Settings(BaseSettings):
 
     @field_validator("ALLOWED_HOSTS", mode="before")
     @classmethod
-    def assemble_allowed_hosts(cls, value: Union[str, List[str]]) -> List[str]:
+    def assemble_allowed_hosts(cls, value: str | List[str]) -> List[str]:
         """Accept a CSV string or list for allowed hosts and normalize to list[str]."""
         if isinstance(value, str):
             return [item.strip() for item in value.split(",")]
