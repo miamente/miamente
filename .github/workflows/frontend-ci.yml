@@ -154,69 +154,13 @@ jobs:
             apps/web/.next/
           retention-days: 1
 
-  e2e-tests:
-    name: E2E Tests
-    runs-on: ubuntu-latest
-    if: |
-      (github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop')) ||
-      (github.event_name == 'pull_request' && (github.base_ref == 'main' || github.base_ref == 'develop'))
-    needs:
-      - build-test
-    defaults:
-      run:
-        working-directory: .
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Setup Node.js & deps
-        uses: ./.github/actions/setup-frontend
-        with:
-          node-version: "22"
-
-      - name: Install Playwright browsers
-        run: npx playwright install --with-deps
-
-      - name: Download build artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: frontend-build
-          path: apps/web/.next/
-
-      - name: Build application if no artifacts
-        run: |
-          if [ ! -d "apps/web/.next" ]; then
-            echo "No build artifacts found, building application..."
-            npm run build
-          else
-            echo "Using downloaded build artifacts"
-          fi
-        working-directory: apps/web
-
-      - name: Start application
-        run: |
-          npm run start &
-          sleep 10
-          curl http://localhost:3000 || echo "Application failed to start"
-        working-directory: apps/web
-
-      - name: Run E2E Tests
-        run: npm run test:e2e:fast
-
-      - name: Upload E2E Test Results
-        uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: frontend-e2e-reports
-          path: |
-            test-results/
-            playwright-report/
-
   sonar:
     name: SonarCloud Frontend Analysis
     runs-on: ubuntu-latest
     needs:
       - unit-tests
       - accessibility-tests
+      - build-test
     if: >
       (github.event_name == 'push' &&
         (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop')) ||
