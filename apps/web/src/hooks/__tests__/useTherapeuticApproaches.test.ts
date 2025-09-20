@@ -45,12 +45,17 @@ describe("useTherapeuticApproaches", () => {
     vi.clearAllMocks();
   });
 
-  it("should initialize with loading state", () => {
+  it("should initialize with loading state", async () => {
     const { result } = renderHook(() => useTherapeuticApproaches());
 
     expect(result.current.approaches).toEqual([]);
     expect(result.current.loading).toBe(true);
     expect(result.current.error).toBe(null);
+
+    // Wait for the effect to complete
+    await waitFor(() => {
+      expect(result.current.loading).toBe(false);
+    });
   });
 
   it("should fetch therapeutic approaches successfully", async () => {
