@@ -64,7 +64,8 @@ class Settings(BaseSettings):
         if not self.DATABASE_URL and (not self.DATABASE_USER or not self.DATABASE_PASSWORD):
             raise ValueError(
                 "Test database credentials must be provided with password protection. "
-                "Set either DATABASE_URL (with password) or both DATABASE_USER and DATABASE_PASSWORD environment variables."
+                "Set either DATABASE_URL (with password) or both DATABASE_USER and "
+                "DATABASE_PASSWORD environment variables."
             )
 
         # If DATABASE_USER is provided, DATABASE_PASSWORD is required
