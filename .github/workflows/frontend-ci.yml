@@ -41,13 +41,19 @@ jobs:
           node-version: "22"
 
       - name: Run ESLint
-        run: npm run lint -- --output-file=eslint-report.json --format=json || true
+        run: |
+          echo "Running ESLint..."
+          npm run lint -- --output-file=eslint-report.json --format=json || echo "ESLint completed with issues"
 
       - name: Run Prettier Check
-        run: npm run format:check || true
+        run: |
+          echo "Running Prettier check..."
+          npm run format:check > prettier-report.txt 2>&1 || echo "Prettier check completed with issues"
 
       - name: Run TypeScript Check
-        run: npm run typecheck > typecheck-report.txt || true
+        run: |
+          echo "Running TypeScript check..."
+          npm run typecheck > typecheck-report.txt 2>&1 || echo "TypeScript check completed with issues"
 
       - name: Upload Lint Artifacts
         uses: actions/upload-artifact@v4
@@ -57,6 +63,7 @@ jobs:
           path: |
             eslint-report.json
             typecheck-report.txt
+            prettier-report.txt
 
   unit-tests:
     name: Unit & Accessibility Tests
