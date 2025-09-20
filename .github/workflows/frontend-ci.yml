@@ -92,6 +92,9 @@ jobs:
     needs:
       - lint
     if: github.event_name == 'push' || github.event_name == 'pull_request'
+    defaults:
+      run:
+        working-directory: apps/web
     steps:
       - uses: actions/checkout@v4
 
@@ -103,6 +106,13 @@ jobs:
       - name: Run Unit & Accessibility Tests with Vitest and Coverage
         run: |
           npm run test:ci
+          echo "Test execution completed. Checking for generated files..."
+          echo "Looking for coverage directory:"
+          ls -la coverage/ || echo "❌ coverage/ directory not found"
+          echo "Looking for test-results directory:"
+          ls -la test-results/ || echo "❌ test-results/ directory not found"
+          echo "All files in current directory:"
+          ls -la
 
       - name: Upload Test Reports Artifacts
         uses: actions/upload-artifact@v4
