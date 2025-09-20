@@ -1,0 +1,229 @@
+name: Frontend CI
+
+on:
+  push:
+    branches: ["**"]
+    paths:
+      - "apps/web/**"
+      - "package.json"
+      - "package-lock.json"
+      - ".github/workflows/frontend-ci.yml"
+      - ".github/actions/setup-frontend/**"
+  pull_request:
+    branches: [main, develop]
+    paths:
+      - "apps/web/**"
+      - "package.json"
+      - "package-lock.json"
+      - ".github/workflows/frontend-ci.yml"
+      - ".github/actions/setup-frontend/**"
+
+env:
+  # Frontend environment variables
+  NEXT_PUBLIC_API_URL: http://localhost:8000
+  NODE_ENV: test
+
+defaults:
+  run:
+    working-directory: apps/web
+
+jobs:
+  lint:
+    name: Lint and Format
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' || github.event_name == 'pull_request'
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js & deps
+        uses: ./.github/actions/setup-frontend
+        with:
+          node-version: "22"
+
+      - name: Run ESLint
+        run: npm run lint -- --output-file=eslint-report.json --format=json || true
+
+      - name: Run Prettier Check
+        run: npm run format:check || true
+
+      - name: Run TypeScript Check
+        run: npm run typecheck > typecheck-report.txt || true
+
+      - name: Upload Lint Artifacts
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: frontend-lint-reports
+          path: |
+            apps/web/eslint-report.json
+            apps/web/typecheck-report.txt
+
+  unit-tests:
+    name: Unit Tests
+    runs-on: ubuntu-latest
+    needs:
+      - lint
+    if: github.event_name == 'push' || github.event_name == 'pull_request'
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js & deps
+        uses: ./.github/actions/setup-frontend
+        with:
+          node-version: "22"
+
+      - name: Run Unit Tests with Vitest and Coverage
+        run: |
+          npm run test:ci
+
+      - name: Upload Test Reports Artifacts
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: frontend-unit-test-reports
+          path: |
+            apps/web/coverage/
+            apps/web/test-results/
+
+  accessibility-tests:
+    name: Accessibility Tests
+    runs-on: ubuntu-latest
+    needs:
+      - lint
+    if: github.event_name == 'push' || github.event_name == 'pull_request'
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js & deps
+        uses: ./.github/actions/setup-frontend
+        with:
+          node-version: "22"
+
+      - name: Run Accessibility Tests
+        run: npm run test:accessibility
+
+      - name: Upload Accessibility Reports
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: frontend-accessibility-reports
+          path: |
+            apps/web/accessibility-results/
+
+  build-test:
+    name: Build Test
+    runs-on: ubuntu-latest
+    needs:
+      - lint
+    if: github.event_name == 'push' || github.event_name == 'pull_request'
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js & deps
+        uses: ./.github/actions/setup-frontend
+        with:
+          node-version: "22"
+
+      - name: Build Application
+        run: npm run build
+
+      - name: Upload Build Artifacts
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: frontend-build
+          path: |
+            apps/web/.next/
+          retention-days: 1
+
+  e2e-tests:
+    name: E2E Tests
+    runs-on: ubuntu-latest
+    if: |
+      (github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop')) ||
+      (github.event_name == 'pull_request' && (github.base_ref == 'main' || github.base_ref == 'develop'))
+    needs:
+      - build-test
+    defaults:
+      run:
+        working-directory: .
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js & deps
+        uses: ./.github/actions/setup-frontend
+        with:
+          node-version: "22"
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps
+
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: frontend-build
+          path: apps/web/.next/
+
+      - name: Start application
+        run: |
+          npm run start &
+          sleep 10
+        working-directory: apps/web
+
+      - name: Run E2E Tests
+        run: npm run test:e2e:fast
+
+      - name: Upload E2E Test Results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: frontend-e2e-reports
+          path: |
+            test-results/
+            playwright-report/
+
+  sonar:
+    name: SonarCloud Frontend Analysis
+    runs-on: ubuntu-latest
+    needs:
+      - unit-tests
+      - accessibility-tests
+    if: >
+      (github.event_name == 'push' &&
+        (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop')) ||
+      (github.event_name == 'pull_request' &&
+        (github.base_ref == 'main' || github.base_ref == 'develop'))
+    defaults:
+      run:
+        working-directory: apps/web
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download lint artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: frontend-lint-reports
+          path: apps/web/artifacts-downloaded
+
+      - name: Download unit test artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: frontend-unit-test-reports
+          path: apps/web/artifacts-downloaded
+
+      - name: Download accessibility artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: frontend-accessibility-reports
+          path: apps/web/artifacts-downloaded
+
+      - name: List downloaded files
+        run: ls -la artifacts-downloaded
+
+      - name: SonarCloud Scan (Frontend)
+        uses: SonarSource/sonarqube-scan-action@v5.0.0
+        with:
+          projectBaseDir: ./
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}

@@ -11,6 +11,25 @@ export default defineConfig({
     setupFiles: ["./vitest.setup.ts"],
     css: false,
     globals: true,
+    coverage: {
+      provider: "v8",
+      reporter: ["text", "lcov", "html", "json"],
+      reportsDirectory: "./coverage",
+      exclude: [
+        "node_modules/**",
+        ".next/**",
+        "coverage/**",
+        "**/*.config.*",
+        "**/*.d.ts",
+        "**/types/**",
+        "**/*.test.*",
+        "**/*.spec.*",
+      ],
+    },
+    outputFile: {
+      json: "./test-results/results.json",
+      html: "./test-results/results.html",
+    },
   },
   resolve: {
     alias: {
