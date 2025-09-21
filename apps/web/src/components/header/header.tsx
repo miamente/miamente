@@ -1,8 +1,8 @@
 "use client";
+import React, { useEffect, useState } from "react";
 import { Menu, Moon, Sun } from "lucide-react";
 import Link from "next/link";
 import { useTheme } from "next-themes";
-import { useEffect, useState } from "react";
 
 import { MobileMenu } from "./mobile-menu";
 import { Navigation } from "./navigation";

@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { Montserrat } from "next/font/google";
-import { ReactNode } from "react";
+import React, { ReactNode } from "react";
 
 import "./globals.css";
 import { Footer } from "@/components/footer";
