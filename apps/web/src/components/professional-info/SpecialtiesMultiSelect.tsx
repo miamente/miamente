@@ -9,9 +9,9 @@ import { X, HelpCircle } from "lucide-react";
 import { useSpecialties } from "@/hooks/useSpecialties";
 
 interface SpecialtiesMultiSelectProps {
-  value?: string[];
-  onChange?: (specialtyIds: string[]) => void;
-  disabled?: boolean;
+  readonly value?: readonly string[];
+  readonly onChange?: (specialtyIds: readonly string[]) => void;
+  readonly disabled?: boolean;
 }
 
 export function SpecialtiesMultiSelect({
@@ -19,13 +19,13 @@ export function SpecialtiesMultiSelect({
   onChange,
   disabled = false,
 }: SpecialtiesMultiSelectProps) {
-  const [selectedSpecialties, setSelectedSpecialties] = useState<string[]>(value);
+  const [selectedSpecialties, setSelectedSpecialties] = useState<string[]>([...value]);
 
   const { specialties, loading: specialtiesLoading, error: specialtiesError } = useSpecialties();
 
   // Update local state when value prop changes
   useEffect(() => {
-    setSelectedSpecialties(value);
+    setSelectedSpecialties([...value]);
   }, [value]);
 
   const handleSpecialtyChange = (specialtyId: string) => {

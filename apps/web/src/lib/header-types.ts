@@ -28,8 +28,8 @@ export interface HeaderConfig {
 }
 
 export interface HeaderProps {
-  config?: HeaderConfig;
-  className?: string;
+  readonly config?: HeaderConfig;
+  readonly className?: string;
 }
 
 export const DEFAULT_HEADER_CONFIG: Required<HeaderConfig> = {

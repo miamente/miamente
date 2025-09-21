@@ -538,7 +538,7 @@ export default function ProfessionalProfilePage() {
                   <div>
                     <SpecialtiesMultiSelect
                       value={watch("specialtyIds") || []}
-                      onChange={(specialtyIds) => setValue("specialtyIds", specialtyIds)}
+                      onChange={(specialtyIds) => setValue("specialtyIds", [...specialtyIds])}
                       disabled={isSubmitting}
                     />
                   </div>
@@ -547,7 +547,7 @@ export default function ProfessionalProfilePage() {
                   <div>
                     <TherapeuticApproachesMultiSelect
                       value={watch("therapyApproaches") || []}
-                      onChange={(approaches) => setValue("therapyApproaches", approaches)}
+                      onChange={(approaches) => setValue("therapyApproaches", [...approaches])}
                       disabled={isSubmitting}
                     />
                   </div>
@@ -556,7 +556,7 @@ export default function ProfessionalProfilePage() {
                   <div>
                     <LanguagesMultiSelect
                       value={watch("languages") || []}
-                      onChange={(languages) => setValue("languages", languages)}
+                      onChange={(languages) => setValue("languages", [...languages])}
                       disabled={isSubmitting}
                     />
                   </div>

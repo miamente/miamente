@@ -8,9 +8,9 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import { X, HelpCircle } from "lucide-react";
 
 interface LanguagesMultiSelectProps {
-  value?: string[];
-  onChange?: (languages: string[]) => void;
-  disabled?: boolean;
+  readonly value?: readonly string[];
+  readonly onChange?: (languages: readonly string[]) => void;
+  readonly disabled?: boolean;
 }
 
 // Lista de idiomas comunes
@@ -63,11 +63,11 @@ export function LanguagesMultiSelect({
   onChange,
   disabled = false,
 }: LanguagesMultiSelectProps) {
-  const [selectedLanguages, setSelectedLanguages] = useState<string[]>(value);
+  const [selectedLanguages, setSelectedLanguages] = useState<string[]>([...value]);
 
   // Update local state when value prop changes
   useEffect(() => {
-    setSelectedLanguages(value);
+    setSelectedLanguages([...value]);
   }, [value]);
 
   const handleLanguageChange = (language: string) => {

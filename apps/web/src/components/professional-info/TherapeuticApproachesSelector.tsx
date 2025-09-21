@@ -9,9 +9,9 @@ import { useTherapeuticApproaches } from "@/hooks/useTherapeuticApproaches";
 import { TherapeuticApproach } from "@/lib/types";
 
 interface TherapeuticApproachesSelectorProps {
-  selectedApproaches: string[];
-  onApproachesChange: (approaches: string[]) => void;
-  disabled?: boolean;
+  readonly selectedApproaches: readonly string[];
+  readonly onApproachesChange: (approaches: readonly string[]) => void;
+  readonly disabled?: boolean;
 }
 
 export function TherapeuticApproachesSelector({

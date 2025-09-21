@@ -10,12 +10,12 @@ import { cn } from "@/lib/utils";
 import { UserRole } from "@/lib/types";
 
 interface UserMenuProps {
-  userRole?: string;
-  userName?: string;
-  userEmail?: string;
-  userMenuOptions: UserMenuOption[];
-  onUserMenuAction: (action: string) => void;
-  isAuthenticated: boolean;
+  readonly userRole?: string;
+  readonly userName?: string;
+  readonly userEmail?: string;
+  readonly userMenuOptions: readonly UserMenuOption[];
+  readonly onUserMenuAction: (action: string) => void;
+  readonly isAuthenticated: boolean;
 }
 
 export function UserMenu({

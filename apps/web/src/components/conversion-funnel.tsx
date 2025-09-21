@@ -12,15 +12,15 @@ import {
 } from "recharts";
 
 interface ConversionFunnelData {
-  signups: number;
-  profileCompletions: number;
-  slotCreations: number;
-  appointmentConfirmations: number;
+  readonly signups: number;
+  readonly profileCompletions: number;
+  readonly slotCreations: number;
+  readonly appointmentConfirmations: number;
 }
 
 interface ConversionFunnelProps {
-  data: ConversionFunnelData | null;
-  loading?: boolean;
+  readonly data: ConversionFunnelData | null;
+  readonly loading?: boolean;
 }
 
 export function ConversionFunnel({ data, loading = false }: ConversionFunnelProps) {

@@ -159,9 +159,9 @@ export default function ProfessionalProfilePage() {
     if (professional.specialty_ids && professional.specialty_ids.length > 0) {
       return (
         <div className="flex flex-wrap gap-1">
-          {getSpecialtyNames(professional.specialty_ids).map((specialty: string, index: number) => (
+          {getSpecialtyNames(professional.specialty_ids).map((specialty: string) => (
             <span
-              key={index}
+              key={specialty}
               className="rounded-full bg-blue-100 px-2 py-1 text-xs text-blue-800 dark:bg-blue-900 dark:text-blue-200"
             >
               {specialty}
@@ -289,8 +289,11 @@ export default function ProfessionalProfilePage() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {professional.academic_experience.map((education, index) => (
-                    <div key={index} className="border-l-4 border-blue-200 pl-4">
+                  {professional.academic_experience.map((education) => (
+                    <div
+                      key={`${education.degree}-${education.institution}`}
+                      className="border-l-4 border-blue-200 pl-4"
+                    >
                       <h4 className="font-semibold text-gray-900 dark:text-gray-100">
                         {education.degree}
                       </h4>
@@ -323,8 +326,8 @@ export default function ProfessionalProfilePage() {
               </CardHeader>
               <CardContent>
                 <ul className="space-y-2">
-                  {professional.certifications.map((cert, index) => (
-                    <li key={index} className="flex items-center">
+                  {professional.certifications.map((cert) => (
+                    <li key={cert.name} className="flex items-center">
                       <span className="mr-3 h-2 w-2 rounded-full bg-blue-500"></span>
                       <span className="text-gray-700 dark:text-gray-300">{cert.name}</span>
                     </li>
@@ -345,9 +348,9 @@ export default function ProfessionalProfilePage() {
               </CardHeader>
               <CardContent>
                 <div className="flex flex-wrap gap-2">
-                  {professional.languages.map((language, index) => (
+                  {professional.languages.map((language) => (
                     <span
-                      key={index}
+                      key={language}
                       className="rounded-full bg-blue-100 px-3 py-1 text-sm text-blue-800 dark:bg-blue-900 dark:text-blue-200"
                     >
                       {language}
@@ -377,9 +380,9 @@ export default function ProfessionalProfilePage() {
                   ) : (
                     <div className="flex flex-wrap gap-2">
                       {getTherapyApproachNames(professional.therapy_approaches_ids).map(
-                        (approach: string, index: number) => (
+                        (approach: string) => (
                           <span
-                            key={index}
+                            key={approach}
                             className="rounded-full bg-green-100 px-3 py-1 text-sm text-green-800 dark:bg-green-900 dark:text-green-200"
                           >
                             {approach}

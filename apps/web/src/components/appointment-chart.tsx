@@ -14,8 +14,8 @@ import {
 import { type AppointmentChartData } from "@/lib/analytics-admin";
 
 interface AppointmentChartProps {
-  data: AppointmentChartData[];
-  loading?: boolean;
+  readonly data: readonly AppointmentChartData[];
+  readonly loading?: boolean;
 }
 
 export function AppointmentChart({ data, loading = false }: AppointmentChartProps) {

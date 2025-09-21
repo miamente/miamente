@@ -11,7 +11,7 @@ import { useAuth } from "@/hooks/useAuth";
 import type { Certification } from "@/lib/types";
 
 interface CertificationsEditorProps {
-  disabled?: boolean;
+  readonly disabled?: boolean;
 }
 
 export function CertificationsEditor({ disabled = false }: CertificationsEditorProps) {
@@ -282,31 +282,39 @@ export function CertificationsEditor({ disabled = false }: CertificationsEditorP
                               className="absolute inset-0 h-full w-full cursor-pointer opacity-0 disabled:cursor-not-allowed"
                             />
 
-                            {!certifications?.[index]?.documentUrl ? (
-                              <>
-                                <Upload className="mx-auto mb-2 h-8 w-8 text-gray-400 dark:text-gray-500" />
-                                <p className="text-sm text-gray-600 dark:text-gray-400">
-                                  {!isAuthenticated
-                                    ? "Debes estar autenticado para subir archivos"
-                                    : "Haz clic para seleccionar un archivo"}
-                                </p>
-                                <p className="mt-1 text-xs text-gray-500 dark:text-gray-500">
-                                  PDF, JPG, PNG • Máximo 5MB
-                                </p>
-                              </>
-                            ) : certifications?.[index]?.documentUrl ? (
-                              <>
-                                <FileText className="mx-auto mb-2 h-8 w-8 text-green-600 dark:text-green-400" />
-                                <p className="text-sm font-medium text-green-700 dark:text-green-300">
-                                  Documento adjunto
-                                </p>
-                                <p className="text-xs text-green-500 dark:text-green-500">
-                                  {certifications[index]?.fileName ||
-                                    certifications[index]?.document?.name ||
-                                    "Archivo adjunto"}
-                                </p>
-                              </>
-                            ) : null}
+                            {(() => {
+                              const hasDocumentUrl = certifications?.[index]?.documentUrl;
+
+                              if (!hasDocumentUrl) {
+                                return (
+                                  <>
+                                    <Upload className="mx-auto mb-2 h-8 w-8 text-gray-400 dark:text-gray-500" />
+                                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                                      {!isAuthenticated
+                                        ? "Debes estar autenticado para subir archivos"
+                                        : "Haz clic para seleccionar un archivo"}
+                                    </p>
+                                    <p className="mt-1 text-xs text-gray-500 dark:text-gray-500">
+                                      PDF, JPG, PNG • Máximo 5MB
+                                    </p>
+                                  </>
+                                );
+                              }
+
+                              return (
+                                <>
+                                  <FileText className="mx-auto mb-2 h-8 w-8 text-green-600 dark:text-green-400" />
+                                  <p className="text-sm font-medium text-green-700 dark:text-green-300">
+                                    Documento adjunto
+                                  </p>
+                                  <p className="text-xs text-green-500 dark:text-green-500">
+                                    {certifications[index]?.fileName ||
+                                      certifications[index]?.document?.name ||
+                                      "Archivo adjunto"}
+                                  </p>
+                                </>
+                              );
+                            })()}
                           </div>
                         </div>
                         {errors.certifications &&

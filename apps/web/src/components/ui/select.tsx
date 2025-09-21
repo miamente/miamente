@@ -152,6 +152,32 @@ const Select = React.forwardRef<HTMLDivElement, SelectProps>(
             onClick={() => {
               // Don't stop propagation here, let option clicks work
             }}
+            onKeyDown={(e) => {
+              // Handle keyboard navigation for accessibility
+              switch (e.key) {
+                case "Escape":
+                  setIsOpen(false);
+                  selectRef.current?.focus();
+                  break;
+                case "ArrowDown":
+                  e.preventDefault();
+                  const currentIndex = options.findIndex((opt) => opt.value === value);
+                  const nextIndex = Math.min(currentIndex + 1, options.length - 1);
+                  onValueChange?.(options[nextIndex].value);
+                  break;
+                case "ArrowUp":
+                  e.preventDefault();
+                  const currentIndexUp = options.findIndex((opt) => opt.value === value);
+                  const prevIndex = Math.max(currentIndexUp - 1, 0);
+                  onValueChange?.(options[prevIndex].value);
+                  break;
+                case "Enter":
+                  e.preventDefault();
+                  setIsOpen(false);
+                  selectRef.current?.focus();
+                  break;
+              }
+            }}
           >
             {options.map((option) => (
               <div

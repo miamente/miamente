@@ -7,8 +7,8 @@ import { Stethoscope, ChevronDown, ChevronRight } from "lucide-react";
 import { useProfessionalSpecialties } from "@/hooks/useProfessionalSpecialties";
 
 interface SpecialtiesEditorProps {
-  professionalId: string;
-  disabled?: boolean;
+  readonly professionalId: string;
+  readonly disabled?: boolean;
 }
 
 export function SpecialtiesEditorSimple({ professionalId }: SpecialtiesEditorProps) {

@@ -15,18 +15,18 @@ import { useProfessionalTherapeuticApproaches } from "@/hooks/useProfessionalThe
 import type { ProfessionalModality } from "@/lib/types";
 
 interface ProfessionalInfoFormProps {
-  professionalId: string;
-  initialData?: {
-    fullName?: string;
-    bio?: string;
-    licenseNumber?: string;
-    yearsExperience?: number;
-    specialtyIds?: string[];
-    therapeuticApproachIds?: string[];
-    modalities?: ProfessionalModality[];
+  readonly professionalId: string;
+  readonly initialData?: {
+    readonly fullName?: string;
+    readonly bio?: string;
+    readonly licenseNumber?: string;
+    readonly yearsExperience?: number;
+    readonly specialtyIds?: readonly string[];
+    readonly therapeuticApproachIds?: readonly string[];
+    readonly modalities?: readonly ProfessionalModality[];
   };
-  onSave?: (data: Record<string, unknown>) => void;
-  disabled?: boolean;
+  readonly onSave?: (data: Record<string, unknown>) => void;
+  readonly disabled?: boolean;
 }
 
 export function ProfessionalInfoForm({
@@ -40,9 +40,9 @@ export function ProfessionalInfoForm({
     bio: initialData?.bio || "",
     licenseNumber: initialData?.licenseNumber || "",
     yearsExperience: initialData?.yearsExperience || 0,
-    specialtyIds: initialData?.specialtyIds || [],
-    therapeuticApproachIds: initialData?.therapeuticApproachIds || [],
-    modalities: initialData?.modalities || [],
+    specialtyIds: [...(initialData?.specialtyIds || [])],
+    therapeuticApproachIds: [...(initialData?.therapeuticApproachIds || [])],
+    modalities: [...(initialData?.modalities || [])],
   });
 
   const [saving, setSaving] = useState(false);

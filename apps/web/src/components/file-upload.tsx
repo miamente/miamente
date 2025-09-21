@@ -5,12 +5,12 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 
 interface FileUploadProps {
-  onFileSelect: (file: File) => void;
-  accept?: string;
-  maxSize?: number; // in bytes
-  label?: string;
-  disabled?: boolean;
-  currentFile?: string; // URL of current file
+  readonly onFileSelect: (file: File) => void;
+  readonly accept?: string;
+  readonly maxSize?: number; // in bytes
+  readonly label?: string;
+  readonly disabled?: boolean;
+  readonly currentFile?: string; // URL of current file
 }
 
 export function FileUpload({

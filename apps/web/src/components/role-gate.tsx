@@ -5,10 +5,10 @@ import { useRole } from "@/hooks/useRole";
 import { UserRole } from "@/lib/types";
 
 interface RoleGateProps {
-  roles: UserRole[];
-  children: React.ReactNode;
-  fallback?: React.ReactNode;
-  requireAll?: boolean; // If true, user must have ALL roles (for future multi-role support)
+  readonly roles: readonly UserRole[];
+  readonly children: React.ReactNode;
+  readonly fallback?: React.ReactNode;
+  readonly requireAll?: boolean; // If true, user must have ALL roles (for future multi-role support)
 }
 
 export function RoleGate({ roles, children, fallback = null, requireAll = false }: RoleGateProps) {
@@ -24,7 +24,7 @@ export function RoleGate({ roles, children, fallback = null, requireAll = false 
 
   const hasAccess = requireAll
     ? roles.every((role) => hasAnyRole([role])) // For future multi-role support
-    : hasAnyRole(roles);
+    : hasAnyRole([...roles]);
 
   return hasAccess ? <>{children}</> : <>{fallback}</>;
 }
