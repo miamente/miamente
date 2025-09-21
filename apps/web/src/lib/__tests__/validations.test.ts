@@ -421,10 +421,10 @@ describe("validations", () => {
     });
 
     it("should reject file that's too large", () => {
-      const file = new File(["x".repeat(10 * 1024 * 1024)], "large.jpg", { type: "image/jpeg" });
+      const file = new File(["x".repeat(1024)], "large.jpg", { type: "image/jpeg" });
       const invalidData = {
         file,
-        maxSize: 5 * 1024 * 1024,
+        maxSize: 512, // 512 bytes
         allowedTypes: ["image/jpeg"],
       };
 

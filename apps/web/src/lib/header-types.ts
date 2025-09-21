@@ -1,9 +1,10 @@
 import { UserRole } from "@/lib/types";
+import { ComponentType } from "react";
 
 export interface NavigationItem {
   label: string;
   href: string;
-  icon?: React.ComponentType<{ className?: string }>;
+  icon?: ComponentType<{ className?: string }>;
   roles?: UserRole[];
   external?: boolean;
 }
@@ -12,7 +13,7 @@ export interface UserMenuOption {
   label: string;
   href?: string;
   action?: string;
-  icon?: React.ComponentType<{ className?: string }>;
+  icon?: ComponentType<{ className?: string }>;
   roles?: UserRole[];
   divider?: boolean;
 }

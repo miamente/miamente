@@ -3,6 +3,8 @@
  * Based on backend models and schemas
  */
 
+import { ComponentType } from "react";
+
 // ============================================================================
 // ENUMS
 // ============================================================================
@@ -495,7 +497,7 @@ export interface SelectOption {
 export interface NavigationItem {
   href: string;
   label: string;
-  icon?: React.ComponentType<{ className?: string }>;
+  icon?: ComponentType<{ className?: string }>;
   roles?: UserRole[];
 }
 

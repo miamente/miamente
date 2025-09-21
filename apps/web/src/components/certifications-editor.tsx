@@ -1,7 +1,7 @@
 "use client";
 
 import { useFieldArray, useFormContext } from "react-hook-form";
-import { useEffect, useState } from "react";
+import { useEffect, useState, ChangeEvent } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -177,7 +177,7 @@ export function CertificationsEditor({ disabled = false }: CertificationsEditorP
     }
   };
 
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>, index: number) => {
+  const handleFileChange = (event: ChangeEvent<HTMLInputElement>, index: number) => {
     const file = event.target.files?.[0];
     if (file) {
       handleFileUpload(file, index);

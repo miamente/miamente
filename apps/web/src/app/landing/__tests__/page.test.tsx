@@ -1,6 +1,7 @@
 import React from "react";
 import { render, screen, fireEvent } from "@testing-library/react";
 import { vi, describe, it, expect, beforeEach } from "vitest";
+import { ReactNode } from "react";
 import LandingPage from "../page";
 
 // Mock Next.js Link component
@@ -10,7 +11,7 @@ vi.mock("next/link", () => ({
     href,
     ...props
   }: {
-    children: React.ReactNode;
+    children: ReactNode;
     href: string;
     [key: string]: unknown;
   }) => (

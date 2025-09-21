@@ -1,17 +1,12 @@
 import React from "react";
 import { render, screen } from "@testing-library/react";
 import { vi, describe, it, expect, beforeEach } from "vitest";
+import { ReactNode } from "react";
 import { ThemeProvider } from "../theme-provider";
 
 // Mock next-themes
 vi.mock("next-themes", () => ({
-  ThemeProvider: ({
-    children,
-    ...props
-  }: {
-    children: React.ReactNode;
-    [key: string]: unknown;
-  }) => (
+  ThemeProvider: ({ children, ...props }: { children: ReactNode; [key: string]: unknown }) => (
     <div data-testid="next-themes-provider" data-props={JSON.stringify(props)}>
       {children}
     </div>

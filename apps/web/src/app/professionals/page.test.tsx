@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import ProfessionalsPage from "./page";
 import { queryProfessionals } from "@/lib/profiles";
 import { vi } from "vitest";
+import { ImgHTMLAttributes } from "react";
 
 // Mock Next.js hooks
 vi.mock("next/navigation", () => ({
@@ -34,7 +35,7 @@ vi.mock("@/hooks/useSpecialtyNames", () => ({
 vi.mock("next/image", () => ({
   default: ({ alt, ...props }: { alt: string; [key: string]: unknown }) => (
     // eslint-disable-next-line @next/next/no-img-element
-    <img alt={alt} {...(props as React.ImgHTMLAttributes<HTMLImageElement>)} />
+    <img alt={alt} {...(props as ImgHTMLAttributes<HTMLImageElement>)} />
   ),
 }));
 

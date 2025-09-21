@@ -11,6 +11,9 @@ export default defineConfig({
     setupFiles: ["./vitest.setup.ts"],
     css: false,
     globals: true,
+    typecheck: {
+      tsconfig: "./tsconfig.test.json",
+    },
     coverage: {
       provider: "v8",
       reporter: ["text", "lcov", "html", "json"],
