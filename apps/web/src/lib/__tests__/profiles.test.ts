@@ -370,5 +370,71 @@ describe("profiles", () => {
         "/professionals?isActive=true&minPrice=50000&maxPrice=100000&hasAvailability=false",
       );
     });
+
+    it("should handle object filters safely (SonarQube blocker fix)", async () => {
+      const filters = {
+        complexFilter: { type: "advanced", value: 123 },
+        simpleString: "test",
+      };
+
+      mockApiClient.get.mockResolvedValue([]);
+
+      await queryProfessionals(filters);
+
+      expect(mockApiClient.get).toHaveBeenCalledWith(
+        "/professionals?complexFilter=%7B%22type%22%3A%22advanced%22%2C%22value%22%3A123%7D&simpleString=test",
+      );
+    });
+
+    it("should handle array filters safely (SonarQube blocker fix)", async () => {
+      const filters = {
+        specialties: ["Anxiety", "Depression", { name: "Complex", id: 1 }],
+        simpleArray: ["item1", "item2"],
+      };
+
+      mockApiClient.get.mockResolvedValue([]);
+
+      await queryProfessionals(filters);
+
+      expect(mockApiClient.get).toHaveBeenCalledWith(
+        "/professionals?specialties=Anxiety%2CDepression%2C%7B%22name%22%3A%22Complex%22%2C%22id%22%3A1%7D&simpleArray=item1%2Citem2",
+      );
+    });
+
+    it("should handle nested objects in arrays (SonarQube blocker fix)", async () => {
+      const filters = {
+        complexArray: [{ name: "Object1", nested: { value: 123 } }, "StringItem", 456],
+      };
+
+      mockApiClient.get.mockResolvedValue([]);
+
+      await queryProfessionals(filters);
+
+      expect(mockApiClient.get).toHaveBeenCalledWith(
+        "/professionals?complexArray=%7B%22name%22%3A%22Object1%22%2C%22nested%22%3A%7B%22value%22%3A123%7D%7D%2CStringItem%2C456",
+      );
+    });
+
+    it("should handle mixed filter types safely", async () => {
+      const filters = {
+        stringValue: "test",
+        numberValue: 42,
+        booleanValue: true,
+        objectValue: { key: "value" },
+        arrayValue: [1, 2, 3],
+        nullValue: null,
+        undefinedValue: undefined,
+        emptyString: "",
+      };
+
+      mockApiClient.get.mockResolvedValue([]);
+
+      await queryProfessionals(filters);
+
+      // Should only include non-null, non-undefined, non-empty values
+      expect(mockApiClient.get).toHaveBeenCalledWith(
+        "/professionals?stringValue=test&numberValue=42&booleanValue=true&objectValue=%7B%22key%22%3A%22value%22%7D&arrayValue=1%2C2%2C3",
+      );
+    });
   });
 });

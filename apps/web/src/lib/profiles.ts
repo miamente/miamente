@@ -135,7 +135,27 @@ export async function queryProfessionals(
     if (filters) {
       Object.entries(filters).forEach(([key, value]) => {
         if (value !== undefined && value !== null && value !== "") {
-          params.append(key, String(value));
+          // Handle different value types safely
+          let stringValue: string;
+          if (
+            typeof value === "string" ||
+            typeof value === "number" ||
+            typeof value === "boolean"
+          ) {
+            stringValue = String(value);
+          } else if (Array.isArray(value)) {
+            // Handle arrays by joining with comma or JSON stringify
+            stringValue = value
+              .map((item) => (typeof item === "object" ? JSON.stringify(item) : String(item)))
+              .join(",");
+          } else if (typeof value === "object") {
+            // Handle objects by JSON stringifying them
+            stringValue = JSON.stringify(value);
+          } else {
+            // Fallback for any other types
+            stringValue = String(value);
+          }
+          params.append(key, stringValue);
         }
       });
     }
