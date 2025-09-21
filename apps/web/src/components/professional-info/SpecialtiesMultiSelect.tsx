@@ -1,135 +1,96 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import React from "react";
 import { Label } from "@/components/ui/label";
-import { Select } from "@/components/ui/select";
-import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { X, HelpCircle } from "lucide-react";
+import { HelpCircle } from "lucide-react";
 import { useSpecialties } from "@/hooks/useSpecialties";
 
-interface SpecialtiesMultiSelectProps {
-  readonly value?: readonly string[];
-  readonly onChange?: (specialtyIds: readonly string[]) => void;
-  readonly disabled?: boolean;
-}
+// Import sub-components and hooks
+import {
+  SpecialtiesMultiSelectProps,
+  useSpecialtySelection,
+  useSpecialtyData,
+  LoadingState,
+  ErrorState,
+  SelectedSpecialtiesList,
+  SpecialtySelector,
+} from "./specialties-multi-select";
 
+// Main component
 export function SpecialtiesMultiSelect({
   value = [],
   onChange,
   disabled = false,
+  label = "Especialidades",
+  placeholder = "Seleccionar especialidad...",
+  maxSelections,
+  "aria-label": ariaLabel,
+  "aria-describedby": ariaDescribedBy,
 }: SpecialtiesMultiSelectProps) {
-  const [selectedSpecialties, setSelectedSpecialties] = useState<string[]>([...value]);
+  const { specialties, loading, error } = useSpecialties();
+  const { handleAdd, handleRemove } = useSpecialtySelection(value, onChange, maxSelections);
+  const { selectedSpecialties, availableSpecialties } = useSpecialtyData(value, specialties);
 
-  const { specialties, loading: specialtiesLoading, error: specialtiesError } = useSpecialties();
-
-  // Update local state when value prop changes
-  useEffect(() => {
-    setSelectedSpecialties([...value]);
-  }, [value]);
-
-  const handleSpecialtyChange = (specialtyId: string) => {
-    if (!specialtyId || selectedSpecialties.includes(specialtyId)) {
-      return;
-    }
-
-    const newSpecialties = [...selectedSpecialties, specialtyId];
-    setSelectedSpecialties(newSpecialties);
-    onChange?.(newSpecialties);
-  };
-
-  const handleRemoveSpecialty = (specialtyId: string) => {
-    const newSpecialties = selectedSpecialties.filter((id) => id !== specialtyId);
-    setSelectedSpecialties(newSpecialties);
-    onChange?.(newSpecialties);
-  };
-
-  // Get specialty name by ID
-  const getSpecialtyName = (specialtyId: string) => {
-    const specialty = specialties.find((s) => s.id === specialtyId);
-    return specialty?.name || `Especialidad ${specialtyId.slice(0, 8)}`;
-  };
-
-  // Get available specialties (not already selected)
-  const availableSpecialties = specialties.filter((s) => !selectedSpecialties.includes(s.id));
-
-  if (specialtiesLoading) {
-    return (
-      <div className="space-y-2">
-        <Label>Especialidades</Label>
-        <div className="text-sm text-gray-500">Cargando especialidades...</div>
-      </div>
-    );
+  // Loading state
+  if (loading) {
+    return <LoadingState label={label} />;
   }
 
-  if (specialtiesError) {
-    return (
-      <div className="space-y-2">
-        <Label>Especialidades</Label>
-        <div className="text-sm text-red-500">Error: {specialtiesError}</div>
-      </div>
-    );
+  // Error state
+  if (error) {
+    return <ErrorState label={label} error={error} />;
   }
 
   return (
-    <div className="space-y-3">
+    <div
+      className="space-y-3"
+      role="group"
+      aria-label={ariaLabel || `${label} selection`}
+      aria-describedby={ariaDescribedBy}
+    >
+      {/* Header with label and help */}
       <div className="flex items-center gap-2">
-        <Label>Especialidades</Label>
+        <Label className="font-medium">{label}</Label>
         <Tooltip>
           <TooltipTrigger asChild>
-            <HelpCircle className="h-4 w-4 cursor-help text-gray-400 hover:text-gray-600" />
+            <button
+              type="button"
+              className="rounded-full p-1 hover:bg-gray-100 focus:bg-gray-100 focus:ring-2 focus:ring-gray-400 focus:outline-none"
+              aria-label="Información sobre especialidades"
+            >
+              <HelpCircle className="h-4 w-4 text-gray-400 hover:text-gray-600" />
+            </button>
           </TooltipTrigger>
           <TooltipContent>
             <p className="max-w-xs">
               Selecciona una o más especialidades en salud mental que correspondan a tu formación
               académica o campo profesional regulado.
+              {maxSelections && ` Máximo ${maxSelections} especialidades.`}
             </p>
           </TooltipContent>
         </Tooltip>
       </div>
 
-      {/* Selected Specialties */}
-      {selectedSpecialties.length > 0 && (
-        <div className="flex flex-wrap gap-2">
-          {selectedSpecialties.map((specialtyId) => (
-            <Badge key={specialtyId} variant="secondary" className="flex items-center gap-1">
-              {getSpecialtyName(specialtyId)}
-              {!disabled && (
-                <button
-                  type="button"
-                  onClick={() => handleRemoveSpecialty(specialtyId)}
-                  className="ml-1 rounded-full p-0.5 hover:bg-gray-300"
-                >
-                  <X className="h-3 w-3" />
-                </button>
-              )}
-            </Badge>
-          ))}
-        </div>
-      )}
+      {/* Selected specialties */}
+      <SelectedSpecialtiesList
+        selectedSpecialties={selectedSpecialties}
+        onRemove={handleRemove}
+        disabled={disabled}
+      />
 
-      {/* Add New Specialty */}
-      {!disabled && availableSpecialties.length > 0 && (
-        <div>
-          <Select
-            options={availableSpecialties.map((specialty) => ({
-              value: specialty.id,
-              label: specialty.name,
-            }))}
-            value=""
-            onValueChange={handleSpecialtyChange}
-            placeholder="Seleccionar especialidad..."
-            className="w-full"
-          />
-        </div>
-      )}
-
-      {/* No available specialties message */}
-      {!disabled && availableSpecialties.length === 0 && selectedSpecialties.length > 0 && (
-        <div className="text-sm text-gray-500">
-          Todas las especialidades disponibles han sido seleccionadas.
-        </div>
-      )}
+      {/* Add new specialty selector */}
+      <SpecialtySelector
+        availableSpecialties={availableSpecialties}
+        onAdd={handleAdd}
+        disabled={disabled}
+        placeholder={placeholder}
+        maxSelections={maxSelections}
+        currentCount={value.length}
+      />
     </div>
   );
 }
+
+// Export types for better TypeScript support
+export type { SpecialtiesMultiSelectProps } from "./specialties-multi-select";

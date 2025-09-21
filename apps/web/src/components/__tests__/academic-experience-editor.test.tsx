@@ -1,50 +1,50 @@
 import React from "react";
 import { render, screen } from "@testing-library/react";
-import { FormProvider, useForm } from "react-hook-form";
 import { AcademicExperienceEditor } from "../academic-experience-editor";
 import { vi, describe, it, expect, beforeEach } from "vitest";
 
-// Test wrapper component
-function TestWrapper({ children }: { children: React.ReactNode }) {
-  const methods = useForm({
-    defaultValues: {
-      academic_experience: [],
-    },
-  });
-  return <FormProvider {...methods}>{children}</FormProvider>;
-}
+// Mock React Hook Form
+const mockUseFormContext = vi.fn();
+const mockUseFieldArray = vi.fn();
+
+vi.mock("react-hook-form", () => ({
+  useFormContext: () => mockUseFormContext(),
+  useFieldArray: () => mockUseFieldArray(),
+  FormProvider: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+}));
 
 describe("AcademicExperienceEditor", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+
+    mockUseFormContext.mockReturnValue({
+      control: {},
+      watch: vi.fn(),
+      setValue: vi.fn(),
+      formState: { errors: {} },
+    });
+
+    mockUseFieldArray.mockReturnValue({
+      fields: [],
+      append: vi.fn(),
+      remove: vi.fn(),
+    });
   });
 
   it("should render with default props", () => {
-    render(
-      <TestWrapper>
-        <AcademicExperienceEditor />
-      </TestWrapper>,
-    );
+    render(<AcademicExperienceEditor />);
 
     expect(screen.getByText("Formación Académica")).toBeInTheDocument();
   });
 
   it("should render with disabled prop", () => {
-    render(
-      <TestWrapper>
-        <AcademicExperienceEditor disabled={true} />
-      </TestWrapper>,
-    );
+    render(<AcademicExperienceEditor disabled={true} />);
 
     expect(screen.getByText("Formación Académica")).toBeInTheDocument();
   });
 
   it("should render the collapsible component", () => {
-    render(
-      <TestWrapper>
-        <AcademicExperienceEditor />
-      </TestWrapper>,
-    );
+    render(<AcademicExperienceEditor />);
 
     // Check that the collapsible is rendered (closed by default)
     expect(screen.getByText("Formación Académica")).toBeInTheDocument();
@@ -52,31 +52,19 @@ describe("AcademicExperienceEditor", () => {
   });
 
   it("should render with form context", () => {
-    render(
-      <TestWrapper>
-        <AcademicExperienceEditor />
-      </TestWrapper>,
-    );
+    render(<AcademicExperienceEditor />);
 
     // The component should render without throwing form context errors
     expect(screen.getByText("Formación Académica")).toBeInTheDocument();
   });
 
   it("should accept disabled prop correctly", () => {
-    const { rerender } = render(
-      <TestWrapper>
-        <AcademicExperienceEditor disabled={false} />
-      </TestWrapper>,
-    );
+    const { rerender } = render(<AcademicExperienceEditor disabled={false} />);
 
     expect(screen.getByText("Formación Académica")).toBeInTheDocument();
 
     // Re-render with disabled prop
-    rerender(
-      <TestWrapper>
-        <AcademicExperienceEditor disabled={true} />
-      </TestWrapper>,
-    );
+    rerender(<AcademicExperienceEditor disabled={true} />);
 
     expect(screen.getByText("Formación Académica")).toBeInTheDocument();
   });

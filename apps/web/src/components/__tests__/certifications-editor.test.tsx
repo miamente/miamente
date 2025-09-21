@@ -1,44 +1,23 @@
 import React from "react";
 import { render, screen } from "@testing-library/react";
-import { FormProvider, useForm } from "react-hook-form";
 import { CertificationsEditor } from "../certifications-editor";
-import { useAuth } from "@/hooks/useAuth";
-import { vi, describe, it, expect, beforeEach, beforeAll, afterAll } from "vitest";
+import { vi, describe, it, expect, beforeEach } from "vitest";
 
 // Mock the useAuth hook
-vi.mock("@/hooks/useAuth");
-const mockUseAuth = vi.mocked(useAuth);
+const mockUseAuth = vi.fn();
+vi.mock("@/hooks/useAuth", () => ({
+  useAuth: () => mockUseAuth(),
+}));
 
-// Mock localStorage
-const localStorageMock = {
-  getItem: vi.fn(),
-  setItem: vi.fn(),
-  removeItem: vi.fn(),
-  clear: vi.fn(),
-};
-Object.defineProperty(window, "localStorage", {
-  value: localStorageMock,
-});
+// Mock React Hook Form
+const mockUseFormContext = vi.fn();
+const mockUseFieldArray = vi.fn();
 
-// Mock environment variable
-const originalEnv = process.env;
-beforeAll(() => {
-  process.env.NEXT_PUBLIC_API_URL = "http://localhost:8000";
-});
-
-afterAll(() => {
-  process.env = originalEnv;
-});
-
-// Test wrapper component
-function TestWrapper({ children }: { children: React.ReactNode }) {
-  const methods = useForm({
-    defaultValues: {
-      certifications: [],
-    },
-  });
-  return <FormProvider {...methods}>{children}</FormProvider>;
-}
+vi.mock("react-hook-form", () => ({
+  useFormContext: () => mockUseFormContext(),
+  useFieldArray: () => mockUseFieldArray(),
+  FormProvider: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+}));
 
 describe("CertificationsEditor", () => {
   beforeEach(() => {
@@ -55,35 +34,35 @@ describe("CertificationsEditor", () => {
       refreshUser: vi.fn(),
       getAuthHeaders: vi.fn(),
     });
-    localStorageMock.getItem.mockReturnValue("test-token");
+
+    mockUseFormContext.mockReturnValue({
+      control: {},
+      watch: vi.fn(),
+      setValue: vi.fn(),
+      formState: { errors: {} },
+    });
+
+    mockUseFieldArray.mockReturnValue({
+      fields: [],
+      append: vi.fn(),
+      remove: vi.fn(),
+    });
   });
 
   it("should render with default props", () => {
-    render(
-      <TestWrapper>
-        <CertificationsEditor />
-      </TestWrapper>,
-    );
+    render(<CertificationsEditor />);
 
     expect(screen.getByText("Certificaciones")).toBeInTheDocument();
   });
 
   it("should render with disabled prop", () => {
-    render(
-      <TestWrapper>
-        <CertificationsEditor disabled={true} />
-      </TestWrapper>,
-    );
+    render(<CertificationsEditor disabled={true} />);
 
     expect(screen.getByText("Certificaciones")).toBeInTheDocument();
   });
 
   it("should render the collapsible component", () => {
-    render(
-      <TestWrapper>
-        <CertificationsEditor />
-      </TestWrapper>,
-    );
+    render(<CertificationsEditor />);
 
     // Check that the collapsible is rendered (closed by default)
     expect(screen.getByText("Certificaciones")).toBeInTheDocument();
@@ -91,21 +70,13 @@ describe("CertificationsEditor", () => {
   });
 
   it("should render with authentication context", () => {
-    render(
-      <TestWrapper>
-        <CertificationsEditor />
-      </TestWrapper>,
-    );
+    render(<CertificationsEditor />);
 
     expect(mockUseAuth).toHaveBeenCalled();
   });
 
   it("should render with form context", () => {
-    render(
-      <TestWrapper>
-        <CertificationsEditor />
-      </TestWrapper>,
-    );
+    render(<CertificationsEditor />);
 
     // The component should render without throwing form context errors
     expect(screen.getByText("Certificaciones")).toBeInTheDocument();

@@ -1,50 +1,50 @@
 import React from "react";
 import { render, screen } from "@testing-library/react";
-import { FormProvider, useForm } from "react-hook-form";
 import { WorkExperienceEditor } from "../work-experience-editor";
 import { vi, describe, it, expect, beforeEach } from "vitest";
 
-// Test wrapper component
-function TestWrapper({ children }: { children: React.ReactNode }) {
-  const methods = useForm({
-    defaultValues: {
-      work_experience: [],
-    },
-  });
-  return <FormProvider {...methods}>{children}</FormProvider>;
-}
+// Mock React Hook Form
+const mockUseFormContext = vi.fn();
+const mockUseFieldArray = vi.fn();
+
+vi.mock("react-hook-form", () => ({
+  useFormContext: () => mockUseFormContext(),
+  useFieldArray: () => mockUseFieldArray(),
+  FormProvider: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+}));
 
 describe("WorkExperienceEditor", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+
+    mockUseFormContext.mockReturnValue({
+      control: {},
+      watch: vi.fn(),
+      setValue: vi.fn(),
+      formState: { errors: {} },
+    });
+
+    mockUseFieldArray.mockReturnValue({
+      fields: [],
+      append: vi.fn(),
+      remove: vi.fn(),
+    });
   });
 
   it("should render with default props", () => {
-    render(
-      <TestWrapper>
-        <WorkExperienceEditor />
-      </TestWrapper>,
-    );
+    render(<WorkExperienceEditor />);
 
     expect(screen.getByText("Experiencia Laboral")).toBeInTheDocument();
   });
 
   it("should render with disabled prop", () => {
-    render(
-      <TestWrapper>
-        <WorkExperienceEditor disabled={true} />
-      </TestWrapper>,
-    );
+    render(<WorkExperienceEditor disabled={true} />);
 
     expect(screen.getByText("Experiencia Laboral")).toBeInTheDocument();
   });
 
   it("should render the collapsible component", () => {
-    render(
-      <TestWrapper>
-        <WorkExperienceEditor />
-      </TestWrapper>,
-    );
+    render(<WorkExperienceEditor />);
 
     // Check that the collapsible is rendered (closed by default)
     expect(screen.getByText("Experiencia Laboral")).toBeInTheDocument();
@@ -52,31 +52,19 @@ describe("WorkExperienceEditor", () => {
   });
 
   it("should render with form context", () => {
-    render(
-      <TestWrapper>
-        <WorkExperienceEditor />
-      </TestWrapper>,
-    );
+    render(<WorkExperienceEditor />);
 
     // The component should render without throwing form context errors
     expect(screen.getByText("Experiencia Laboral")).toBeInTheDocument();
   });
 
   it("should accept disabled prop correctly", () => {
-    const { rerender } = render(
-      <TestWrapper>
-        <WorkExperienceEditor />
-      </TestWrapper>,
-    );
+    const { rerender } = render(<WorkExperienceEditor />);
 
     expect(screen.getByText("Experiencia Laboral")).toBeInTheDocument();
 
     // Re-render with disabled prop
-    rerender(
-      <TestWrapper>
-        <WorkExperienceEditor disabled={true} />
-      </TestWrapper>,
-    );
+    rerender(<WorkExperienceEditor disabled={true} />);
 
     expect(screen.getByText("Experiencia Laboral")).toBeInTheDocument();
   });
