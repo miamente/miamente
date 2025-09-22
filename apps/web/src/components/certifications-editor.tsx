@@ -261,62 +261,73 @@ export function CertificationsEditor({ disabled = false }: CertificationsEditorP
                           Documento de Certificación *
                         </label>
                         <div className="mt-1">
-                          <div
-                            className={`relative rounded-lg border-2 border-dashed p-6 text-center transition-colors ${
-                              disabled
-                                ? "cursor-not-allowed border-gray-300 bg-gray-100 dark:bg-gray-700"
-                                : !isAuthenticated
-                                  ? "cursor-not-allowed border-red-300 bg-red-50 dark:bg-red-900/20"
-                                  : certifications?.[index]?.documentUrl
-                                    ? "border-green-300 bg-green-50 dark:bg-green-900/20"
-                                    : "cursor-pointer border-gray-300 bg-gray-50 hover:bg-gray-100 dark:border-gray-600 dark:bg-gray-800 dark:hover:bg-gray-700"
-                            } `}
-                          >
-                            <input
-                              id={`certification-file-${index}`}
-                              type="file"
-                              accept=".pdf,.jpg,.jpeg,.png"
-                              onChange={(e) => handleFileChange(e, index)}
-                              disabled={disabled || !isAuthenticated}
-                              className="absolute inset-0 h-full w-full cursor-pointer opacity-0 disabled:cursor-not-allowed"
-                            />
+                          {(() => {
+                            // Extract nested ternary into independent statement
+                            let className =
+                              "relative rounded-lg border-2 border-dashed p-6 text-center transition-colors ";
 
-                            {(() => {
-                              const hasDocumentUrl = certifications?.[index]?.documentUrl;
+                            if (disabled) {
+                              className +=
+                                "cursor-not-allowed border-gray-300 bg-gray-100 dark:bg-gray-700";
+                            } else if (!isAuthenticated) {
+                              className +=
+                                "cursor-not-allowed border-red-300 bg-red-50 dark:bg-red-900/20";
+                            } else if (certifications?.[index]?.documentUrl) {
+                              className += "border-green-300 bg-green-50 dark:bg-green-900/20";
+                            } else {
+                              className +=
+                                "cursor-pointer border-gray-300 bg-gray-50 hover:bg-gray-100 dark:border-gray-600 dark:bg-gray-800 dark:hover:bg-gray-700";
+                            }
 
-                              if (!hasDocumentUrl) {
-                                const uploadText = !isAuthenticated
-                                  ? "Debes estar autenticado para subir archivos"
-                                  : "Haz clic para seleccionar un archivo";
+                            return (
+                              <div className={className}>
+                                <input
+                                  id={`certification-file-${index}`}
+                                  type="file"
+                                  accept=".pdf,.jpg,.jpeg,.png"
+                                  onChange={(e) => handleFileChange(e, index)}
+                                  disabled={disabled || !isAuthenticated}
+                                  className="absolute inset-0 h-full w-full cursor-pointer opacity-0 disabled:cursor-not-allowed"
+                                />
 
-                                return (
-                                  <>
-                                    <Upload className="mx-auto mb-2 h-8 w-8 text-gray-400 dark:text-gray-500" />
-                                    <p className="text-sm text-gray-600 dark:text-gray-400">
-                                      {uploadText}
-                                    </p>
-                                    <p className="mt-1 text-xs text-gray-500 dark:text-gray-500">
-                                      PDF, JPG, PNG • Máximo 5MB
-                                    </p>
-                                  </>
-                                );
-                              }
+                                {(() => {
+                                  const hasDocumentUrl = certifications?.[index]?.documentUrl;
 
-                              return (
-                                <>
-                                  <FileText className="mx-auto mb-2 h-8 w-8 text-green-600 dark:text-green-400" />
-                                  <p className="text-sm font-medium text-green-700 dark:text-green-300">
-                                    Documento adjunto
-                                  </p>
-                                  <p className="text-xs text-green-500 dark:text-green-500">
-                                    {certifications[index]?.fileName ||
-                                      certifications[index]?.document?.name ||
-                                      "Archivo adjunto"}
-                                  </p>
-                                </>
-                              );
-                            })()}
-                          </div>
+                                  if (!hasDocumentUrl) {
+                                    const uploadText = !isAuthenticated
+                                      ? "Debes estar autenticado para subir archivos"
+                                      : "Haz clic para seleccionar un archivo";
+
+                                    return (
+                                      <>
+                                        <Upload className="mx-auto mb-2 h-8 w-8 text-gray-400 dark:text-gray-500" />
+                                        <p className="text-sm text-gray-600 dark:text-gray-400">
+                                          {uploadText}
+                                        </p>
+                                        <p className="mt-1 text-xs text-gray-500 dark:text-gray-500">
+                                          PDF, JPG, PNG • Máximo 5MB
+                                        </p>
+                                      </>
+                                    );
+                                  }
+
+                                  return (
+                                    <>
+                                      <FileText className="mx-auto mb-2 h-8 w-8 text-green-600 dark:text-green-400" />
+                                      <p className="text-sm font-medium text-green-700 dark:text-green-300">
+                                        Documento adjunto
+                                      </p>
+                                      <p className="text-xs text-green-500 dark:text-green-500">
+                                        {certifications[index]?.fileName ||
+                                          certifications[index]?.document?.name ||
+                                          "Archivo adjunto"}
+                                      </p>
+                                    </>
+                                  );
+                                })()}
+                              </div>
+                            );
+                          })()}
                         </div>
                         {errors.certifications &&
                           Array.isArray(errors.certifications) &&

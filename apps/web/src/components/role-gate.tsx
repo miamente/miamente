@@ -37,10 +37,10 @@ export function RoleGate({
 // Higher-order component version
 export function withRoleGuard<P extends object>(
   Component: React.ComponentType<P>,
-  roles: UserRole[],
+  roles: readonly UserRole[],
   fallback?: React.ReactNode,
 ) {
-  return function RoleGuardedComponent(props: P) {
+  return function RoleGuardedComponent(props: Readonly<P>) {
     return (
       <RoleGate roles={roles} fallback={fallback}>
         <Component {...props} />
@@ -53,10 +53,10 @@ export function withRoleGuard<P extends object>(
 export function AdminGate({
   children,
   fallback,
-}: {
+}: Readonly<{
   children: React.ReactNode;
   fallback?: React.ReactNode;
-}) {
+}>) {
   return (
     <RoleGate roles={[UserRole.ADMIN]} fallback={fallback}>
       {children}
@@ -67,10 +67,10 @@ export function AdminGate({
 export function ProfessionalGate({
   children,
   fallback,
-}: {
+}: Readonly<{
   children: React.ReactNode;
   fallback?: React.ReactNode;
-}) {
+}>) {
   return (
     <RoleGate roles={[UserRole.PROFESSIONAL, UserRole.ADMIN]} fallback={fallback}>
       {children}
@@ -81,10 +81,10 @@ export function ProfessionalGate({
 export function UserGate({
   children,
   fallback,
-}: {
+}: Readonly<{
   children: React.ReactNode;
   fallback?: React.ReactNode;
-}) {
+}>) {
   return (
     <RoleGate roles={[UserRole.USER, UserRole.PROFESSIONAL, UserRole.ADMIN]} fallback={fallback}>
       {children}

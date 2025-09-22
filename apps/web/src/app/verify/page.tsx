@@ -22,16 +22,10 @@ export default function VerifyPage() {
         return;
       }
 
-      // In development mode (emulator), allow bypassing email verification
-      const isDevelopment = window.location.hostname === "localhost";
-
-      if (isUserVerified(user) || isDevelopment) {
-        // Only auto-redirect if email is actually verified
-        // In development, we let the user manually proceed
-        if (isUserVerified(user)) {
-          router.push("/dashboard");
-          return;
-        }
+      // Only auto-redirect if email is actually verified
+      if (isUserVerified(user)) {
+        router.push("/dashboard");
+        return;
       }
     }
   }, [user, loading, router]);

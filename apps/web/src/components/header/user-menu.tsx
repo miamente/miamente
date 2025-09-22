@@ -94,7 +94,7 @@ export function UserMenu({
             {/* Menu Options */}
             <div className="space-y-1">
               {filteredUserOptions.map((option, index) => (
-                <div key={index}>
+                <div key={option.href || option.action || `option-${index}`}>
                   {option.divider && index > 0 && <div className="border-border my-1 border-t" />}
                   {option.href ? (
                     <Link

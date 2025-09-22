@@ -152,8 +152,8 @@ export async function queryProfessionals(
             // Handle objects by JSON stringifying them
             stringValue = JSON.stringify(value);
           } else {
-            // Fallback for any other types
-            stringValue = String(value);
+            // Fallback for any other types - use JSON.stringify for objects
+            stringValue = typeof value === "object" ? JSON.stringify(value) : String(value);
           }
           params.append(key, stringValue);
         }

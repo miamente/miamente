@@ -19,7 +19,7 @@ import {
 } from "@/lib/header-types";
 import { cn } from "@/lib/utils";
 
-export function Header({ config = {} as const, className }: HeaderProps) {
+export function Header({ config = {} as const, className }: Readonly<HeaderProps>) {
   const { theme, setTheme } = useTheme();
   const { user, isLoading: authLoading } = useAuthContext();
   const [mounted, setMounted] = useState(false);
