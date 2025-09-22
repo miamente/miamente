@@ -38,7 +38,8 @@ export function FileUpload({
       if (type.startsWith(".")) {
         return fileName.endsWith(type);
       }
-      return fileType.match(type.replace("*", ".*"));
+      const regex = new RegExp(type.replace("*", ".*"));
+      return regex.exec(fileType) !== null;
     });
 
     if (!isAllowed) {
