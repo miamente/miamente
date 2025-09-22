@@ -72,10 +72,12 @@ describe("SpecialtyBadge", () => {
   });
 
   it("should have proper accessibility attributes", () => {
-    render(<SpecialtyBadge specialty={mockSpecialty} onRemove={mockOnRemove} disabled={false} />);
+    const { container } = render(
+      <SpecialtyBadge specialty={mockSpecialty} onRemove={mockOnRemove} disabled={false} />,
+    );
 
-    const badge = screen.getByTestId("badge");
-    expect(badge).toHaveAttribute("role", "listitem");
+    const listItem = container.firstChild as HTMLElement;
+    expect(listItem.tagName).toBe("LI");
 
     const removeButton = screen.getByRole("button");
     expect(removeButton).toHaveAttribute("tabIndex", "0");

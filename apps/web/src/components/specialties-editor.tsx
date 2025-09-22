@@ -11,13 +11,16 @@ interface SpecialtiesEditorProps {
   readonly disabled?: boolean;
 }
 
-export function SpecialtiesEditorSimple({ professionalId }: SpecialtiesEditorProps) {
+export function SpecialtiesEditorSimple({
+  professionalId,
+  disabled = false,
+}: SpecialtiesEditorProps) {
   const [isOpen, setIsOpen] = useState(false);
 
   const { specialties, loading, error } = useProfessionalSpecialties(professionalId);
 
   return (
-    <Collapsible open={isOpen} onOpenChange={setIsOpen}>
+    <Collapsible open={isOpen} onOpenChange={setIsOpen} disabled={disabled}>
       <Card className={isOpen ? "pt-0" : "p-0"}>
         <CollapsibleTrigger asChild>
           <CardHeader className="cursor-pointer transition-colors hover:bg-gray-50">

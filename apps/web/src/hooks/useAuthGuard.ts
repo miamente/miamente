@@ -18,7 +18,7 @@ export function useAuthGuard(options: AuthGuardOptions = {}) {
 
   // In development mode (emulator), disable email verification requirement by default
   const isDevelopment = typeof window !== "undefined" && window.location.hostname === "localhost";
-  const defaultEmailVerification = isDevelopment ? false : true;
+  const defaultEmailVerification = !isDevelopment;
 
   const {
     requiredRole,

@@ -14,7 +14,7 @@ export const SelectedSpecialtiesList: React.FC<SelectedSpecialtiesListProps> = (
       <div className="text-sm font-medium text-gray-700">
         Especialidades seleccionadas ({selectedSpecialties.length})
       </div>
-      <div className="flex flex-wrap gap-2" role="list" aria-label="Especialidades seleccionadas">
+      <ul className="flex flex-wrap gap-2" aria-label="Especialidades seleccionadas">
         {selectedSpecialties.map((specialty) => (
           <SpecialtyBadge
             key={specialty.id}
@@ -23,7 +23,7 @@ export const SelectedSpecialtiesList: React.FC<SelectedSpecialtiesListProps> = (
             disabled={disabled}
           />
         ))}
-      </div>
+      </ul>
     </div>
   );
 };

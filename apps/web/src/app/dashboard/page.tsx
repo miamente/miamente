@@ -1,7 +1,7 @@
 "use client";
+import React, { useEffect } from "react";
 import { useAuth, isUserVerified, getUserEmail, getUserFullName } from "@/hooks/useAuth";
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";

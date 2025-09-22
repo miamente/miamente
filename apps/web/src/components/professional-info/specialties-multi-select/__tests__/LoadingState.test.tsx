@@ -30,7 +30,7 @@ describe("LoadingState", () => {
 
     const wrapper = container.firstChild as HTMLElement;
     expect(wrapper).toHaveClass("space-y-2");
-    expect(wrapper).toHaveAttribute("role", "status");
+    expect(wrapper.tagName).toBe("OUTPUT");
   });
 
   it("should display loading message in Spanish", () => {
