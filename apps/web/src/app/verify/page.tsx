@@ -75,14 +75,12 @@ export default function VerifyPage() {
           console.error("API error:", apiError);
           setError("Error al simular la verificación del email");
         }
-      } else {
+      } else if (isUserVerified(user)) {
         // In production, we would need actual email verification
-        if (isUserVerified(user)) {
-          router.push("/dashboard");
-        } else {
-          // Add comment to avoid SonarQube blocker
-          setError("El email aún no ha sido verificado. Por favor revisa tu bandeja de entrada.");
-        }
+        router.push("/dashboard");
+      } else {
+        // Add comment to avoid SonarQube blocker
+        setError("El email aún no ha sido verificado. Por favor revisa tu bandeja de entrada.");
       }
     } catch (err) {
       console.error("Error checking verification:", err);

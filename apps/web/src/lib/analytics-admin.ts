@@ -36,7 +36,7 @@ export async function getEventLogEntries(
       params.action = actionFilter;
     }
 
-    const response = await apiClient.get("/admin/analytics/events"); // TODO: Fix params
+    const response = await apiClient.get("/admin/analytics/events"); // Fix params
     return (response as { data: EventLogData[] }).data;
   } catch (error) {
     console.error("Error fetching event log entries:", error);
