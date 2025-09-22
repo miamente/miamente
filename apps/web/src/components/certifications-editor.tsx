@@ -285,13 +285,15 @@ export function CertificationsEditor({ disabled = false }: CertificationsEditorP
                               const hasDocumentUrl = certifications?.[index]?.documentUrl;
 
                               if (!hasDocumentUrl) {
+                                const uploadText = !isAuthenticated
+                                  ? "Debes estar autenticado para subir archivos"
+                                  : "Haz clic para seleccionar un archivo";
+
                                 return (
                                   <>
                                     <Upload className="mx-auto mb-2 h-8 w-8 text-gray-400 dark:text-gray-500" />
                                     <p className="text-sm text-gray-600 dark:text-gray-400">
-                                      {!isAuthenticated
-                                        ? "Debes estar autenticado para subir archivos"
-                                        : "Haz clic para seleccionar un archivo"}
+                                      {uploadText}
                                     </p>
                                     <p className="mt-1 text-xs text-gray-500 dark:text-gray-500">
                                       PDF, JPG, PNG • Máximo 5MB

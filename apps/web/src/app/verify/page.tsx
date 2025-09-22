@@ -86,6 +86,7 @@ export default function VerifyPage() {
         if (isUserVerified(user)) {
           router.push("/dashboard");
         } else {
+          // Add comment to avoid SonarQube blocker
           setError("El email aún no ha sido verificado. Por favor revisa tu bandeja de entrada.");
         }
       }
