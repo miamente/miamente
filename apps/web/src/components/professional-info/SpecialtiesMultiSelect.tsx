@@ -43,9 +43,8 @@ export function SpecialtiesMultiSelect({
   }
 
   return (
-    <div
+    <fieldset
       className="space-y-3"
-      role="group"
       aria-label={ariaLabel || `${label} selection`}
       aria-describedby={ariaDescribedBy}
     >
@@ -88,7 +87,7 @@ export function SpecialtiesMultiSelect({
         maxSelections={maxSelections}
         currentCount={value.length}
       />
-    </div>
+    </fieldset>
   );
 }
 
