@@ -11,7 +11,12 @@ interface RoleGateProps {
   readonly requireAll?: boolean; // If true, user must have ALL roles (for future multi-role support)
 }
 
-export function RoleGate({ roles, children, fallback = null, requireAll = false }: RoleGateProps) {
+export function RoleGate({
+  roles,
+  children,
+  fallback = null,
+  requireAll = false,
+}: Readonly<RoleGateProps>) {
   const { hasAnyRole, loading } = useRole();
 
   if (loading) {

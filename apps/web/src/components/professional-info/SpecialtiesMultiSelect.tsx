@@ -27,7 +27,7 @@ export function SpecialtiesMultiSelect({
   maxSelections,
   "aria-label": ariaLabel,
   "aria-describedby": ariaDescribedBy,
-}: SpecialtiesMultiSelectProps) {
+}: Readonly<SpecialtiesMultiSelectProps>) {
   const { specialties, loading, error } = useSpecialties();
   const { handleAdd, handleRemove } = useSpecialtySelection(value, onChange, maxSelections);
   const { selectedSpecialties, availableSpecialties } = useSpecialtyData(value, specialties);

@@ -19,7 +19,7 @@ import {
 } from "@/lib/header-types";
 import { cn } from "@/lib/utils";
 
-export function AdminHeader({ config = {}, className }: HeaderProps) {
+export function AdminHeader({ config = {} as const, className }: HeaderProps) {
   const { theme, setTheme } = useTheme();
   const { user, isLoading: authLoading } = useAuth();
   const [mounted, setMounted] = useState(false);

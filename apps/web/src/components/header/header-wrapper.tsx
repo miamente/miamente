@@ -7,7 +7,7 @@ import { Header } from "./header";
 
 import type { HeaderProps } from "@/lib/header-types";
 
-export function HeaderWrapper(props: HeaderProps) {
+export function HeaderWrapper(props: Readonly<HeaderProps>) {
   const pathname = usePathname();
 
   // Check if current path is an admin route
