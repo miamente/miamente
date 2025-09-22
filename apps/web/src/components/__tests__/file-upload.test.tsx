@@ -1,13 +1,14 @@
 import React from "react";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { vi, describe, it, expect, beforeEach } from "vitest";
+import { ImgHTMLAttributes } from "react";
 import { FileUpload } from "../file-upload";
 
 // Mock next/image
 vi.mock("next/image", () => ({
   default: ({ alt, ...props }: { alt: string; [key: string]: unknown }) => (
     // eslint-disable-next-line @next/next/no-img-element
-    <img alt={alt} {...(props as React.ImgHTMLAttributes<HTMLImageElement>)} />
+    <img alt={alt} {...(props as ImgHTMLAttributes<HTMLImageElement>)} />
   ),
 }));
 

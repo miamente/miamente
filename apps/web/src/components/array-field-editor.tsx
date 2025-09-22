@@ -7,11 +7,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Plus, X } from "lucide-react";
 
 interface ArrayFieldEditorProps {
-  name: "certifications" | "languages" | "therapyApproaches";
-  title: string;
-  placeholder: string;
-  icon: React.ReactNode;
-  disabled?: boolean;
+  readonly name: "certifications" | "languages" | "therapyApproaches";
+  readonly title: string;
+  readonly placeholder: string;
+  readonly icon: React.ReactNode;
+  readonly disabled?: boolean;
 }
 
 export function ArrayFieldEditor({

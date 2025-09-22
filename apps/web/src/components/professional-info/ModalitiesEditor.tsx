@@ -12,9 +12,9 @@ import { ModalityCardHeader } from "./shared/ModalityCardHeader";
 import { ModalityFormFields, PresencialPriceField } from "./shared/ModalityFormFields";
 
 interface ModalitiesEditorProps {
-  disabled?: boolean;
-  value?: ProfessionalModality[];
-  onChange?: (modalities: ProfessionalModality[]) => void;
+  readonly disabled?: boolean;
+  readonly value?: readonly ProfessionalModality[];
+  readonly onChange?: (modalities: readonly ProfessionalModality[]) => void;
 }
 
 export function ModalitiesEditor({
@@ -28,9 +28,9 @@ export function ModalitiesEditor({
     error: modalitiesError,
   } = useModalities();
   const [isOpen, setIsOpen] = React.useState(false);
-  const [modalities, setModalities] = useState<ProfessionalModality[]>(value);
+  const [modalities, setModalities] = useState<ProfessionalModality[]>([...value]);
   const isInternalUpdate = useRef(false);
-  const previousValue = useRef<ProfessionalModality[]>(value);
+  const previousValue = useRef<ProfessionalModality[]>([...value]);
 
   // Update local state when value prop changes (but not from internal updates)
   useEffect(() => {
@@ -43,8 +43,8 @@ export function ModalitiesEditor({
         );
 
       if (valueChanged) {
-        setModalities(value);
-        previousValue.current = value;
+        setModalities([...value]);
+        previousValue.current = [...value];
       }
     }
     isInternalUpdate.current = false;

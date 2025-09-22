@@ -17,39 +17,45 @@ import {
 } from "@/hooks/useAuth";
 
 interface AuthContextType {
-  user: AuthUser | null;
-  isLoading: boolean;
-  isAuthenticated: boolean;
-  loginUser: (credentials: { email: string; password: string }) => Promise<void>;
-  loginProfessional: (credentials: { email: string; password: string }) => Promise<void>;
-  registerUser: (userData: {
-    email: string;
-    full_name: string;
-    password: string;
-    phone?: string;
+  readonly user: AuthUser | null;
+  readonly isLoading: boolean;
+  readonly isAuthenticated: boolean;
+  readonly loginUser: (credentials: {
+    readonly email: string;
+    readonly password: string;
   }) => Promise<void>;
-  registerProfessional: (professionalData: {
-    email: string;
-    full_name: string;
-    password: string;
-    specialty: string;
-    rate_cents: number;
-    phone?: string;
+  readonly loginProfessional: (credentials: {
+    readonly email: string;
+    readonly password: string;
   }) => Promise<void>;
-  logout: () => void;
-  refreshUser: () => Promise<void>;
-  getUserEmail: (user: AuthUser | null) => string | undefined;
-  getUserFullName: (user: AuthUser | null) => string | undefined;
-  isUserVerified: (user: AuthUser | null) => boolean;
-  isEmailVerified: (user: AuthUser | null) => boolean;
-  getUserId: (user: AuthUser | null) => string | undefined;
-  getUserUid: (user: AuthUser | null) => string | undefined;
+  readonly registerUser: (userData: {
+    readonly email: string;
+    readonly full_name: string;
+    readonly password: string;
+    readonly phone?: string;
+  }) => Promise<void>;
+  readonly registerProfessional: (professionalData: {
+    readonly email: string;
+    readonly full_name: string;
+    readonly password: string;
+    readonly specialty: string;
+    readonly rate_cents: number;
+    readonly phone?: string;
+  }) => Promise<void>;
+  readonly logout: () => void;
+  readonly refreshUser: () => Promise<void>;
+  readonly getUserEmail: (user: AuthUser | null) => string | undefined;
+  readonly getUserFullName: (user: AuthUser | null) => string | undefined;
+  readonly isUserVerified: (user: AuthUser | null) => boolean;
+  readonly isEmailVerified: (user: AuthUser | null) => boolean;
+  readonly getUserId: (user: AuthUser | null) => string | undefined;
+  readonly getUserUid: (user: AuthUser | null) => string | undefined;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 interface AuthProviderProps {
-  children: ReactNode;
+  readonly children: ReactNode;
 }
 
 export function AuthProvider({ children }: AuthProviderProps) {

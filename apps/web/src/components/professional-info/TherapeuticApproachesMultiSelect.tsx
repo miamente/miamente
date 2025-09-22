@@ -9,9 +9,9 @@ import { X, HelpCircle } from "lucide-react";
 import { useTherapeuticApproaches } from "@/hooks/useTherapeuticApproaches";
 
 interface TherapeuticApproachesMultiSelectProps {
-  value?: string[];
-  onChange?: (approachIds: string[]) => void;
-  disabled?: boolean;
+  readonly value?: readonly string[];
+  readonly onChange?: (approachIds: readonly string[]) => void;
+  readonly disabled?: boolean;
 }
 
 export function TherapeuticApproachesMultiSelect({
@@ -19,7 +19,7 @@ export function TherapeuticApproachesMultiSelect({
   onChange,
   disabled = false,
 }: TherapeuticApproachesMultiSelectProps) {
-  const [selectedApproaches, setSelectedApproaches] = useState<string[]>(value);
+  const [selectedApproaches, setSelectedApproaches] = useState<string[]>([...value]);
 
   const {
     approaches,
@@ -29,7 +29,7 @@ export function TherapeuticApproachesMultiSelect({
 
   // Update local state when value prop changes
   useEffect(() => {
-    setSelectedApproaches(value);
+    setSelectedApproaches([...value]);
   }, [value]);
 
   const handleApproachChange = (approachId: string) => {

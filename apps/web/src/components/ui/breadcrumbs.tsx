@@ -4,13 +4,13 @@ import { ChevronRight, Home } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface BreadcrumbItem {
-  label: string;
-  href?: string;
+  readonly label: string;
+  readonly href?: string;
 }
 
 interface BreadcrumbsProps {
-  items: BreadcrumbItem[];
-  className?: string;
+  readonly items: readonly BreadcrumbItem[];
+  readonly className?: string;
 }
 
 export function Breadcrumbs({ items, className }: BreadcrumbsProps) {
@@ -30,8 +30,8 @@ export function Breadcrumbs({ items, className }: BreadcrumbsProps) {
         <span className="sr-only">Inicio</span>
       </Link>
 
-      {items.map((item, index) => (
-        <React.Fragment key={index}>
+      {items.map((item) => (
+        <React.Fragment key={item.label}>
           <ChevronRight className="h-4 w-4 text-gray-400" />
           {item.href ? (
             <Link

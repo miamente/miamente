@@ -2,7 +2,7 @@
 import { ThemeProvider as NextThemesProvider } from "next-themes";
 import * as React from "react";
 
-export function ThemeProvider({ children }: { children: React.ReactNode }) {
+export function ThemeProvider({ children }: { readonly children: React.ReactNode }) {
   const [mounted, setMounted] = React.useState(false);
 
   React.useEffect(() => {

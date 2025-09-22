@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import ProfessionalsPage from "./page";
 import { queryProfessionals } from "@/lib/profiles";
 import { vi } from "vitest";
+import { ImgHTMLAttributes } from "react";
 
 // Mock Next.js hooks
 vi.mock("next/navigation", () => ({
@@ -34,7 +35,7 @@ vi.mock("@/hooks/useSpecialtyNames", () => ({
 vi.mock("next/image", () => ({
   default: ({ alt, ...props }: { alt: string; [key: string]: unknown }) => (
     // eslint-disable-next-line @next/next/no-img-element
-    <img alt={alt} {...(props as React.ImgHTMLAttributes<HTMLImageElement>)} />
+    <img alt={alt} {...(props as ImgHTMLAttributes<HTMLImageElement>)} />
   ),
 }));
 
@@ -207,15 +208,19 @@ describe("ProfessionalsPage", () => {
       expect(screen.getByText("Dr. Test Professional 1")).toBeInTheDocument();
     });
 
-    // Check professional 1 details
-    expect(screen.getByText("Psicología Clínica")).toBeInTheDocument();
+    // Check professional 1 details - use getAllByText to get both instances and check the one in the card
+    const psicologiaElements = screen.getAllByText("Psicología Clínica");
+    expect(psicologiaElements).toHaveLength(2); // One in select, one in card
+    expect(psicologiaElements[1]).toBeInTheDocument(); // The one in the card
     expect(screen.getByText("800 / hora")).toBeInTheDocument();
     expect(
       screen.getByText("Psicóloga clínica con experiencia en terapia cognitivo-conductual."),
     ).toBeInTheDocument();
 
-    // Check professional 2 details
-    expect(screen.getByText("Psiquiatría")).toBeInTheDocument();
+    // Check professional 2 details - use getAllByText to get both instances and check the one in the card
+    const psiquiatriaElements = screen.getAllByText("Psiquiatría");
+    expect(psiquiatriaElements).toHaveLength(2); // One in select, one in card
+    expect(psiquiatriaElements[1]).toBeInTheDocument(); // The one in the card
     expect(screen.getByText("1.200 / hora")).toBeInTheDocument();
     expect(
       screen.getByText("Psiquiatra con especialización en trastornos del estado de ánimo."),

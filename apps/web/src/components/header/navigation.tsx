@@ -1,4 +1,5 @@
 "use client";
+import React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
@@ -7,9 +8,9 @@ import { cn } from "@/lib/utils";
 import { UserRole } from "@/lib/types";
 
 interface NavigationProps {
-  navigationItems: NavigationItem[];
-  userRole?: string;
-  className?: string;
+  readonly navigationItems: readonly NavigationItem[];
+  readonly userRole?: string;
+  readonly className?: string;
 }
 
 export function Navigation({ navigationItems, userRole, className }: NavigationProps) {

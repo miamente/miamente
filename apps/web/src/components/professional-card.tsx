@@ -30,8 +30,8 @@ interface ProfessionalCardData {
 }
 
 interface ProfessionalCardProps {
-  professional: ProfessionalCardData;
-  onViewProfile?: (professionalId: string) => void;
+  readonly professional: ProfessionalCardData;
+  readonly onViewProfile?: (professionalId: string) => void;
 }
 
 export function ProfessionalCard({ professional, onViewProfile }: ProfessionalCardProps) {

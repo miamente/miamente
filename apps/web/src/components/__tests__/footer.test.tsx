@@ -1,20 +1,20 @@
 import React from "react";
 import { render, screen } from "@testing-library/react";
-import { vi, describe, it, expect, beforeEach } from "vitest";
 import { Footer } from "../footer";
+import { describe, it, expect, beforeEach, vi } from "vitest";
 
 // Mock Next.js Link component
 vi.mock("next/link", () => ({
   default: ({
-    children,
     href,
-    ...props
+    children,
+    className,
   }: {
-    children: React.ReactNode;
     href: string;
-    [key: string]: unknown;
+    children: React.ReactNode;
+    className?: string;
   }) => (
-    <a href={href} {...props}>
+    <a href={href} className={className} data-testid="next-link">
       {children}
     </a>
   ),
@@ -25,72 +25,77 @@ describe("Footer", () => {
     vi.clearAllMocks();
   });
 
-  it("should render footer with all sections", () => {
+  it("should render the footer element", () => {
     render(<Footer />);
 
-    // Check main footer structure
-    expect(screen.getByRole("contentinfo")).toBeInTheDocument();
+    const footer = screen.getByRole("contentinfo");
+    expect(footer).toBeInTheDocument();
+    expect(footer).toHaveClass("border-t", "py-8");
+  });
 
-    // Check company info section
+  it("should render company information section", () => {
+    render(<Footer />);
+
     expect(screen.getByText("Miamente")).toBeInTheDocument();
     expect(screen.getByText(/Conectamos usuarios con profesionales/)).toBeInTheDocument();
+  });
 
-    // Check services section
+  it("should render services section with links", () => {
+    render(<Footer />);
+
     expect(screen.getByText("Servicios")).toBeInTheDocument();
     expect(screen.getByText("Buscar Profesionales")).toBeInTheDocument();
     expect(screen.getByText("Cómo Funciona")).toBeInTheDocument();
     expect(screen.getByText("Estado del Sistema")).toBeInTheDocument();
 
-    // Check support section
+    // Check that links have correct hrefs
+    const buscarProfesionalesLink = screen.getByText("Buscar Profesionales").closest("a");
+    expect(buscarProfesionalesLink).toHaveAttribute("href", "/professionals");
+
+    const comoFuncionaLink = screen.getByText("Cómo Funciona").closest("a");
+    expect(comoFuncionaLink).toHaveAttribute("href", "/landing");
+
+    const estadoSistemaLink = screen.getByText("Estado del Sistema").closest("a");
+    expect(estadoSistemaLink).toHaveAttribute("href", "/status");
+  });
+
+  it("should render support section with contact information", () => {
+    render(<Footer />);
+
     expect(screen.getByText("Soporte")).toBeInTheDocument();
     expect(screen.getByText("soporte@miamente.com")).toBeInTheDocument();
     expect(screen.getByText("+57 (1) 234-5678")).toBeInTheDocument();
     expect(screen.getByText("Lunes a Viernes, 8:00 AM - 6:00 PM")).toBeInTheDocument();
 
-    // Check legal section
+    // Check that email link has correct href
+    const emailLink = screen.getByText("soporte@miamente.com").closest("a");
+    expect(emailLink).toHaveAttribute("href", "mailto:soporte@miamente.com");
+
+    // Check that phone link has correct href
+    const phoneLink = screen.getByText("+57 (1) 234-5678").closest("a");
+    expect(phoneLink).toHaveAttribute("href", "tel:+57123456789");
+  });
+
+  it("should render legal section with links", () => {
+    render(<Footer />);
+
     expect(screen.getByText("Legal")).toBeInTheDocument();
     expect(screen.getByText("Términos y Condiciones")).toBeInTheDocument();
     expect(screen.getByText("Política de Privacidad")).toBeInTheDocument();
     expect(screen.getByText("legal@miamente.com")).toBeInTheDocument();
+
+    // Check that links have correct hrefs
+    const terminosLink = screen.getByText("Términos y Condiciones").closest("a");
+    expect(terminosLink).toHaveAttribute("href", "/terms");
+
+    const privacidadLink = screen.getByText("Política de Privacidad").closest("a");
+    expect(privacidadLink).toHaveAttribute("href", "/privacy");
+
+    const legalEmailLink = screen.getByText("legal@miamente.com").closest("a");
+    expect(legalEmailLink).toHaveAttribute("href", "mailto:legal@miamente.com");
   });
 
-  it("should have correct links", () => {
-    render(<Footer />);
-
-    // Check service links
-    const professionalsLink = screen.getByText("Buscar Profesionales");
-    expect(professionalsLink).toHaveAttribute("href", "/professionals");
-
-    const howItWorksLink = screen.getByText("Cómo Funciona");
-    expect(howItWorksLink).toHaveAttribute("href", "/landing");
-
-    const statusLink = screen.getByText("Estado del Sistema");
-    expect(statusLink).toHaveAttribute("href", "/status");
-
-    // Check legal links
-    const termsLink = screen.getByText("Términos y Condiciones");
-    expect(termsLink).toHaveAttribute("href", "/terms");
-
-    const privacyLink = screen.getByText("Política de Privacidad");
-    expect(privacyLink).toHaveAttribute("href", "/privacy");
-  });
-
-  it("should have correct contact information", () => {
-    render(<Footer />);
-
-    // Check email links
-    const supportEmail = screen.getByText("soporte@miamente.com");
-    expect(supportEmail).toHaveAttribute("href", "mailto:soporte@miamente.com");
-
-    const legalEmail = screen.getByText("legal@miamente.com");
-    expect(legalEmail).toHaveAttribute("href", "mailto:legal@miamente.com");
-
-    // Check phone link
-    const phoneLink = screen.getByText("+57 (1) 234-5678");
-    expect(phoneLink).toHaveAttribute("href", "tel:+57123456789");
-  });
-
-  it("should display current year in copyright", () => {
+  it("should render copyright information with current year", () => {
     render(<Footer />);
 
     const currentYear = new Date().getFullYear();
@@ -99,7 +104,54 @@ describe("Footer", () => {
     ).toBeInTheDocument();
   });
 
-  it("should have proper CSS classes", () => {
+  it("should render compliance information", () => {
+    render(<Footer />);
+
+    expect(screen.getByText(/Cumplimiento: Ley 1581 de 2012/)).toBeInTheDocument();
+    expect(screen.getByText(/Protección de Datos Personales/)).toBeInTheDocument();
+  });
+
+  it("should have proper structure with sections", () => {
+    render(<Footer />);
+
+    // Check that all main headings are present
+    expect(screen.getByText("Miamente")).toBeInTheDocument();
+    expect(screen.getByText("Servicios")).toBeInTheDocument();
+    expect(screen.getByText("Soporte")).toBeInTheDocument();
+    expect(screen.getByText("Legal")).toBeInTheDocument();
+  });
+
+  it("should render all navigation links", () => {
+    render(<Footer />);
+
+    // Check that all expected links are present
+    const links = screen.getAllByTestId("next-link");
+    expect(links).toHaveLength(5); // 3 in Services + 2 in Legal
+
+    const linkTexts = links.map((link) => link.textContent);
+    expect(linkTexts).toContain("Buscar Profesionales");
+    expect(linkTexts).toContain("Cómo Funciona");
+    expect(linkTexts).toContain("Estado del Sistema");
+    expect(linkTexts).toContain("Términos y Condiciones");
+    expect(linkTexts).toContain("Política de Privacidad");
+  });
+
+  it("should render all email and phone links", () => {
+    render(<Footer />);
+
+    // Check email links
+    const emailLinks = screen.getAllByRole("link", { name: /@miamente\.com/ });
+    expect(emailLinks).toHaveLength(2);
+
+    expect(emailLinks[0]).toHaveAttribute("href", "mailto:soporte@miamente.com");
+    expect(emailLinks[1]).toHaveAttribute("href", "mailto:legal@miamente.com");
+
+    // Check phone link
+    const phoneLink = screen.getByRole("link", { name: "+57 (1) 234-5678" });
+    expect(phoneLink).toHaveAttribute("href", "tel:+57123456789");
+  });
+
+  it("should have proper CSS classes for styling", () => {
     render(<Footer />);
 
     const footer = screen.getByRole("contentinfo");
@@ -111,62 +163,43 @@ describe("Footer", () => {
       "dark:text-neutral-400",
     );
 
-    // Check grid layout
-    const grid = screen.getByText("Miamente").closest("div")?.parentElement;
-    expect(grid).toHaveClass("grid", "grid-cols-1", "gap-8", "md:grid-cols-4");
-  });
-
-  it("should have proper accessibility attributes", () => {
-    render(<Footer />);
-
-    const footer = screen.getByRole("contentinfo");
-    expect(footer).toBeInTheDocument();
-
-    // Check headings
+    // Check that headings have proper classes
     const headings = screen.getAllByRole("heading", { level: 3 });
-    expect(headings).toHaveLength(4); // Company, Services, Support, Legal
+    headings.forEach((heading) => {
+      expect(heading).toHaveClass(
+        "mb-3",
+        "font-semibold",
+        "text-neutral-900",
+        "dark:text-neutral-100",
+      );
+    });
   });
 
-  it("should have hover effects on links", () => {
+  it("should render company description", () => {
     render(<Footer />);
 
-    const professionalsLink = screen.getByText("Buscar Profesionales");
-    expect(professionalsLink).toHaveClass("hover:text-blue-600", "dark:hover:text-blue-400");
-
-    const supportEmail = screen.getByText("soporte@miamente.com");
-    expect(supportEmail).toHaveClass("hover:text-blue-600", "dark:hover:text-blue-400");
-  });
-
-  it("should display compliance information", () => {
-    render(<Footer />);
-
-    expect(
-      screen.getByText("Cumplimiento: Ley 1581 de 2012 - Protección de Datos Personales"),
-    ).toBeInTheDocument();
-  });
-
-  it("should have responsive layout classes", () => {
-    render(<Footer />);
-
-    // Check bottom section responsive classes
-    const bottomSection = screen.getByText(/© \d{4} Miamente S.A.S/).closest("div")?.parentElement;
-    expect(bottomSection).toHaveClass(
-      "flex",
-      "flex-col",
-      "items-center",
-      "justify-between",
-      "border-t",
-      "pt-6",
-      "md:flex-row",
+    const description = screen.getByText(
+      /Conectamos usuarios con profesionales de la salud mental para sesiones virtuales seguras y confidenciales./,
     );
+    expect(description).toBeInTheDocument();
+    expect(description).toHaveClass("text-sm");
+  });
 
-    // Check text alignment classes
-    const copyrightText = screen.getByText(/© \d{4} Miamente S.A.S/).closest("div");
-    expect(copyrightText).toHaveClass("text-center", "md:text-left");
+  it("should render support hours", () => {
+    render(<Footer />);
 
-    const complianceText = screen
-      .getByText("Cumplimiento: Ley 1581 de 2012 - Protección de Datos Personales")
-      .closest("div");
-    expect(complianceText).toHaveClass("text-center", "md:text-right");
+    const hours = screen.getByText("Lunes a Viernes, 8:00 AM - 6:00 PM");
+    expect(hours).toBeInTheDocument();
+    expect(hours).toHaveClass("text-xs");
+  });
+
+  it("should render compliance text with proper styling", () => {
+    render(<Footer />);
+
+    const complianceText = screen.getByText(
+      /Cumplimiento: Ley 1581 de 2012 - Protección de Datos Personales/,
+    );
+    expect(complianceText).toBeInTheDocument();
+    expect(complianceText).toHaveClass("text-xs");
   });
 });

@@ -1,8 +1,8 @@
 "use client";
+import React, { useEffect, useState } from "react";
 import { Menu, Moon, Sun, Shield } from "lucide-react";
 import Link from "next/link";
 import { useTheme } from "next-themes";
-import { useEffect, useState } from "react";
 
 import { MobileMenu } from "./mobile-menu";
 import { Navigation } from "./navigation";
@@ -19,7 +19,7 @@ import {
 } from "@/lib/header-types";
 import { cn } from "@/lib/utils";
 
-export function AdminHeader({ config = {}, className }: HeaderProps) {
+export function AdminHeader({ config = {} as const, className }: Readonly<HeaderProps>) {
   const { theme, setTheme } = useTheme();
   const { user, isLoading: authLoading } = useAuth();
   const [mounted, setMounted] = useState(false);

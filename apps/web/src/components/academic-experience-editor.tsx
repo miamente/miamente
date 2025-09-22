@@ -11,7 +11,7 @@ import type { ProfessionalProfileFormData } from "@/lib/validations";
 import type { AcademicExperience } from "@/lib/types";
 
 interface AcademicExperienceEditorProps {
-  disabled?: boolean;
+  readonly disabled?: boolean;
 }
 
 export function AcademicExperienceEditor({ disabled = false }: AcademicExperienceEditorProps) {

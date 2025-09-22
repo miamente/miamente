@@ -1,4 +1,5 @@
 "use client";
+import React from "react";
 import { X } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -9,14 +10,14 @@ import { cn } from "@/lib/utils";
 import { UserRole } from "@/lib/types";
 
 interface MobileMenuProps {
-  isOpen: boolean;
-  onClose: () => void;
-  navigationItems: NavigationItem[];
-  userMenuOptions: UserMenuOption[];
-  onUserMenuAction: (action: string) => void;
-  userRole?: string;
-  userName?: string;
-  isAuthenticated: boolean;
+  readonly isOpen: boolean;
+  readonly onClose: () => void;
+  readonly navigationItems: readonly NavigationItem[];
+  readonly userMenuOptions: readonly UserMenuOption[];
+  readonly onUserMenuAction: (action: string) => void;
+  readonly userRole?: string;
+  readonly userName?: string;
+  readonly isAuthenticated: boolean;
 }
 
 export function MobileMenu({
@@ -96,9 +97,9 @@ export function MobileMenu({
           {isAuthenticated && (
             <div className="border-b p-4">
               <div className="space-y-2">
-                {filteredUserOptions.map((option, index) => (
-                  <div key={index}>
-                    {option.divider && index > 0 && <div className="border-border my-2 border-t" />}
+                {filteredUserOptions.map((option) => (
+                  <div key={option.label}>
+                    {option.divider && <div className="border-border my-2 border-t" />}
                     {option.href ? (
                       <Link
                         href={option.href}

@@ -2,12 +2,12 @@
 import React from "react";
 
 interface StarRatingProps {
-  rating: number;
-  maxRating?: number;
-  size?: "sm" | "md" | "lg";
-  interactive?: boolean;
-  onRatingChange?: (rating: number) => void;
-  disabled?: boolean;
+  readonly rating: number;
+  readonly maxRating?: number;
+  readonly size?: "sm" | "md" | "lg";
+  readonly interactive?: boolean;
+  readonly onRatingChange?: (rating: number) => void;
+  readonly disabled?: boolean;
 }
 
 export function StarRating({

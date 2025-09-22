@@ -11,7 +11,7 @@ import type { ProfessionalProfileFormData } from "@/lib/validations";
 import type { WorkExperience } from "@/lib/types";
 
 interface WorkExperienceEditorProps {
-  disabled?: boolean;
+  readonly disabled?: boolean;
 }
 
 export function WorkExperienceEditor({ disabled = false }: WorkExperienceEditorProps) {

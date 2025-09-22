@@ -1,9 +1,10 @@
 import { UserRole } from "@/lib/types";
+import { ComponentType } from "react";
 
 export interface NavigationItem {
   label: string;
   href: string;
-  icon?: React.ComponentType<{ className?: string }>;
+  icon?: ComponentType<{ className?: string }>;
   roles?: UserRole[];
   external?: boolean;
 }
@@ -12,7 +13,7 @@ export interface UserMenuOption {
   label: string;
   href?: string;
   action?: string;
-  icon?: React.ComponentType<{ className?: string }>;
+  icon?: ComponentType<{ className?: string }>;
   roles?: UserRole[];
   divider?: boolean;
 }
@@ -27,8 +28,8 @@ export interface HeaderConfig {
 }
 
 export interface HeaderProps {
-  config?: HeaderConfig;
-  className?: string;
+  readonly config?: HeaderConfig;
+  readonly className?: string;
 }
 
 export const DEFAULT_HEADER_CONFIG: Required<HeaderConfig> = {

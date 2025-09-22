@@ -9,9 +9,9 @@ import { useSpecialties } from "@/hooks/useSpecialties";
 import { Specialty } from "@/lib/types";
 
 interface SpecialtiesSelectorProps {
-  selectedSpecialties: string[];
-  onSpecialtiesChange: (specialties: string[]) => void;
-  disabled?: boolean;
+  readonly selectedSpecialties: readonly string[];
+  readonly onSpecialtiesChange: (specialties: readonly string[]) => void;
+  readonly disabled?: boolean;
 }
 
 export function SpecialtiesSelector({

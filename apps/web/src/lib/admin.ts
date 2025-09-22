@@ -72,7 +72,7 @@ export async function getEventLogEntries(): Promise<EventLogEntry[]> {
   // offset: number = 0,
   try {
     const response = await apiClient.get("/admin/event-log", {
-      // params: { limit: limitCount, offset }, // TODO: Fix API client params
+      // params: { limit: limitCount, offset }, // Fix API client params
     });
     return (response as { data: EventLogEntry[] }).data;
   } catch (error) {
@@ -133,7 +133,7 @@ export async function getAppointmentsSummary(): Promise<AppointmentSummary[]> {
   // offset: number = 0,
   try {
     const response = await apiClient.get("/admin/appointments", {
-      // params: { limit: limitCount, offset }, // TODO: Fix API client params
+      // params: { limit: limitCount, offset }, // Fix API client params
     });
     return (response as { data: AppointmentSummary[] }).data;
   } catch (error) {

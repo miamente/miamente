@@ -12,26 +12,25 @@ import {
 } from "recharts";
 
 interface ConversionFunnelData {
-  signups: number;
-  profileCompletions: number;
-  slotCreations: number;
-  appointmentConfirmations: number;
+  readonly signups: number;
+  readonly profileCompletions: number;
+  readonly slotCreations: number;
+  readonly appointmentConfirmations: number;
 }
 
 interface ConversionFunnelProps {
-  data: ConversionFunnelData | null;
-  loading?: boolean;
+  readonly data: ConversionFunnelData | null;
+  readonly loading?: boolean;
 }
 
 export function ConversionFunnel({ data, loading = false }: ConversionFunnelProps) {
   if (loading || !data) {
     return (
       <div className="flex h-64 items-center justify-center">
-        <div
+        <output
           className="h-8 w-8 animate-spin rounded-full border-b-2 border-blue-600"
-          role="status"
           aria-label="Loading..."
-        ></div>
+        ></output>
       </div>
     );
   }
