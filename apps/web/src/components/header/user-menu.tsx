@@ -1,8 +1,8 @@
 "use client";
+import React, { useState, useRef, useEffect } from "react";
 import { ChevronDown, User, Settings } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState, useRef, useEffect } from "react";
 
 import { Button } from "@/components/ui/button";
 import type { UserMenuOption } from "@/lib/header-types";
@@ -10,12 +10,12 @@ import { cn } from "@/lib/utils";
 import { UserRole } from "@/lib/types";
 
 interface UserMenuProps {
-  userRole?: string;
-  userName?: string;
-  userEmail?: string;
-  userMenuOptions: UserMenuOption[];
-  onUserMenuAction: (action: string) => void;
-  isAuthenticated: boolean;
+  readonly userRole?: string;
+  readonly userName?: string;
+  readonly userEmail?: string;
+  readonly userMenuOptions: readonly UserMenuOption[];
+  readonly onUserMenuAction: (action: string) => void;
+  readonly isAuthenticated: boolean;
 }
 
 export function UserMenu({
@@ -94,7 +94,7 @@ export function UserMenu({
             {/* Menu Options */}
             <div className="space-y-1">
               {filteredUserOptions.map((option, index) => (
-                <div key={index}>
+                <div key={option.href || option.action || `option-${index}`}>
                   {option.divider && index > 0 && <div className="border-border my-1 border-t" />}
                   {option.href ? (
                     <Link

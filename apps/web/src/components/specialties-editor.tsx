@@ -1,23 +1,26 @@
 "use client";
 
-import { useState } from "react";
+import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Stethoscope, ChevronDown, ChevronRight } from "lucide-react";
 import { useProfessionalSpecialties } from "@/hooks/useProfessionalSpecialties";
 
 interface SpecialtiesEditorProps {
-  professionalId: string;
-  disabled?: boolean;
+  readonly professionalId: string;
+  readonly disabled?: boolean;
 }
 
-export function SpecialtiesEditorSimple({ professionalId }: SpecialtiesEditorProps) {
+export function SpecialtiesEditorSimple({
+  professionalId,
+  disabled = false,
+}: SpecialtiesEditorProps) {
   const [isOpen, setIsOpen] = useState(false);
 
   const { specialties, loading, error } = useProfessionalSpecialties(professionalId);
 
   return (
-    <Collapsible open={isOpen} onOpenChange={setIsOpen}>
+    <Collapsible open={isOpen} onOpenChange={setIsOpen} disabled={disabled}>
       <Card className={isOpen ? "pt-0" : "p-0"}>
         <CollapsibleTrigger asChild>
           <CardHeader className="cursor-pointer transition-colors hover:bg-gray-50">

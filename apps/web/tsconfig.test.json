@@ -1,0 +1,18 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "types": ["vitest/globals", "@testing-library/jest-dom", "node"],
+    "jsx": "react-jsx",
+    "lib": ["ES2020", "DOM", "DOM.Iterable"]
+  },
+  "include": [
+    "src/**/*.ts",
+    "src/**/*.tsx",
+    "src/**/*.test.*",
+    "src/**/*.spec.*",
+    "vitest.setup.ts",
+    "vitest.d.ts",
+    "src/types/**/*.d.ts"
+  ],
+  "exclude": ["node_modules", ".next"]
+}

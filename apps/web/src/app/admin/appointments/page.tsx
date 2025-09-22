@@ -73,7 +73,6 @@ export default function AdminAppointments() {
 
   const handleResendEmail = async (appointmentId: string) => {
     try {
-      // TODO: Implement resend email function
       alert(`Reenviar email para cita ${appointmentId} - Por implementar`);
     } catch (err) {
       console.error("Error resending email:", err);

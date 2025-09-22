@@ -1,85 +1,199 @@
 import React from "react";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { describe, it, expect, vi, beforeEach } from "vitest";
 import { useRouter } from "next/navigation";
-import { useAuthContext } from "@/contexts/AuthContext";
-import { UserRole } from "@/lib/types";
+
 import LoginPage from "../page";
-import { vi } from "vitest";
+import { useAuthContext, isUserVerified } from "@/contexts/AuthContext";
+import { UserRole } from "@/lib/types";
 
-// Mock Next.js router
-vi.mock("next/navigation", () => ({
-  useRouter: vi.fn(),
-}));
-
-// Mock useAuth hook
-vi.mock("@/hooks/useAuth", () => ({
-  useAuth: vi.fn(),
-  isUserVerified: vi.fn(),
-}));
-
-// Mock AuthContext
+// Mock the auth context
 vi.mock("@/contexts/AuthContext", () => ({
   useAuthContext: vi.fn(),
   isUserVerified: vi.fn(),
 }));
 
-// Mock UI components
-vi.mock("@/components/ui/button", () => ({
-  Button: vi.fn(({ children, onClick, disabled, type = "button" }) => (
-    <button type={type} onClick={onClick} disabled={disabled}>
-      {children}
-    </button>
-  )),
+// Mock next/navigation
+vi.mock("next/navigation", () => ({
+  useRouter: vi.fn(),
 }));
 
-vi.mock("@/components/ui/input", () => ({
-  Input: vi.fn(({ value, onChange, ...props }) => (
-    <input value={value} onChange={onChange} {...props} />
-  )),
-}));
-
-vi.mock("@/components/ui/card", () => ({
-  Card: vi.fn(({ children, ...props }) => (
-    <div data-testid="card" {...props}>
-      {children}
-    </div>
-  )),
-  CardContent: vi.fn(({ children, ...props }) => (
-    <div data-testid="card-content" {...props}>
-      {children}
-    </div>
-  )),
-  CardHeader: vi.fn(({ children, ...props }) => (
-    <div data-testid="card-header" {...props}>
-      {children}
-    </div>
-  )),
-  CardTitle: vi.fn(({ children, ...props }) => (
-    <h2 data-testid="card-title" {...props}>
-      {children}
-    </h2>
-  )),
-}));
-
-const mockUseRouter = vi.mocked(useRouter);
 const mockUseAuthContext = vi.mocked(useAuthContext);
+const mockIsUserVerified = vi.mocked(isUserVerified);
+const mockUseRouter = vi.mocked(useRouter);
 
 describe("LoginPage", () => {
   const mockPush = vi.fn();
-  const mockLoginUser = vi.fn();
-  const mockLoginProfessional = vi.fn();
 
   beforeEach(() => {
     vi.clearAllMocks();
     mockUseRouter.mockReturnValue({
       push: mockPush,
+      replace: vi.fn(),
+      prefetch: vi.fn(),
       back: vi.fn(),
       forward: vi.fn(),
       refresh: vi.fn(),
-      replace: vi.fn(),
-      prefetch: vi.fn(),
     });
+    mockIsUserVerified.mockReturnValue(false);
+  });
+
+  it("should render login form when user is not authenticated", () => {
+    mockUseAuthContext.mockReturnValue({
+      user: null,
+      isLoading: false,
+      isAuthenticated: false,
+      loginUser: vi.fn(),
+      loginProfessional: vi.fn(),
+      registerUser: vi.fn(),
+      registerProfessional: vi.fn(),
+      logout: vi.fn(),
+      refreshUser: vi.fn(),
+      getUserEmail: vi.fn(),
+      getUserFullName: vi.fn(),
+      isUserVerified: vi.fn(),
+      isEmailVerified: vi.fn(),
+      getUserId: vi.fn(),
+      getUserUid: vi.fn(),
+    });
+
+    render(<LoginPage />);
+
+    expect(screen.getAllByText("Iniciar Sesión")).toHaveLength(2);
+    expect(screen.getByPlaceholderText("Email")).toBeInTheDocument();
+    expect(screen.getByPlaceholderText("Contraseña")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Iniciar Sesión" })).toBeInTheDocument();
+    expect(screen.getByText("¿No tienes cuenta?")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Regístrate" })).toBeInTheDocument();
+  });
+
+  it("should show redirecting message when user is authenticated but not verified", () => {
+    const mockUser = {
+      type: UserRole.USER,
+      data: {
+        id: "user-123",
+        email: "test@example.com",
+        full_name: "Test User",
+        is_verified: false,
+        is_active: true,
+        phone: "+1234567890",
+        created_at: "2023-01-01T00:00:00Z",
+        updated_at: "2023-01-01T00:00:00Z",
+      },
+    };
+
+    mockUseAuthContext.mockReturnValue({
+      user: mockUser,
+      isLoading: false,
+      isAuthenticated: true,
+      loginUser: vi.fn(),
+      loginProfessional: vi.fn(),
+      registerUser: vi.fn(),
+      registerProfessional: vi.fn(),
+      logout: vi.fn(),
+      refreshUser: vi.fn(),
+      getUserEmail: vi.fn(),
+      getUserFullName: vi.fn(),
+      isUserVerified: vi.fn(),
+      isEmailVerified: vi.fn(),
+      getUserId: vi.fn(),
+      getUserUid: vi.fn(),
+    });
+    mockIsUserVerified.mockReturnValue(false);
+
+    render(<LoginPage />);
+
+    expect(screen.getByText("Redirigiendo...")).toBeInTheDocument();
+  });
+
+  it("should redirect to verify page when user is authenticated but not verified", async () => {
+    const mockUser = {
+      type: UserRole.USER,
+      data: {
+        id: "user-123",
+        email: "test@example.com",
+        full_name: "Test User",
+        is_verified: false,
+        is_active: true,
+        phone: "+1234567890",
+        created_at: "2023-01-01T00:00:00Z",
+        updated_at: "2023-01-01T00:00:00Z",
+      },
+    };
+
+    mockUseAuthContext.mockReturnValue({
+      user: mockUser,
+      isLoading: false,
+      isAuthenticated: true,
+      loginUser: vi.fn(),
+      loginProfessional: vi.fn(),
+      registerUser: vi.fn(),
+      registerProfessional: vi.fn(),
+      logout: vi.fn(),
+      refreshUser: vi.fn(),
+      getUserEmail: vi.fn(),
+      getUserFullName: vi.fn(),
+      isUserVerified: vi.fn(),
+      isEmailVerified: vi.fn(),
+      getUserId: vi.fn(),
+      getUserUid: vi.fn(),
+    });
+    mockIsUserVerified.mockReturnValue(false);
+
+    render(<LoginPage />);
+
+    await waitFor(() => {
+      expect(mockPush).toHaveBeenCalledWith("/verify");
+    });
+  });
+
+  it("should redirect to dashboard when user is authenticated and verified", async () => {
+    const mockUser = {
+      type: UserRole.USER,
+      data: {
+        id: "user-123",
+        email: "test@example.com",
+        full_name: "Test User",
+        is_verified: true,
+        is_active: true,
+        phone: "+1234567890",
+        created_at: "2023-01-01T00:00:00Z",
+        updated_at: "2023-01-01T00:00:00Z",
+      },
+    };
+
+    mockUseAuthContext.mockReturnValue({
+      user: mockUser,
+      isLoading: false,
+      isAuthenticated: true,
+      loginUser: vi.fn(),
+      loginProfessional: vi.fn(),
+      registerUser: vi.fn(),
+      registerProfessional: vi.fn(),
+      logout: vi.fn(),
+      refreshUser: vi.fn(),
+      getUserEmail: vi.fn(),
+      getUserFullName: vi.fn(),
+      isUserVerified: vi.fn(),
+      isEmailVerified: vi.fn(),
+      getUserId: vi.fn(),
+      getUserUid: vi.fn(),
+    });
+    mockIsUserVerified.mockReturnValue(true);
+
+    render(<LoginPage />);
+
+    await waitFor(() => {
+      expect(mockPush).toHaveBeenCalledWith("/dashboard");
+    });
+  });
+
+  it("should handle successful professional login", async () => {
+    const user = userEvent.setup();
+    const mockLoginProfessional = vi.fn().mockResolvedValue(undefined);
+    const mockLoginUser = vi.fn();
+
     mockUseAuthContext.mockReturnValue({
       user: null,
       isLoading: false,
@@ -97,136 +211,32 @@ describe("LoginPage", () => {
       getUserId: vi.fn(),
       getUserUid: vi.fn(),
     });
-  });
 
-  it("should render login form", () => {
     render(<LoginPage />);
 
-    expect(screen.getByRole("heading", { name: "Iniciar Sesión" })).toBeInTheDocument();
-    expect(screen.getByPlaceholderText("Email")).toBeInTheDocument();
-    expect(screen.getByPlaceholderText("Contraseña")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Iniciar Sesión" })).toBeInTheDocument();
-  });
-
-  it("should allow entering email and password", async () => {
-    const user = userEvent.setup();
-    render(<LoginPage />);
-
-    const emailInput = screen.getByPlaceholderText("Email");
-    const passwordInput = screen.getByPlaceholderText("Contraseña");
-
-    await user.type(emailInput, "test@example.com");
-    await user.type(passwordInput, "password123");
-
-    expect(emailInput).toHaveValue("test@example.com");
-    expect(passwordInput).toHaveValue("password123");
-  });
-
-  it("should call loginProfessional first, then loginUser on form submission", async () => {
-    mockLoginProfessional.mockRejectedValueOnce(new Error("Not a professional"));
-    mockLoginUser.mockResolvedValueOnce(undefined);
-    const user = userEvent.setup();
-    render(<LoginPage />);
-
-    const emailInput = screen.getByPlaceholderText("Email");
-    const passwordInput = screen.getByPlaceholderText("Contraseña");
-
-    await user.type(emailInput, "test@example.com");
-    await user.type(passwordInput, "password123");
-
-    const submitButton = screen.getByRole("button", { name: "Iniciar Sesión" });
-    await user.click(submitButton);
+    await user.type(screen.getByPlaceholderText("Email"), "prof@example.com");
+    await user.type(screen.getByPlaceholderText("Contraseña"), "password123");
+    await user.click(screen.getByRole("button", { name: "Iniciar Sesión" }));
 
     await waitFor(() => {
       expect(mockLoginProfessional).toHaveBeenCalledWith({
-        email: "test@example.com",
-        password: "password123",
-      });
-      expect(mockLoginUser).toHaveBeenCalledWith({
-        email: "test@example.com",
+        email: "prof@example.com",
         password: "password123",
       });
     });
 
-    // Wait for all async operations to complete
-    await waitFor(() => {
-      expect(screen.queryByText("Cargando...")).not.toBeInTheDocument();
-    });
+    expect(mockLoginUser).not.toHaveBeenCalled();
   });
 
-  it("should show error message on failed login", async () => {
-    mockLoginProfessional.mockRejectedValueOnce(new Error("Professional login failed"));
-    mockLoginUser.mockRejectedValueOnce(new Error("User login failed"));
+  it("should fallback to user login when professional login fails", async () => {
     const user = userEvent.setup();
-    render(<LoginPage />);
+    const mockLoginProfessional = vi.fn().mockRejectedValue(new Error("Professional login failed"));
+    const mockLoginUser = vi.fn().mockResolvedValue(undefined);
 
-    const emailInput = screen.getByPlaceholderText("Email");
-    const passwordInput = screen.getByPlaceholderText("Contraseña");
-
-    await user.type(emailInput, "test@example.com");
-    await user.type(passwordInput, "wrongpassword");
-
-    const submitButton = screen.getByRole("button", { name: "Iniciar Sesión" });
-    await user.click(submitButton);
-
-    await waitFor(() => {
-      expect(screen.getByText("User login failed")).toBeInTheDocument();
-    });
-
-    // Wait for all async operations to complete
-    await waitFor(() => {
-      expect(screen.queryByText("Cargando...")).not.toBeInTheDocument();
-    });
-  });
-
-  it("should show loading state during login", async () => {
-    mockLoginProfessional.mockImplementation(
-      () => new Promise((resolve) => setTimeout(resolve, 100)),
-    );
-    const user = userEvent.setup();
-    render(<LoginPage />);
-
-    const emailInput = screen.getByPlaceholderText("Email");
-    const passwordInput = screen.getByPlaceholderText("Contraseña");
-
-    await user.type(emailInput, "test@example.com");
-    await user.type(passwordInput, "password123");
-
-    const submitButton = screen.getByRole("button", { name: "Iniciar Sesión" });
-    await user.click(submitButton);
-
-    expect(screen.getByText("Iniciando sesión...")).toBeInTheDocument();
-    expect(submitButton).toBeDisabled();
-
-    // Wait for all async operations to complete
-    await waitFor(() => {
-      expect(screen.queryByText("Iniciando sesión...")).not.toBeInTheDocument();
-    });
-  });
-
-  it("should show register link", () => {
-    render(<LoginPage />);
-
-    const registerLink = screen.getByText("Regístrate");
-    expect(registerLink).toBeInTheDocument();
-    expect(registerLink).toHaveAttribute("href", "/register");
-  });
-
-  it("should redirect authenticated users to dashboard", () => {
     mockUseAuthContext.mockReturnValue({
-      user: {
-        type: "user" as UserRole,
-        data: {
-          id: "user-123",
-          email: "user@example.com",
-          full_name: "Test User",
-          is_active: true,
-          is_verified: true,
-          created_at: "2023-01-01T00:00:00Z",
-        },
-      },
+      user: null,
       isLoading: false,
-      isAuthenticated: true,
+      isAuthenticated: false,
       loginUser: mockLoginUser,
       loginProfessional: mockLoginProfessional,
       registerUser: vi.fn(),
@@ -243,7 +253,232 @@ describe("LoginPage", () => {
 
     render(<LoginPage />);
 
-    // The component should redirect when user is authenticated
-    expect(mockPush).toHaveBeenCalled();
+    await user.type(screen.getByPlaceholderText("Email"), "user@example.com");
+    await user.type(screen.getByPlaceholderText("Contraseña"), "password123");
+    await user.click(screen.getByRole("button", { name: "Iniciar Sesión" }));
+
+    await waitFor(() => {
+      expect(mockLoginProfessional).toHaveBeenCalledWith({
+        email: "user@example.com",
+        password: "password123",
+      });
+    });
+
+    await waitFor(() => {
+      expect(mockLoginUser).toHaveBeenCalledWith({
+        email: "user@example.com",
+        password: "password123",
+      });
+    });
+  });
+
+  it("should show error message when both logins fail", async () => {
+    const user = userEvent.setup();
+    const mockLoginProfessional = vi.fn().mockRejectedValue(new Error("Professional login failed"));
+    const mockLoginUser = vi.fn().mockRejectedValue(new Error("User login failed"));
+
+    mockUseAuthContext.mockReturnValue({
+      user: null,
+      isLoading: false,
+      isAuthenticated: false,
+      loginUser: mockLoginUser,
+      loginProfessional: mockLoginProfessional,
+      registerUser: vi.fn(),
+      registerProfessional: vi.fn(),
+      logout: vi.fn(),
+      refreshUser: vi.fn(),
+      getUserEmail: vi.fn(),
+      getUserFullName: vi.fn(),
+      isUserVerified: vi.fn(),
+      isEmailVerified: vi.fn(),
+      getUserId: vi.fn(),
+      getUserUid: vi.fn(),
+    });
+
+    render(<LoginPage />);
+
+    await user.type(screen.getByPlaceholderText("Email"), "test@example.com");
+    await user.type(screen.getByPlaceholderText("Contraseña"), "wrongpassword");
+    await user.click(screen.getByRole("button", { name: "Iniciar Sesión" }));
+
+    await waitFor(() => {
+      expect(screen.getByText("User login failed")).toBeInTheDocument();
+    });
+  });
+
+  it("should show loading state during login", async () => {
+    const user = userEvent.setup();
+    const mockLoginProfessional = vi.fn().mockImplementation(() => new Promise(() => {})); // Never resolves
+
+    mockUseAuthContext.mockReturnValue({
+      user: null,
+      isLoading: false,
+      isAuthenticated: false,
+      loginUser: vi.fn(),
+      loginProfessional: mockLoginProfessional,
+      registerUser: vi.fn(),
+      registerProfessional: vi.fn(),
+      logout: vi.fn(),
+      refreshUser: vi.fn(),
+      getUserEmail: vi.fn(),
+      getUserFullName: vi.fn(),
+      isUserVerified: vi.fn(),
+      isEmailVerified: vi.fn(),
+      getUserId: vi.fn(),
+      getUserUid: vi.fn(),
+    });
+
+    render(<LoginPage />);
+
+    await user.type(screen.getByPlaceholderText("Email"), "test@example.com");
+    await user.type(screen.getByPlaceholderText("Contraseña"), "password123");
+    await user.click(screen.getByRole("button", { name: "Iniciar Sesión" }));
+
+    await waitFor(() => {
+      expect(screen.getByText("Iniciando sesión...")).toBeInTheDocument();
+    });
+
+    expect(screen.getByRole("button", { name: "Iniciando sesión..." })).toBeDisabled();
+    expect(screen.getByPlaceholderText("Email")).toBeDisabled();
+    expect(screen.getByPlaceholderText("Contraseña")).toBeDisabled();
+  });
+
+  it("should handle form submission with valid data", async () => {
+    const user = userEvent.setup();
+    const mockLoginProfessional = vi.fn().mockResolvedValue(undefined);
+
+    mockUseAuthContext.mockReturnValue({
+      user: null,
+      isLoading: false,
+      isAuthenticated: false,
+      loginUser: vi.fn(),
+      loginProfessional: mockLoginProfessional,
+      registerUser: vi.fn(),
+      registerProfessional: vi.fn(),
+      logout: vi.fn(),
+      refreshUser: vi.fn(),
+      getUserEmail: vi.fn(),
+      getUserFullName: vi.fn(),
+      isUserVerified: vi.fn(),
+      isEmailVerified: vi.fn(),
+      getUserId: vi.fn(),
+      getUserUid: vi.fn(),
+    });
+
+    render(<LoginPage />);
+
+    await user.type(screen.getByPlaceholderText("Email"), "test@example.com");
+    await user.type(screen.getByPlaceholderText("Contraseña"), "password123");
+    await user.click(screen.getByRole("button", { name: "Iniciar Sesión" }));
+
+    await waitFor(() => {
+      expect(mockLoginProfessional).toHaveBeenCalledWith({
+        email: "test@example.com",
+        password: "password123",
+      });
+    });
+  });
+
+  it("should have proper form structure and accessibility", () => {
+    mockUseAuthContext.mockReturnValue({
+      user: null,
+      isLoading: false,
+      isAuthenticated: false,
+      loginUser: vi.fn(),
+      loginProfessional: vi.fn(),
+      registerUser: vi.fn(),
+      registerProfessional: vi.fn(),
+      logout: vi.fn(),
+      refreshUser: vi.fn(),
+      getUserEmail: vi.fn(),
+      getUserFullName: vi.fn(),
+      isUserVerified: vi.fn(),
+      isEmailVerified: vi.fn(),
+      getUserId: vi.fn(),
+      getUserUid: vi.fn(),
+    });
+
+    render(<LoginPage />);
+
+    // The form element doesn't have role="form" by default, so we check for the form element directly
+    const form = document.querySelector("form");
+    expect(form).toBeInTheDocument();
+
+    const emailInput = screen.getByPlaceholderText("Email");
+    expect(emailInput).toHaveAttribute("type", "email");
+
+    const passwordInput = screen.getByPlaceholderText("Contraseña");
+    expect(passwordInput).toHaveAttribute("type", "password");
+
+    const submitButton = screen.getByRole("button", { name: "Iniciar Sesión" });
+    expect(submitButton).toHaveAttribute("type", "submit");
+  });
+
+  it("should have proper styling classes", () => {
+    mockUseAuthContext.mockReturnValue({
+      user: null,
+      isLoading: false,
+      isAuthenticated: false,
+      loginUser: vi.fn(),
+      loginProfessional: vi.fn(),
+      registerUser: vi.fn(),
+      registerProfessional: vi.fn(),
+      logout: vi.fn(),
+      refreshUser: vi.fn(),
+      getUserEmail: vi.fn(),
+      getUserFullName: vi.fn(),
+      isUserVerified: vi.fn(),
+      isEmailVerified: vi.fn(),
+      getUserId: vi.fn(),
+      getUserUid: vi.fn(),
+    });
+
+    const { container } = render(<LoginPage />);
+
+    // Check main container
+    expect(container.firstChild).toHaveClass(
+      "flex",
+      "min-h-[50vh]",
+      "items-center",
+      "justify-center",
+    );
+
+    // Check card structure - find by class directly
+    const card = container.querySelector(".w-full.max-w-md");
+    expect(card).toBeInTheDocument();
+  });
+
+  it("should handle generic error messages", async () => {
+    const user = userEvent.setup();
+    const mockLoginProfessional = vi.fn().mockRejectedValue("String error");
+    const mockLoginUser = vi.fn().mockRejectedValue("String error");
+
+    mockUseAuthContext.mockReturnValue({
+      user: null,
+      isLoading: false,
+      isAuthenticated: false,
+      loginUser: mockLoginUser,
+      loginProfessional: mockLoginProfessional,
+      registerUser: vi.fn(),
+      registerProfessional: vi.fn(),
+      logout: vi.fn(),
+      refreshUser: vi.fn(),
+      getUserEmail: vi.fn(),
+      getUserFullName: vi.fn(),
+      isUserVerified: vi.fn(),
+      isEmailVerified: vi.fn(),
+      getUserId: vi.fn(),
+      getUserUid: vi.fn(),
+    });
+
+    render(<LoginPage />);
+
+    await user.type(screen.getByPlaceholderText("Email"), "test@example.com");
+    await user.type(screen.getByPlaceholderText("Contraseña"), "password123");
+    await user.click(screen.getByRole("button", { name: "Iniciar Sesión" }));
+
+    await waitFor(() => {
+      expect(screen.getByText("Error al iniciar sesión")).toBeInTheDocument();
+    });
   });
 });

@@ -12,6 +12,10 @@
 
 # testing
 /coverage
+/test-results
+/accessibility-results
+eslint-report.json
+typecheck-report.txt
 
 # next.js
 /.next/

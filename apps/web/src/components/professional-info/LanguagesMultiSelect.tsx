@@ -1,6 +1,5 @@
 "use client";
-
-import { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Label } from "@/components/ui/label";
 import { Select } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
@@ -8,9 +7,9 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import { X, HelpCircle } from "lucide-react";
 
 interface LanguagesMultiSelectProps {
-  value?: string[];
-  onChange?: (languages: string[]) => void;
-  disabled?: boolean;
+  readonly value?: readonly string[];
+  readonly onChange?: (languages: readonly string[]) => void;
+  readonly disabled?: boolean;
 }
 
 // Lista de idiomas comunes
@@ -63,11 +62,16 @@ export function LanguagesMultiSelect({
   onChange,
   disabled = false,
 }: LanguagesMultiSelectProps) {
-  const [selectedLanguages, setSelectedLanguages] = useState<string[]>(value);
+  const [selectedLanguages, setSelectedLanguages] = useState<string[]>(() => [...value]);
+  const previousValue = useRef<string[]>([]);
 
-  // Update local state when value prop changes
+  // Update local state when value prop changes (but not from internal updates)
   useEffect(() => {
-    setSelectedLanguages(value);
+    const valueChanged = JSON.stringify(value) !== JSON.stringify(previousValue.current);
+    if (valueChanged) {
+      setSelectedLanguages([...value]);
+      previousValue.current = [...value];
+    }
   }, [value]);
 
   const handleLanguageChange = (language: string) => {

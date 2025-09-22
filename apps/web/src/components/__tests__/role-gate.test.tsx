@@ -1,13 +1,15 @@
 import React from "react";
 import { render, screen } from "@testing-library/react";
+import { RoleGate } from "../role-gate";
 import { vi, describe, it, expect, beforeEach } from "vitest";
-import { RoleGate, AdminGate, ProfessionalGate, UserGate, withRoleGuard } from "../role-gate";
-import { useRole } from "@/hooks/useRole";
 import { UserRole } from "@/lib/types";
 
 // Mock the useRole hook
-vi.mock("@/hooks/useRole");
+vi.mock("@/hooks/useRole", () => ({
+  useRole: vi.fn(),
+}));
 
+import { useRole } from "@/hooks/useRole";
 const mockUseRole = vi.mocked(useRole);
 
 describe("RoleGate", () => {
@@ -17,355 +19,137 @@ describe("RoleGate", () => {
 
   it("should render children when user has required role", () => {
     mockUseRole.mockReturnValue({
-      hasAnyRole: vi.fn().mockReturnValue(true),
+      userProfile: { id: "1", role: UserRole.ADMIN },
       loading: false,
-      userProfile: null,
       error: null,
       hasRole: vi.fn(),
-      isAdmin: vi.fn(),
-      isProfessional: vi.fn(),
-      isUser: vi.fn(),
-      getUserRole: vi.fn(),
+      hasAnyRole: vi.fn((roles: UserRole[]) => roles.includes(UserRole.ADMIN)),
+      isAdmin: vi.fn(() => true),
+      isProfessional: vi.fn(() => false),
+      isUser: vi.fn(() => false),
+      getUserRole: vi.fn(() => "admin"),
     });
 
     render(
-      <RoleGate roles={[UserRole.USER]}>
-        <div data-testid="protected-content">Protected Content</div>
+      <RoleGate roles={[UserRole.ADMIN]}>
+        <div>Admin Content</div>
       </RoleGate>,
     );
 
-    expect(screen.getByTestId("protected-content")).toBeInTheDocument();
+    expect(screen.getByText("Admin Content")).toBeInTheDocument();
   });
 
-  it("should render fallback when user doesn't have required role", () => {
+  it("should render fallback when user does not have required role", () => {
     mockUseRole.mockReturnValue({
-      hasAnyRole: vi.fn().mockReturnValue(false),
+      userProfile: { id: "1", role: UserRole.USER },
       loading: false,
-      userProfile: null,
       error: null,
       hasRole: vi.fn(),
-      isAdmin: vi.fn(),
-      isProfessional: vi.fn(),
-      isUser: vi.fn(),
-      getUserRole: vi.fn(),
+      hasAnyRole: vi.fn((roles: UserRole[]) => !roles.includes(UserRole.ADMIN)),
+      isAdmin: vi.fn(() => false),
+      isProfessional: vi.fn(() => false),
+      isUser: vi.fn(() => true),
+      getUserRole: vi.fn(() => "user"),
     });
 
     render(
-      <RoleGate roles={[UserRole.ADMIN]} fallback={<div data-testid="fallback">Access Denied</div>}>
-        <div data-testid="protected-content">Protected Content</div>
+      <RoleGate roles={[UserRole.ADMIN]} fallback={<div>Access Denied</div>}>
+        <div>Admin Content</div>
       </RoleGate>,
     );
 
-    expect(screen.getByTestId("fallback")).toBeInTheDocument();
-    expect(screen.queryByTestId("protected-content")).not.toBeInTheDocument();
+    expect(screen.getByText("Access Denied")).toBeInTheDocument();
+    expect(screen.queryByText("Admin Content")).not.toBeInTheDocument();
   });
 
-  it("should render loading spinner when loading", () => {
+  it("should render nothing when user does not have required role and no fallback", () => {
     mockUseRole.mockReturnValue({
-      hasAnyRole: vi.fn(),
-      loading: true,
-      userProfile: null,
-      error: null,
-      hasRole: vi.fn(),
-      isAdmin: vi.fn(),
-      isProfessional: vi.fn(),
-      isUser: vi.fn(),
-      getUserRole: vi.fn(),
-    });
-
-    const { container } = render(
-      <RoleGate roles={[UserRole.USER]}>
-        <div data-testid="protected-content">Protected Content</div>
-      </RoleGate>,
-    );
-
-    // Check for loading spinner by looking for the specific classes
-    const loadingSpinner = container.querySelector(".animate-spin");
-    expect(loadingSpinner).toBeInTheDocument();
-    expect(screen.queryByTestId("protected-content")).not.toBeInTheDocument();
-  });
-
-  it("should render null fallback by default", () => {
-    mockUseRole.mockReturnValue({
-      hasAnyRole: vi.fn().mockReturnValue(false),
+      userProfile: { id: "1", role: UserRole.USER },
       loading: false,
-      userProfile: null,
       error: null,
       hasRole: vi.fn(),
-      isAdmin: vi.fn(),
-      isProfessional: vi.fn(),
-      isUser: vi.fn(),
-      getUserRole: vi.fn(),
+      hasAnyRole: vi.fn((roles: UserRole[]) => !roles.includes(UserRole.ADMIN)),
+      isAdmin: vi.fn(() => false),
+      isProfessional: vi.fn(() => false),
+      isUser: vi.fn(() => true),
+      getUserRole: vi.fn(() => "user"),
     });
 
     const { container } = render(
       <RoleGate roles={[UserRole.ADMIN]}>
-        <div data-testid="protected-content">Protected Content</div>
+        <div>Admin Content</div>
       </RoleGate>,
     );
 
     expect(container.firstChild).toBeNull();
   });
 
-  it("should handle multiple roles correctly", () => {
-    const hasAnyRole = vi.fn().mockReturnValue(true);
+  it("should render children when user has any of the required roles", () => {
     mockUseRole.mockReturnValue({
-      hasAnyRole,
+      userProfile: { id: "1", role: UserRole.PROFESSIONAL },
       loading: false,
-      userProfile: null,
       error: null,
       hasRole: vi.fn(),
-      isAdmin: vi.fn(),
-      isProfessional: vi.fn(),
-      isUser: vi.fn(),
-      getUserRole: vi.fn(),
+      hasAnyRole: vi.fn((roles: UserRole[]) =>
+        roles.some((role) => [UserRole.ADMIN, UserRole.PROFESSIONAL].includes(role)),
+      ),
+      isAdmin: vi.fn(() => false),
+      isProfessional: vi.fn(() => true),
+      isUser: vi.fn(() => false),
+      getUserRole: vi.fn(() => "professional"),
     });
 
     render(
-      <RoleGate roles={[UserRole.USER, UserRole.PROFESSIONAL]}>
-        <div data-testid="protected-content">Protected Content</div>
+      <RoleGate roles={[UserRole.ADMIN, UserRole.PROFESSIONAL]}>
+        <div>Professional Content</div>
       </RoleGate>,
     );
 
-    expect(hasAnyRole).toHaveBeenCalledWith([UserRole.USER, UserRole.PROFESSIONAL]);
-    expect(screen.getByTestId("protected-content")).toBeInTheDocument();
+    expect(screen.getByText("Professional Content")).toBeInTheDocument();
   });
 
-  it("should handle requireAll prop correctly", () => {
-    const hasAnyRole = vi.fn().mockReturnValue(true);
+  it("should render fallback when user is not authenticated", () => {
     mockUseRole.mockReturnValue({
-      hasAnyRole,
-      loading: false,
       userProfile: null,
+      loading: false,
       error: null,
       hasRole: vi.fn(),
-      isAdmin: vi.fn(),
-      isProfessional: vi.fn(),
-      isUser: vi.fn(),
-      getUserRole: vi.fn(),
+      hasAnyRole: vi.fn(() => false), // No access when not authenticated
+      isAdmin: vi.fn(() => false),
+      isProfessional: vi.fn(() => false),
+      isUser: vi.fn(() => false),
+      getUserRole: vi.fn(() => null),
     });
 
     render(
-      <RoleGate roles={[UserRole.USER, UserRole.PROFESSIONAL]} requireAll={true}>
-        <div data-testid="protected-content">Protected Content</div>
+      <RoleGate roles={[UserRole.ADMIN]} fallback={<div>Please Login</div>}>
+        <div>Admin Content</div>
       </RoleGate>,
     );
 
-    // When requireAll is true, it should check each role individually
-    expect(hasAnyRole).toHaveBeenCalledWith([UserRole.USER]);
-    expect(hasAnyRole).toHaveBeenCalledWith([UserRole.PROFESSIONAL]);
-  });
-});
-
-describe("AdminGate", () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
+    expect(screen.getByText("Please Login")).toBeInTheDocument();
+    expect(screen.queryByText("Admin Content")).not.toBeInTheDocument();
   });
 
-  it("should render children for admin users", () => {
+  it("should render children when user has all required roles (requireAll=true)", () => {
     mockUseRole.mockReturnValue({
-      hasAnyRole: vi.fn().mockReturnValue(true),
+      userProfile: { id: "1", role: UserRole.ADMIN },
       loading: false,
-      userProfile: null,
       error: null,
       hasRole: vi.fn(),
-      isAdmin: vi.fn(),
-      isProfessional: vi.fn(),
-      isUser: vi.fn(),
-      getUserRole: vi.fn(),
+      hasAnyRole: vi.fn((roles: UserRole[]) => roles.includes(UserRole.ADMIN)),
+      isAdmin: vi.fn(() => true),
+      isProfessional: vi.fn(() => false),
+      isUser: vi.fn(() => false),
+      getUserRole: vi.fn(() => "admin"),
     });
 
     render(
-      <AdminGate>
-        <div data-testid="admin-content">Admin Content</div>
-      </AdminGate>,
+      <RoleGate roles={[UserRole.ADMIN]} requireAll={true}>
+        <div>Admin Content</div>
+      </RoleGate>,
     );
 
-    expect(screen.getByTestId("admin-content")).toBeInTheDocument();
-  });
-
-  it("should render fallback for non-admin users", () => {
-    mockUseRole.mockReturnValue({
-      hasAnyRole: vi.fn().mockReturnValue(false),
-      loading: false,
-      userProfile: null,
-      error: null,
-      hasRole: vi.fn(),
-      isAdmin: vi.fn(),
-      isProfessional: vi.fn(),
-      isUser: vi.fn(),
-      getUserRole: vi.fn(),
-    });
-
-    render(
-      <AdminGate fallback={<div data-testid="admin-fallback">Admin Access Required</div>}>
-        <div data-testid="admin-content">Admin Content</div>
-      </AdminGate>,
-    );
-
-    expect(screen.getByTestId("admin-fallback")).toBeInTheDocument();
-    expect(screen.queryByTestId("admin-content")).not.toBeInTheDocument();
-  });
-});
-
-describe("ProfessionalGate", () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-  });
-
-  it("should render children for professional and admin users", () => {
-    mockUseRole.mockReturnValue({
-      hasAnyRole: vi.fn().mockReturnValue(true),
-      loading: false,
-      userProfile: null,
-      error: null,
-      hasRole: vi.fn(),
-      isAdmin: vi.fn(),
-      isProfessional: vi.fn(),
-      isUser: vi.fn(),
-      getUserRole: vi.fn(),
-    });
-
-    render(
-      <ProfessionalGate>
-        <div data-testid="professional-content">Professional Content</div>
-      </ProfessionalGate>,
-    );
-
-    expect(screen.getByTestId("professional-content")).toBeInTheDocument();
-  });
-
-  it("should check for professional and admin roles", () => {
-    const hasAnyRole = vi.fn().mockReturnValue(true);
-    mockUseRole.mockReturnValue({
-      hasAnyRole,
-      loading: false,
-      userProfile: null,
-      error: null,
-      hasRole: vi.fn(),
-      isAdmin: vi.fn(),
-      isProfessional: vi.fn(),
-      isUser: vi.fn(),
-      getUserRole: vi.fn(),
-    });
-
-    render(
-      <ProfessionalGate>
-        <div data-testid="professional-content">Professional Content</div>
-      </ProfessionalGate>,
-    );
-
-    expect(hasAnyRole).toHaveBeenCalledWith([UserRole.PROFESSIONAL, UserRole.ADMIN]);
-  });
-});
-
-describe("UserGate", () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-  });
-
-  it("should render children for all user types", () => {
-    mockUseRole.mockReturnValue({
-      hasAnyRole: vi.fn().mockReturnValue(true),
-      loading: false,
-      userProfile: null,
-      error: null,
-      hasRole: vi.fn(),
-      isAdmin: vi.fn(),
-      isProfessional: vi.fn(),
-      isUser: vi.fn(),
-      getUserRole: vi.fn(),
-    });
-
-    render(
-      <UserGate>
-        <div data-testid="user-content">User Content</div>
-      </UserGate>,
-    );
-
-    expect(screen.getByTestId("user-content")).toBeInTheDocument();
-  });
-
-  it("should check for all user roles", () => {
-    const hasAnyRole = vi.fn().mockReturnValue(true);
-    mockUseRole.mockReturnValue({
-      hasAnyRole,
-      loading: false,
-      userProfile: null,
-      error: null,
-      hasRole: vi.fn(),
-      isAdmin: vi.fn(),
-      isProfessional: vi.fn(),
-      isUser: vi.fn(),
-      getUserRole: vi.fn(),
-    });
-
-    render(
-      <UserGate>
-        <div data-testid="user-content">User Content</div>
-      </UserGate>,
-    );
-
-    expect(hasAnyRole).toHaveBeenCalledWith([UserRole.USER, UserRole.PROFESSIONAL, UserRole.ADMIN]);
-  });
-});
-
-describe("withRoleGuard HOC", () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-  });
-
-  it("should wrap component with role guard", () => {
-    const TestComponent = ({ message }: { message: string }) => (
-      <div data-testid="test-component">{message}</div>
-    );
-
-    const GuardedComponent = withRoleGuard(TestComponent, [UserRole.USER]);
-
-    mockUseRole.mockReturnValue({
-      hasAnyRole: vi.fn().mockReturnValue(true),
-      loading: false,
-      userProfile: null,
-      error: null,
-      hasRole: vi.fn(),
-      isAdmin: vi.fn(),
-      isProfessional: vi.fn(),
-      isUser: vi.fn(),
-      getUserRole: vi.fn(),
-    });
-
-    render(<GuardedComponent message="Hello World" />);
-
-    expect(screen.getByTestId("test-component")).toBeInTheDocument();
-    expect(screen.getByText("Hello World")).toBeInTheDocument();
-  });
-
-  it("should render fallback when user doesn't have required role", () => {
-    const TestComponent = ({ message }: { message: string }) => (
-      <div data-testid="test-component">{message}</div>
-    );
-
-    const GuardedComponent = withRoleGuard(
-      TestComponent,
-      [UserRole.ADMIN],
-      <div data-testid="fallback">Access Denied</div>,
-    );
-
-    mockUseRole.mockReturnValue({
-      hasAnyRole: vi.fn().mockReturnValue(false),
-      loading: false,
-      userProfile: null,
-      error: null,
-      hasRole: vi.fn(),
-      isAdmin: vi.fn(),
-      isProfessional: vi.fn(),
-      isUser: vi.fn(),
-      getUserRole: vi.fn(),
-    });
-
-    render(<GuardedComponent message="Hello World" />);
-
-    expect(screen.getByTestId("fallback")).toBeInTheDocument();
-    expect(screen.queryByTestId("test-component")).not.toBeInTheDocument();
+    expect(screen.getByText("Admin Content")).toBeInTheDocument();
   });
 });

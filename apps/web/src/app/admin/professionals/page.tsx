@@ -187,7 +187,6 @@ export default function AdminProfessionals() {
                               size="sm"
                               variant="outline"
                               onClick={() => {
-                                // TODO: Implement view credentials modal
                                 alert("Ver credenciales - Por implementar");
                               }}
                             >

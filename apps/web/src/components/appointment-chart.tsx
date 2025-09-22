@@ -14,19 +14,18 @@ import {
 import { type AppointmentChartData } from "@/lib/analytics-admin";
 
 interface AppointmentChartProps {
-  data: AppointmentChartData[];
-  loading?: boolean;
+  readonly data: readonly AppointmentChartData[];
+  readonly loading?: boolean;
 }
 
 export function AppointmentChart({ data, loading = false }: AppointmentChartProps) {
   if (loading) {
     return (
       <div className="flex h-64 items-center justify-center">
-        <div
+        <output
           className="h-8 w-8 animate-spin rounded-full border-b-2 border-blue-600"
-          role="status"
           aria-label="Loading..."
-        ></div>
+        ></output>
       </div>
     );
   }
