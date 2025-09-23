@@ -37,11 +37,6 @@ test.describe("Dashboard", () => {
       await dashboardHelpers.checkNavigationMenu();
     });
 
-    test.skip("should display user appointments if any", async ({ page }) => {
-      // SKIPPED: Test failing on Firefox and WebKit due to login issues
-      await dashboardHelpers.checkAppointmentsSection();
-    });
-
     test.skip("should allow navigation to professionals page", async ({ page }) => {
       // SKIPPED: Disabled per request
       if (await dashboardHelpers.checkVerifyPageAndSkip(test, "User")) {
@@ -126,35 +121,6 @@ test.describe("Dashboard", () => {
 
       if ((await professionalInfo.count()) > 0) {
         await expect(professionalInfo.first()).toBeVisible();
-      }
-    });
-
-    test.skip("should display professional appointments", async ({ page }) => {
-      // SKIPPED: Test failing on WebKit due to professional login issues
-      // Look for appointments section
-      const appointmentsSection = page
-        .locator('[data-testid="appointments"]')
-        .or(page.locator(".appointments"))
-        .or(page.locator('h2:has-text("Citas")'))
-        .or(page.locator('h2:has-text("Appointments")'));
-
-      if (await appointmentsSection.isVisible()) {
-        await expect(appointmentsSection).toBeVisible();
-
-        // Check for appointment cards or empty state
-        const appointmentCards = page
-          .locator('[data-testid="appointment-card"]')
-          .or(page.locator(".appointment-card"));
-
-        const emptyState = page
-          .locator("text=No tienes citas programadas")
-          .or(page.locator("text=No appointments scheduled"));
-
-        if ((await appointmentCards.count()) > 0) {
-          await expect(appointmentCards.first()).toBeVisible();
-        } else if (await emptyState.isVisible()) {
-          await expect(emptyState).toBeVisible();
-        }
       }
     });
 

@@ -5,7 +5,6 @@
 import type {
   User,
   Professional,
-  Appointment,
   Specialty,
   TherapeuticApproach,
   Modality,
@@ -13,7 +12,6 @@ import type {
   LoginResponse,
   UserCreate,
   ProfessionalCreate,
-  AppointmentCreate,
   SpecialtyCreate,
   TherapeuticApproachCreate,
   ModalityCreate,
@@ -24,12 +22,9 @@ import type {
   AuthUser,
   UserUpdate,
   ProfessionalUpdate,
-  AppointmentUpdate,
   SpecialtyUpdate,
   TherapeuticApproachUpdate,
   ModalityUpdate,
-  BookAppointmentRequest,
-  BookAppointmentResponse,
   ReviewStats,
   UploadResponse,
 } from "./types";
@@ -42,7 +37,6 @@ const API_VERSION = "/api/v1";
 export type {
   User,
   Professional,
-  Appointment,
   Specialty,
   TherapeuticApproach,
   Modality,
@@ -50,7 +44,6 @@ export type {
   LoginResponse,
   UserCreate,
   ProfessionalCreate,
-  AppointmentCreate,
   SpecialtyCreate,
   TherapeuticApproachCreate,
   ModalityCreate,
@@ -61,12 +54,9 @@ export type {
   AuthUser,
   UserUpdate,
   ProfessionalUpdate,
-  AppointmentUpdate,
   SpecialtyUpdate,
   TherapeuticApproachUpdate,
   ModalityUpdate,
-  BookAppointmentRequest,
-  BookAppointmentResponse,
   ReviewStats,
   UploadResponse,
 };
@@ -290,65 +280,6 @@ class ApiClient {
     return this.delete<void>(`/professionals/${professionalId}`);
   }
 
-  // Appointment methods
-  async getAppointments(params?: {
-    page?: number;
-    size?: number;
-    status?: string;
-    user_id?: string;
-    professional_id?: string;
-  }): Promise<PaginatedResponse<Appointment>> {
-    const searchParams = new URLSearchParams();
-    if (params?.page) searchParams.set("page", params.page.toString());
-    if (params?.size) searchParams.set("size", params.size.toString());
-    if (params?.status) searchParams.set("status", params.status);
-    if (params?.user_id) searchParams.set("user_id", params.user_id);
-    if (params?.professional_id) searchParams.set("professional_id", params.professional_id);
-
-    const queryString = searchParams.toString();
-    const endpoint = queryString ? `/appointments?${queryString}` : "/appointments";
-    return this.get<PaginatedResponse<Appointment>>(endpoint);
-  }
-
-  async getAppointment(appointmentId: string): Promise<Appointment> {
-    return this.get<Appointment>(`/appointments/${appointmentId}`);
-  }
-
-  async createAppointment(appointmentData: AppointmentCreate): Promise<Appointment> {
-    return this.post<Appointment>("/appointments", appointmentData);
-  }
-
-  async updateAppointment(
-    appointmentId: string,
-    appointmentData: AppointmentUpdate,
-  ): Promise<Appointment> {
-    return this.patch<Appointment>(`/appointments/${appointmentId}`, appointmentData);
-  }
-
-  async cancelAppointment(appointmentId: string): Promise<Appointment> {
-    return this.patch<Appointment>(`/appointments/${appointmentId}`, { status: "cancelled" });
-  }
-
-  async bookAppointment(bookingData: BookAppointmentRequest): Promise<BookAppointmentResponse> {
-    return this.post<BookAppointmentResponse>("/appointments/book", bookingData);
-  }
-
-  async getUserAppointments(): Promise<Appointment[]> {
-    return this.get<Appointment[]>("/appointments/my-appointments");
-  }
-
-  async bookAppointmentDirect(
-    professionalId: string,
-    startTime: string,
-    endTime: string,
-  ): Promise<BookAppointmentResponse> {
-    return this.post<BookAppointmentResponse>("/appointments/book", {
-      professional_id: professionalId,
-      start_time: startTime,
-      end_time: endTime,
-    });
-  }
-
   // Specialty methods
   async getSpecialties(): Promise<Specialty[]> {
     return this.get<Specialty[]>("/specialties");
@@ -452,13 +383,6 @@ class ApiClient {
 
   async getProfessionalAverageRating(professionalId: string): Promise<ReviewStats> {
     return this.get<ReviewStats>(`/reviews/professional/${professionalId}/stats`);
-  }
-
-  async hasUserReviewedAppointment(
-    userId: string,
-    appointmentId: string,
-  ): Promise<{ hasReviewed: boolean }> {
-    return this.get<{ hasReviewed: boolean }>(`/reviews/check/${appointmentId}/${userId}`);
   }
 
   // File upload methods

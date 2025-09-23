@@ -21,14 +21,6 @@ vi.mock("next/link", () => ({
   ),
 }));
 
-// Mock the useAnalytics hook
-const mockTrackCTAClick = vi.fn();
-vi.mock("@/hooks/useAnalytics", () => ({
-  useAnalytics: () => ({
-    trackCTAClick: mockTrackCTAClick,
-  }),
-}));
-
 describe("LandingPage", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -61,11 +53,6 @@ describe("LandingPage", () => {
 
     const registerButtons = screen.getAllByText("Crear cuenta gratis");
     fireEvent.click(registerButtons[0]); // Click the first one (hero section)
-
-    expect(mockTrackCTAClick).toHaveBeenCalledWith("hero_register", {
-      page: "landing",
-      timestamp: expect.any(String),
-    });
   });
 
   it("should render value proposition section", () => {
@@ -142,11 +129,6 @@ describe("LandingPage", () => {
 
     const finalRegisterButton = screen.getAllByText("Crear cuenta gratis")[1]; // Second instance
     fireEvent.click(finalRegisterButton);
-
-    expect(mockTrackCTAClick).toHaveBeenCalledWith("final_register", {
-      page: "landing",
-      timestamp: expect.any(String),
-    });
   });
 
   it("should have proper links", () => {

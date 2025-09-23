@@ -79,6 +79,7 @@ def parse_user_data(user: User) -> dict:
         "phone": user.phone,
         "is_active": user.is_active,
         "is_verified": user.is_verified,
+        "role": user.role.value if user.role else "user",
         "profile_picture": user.profile_picture,
         "date_of_birth": user.date_of_birth,
         "emergency_contact": user.emergency_contact,

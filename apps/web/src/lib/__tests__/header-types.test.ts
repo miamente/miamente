@@ -22,6 +22,7 @@ describe("Header Types and Constants", () => {
         logoHref: "/",
         logoText: "Miamente",
         maxWidth: "max-w-6xl",
+        hideUserMenuOnLogin: false,
       });
     });
 
@@ -83,7 +84,7 @@ describe("Header Types and Constants", () => {
 
   describe("ADMIN_NAVIGATION_ITEMS", () => {
     it("should contain expected admin navigation items", () => {
-      expect(ADMIN_NAVIGATION_ITEMS).toHaveLength(3);
+      expect(ADMIN_NAVIGATION_ITEMS).toHaveLength(2);
 
       expect(ADMIN_NAVIGATION_ITEMS[0]).toEqual({
         label: "Profesionales",
@@ -92,12 +93,6 @@ describe("Header Types and Constants", () => {
       });
 
       expect(ADMIN_NAVIGATION_ITEMS[1]).toEqual({
-        label: "Citas",
-        href: "/admin/appointments",
-        roles: [UserRole.ADMIN],
-      });
-
-      expect(ADMIN_NAVIGATION_ITEMS[2]).toEqual({
         label: "Configuración",
         href: "/admin/feature-flags",
         roles: [UserRole.ADMIN],
@@ -317,7 +312,7 @@ describe("Header Types and Constants", () => {
         item.roles?.includes(UserRole.ADMIN),
       );
 
-      expect(adminItems).toHaveLength(3);
+      expect(adminItems).toHaveLength(2);
     });
 
     it("should allow filtering USER_MENU_OPTIONS by role", () => {

@@ -4,18 +4,9 @@ import React, { useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useAnalytics } from "@/hooks/useAnalytics";
 
 export default function LandingPage() {
   const [expandedFaq, setExpandedFaq] = useState<number | null>(null);
-  const { trackCTAClick } = useAnalytics();
-
-  const handleCTAClick = (ctaType: string) => {
-    trackCTAClick(ctaType, {
-      page: "landing",
-      timestamp: new Date().toISOString(),
-    });
-  };
 
   const faqs = [
     {
@@ -74,21 +65,12 @@ export default function LandingPage() {
           </p>
           <div className="flex flex-col justify-center gap-4 sm:flex-row">
             <Link href="/register">
-              <Button
-                size="lg"
-                className="w-full sm:w-auto"
-                onClick={() => handleCTAClick("hero_register")}
-              >
+              <Button size="lg" className="w-full sm:w-auto">
                 Crear cuenta gratis
               </Button>
             </Link>
             <Link href="/professionals">
-              <Button
-                variant="outline"
-                size="lg"
-                className="w-full sm:w-auto"
-                onClick={() => handleCTAClick("hero_browse")}
-              >
+              <Button variant="outline" size="lg" className="w-full sm:w-auto">
                 Ver profesionales
               </Button>
             </Link>
@@ -339,12 +321,7 @@ export default function LandingPage() {
           </p>
           <div className="flex flex-col justify-center gap-4 sm:flex-row">
             <Link href="/register">
-              <Button
-                size="lg"
-                variant="secondary"
-                className="w-full sm:w-auto"
-                onClick={() => handleCTAClick("final_register")}
-              >
+              <Button size="lg" variant="secondary" className="w-full sm:w-auto">
                 Crear cuenta gratis
               </Button>
             </Link>
@@ -353,7 +330,6 @@ export default function LandingPage() {
                 size="lg"
                 variant="outline"
                 className="w-full border-white text-white hover:bg-white hover:text-blue-600 sm:w-auto"
-                onClick={() => handleCTAClick("final_browse")}
               >
                 Explorar profesionales
               </Button>

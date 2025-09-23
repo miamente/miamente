@@ -1,6 +1,8 @@
 import { UserRole } from "@/lib/types";
 import { ComponentType } from "react";
 
+export type HeaderVariant = "default" | "admin";
+
 export interface NavigationItem {
   label: string;
   href: string;
@@ -25,11 +27,13 @@ export interface HeaderConfig {
   logoHref?: string;
   logoText?: string;
   maxWidth?: string;
+  hideUserMenuOnLogin?: boolean;
 }
 
 export interface HeaderProps {
   readonly config?: HeaderConfig;
   readonly className?: string;
+  readonly variant?: HeaderVariant;
 }
 
 export const DEFAULT_HEADER_CONFIG: Required<HeaderConfig> = {
@@ -39,6 +43,7 @@ export const DEFAULT_HEADER_CONFIG: Required<HeaderConfig> = {
   logoHref: "/",
   logoText: "Miamente",
   maxWidth: "max-w-6xl",
+  hideUserMenuOnLogin: false,
 };
 
 // Navigation items for regular users (user and pro)
@@ -60,11 +65,6 @@ export const ADMIN_NAVIGATION_ITEMS: NavigationItem[] = [
   {
     label: "Profesionales",
     href: "/admin/professionals",
-    roles: [UserRole.ADMIN],
-  },
-  {
-    label: "Citas",
-    href: "/admin/appointments",
     roles: [UserRole.ADMIN],
   },
   {

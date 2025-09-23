@@ -3,6 +3,7 @@ import React, { useEffect, useState } from "react";
 import { Menu, Moon, Sun, Shield } from "lucide-react";
 import Link from "next/link";
 import { useTheme } from "next-themes";
+import { usePathname } from "next/navigation";
 
 import { MobileMenu } from "./mobile-menu";
 import { Navigation } from "./navigation";
@@ -10,22 +11,44 @@ import { UserMenu } from "./user-menu";
 
 import { Button } from "@/components/ui/button";
 import { useAuth, getUserEmail, getUserFullName } from "@/hooks/useAuth";
+import { useAuthContext } from "@/contexts/AuthContext";
 import { logout } from "@/lib/auth";
 import {
   DEFAULT_HEADER_CONFIG,
+  USER_NAVIGATION_ITEMS,
+  USER_MENU_OPTIONS,
   ADMIN_NAVIGATION_ITEMS,
   ADMIN_MENU_OPTIONS,
   type HeaderProps,
 } from "@/lib/header-types";
 import { cn } from "@/lib/utils";
 
-export function AdminHeader({ config = {} as const, className }: Readonly<HeaderProps>) {
+export function UnifiedHeader({
+  config = {} as const,
+  className,
+  variant = "default",
+}: Readonly<HeaderProps>) {
   const { theme, setTheme } = useTheme();
-  const { user, isLoading: authLoading } = useAuth();
+  const pathname = usePathname();
   const [mounted, setMounted] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const finalConfig = { ...DEFAULT_HEADER_CONFIG, ...config };
+
+  // Determine if this is admin variant
+  const isAdminVariant = variant === "admin";
+
+  // Always call both hooks to avoid conditional hook usage
+  const { user: defaultUser, isLoading: defaultAuthLoading } = useAuthContext();
+  const { user: adminUser, isLoading: adminAuthLoading } = useAuth();
+
+  // Use appropriate auth data based on variant
+  const user = isAdminVariant ? adminUser : defaultUser;
+  const authLoading = isAdminVariant ? adminAuthLoading : defaultAuthLoading;
+
+  // Don't show user menu on login page if configured
+  const isLoginPage = pathname === "/admin/login";
+  const shouldHideUserMenu = finalConfig.hideUserMenuOnLogin && isLoginPage;
 
   useEffect(() => {
     setMounted(true);
@@ -47,12 +70,41 @@ export function AdminHeader({ config = {} as const, className }: Readonly<Header
   const userName = getUserFullName(user);
   const userEmail = getUserEmail(user);
 
+  // Get variant-specific configurations
+  const getVariantConfig = () => {
+    if (isAdminVariant) {
+      return {
+        backgroundClass:
+          "bg-red-50/70 backdrop-blur supports-[backdrop-filter]:bg-red-50/60 dark:bg-red-950/70 dark:supports-[backdrop-filter]:bg-red-950/60",
+        logoContent: (
+          <div className="flex items-center gap-2">
+            <Shield className="h-5 w-5 text-red-600 dark:text-red-400" />
+            <span className="font-semibold">{finalConfig.logoText} Admin</span>
+          </div>
+        ),
+        navigationItems: ADMIN_NAVIGATION_ITEMS,
+        menuOptions: ADMIN_MENU_OPTIONS,
+      };
+    }
+
+    return {
+      backgroundClass:
+        "bg-white/70 backdrop-blur supports-[backdrop-filter]:bg-white/60 dark:bg-neutral-900/70 dark:supports-[backdrop-filter]:bg-neutral-900/60",
+      logoContent: <span className="font-semibold">{finalConfig.logoText}</span>,
+      navigationItems: USER_NAVIGATION_ITEMS,
+      menuOptions: USER_MENU_OPTIONS,
+    };
+  };
+
+  const variantConfig = getVariantConfig();
+
   // Show loading state
   if (!mounted || authLoading) {
     return (
       <header
         className={cn(
-          "sticky top-0 z-40 w-full border-b bg-red-50/70 backdrop-blur supports-[backdrop-filter]:bg-red-50/60 dark:bg-red-950/70 dark:supports-[backdrop-filter]:bg-red-950/60",
+          "sticky top-0 z-40 w-full border-b",
+          variantConfig.backgroundClass,
           className,
         )}
       >
@@ -62,12 +114,7 @@ export function AdminHeader({ config = {} as const, className }: Readonly<Header
             finalConfig.maxWidth,
           )}
         >
-          <div className="flex items-center gap-2">
-            <Shield className="h-5 w-5 text-red-600 dark:text-red-400" />
-            <Link href={finalConfig.logoHref} className="font-semibold">
-              {finalConfig.logoText} Admin
-            </Link>
-          </div>
+          <Link href={finalConfig.logoHref}>{variantConfig.logoContent}</Link>
           <div className="flex items-center gap-2">
             {finalConfig.showThemeToggle && (
               <Button variant="ghost" size="icon" disabled>
@@ -87,7 +134,8 @@ export function AdminHeader({ config = {} as const, className }: Readonly<Header
     <>
       <header
         className={cn(
-          "sticky top-0 z-40 w-full border-b bg-red-50/70 backdrop-blur supports-[backdrop-filter]:bg-red-50/60 dark:bg-red-950/70 dark:supports-[backdrop-filter]:bg-red-950/60",
+          "sticky top-0 z-40 w-full border-b",
+          variantConfig.backgroundClass,
           className,
         )}
       >
@@ -97,17 +145,12 @@ export function AdminHeader({ config = {} as const, className }: Readonly<Header
             finalConfig.maxWidth,
           )}
         >
-          {/* Logo with Admin indicator */}
-          <div className="flex items-center gap-2">
-            <Shield className="h-5 w-5 text-red-600 dark:text-red-400" />
-            <Link href={finalConfig.logoHref} className="font-semibold">
-              {finalConfig.logoText} Admin
-            </Link>
-          </div>
+          {/* Logo */}
+          <Link href={finalConfig.logoHref}>{variantConfig.logoContent}</Link>
 
           {/* Desktop Navigation */}
           <Navigation
-            navigationItems={ADMIN_NAVIGATION_ITEMS}
+            navigationItems={variantConfig.navigationItems}
             userRole={userRole}
             className="flex-1 justify-center"
           />
@@ -128,14 +171,14 @@ export function AdminHeader({ config = {} as const, className }: Readonly<Header
               </div>
             )}
 
-            {/* User Menu - Hidden on mobile */}
-            {finalConfig.showUserMenu && (
+            {/* User Menu - Hidden on mobile and conditionally on login page */}
+            {finalConfig.showUserMenu && !shouldHideUserMenu && (
               <div className="hidden lg:block">
                 <UserMenu
                   userRole={userRole}
                   userName={userName}
                   userEmail={userEmail}
-                  userMenuOptions={ADMIN_MENU_OPTIONS}
+                  userMenuOptions={variantConfig.menuOptions}
                   onUserMenuAction={handleUserMenuAction}
                   isAuthenticated={isAuthenticated}
                 />
@@ -163,8 +206,8 @@ export function AdminHeader({ config = {} as const, className }: Readonly<Header
         <MobileMenu
           isOpen={mobileMenuOpen}
           onClose={() => setMobileMenuOpen(false)}
-          navigationItems={ADMIN_NAVIGATION_ITEMS}
-          userMenuOptions={ADMIN_MENU_OPTIONS}
+          navigationItems={variantConfig.navigationItems}
+          userMenuOptions={variantConfig.menuOptions}
           onUserMenuAction={handleUserMenuAction}
           userRole={userRole}
           userName={userName}

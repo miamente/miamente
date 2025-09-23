@@ -93,36 +93,6 @@ export class DashboardTestHelpers {
   }
 
   /**
-   * Check for appointments section
-   */
-  async checkAppointmentsSection(): Promise<void> {
-    const appointmentsSection = this.page
-      .locator('[data-testid="appointments"]')
-      .or(this.page.locator(".appointments"))
-      .or(this.page.locator('h2:has-text("Citas")'))
-      .or(this.page.locator('h2:has-text("Appointments")'));
-
-    if (await appointmentsSection.isVisible()) {
-      await expect(appointmentsSection).toBeVisible();
-
-      // Check for appointment cards or empty state
-      const appointmentCards = this.page
-        .locator('[data-testid="appointment-card"]')
-        .or(this.page.locator(".appointment-card"));
-
-      const emptyState = this.page
-        .locator("text=No tienes citas programadas")
-        .or(this.page.locator("text=No appointments scheduled"));
-
-      if ((await appointmentCards.count()) > 0) {
-        await expect(appointmentCards.first()).toBeVisible();
-      } else if (await emptyState.isVisible()) {
-        await expect(emptyState).toBeVisible();
-      }
-    }
-  }
-
-  /**
    * Check for logout button visibility
    */
   async checkLogoutButton(): Promise<void> {
