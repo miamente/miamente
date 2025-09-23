@@ -68,7 +68,7 @@ jobs:
 
     env:
       NEXT_PUBLIC_API_URL: http://localhost:8000
-      NODE_ENV: development
+      NODE_ENV: production
       E2E_BASE_URL: http://localhost:3000
       PROJECT_NAME: ${{ secrets.PROJECT_NAME }}
       VERSION: ${{ secrets.VERSION }}
@@ -114,6 +114,11 @@ jobs:
         uses: ./.github/actions/setup-frontend
         with:
           node-version: "21"
+      
+      - name: Ensure devDependencies (Tailwind/PostCSS)
+        run: npm ci --include=dev
+        env:
+          NODE_ENV: development
 
       - name: Install Playwright browsers & system deps
         run: npx playwright install --with-deps
