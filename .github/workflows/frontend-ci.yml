@@ -113,21 +113,22 @@ jobs:
             apps/web/coverage/
             apps/web/test-results/
 
-    docker-build-validate:
-      name: Docker build (validate, no push)
-      runs-on: ubuntu-latest
-      needs: [lint,unit-tests]
-      steps:
-        - uses: actions/checkout@v4
+  docker-build-validate:
+    name: Docker build (validate, no push)
+    runs-on: ubuntu-latest
+    needs: [lint,unit-tests]
+    steps:
+      - uses: actions/checkout@v4
 
-        - name: Build image (no push)
-          uses: docker/build-push-action@v5
-          with:
-            context: ./apps/web
-            file: ./apps/web/Dockerfile
-            push: false
-            load: false
-            tags: ${{ secrets.DOCKERHUB_FRONTEND_REPOSITORY }}:${{ github.sha }}
+      - name: Build image (no push)
+        uses: docker/build-push-action@v5
+        with:
+          context: ./apps/web
+          file: ./apps/web/Dockerfile
+          push: false
+          load: false
+          tags: ${{ secrets.DOCKERHUB_FRONTEND_REPOSITORY }}:${{ github.sha }}
+          
   sonar:
     name: SonarCloud Frontend Analysis
     runs-on: ubuntu-latest

@@ -4,18 +4,18 @@ Backend API for the Miamente mental health platform built with FastAPI.
 
 ## Features
 
-- **Authentication**: JWT-based authentication for users and professionals
-- **Availability**: Professional availability management
-- **Database**: PostgreSQL with SQLAlchemy ORM
+- **Authentication**: JWT-based authentication for users and professionals.
+- **Availability**: Professional availability management.
+- **Database**: PostgreSQL with SQLAlchemy ORM.
 
 ## Tech Stack
 
-- **FastAPI**: Modern, fast web framework for building APIs
-- **PostgreSQL**: Primary database
-- **Redis**: Caching and task queue
-- **SQLAlchemy**: ORM for database operations
-- **Pydantic**: Data validation and serialization
-- **JWT**: Authentication tokens
+- **FastAPI**: Modern, fast web framework for building APIs.
+- **PostgreSQL**: Primary database.
+- **Redis**: Caching and task queue.
+- **SQLAlchemy**: ORM for database operations.
+- **Pydantic**: Data validation and serialization.
+- **JWT**: Authentication tokens.
 
 ## Quick Start
 
