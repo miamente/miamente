@@ -9,7 +9,6 @@ RUN apt-get update && apt-get install -y \
 WORKDIR /app
 
 COPY pyproject.toml ./
-COPY README.md ./
 
 RUN pip install --upgrade pip \
  && pip install .
