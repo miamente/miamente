@@ -1,18 +1,55 @@
 import React from "react";
-import { render, screen } from "@testing-library/react";
-import { describe, it, expect } from "vitest";
+import { render, screen, waitFor } from "@testing-library/react";
+import { describe, it, expect, vi, beforeEach } from "vitest";
 
 import AdminProfessionals from "../page";
 
+// Mock the API client
+vi.mock("@/lib/api", () => ({
+  apiClient: {
+    getProfessionals: vi.fn(),
+    toggleProfessionalStatus: vi.fn(),
+    deleteProfessional: vi.fn(),
+  },
+}));
+
+// Mock the timezone utility
+vi.mock("@/lib/timezone", () => ({
+  formatBogotaDate: vi.fn((date) => date.toISOString().split("T")[0]),
+}));
+
 describe("AdminProfessionals", () => {
-  it("renders admin professionals page", () => {
+  beforeEach(async () => {
+    vi.clearAllMocks();
+
+    // Mock successful API response
+    const { apiClient } = await import("@/lib/api");
+    (apiClient.getProfessionals as any).mockResolvedValue([
+      {
+        id: "1",
+        email: "professional@example.com",
+        full_name: "Test Professional",
+        phone: "+1234567890",
+        is_active: true,
+        is_verified: true,
+        license_number: "PSI-12345",
+        years_experience: 5,
+        specialty_ids: [],
+        modality_ids: [],
+        therapeutic_approach_ids: [],
+        created_at: "2024-01-01T00:00:00Z",
+        last_login: "2024-01-15T10:30:00Z",
+      },
+    ]);
+  });
+
+  it("renders admin professionals page", async () => {
     render(<AdminProfessionals />);
 
-    expect(screen.getByText("Gestión de Profesionales")).toBeInTheDocument();
-    expect(screen.getByText("Administra los profesionales de la plataforma")).toBeInTheDocument();
-    expect(screen.getByText("Lista de Profesionales")).toBeInTheDocument();
-    expect(
-      screen.getByText("Funcionalidad de gestión de profesionales en desarrollo"),
-    ).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByText("Gestión de Profesionales")).toBeInTheDocument();
+    });
+
+    expect(screen.getByText("Administrar profesionales de la plataforma")).toBeInTheDocument();
   });
 });

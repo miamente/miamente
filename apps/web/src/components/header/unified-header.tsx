@@ -1,8 +1,7 @@
 "use client";
 import React, { useEffect, useState } from "react";
-import { Menu, Moon, Sun, Shield } from "lucide-react";
+import { Menu, Shield } from "lucide-react";
 import Link from "next/link";
-import { useTheme } from "next-themes";
 import { usePathname } from "next/navigation";
 
 import { MobileMenu } from "./mobile-menu";
@@ -10,9 +9,8 @@ import { Navigation } from "./navigation";
 import { UserMenu } from "./user-menu";
 
 import { Button } from "@/components/ui/button";
-import { useAuth, getUserEmail, getUserFullName } from "@/hooks/useAuth";
+import { getUserEmail, getUserFullName } from "@/hooks/useAuth";
 import { useAuthContext } from "@/contexts/AuthContext";
-import { logout } from "@/lib/auth";
 import {
   DEFAULT_HEADER_CONFIG,
   USER_NAVIGATION_ITEMS,
@@ -28,7 +26,6 @@ export function UnifiedHeader({
   className,
   variant = "default",
 }: Readonly<HeaderProps>) {
-  const { theme, setTheme } = useTheme();
   const pathname = usePathname();
   const [mounted, setMounted] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -38,13 +35,8 @@ export function UnifiedHeader({
   // Determine if this is admin variant
   const isAdminVariant = variant === "admin";
 
-  // Always call both hooks to avoid conditional hook usage
-  const { user: defaultUser, isLoading: defaultAuthLoading } = useAuthContext();
-  const { user: adminUser, isLoading: adminAuthLoading } = useAuth();
-
-  // Use appropriate auth data based on variant
-  const user = isAdminVariant ? adminUser : defaultUser;
-  const authLoading = isAdminVariant ? adminAuthLoading : defaultAuthLoading;
+  // Use the same authentication context for all variants
+  const { user, isLoading: authLoading, logout: authLogout } = useAuthContext();
 
   // Don't show user menu on login page if configured
   const isLoginPage = pathname === "/admin/login";
@@ -57,14 +49,13 @@ export function UnifiedHeader({
   const handleUserMenuAction = async (action: string) => {
     if (action === "logout") {
       try {
-        await logout();
+        authLogout();
       } catch (error) {
         console.error("Error signing out:", error);
       }
     }
   };
 
-  const isDark = theme === "dark";
   const isAuthenticated = !!user && !authLoading;
   const userRole = user?.type;
   const userName = getUserFullName(user);
@@ -74,11 +65,10 @@ export function UnifiedHeader({
   const getVariantConfig = () => {
     if (isAdminVariant) {
       return {
-        backgroundClass:
-          "bg-red-50/70 backdrop-blur supports-[backdrop-filter]:bg-red-50/60 dark:bg-red-950/70 dark:supports-[backdrop-filter]:bg-red-950/60",
+        backgroundClass: "bg-red-50/70 backdrop-blur supports-[backdrop-filter]:bg-red-50/60",
         logoContent: (
           <div className="flex items-center gap-2">
-            <Shield className="h-5 w-5 text-red-600 dark:text-red-400" />
+            <Shield className="h-5 w-5 text-red-600" />
             <span className="font-semibold">{finalConfig.logoText} Admin</span>
           </div>
         ),
@@ -88,8 +78,7 @@ export function UnifiedHeader({
     }
 
     return {
-      backgroundClass:
-        "bg-white/70 backdrop-blur supports-[backdrop-filter]:bg-white/60 dark:bg-neutral-900/70 dark:supports-[backdrop-filter]:bg-neutral-900/60",
+      backgroundClass: "bg-white/70 backdrop-blur supports-[backdrop-filter]:bg-white/60",
       logoContent: <span className="font-semibold">{finalConfig.logoText}</span>,
       navigationItems: USER_NAVIGATION_ITEMS,
       menuOptions: USER_MENU_OPTIONS,
@@ -116,11 +105,6 @@ export function UnifiedHeader({
         >
           <Link href={finalConfig.logoHref}>{variantConfig.logoContent}</Link>
           <div className="flex items-center gap-2">
-            {finalConfig.showThemeToggle && (
-              <Button variant="ghost" size="icon" disabled>
-                <Sun className="h-4 w-4" />
-              </Button>
-            )}
             <Button variant="ghost" size="icon" disabled>
               <Menu className="h-4 w-4" />
             </Button>
@@ -157,20 +141,6 @@ export function UnifiedHeader({
 
           {/* Right Side Actions */}
           <div className="flex items-center gap-2">
-            {/* Theme Toggle - Hidden on mobile */}
-            {finalConfig.showThemeToggle && (
-              <div className="hidden lg:block">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => setTheme(isDark ? "light" : "dark")}
-                  aria-label="Toggle theme"
-                >
-                  {isDark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-                </Button>
-              </div>
-            )}
-
             {/* User Menu - Hidden on mobile and conditionally on login page */}
             {finalConfig.showUserMenu && !shouldHideUserMenu && (
               <div className="hidden lg:block">

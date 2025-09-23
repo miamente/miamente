@@ -2,11 +2,11 @@
 User model for the Miamente platform.
 """
 
+import enum
 import uuid
 
 from sqlalchemy import Boolean, Column, DateTime, String, Text, Enum
 from sqlalchemy.dialects.postgresql import UUID
-import enum
 
 from app.core.database import Base
 from app.models.mixins import TimestampMixin

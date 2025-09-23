@@ -235,6 +235,17 @@ class ApiClient {
   }
 
   // User methods
+  async getUsers(params?: { skip?: number; limit?: number; role?: string }): Promise<User[]> {
+    const searchParams = new URLSearchParams();
+    if (params?.skip) searchParams.set("skip", params.skip.toString());
+    if (params?.limit) searchParams.set("limit", params.limit.toString());
+    if (params?.role) searchParams.set("role", params.role);
+
+    const queryString = searchParams.toString();
+    const endpoint = queryString ? `/users?${queryString}` : "/users";
+    return this.get<User[]>(endpoint);
+  }
+
   async getUser(userId: string): Promise<User> {
     return this.get<User>(`/users/${userId}`);
   }
@@ -247,26 +258,34 @@ class ApiClient {
     return this.delete<void>(`/users/${userId}`);
   }
 
+  async toggleUserStatus(userId: string, isActive: boolean): Promise<User> {
+    return this.patch<User>(`/users/${userId}/status`, { is_active: isActive });
+  }
+
   // Professional methods
   async getProfessional(professionalId: string): Promise<Professional> {
     return this.get<Professional>(`/professionals/${professionalId}`);
   }
 
   async getProfessionals(params?: {
-    page?: number;
-    size?: number;
+    skip?: number;
+    limit?: number;
     specialty?: string;
-    verified?: boolean;
-  }): Promise<PaginatedResponse<Professional>> {
+    min_rate_cents?: number;
+    max_rate_cents?: number;
+  }): Promise<Professional[]> {
     const searchParams = new URLSearchParams();
-    if (params?.page) searchParams.set("page", params.page.toString());
-    if (params?.size) searchParams.set("size", params.size.toString());
+    if (params?.skip) searchParams.set("skip", params.skip.toString());
+    if (params?.limit) searchParams.set("limit", params.limit.toString());
     if (params?.specialty) searchParams.set("specialty", params.specialty);
-    if (params?.verified !== undefined) searchParams.set("verified", params.verified.toString());
+    if (params?.min_rate_cents !== undefined)
+      searchParams.set("min_rate_cents", params.min_rate_cents.toString());
+    if (params?.max_rate_cents !== undefined)
+      searchParams.set("max_rate_cents", params.max_rate_cents.toString());
 
     const queryString = searchParams.toString();
     const endpoint = queryString ? `/professionals?${queryString}` : "/professionals";
-    return this.get<PaginatedResponse<Professional>>(endpoint);
+    return this.get<Professional[]>(endpoint);
   }
 
   async updateProfessional(
@@ -278,6 +297,12 @@ class ApiClient {
 
   async deleteProfessional(professionalId: string): Promise<void> {
     return this.delete<void>(`/professionals/${professionalId}`);
+  }
+
+  async toggleProfessionalStatus(professionalId: string, isActive: boolean): Promise<Professional> {
+    return this.patch<Professional>(`/professionals/${professionalId}/status`, {
+      is_active: isActive,
+    });
   }
 
   // Specialty methods

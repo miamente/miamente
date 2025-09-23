@@ -5,7 +5,6 @@ import React, { ReactNode } from "react";
 import "./globals.css";
 import { Footer } from "@/components/footer";
 import { HeaderWrapper as Header } from "@/components/header/header-wrapper";
-import { ThemeProvider } from "@/components/theme-provider";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider } from "@/contexts/AuthContext";
 
@@ -24,18 +23,16 @@ export default function RootLayout({
   return (
     <html lang="es">
       <body
-        className={`${montserrat.variable} min-h-screen bg-white font-sans text-neutral-900 antialiased dark:bg-neutral-950 dark:text-neutral-50`}
+        className={`${montserrat.variable} min-h-screen bg-white font-sans text-neutral-900 antialiased`}
         suppressHydrationWarning={true}
       >
-        <ThemeProvider>
-          <TooltipProvider>
-            <AuthProvider>
-              <Header />
-              <main className="mx-auto min-h-[70vh] max-w-6xl px-4 py-8">{children}</main>
-              <Footer />
-            </AuthProvider>
-          </TooltipProvider>
-        </ThemeProvider>
+        <TooltipProvider>
+          <AuthProvider>
+            <Header />
+            <main className="mx-auto min-h-[70vh] max-w-6xl px-4 py-8">{children}</main>
+            <Footer />
+          </AuthProvider>
+        </TooltipProvider>
       </body>
     </html>
   );

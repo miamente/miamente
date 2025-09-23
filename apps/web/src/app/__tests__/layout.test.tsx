@@ -48,7 +48,6 @@ describe("RootLayout", () => {
     );
 
     // Check that the main layout components are rendered
-    expect(screen.getByTestId("theme-provider")).toBeInTheDocument();
     expect(screen.getByTestId("tooltip-provider")).toBeInTheDocument();
     expect(screen.getByTestId("auth-provider")).toBeInTheDocument();
     expect(screen.getByTestId("header")).toBeInTheDocument();
@@ -84,8 +83,6 @@ describe("RootLayout", () => {
     expect(body).toHaveClass("font-sans");
     expect(body).toHaveClass("text-neutral-900");
     expect(body).toHaveClass("antialiased");
-    expect(body).toHaveClass("dark:bg-neutral-950");
-    expect(body).toHaveClass("dark:text-neutral-50");
   });
 
   it("should have suppressHydrationWarning on body", () => {
@@ -135,12 +132,10 @@ describe("RootLayout", () => {
       </RootLayout>,
     );
 
-    // Check nesting order: ThemeProvider > TooltipProvider > AuthProvider
-    const themeProvider = screen.getByTestId("theme-provider");
+    // Check nesting order: TooltipProvider > AuthProvider
     const tooltipProvider = screen.getByTestId("tooltip-provider");
     const authProvider = screen.getByTestId("auth-provider");
 
-    expect(themeProvider).toContainElement(tooltipProvider);
     expect(tooltipProvider).toContainElement(authProvider);
     expect(authProvider).toContainElement(screen.getByTestId("header"));
     expect(authProvider).toContainElement(screen.getByTestId("footer"));

@@ -1,6 +1,21 @@
 import { defineConfig, devices } from "@playwright/test";
 
 /**
+ * Playwright E2E Test Configuration
+ *
+ * This configuration supports both full testing and fast development modes.
+ *
+ * Usage:
+ * - npm run test:e2e          # Full test suite (all browsers)
+ * - npm run test:e2e:fast     # Fast mode (Chromium only, shorter timeouts)
+ * - npm run test:e2e:chromium # Chromium only
+ * - npm run test:e2e:firefox  # Firefox only
+ * - npm run test:e2e:webkit   # Safari only
+ * - npm run test:e2e:mobile   # Mobile browsers only
+ *
+ * Note: Frontend must be started manually with `npm run dev`
+ *       Backend must be started manually with `cd backend && source venv/bin/activate && python -m uvicorn app.main:app --host 0.0.0.0 --port 8000`
+ *
  * @see https://playwright.dev/docs/test-configuration
  */
 export default defineConfig({
@@ -71,14 +86,6 @@ export default defineConfig({
     //   use: { ...devices['Desktop Chrome'], channel: 'chrome' },
     // },
   ],
-
-  /* Run your local dev server before starting the tests */
-  webServer: {
-    command: "npm run dev",
-    url: "http://localhost:3000",
-    reuseExistingServer: !process.env.CI,
-    timeout: 120 * 1000,
-  },
 
   /* Global setup and teardown */
   globalSetup: require.resolve("./tests/e2e/global-setup.ts"),

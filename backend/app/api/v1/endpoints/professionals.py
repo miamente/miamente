@@ -9,7 +9,7 @@ from typing import List
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
-from app.utils.auth import get_current_user_id
+from app.utils.auth import get_current_user_id, get_current_admin_user
 from app.core.database import get_db
 from app.models.professional import Professional
 from app.models.professional_modality import ProfessionalModality
@@ -218,4 +218,65 @@ async def update_current_professional(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Error updating professional: {str(exc)}",
+        ) from exc
+
+
+@router.patch("/{professional_id}/status", response_model=ProfessionalResponse)
+async def toggle_professional_status(
+    professional_id: str,
+    status_data: dict,
+    _admin_user=Depends(get_current_admin_user),
+    db: Session = Depends(get_db),
+):
+    """Toggle professional active status (admin only)."""
+    try:
+        professional_uuid = uuid.UUID(professional_id)
+    except ValueError as exc:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid ID format") from exc
+
+    professional = db.query(Professional).filter(Professional.id == professional_uuid).first()
+
+    if not professional:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=PROFESSIONAL_NOT_FOUND_MESSAGE)
+
+    try:
+        professional.is_active = status_data.get("is_active", professional.is_active)
+        db.commit()
+        db.refresh(professional)
+        return parse_professional_data(professional)
+    except Exception as exc:
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error updating professional status: {str(exc)}",
+        ) from exc
+
+
+@router.delete("/{professional_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_professional_admin(
+    professional_id: str,
+    _admin_user=Depends(get_current_admin_user),
+    db: Session = Depends(get_db),
+):
+    """Delete professional (admin only)."""
+    try:
+        professional_uuid = uuid.UUID(professional_id)
+    except ValueError as exc:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid ID format") from exc
+
+    professional = db.query(Professional).filter(Professional.id == professional_uuid).first()
+
+    if not professional:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=PROFESSIONAL_NOT_FOUND_MESSAGE)
+
+    try:
+        # Soft delete - mark as inactive
+        professional.is_active = False
+        db.commit()
+        return None
+    except Exception as exc:
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error deleting professional: {str(exc)}",
         ) from exc

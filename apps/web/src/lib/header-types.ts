@@ -21,7 +21,6 @@ export interface UserMenuOption {
 }
 
 export interface HeaderConfig {
-  showThemeToggle?: boolean;
   showUserMenu?: boolean;
   showMobileMenu?: boolean;
   logoHref?: string;
@@ -37,7 +36,6 @@ export interface HeaderProps {
 }
 
 export const DEFAULT_HEADER_CONFIG: Required<HeaderConfig> = {
-  showThemeToggle: true,
   showUserMenu: true,
   showMobileMenu: true,
   logoHref: "/",
@@ -94,7 +92,7 @@ export const USER_MENU_OPTIONS: UserMenuOption[] = [
   {
     label: "Cerrar Sesión",
     action: "logout", // Special action identifier
-    roles: [UserRole.USER, UserRole.PROFESSIONAL],
+    // No roles restriction - logout should be available to all authenticated users
     divider: true,
   },
 ];
@@ -114,7 +112,7 @@ export const ADMIN_MENU_OPTIONS: UserMenuOption[] = [
   {
     label: "Cerrar Sesión",
     action: "logout", // Special action identifier
-    roles: [UserRole.ADMIN],
+    // No roles restriction - logout should be available to all authenticated users
     divider: true,
   },
 ];

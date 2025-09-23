@@ -12,20 +12,20 @@ describe("AdminDashboard", () => {
     expect(screen.getByText("Dashboard de Administración")).toBeInTheDocument();
     expect(screen.getByText("Panel de control para administrar la plataforma")).toBeInTheDocument();
 
-    // Check action buttons in header
-    expect(screen.getAllByText("Gestionar Usuarios")).toHaveLength(2); // One in header, one in quick actions
-    expect(screen.getAllByText("Gestionar Profesionales")).toHaveLength(2); // One in header, one in quick actions
+    // Check action buttons in quick actions
+    expect(screen.getByText("Gestionar Usuarios")).toBeInTheDocument();
+    expect(screen.getByText("Gestionar Profesionales")).toBeInTheDocument();
 
     // Check quick actions section
     expect(screen.getByText("Acciones Rápidas")).toBeInTheDocument();
 
     // Check all quick action buttons
     const quickActionButtons = screen.getAllByRole("link");
-    expect(quickActionButtons).toHaveLength(6); // 2 in header + 4 in quick actions
+    expect(quickActionButtons).toHaveLength(4); // 4 in quick actions
 
     // Verify quick action links
-    expect(screen.getAllByRole("link", { name: /Gestionar Usuarios/i })).toHaveLength(2);
-    expect(screen.getAllByRole("link", { name: /Gestionar Profesionales/i })).toHaveLength(2);
+    expect(screen.getByRole("link", { name: /Gestionar Usuarios/i })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /Gestionar Profesionales/i })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /Gestionar Especialidades/i })).toHaveAttribute(
       "href",
       "/admin/specialties",

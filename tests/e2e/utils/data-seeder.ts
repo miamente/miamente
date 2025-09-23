@@ -227,6 +227,17 @@ export class DataSeeder {
     for (const user of users) {
       await this.createEntity("/api/v1/auth/register/user", user, "user", user.email);
     }
+
+    // Create admin user
+    const adminUser = {
+      email: "admin@miamente.com",
+      password: TEST_PASSWORD,
+      full_name: "Admin User",
+      phone: "+1234567899",
+      role: "admin",
+    };
+
+    await this.createEntity("/api/v1/auth/register/user", adminUser, "admin user", adminUser.email);
   }
 
   /**

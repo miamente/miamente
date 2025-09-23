@@ -9,24 +9,14 @@ import Link from "next/link";
 export default function AdminDashboard() {
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-            Dashboard de Administración
-          </h1>
-          <p className="mt-2 text-gray-600 dark:text-gray-400">
-            Panel de control para administrar la plataforma
-          </p>
-        </div>
-        <div className="flex space-x-2">
-          <Button asChild variant="outline">
-            <Link href="/admin/users">Gestionar Usuarios</Link>
-          </Button>
-          <Button asChild>
-            <Link href="/admin/professionals">Gestionar Profesionales</Link>
-          </Button>
-        </div>
+      {/* Page Header */}
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+          Dashboard de Administración
+        </h1>
+        <p className="mt-2 text-gray-600 dark:text-gray-400">
+          Panel de control para administrar la plataforma
+        </p>
       </div>
 
       {/* Quick Actions */}

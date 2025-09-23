@@ -10,6 +10,8 @@ import {
   Mail,
   Phone,
   Calendar,
+  Shield,
+  UserCog,
 } from "lucide-react";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -37,44 +39,46 @@ export default function AdminUsers() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
-  const [filterRole, setFilterRole] = useState<string>("all");
   const [filterStatus, setFilterStatus] = useState<string>("all");
 
   useEffect(() => {
-    const loadUsers = async () => {
+    const loadAdminUsers = async () => {
       try {
         setLoading(true);
         setError(null);
 
-        // Load regular users only (role: "user")
-        const response = await apiClient.getUsers({ role: "user" });
-        console.log("Users API response:", response);
+        // Load all users and filter for admin/non-user roles
+        const response = await apiClient.getUsers();
+        console.log("All Users API response:", response);
 
         // Backend returns array directly
         if (Array.isArray(response)) {
-          setUsers(response as AdminUser[]);
+          // Filter to show only admin users and other non-user/non-professional roles
+          const adminUsers = (response as AdminUser[]).filter(
+            (user) => user.role !== "user" && user.role !== "professional",
+          );
+          setUsers(adminUsers);
         } else {
           console.error("Unexpected response format:", response);
           setUsers([]);
           setError("Formato de respuesta inesperado del servidor");
         }
       } catch (err) {
-        console.error("Error loading users:", err);
-        setError("Error al cargar los usuarios. Por favor, inténtalo de nuevo.");
+        console.error("Error loading admin users:", err);
+        setError("Error al cargar los usuarios administrativos. Por favor, inténtalo de nuevo.");
         setUsers([]); // Ensure users is always an array
       } finally {
         setLoading(false);
       }
     };
 
-    loadUsers();
+    loadAdminUsers();
   }, []);
 
   const filteredUsers = (users || []).filter((user) => {
     const matchesSearch =
       user.full_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       user.email.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesRole = filterRole === "all" || user.role === filterRole;
     const matchesStatus =
       filterStatus === "all" ||
       (filterStatus === "active" && user.is_active) ||
@@ -82,7 +86,7 @@ export default function AdminUsers() {
       (filterStatus === "verified" && user.is_verified) ||
       (filterStatus === "unverified" && !user.is_verified);
 
-    return matchesSearch && matchesRole && matchesStatus;
+    return matchesSearch && matchesStatus;
   });
 
   const handleToggleActive = async (userId: string, currentStatus: boolean) => {
@@ -98,7 +102,7 @@ export default function AdminUsers() {
   };
 
   const handleDeleteUser = async (userId: string) => {
-    if (confirm("¿Estás seguro de que quieres eliminar este usuario?")) {
+    if (confirm("¿Estás seguro de que quieres eliminar este usuario administrativo?")) {
       try {
         await apiClient.deleteUser(userId);
         setUsers((prev) => prev.filter((user) => user.id !== userId));
@@ -106,6 +110,33 @@ export default function AdminUsers() {
         console.error("Error deleting user:", err);
         setError("Error al eliminar el usuario");
       }
+    }
+  };
+
+  const getRoleIcon = (role: string) => {
+    switch (role) {
+      case "admin":
+        return <Shield className="h-4 w-4" />;
+      default:
+        return <UserCog className="h-4 w-4" />;
+    }
+  };
+
+  const getRoleBadgeVariant = (role: string) => {
+    switch (role) {
+      case "admin":
+        return "destructive";
+      default:
+        return "outline";
+    }
+  };
+
+  const getRoleLabel = (role: string) => {
+    switch (role) {
+      case "admin":
+        return "Administrador";
+      default:
+        return role.charAt(0).toUpperCase() + role.slice(1);
     }
   };
 
@@ -123,13 +154,13 @@ export default function AdminUsers() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-            Gestión de Usuarios Regulares
+            Gestión de Usuarios Administrativos
           </h1>
           <p className="mt-2 text-gray-600 dark:text-gray-400">
-            Administrar usuarios regulares de la plataforma
+            Administrar usuarios con roles administrativos y especiales
           </p>
         </div>
-        <Button>Agregar Usuario</Button>
+        <Button>Agregar Usuario Administrativo</Button>
       </div>
 
       {error && (
@@ -144,7 +175,7 @@ export default function AdminUsers() {
           <CardTitle>Filtros</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                 Buscar
@@ -158,19 +189,6 @@ export default function AdminUsers() {
                   className="pl-10"
                 />
               </div>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                Rol
-              </label>
-              <select
-                value={filterRole}
-                onChange={(e) => setFilterRole(e.target.value)}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
-              >
-                <option value="all">Todos los usuarios</option>
-                <option value="user">Usuarios regulares</option>
-              </select>
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
@@ -196,13 +214,15 @@ export default function AdminUsers() {
       <Card>
         <CardHeader>
           <CardTitle>
-            Usuarios ({filteredUsers.length} de {users.length})
+            Usuarios Administrativos ({filteredUsers.length} de {users.length})
           </CardTitle>
         </CardHeader>
         <CardContent>
           {filteredUsers.length === 0 ? (
             <div className="py-8 text-center text-gray-500">
-              No hay usuarios que coincidan con los filtros seleccionados
+              {users.length === 0
+                ? "No hay usuarios administrativos en el sistema"
+                : "No hay usuarios que coincidan con los filtros seleccionados"}
             </div>
           ) : (
             <div className="overflow-x-auto">
@@ -222,9 +242,14 @@ export default function AdminUsers() {
                   {filteredUsers.map((user) => (
                     <tr key={user.id} className="border-b hover:bg-gray-50 dark:hover:bg-gray-800">
                       <td className="p-4">
-                        <div className="font-medium">{user.full_name}</div>
-                        <div className="text-sm text-gray-500 dark:text-gray-400">
-                          ID: {user.id.slice(0, 8)}...
+                        <div className="flex items-center space-x-2">
+                          {getRoleIcon(user.role)}
+                          <div>
+                            <div className="font-medium">{user.full_name}</div>
+                            <div className="text-sm text-gray-500 dark:text-gray-400">
+                              ID: {user.id.slice(0, 8)}...
+                            </div>
+                          </div>
                         </div>
                       </td>
                       <td className="p-4">
@@ -240,7 +265,9 @@ export default function AdminUsers() {
                         )}
                       </td>
                       <td className="p-4">
-                        <Badge variant="secondary">Usuario</Badge>
+                        <Badge variant={getRoleBadgeVariant(user.role)}>
+                          {getRoleLabel(user.role)}
+                        </Badge>
                       </td>
                       <td className="p-4">
                         <div className="space-y-1">

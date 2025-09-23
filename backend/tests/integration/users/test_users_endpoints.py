@@ -8,7 +8,7 @@ from unittest.mock import Mock, patch
 from sqlalchemy.orm import Session
 
 from app.main import app
-from app.models.user import User
+from app.models.user import User, UserRole
 
 # from app.schemas.user import UserUpdate
 
@@ -41,6 +41,7 @@ class TestUsersEndpoints:
         user.emergency_contact = "Emergency Contact"
         user.emergency_phone = "+1234567890"
         user.preferences = {}
+        user.role = UserRole.USER
         user.created_at = "2024-01-01T00:00:00"
         user.updated_at = "2024-01-01T00:00:00"
         return user
@@ -57,7 +58,7 @@ class TestUsersEndpoints:
         # Assert
         assert response.status_code == 401
         data = response.json()
-        assert data["detail"] == "Authentication required"
+        assert data["detail"] == "Not authenticated"
 
     @patch("app.api.v1.endpoints.users.get_db")
     def test_get_user_by_id_unauthorized(self, mock_get_db, client, mock_db):
@@ -71,7 +72,7 @@ class TestUsersEndpoints:
         # Assert
         assert response.status_code == 401
         data = response.json()
-        assert data["detail"] == "Authentication required"
+        assert data["detail"] == "Not authenticated"
 
     def test_get_current_user_success(self, client, mock_db, sample_user):
         """Test getting current user profile successfully."""

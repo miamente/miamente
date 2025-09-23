@@ -75,15 +75,7 @@ describe("useProfessionals", () => {
       },
     ];
 
-    const mockResponse = {
-      data: mockProfessionals,
-      total: 2,
-      page: 1,
-      per_page: 10,
-      total_pages: 1,
-    };
-
-    vi.mocked(apiClient.getProfessionals).mockResolvedValue(mockResponse);
+    vi.mocked(apiClient.getProfessionals).mockResolvedValue(mockProfessionals);
 
     const { result } = renderHook(() => useProfessionals());
 
