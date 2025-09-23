@@ -114,6 +114,11 @@ jobs:
         uses: ./.github/actions/setup-frontend
         with:
           node-version: "22"
+      
+      - name: Ensure devDependencies (Tailwind/PostCSS)
+        run: npm ci --include=dev
+        env:
+          NODE_ENV: development
 
       - name: Install Playwright browsers & system deps
         run: npx playwright install --with-deps
