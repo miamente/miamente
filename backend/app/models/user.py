@@ -14,6 +14,7 @@ from app.models.mixins import TimestampMixin
 
 class UserRole(enum.Enum):
     """User role enumeration."""
+
     USER = "user"
     ADMIN = "admin"
 
