@@ -87,8 +87,7 @@ export default function AdminSpecialties() {
   const filteredSpecialties = specialties.filter(
     (specialty) =>
       specialty.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (specialty.description &&
-        specialty.description.toLowerCase().includes(searchTerm.toLowerCase())),
+      specialty.description?.toLowerCase().includes(searchTerm.toLowerCase()),
   );
 
   const handleCreateSpecialty = () => {

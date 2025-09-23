@@ -75,7 +75,7 @@ export default function AdminProfessionals() {
     const matchesSearch =
       professional.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       professional.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (professional.bio && professional.bio.toLowerCase().includes(searchTerm.toLowerCase()));
+      professional.bio?.toLowerCase().includes(searchTerm.toLowerCase());
 
     const matchesStatus =
       filterStatus === "all" ||
@@ -155,12 +155,16 @@ export default function AdminProfessionals() {
         <CardContent>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+              <label
+                htmlFor="search-professionals"
+                className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+              >
                 Buscar
               </label>
               <div className="relative mt-1">
                 <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-gray-400" />
                 <Input
+                  id="search-professionals"
                   placeholder="Buscar por nombre, email o biografía..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
@@ -169,10 +173,14 @@ export default function AdminProfessionals() {
               </div>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+              <label
+                htmlFor="filter-status"
+                className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+              >
                 Estado
               </label>
               <select
+                id="filter-status"
                 value={filterStatus}
                 onChange={(e) => setFilterStatus(e.target.value)}
                 className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
