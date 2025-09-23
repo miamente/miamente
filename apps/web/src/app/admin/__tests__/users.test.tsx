@@ -4,6 +4,35 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 
 import AdminUsers from "../users/page";
 
+// Define proper types for mock components
+interface MockComponentProps {
+  children?: React.ReactNode;
+  [key: string]: unknown;
+}
+
+interface MockButtonProps extends MockComponentProps {
+  onClick?: () => void;
+}
+
+interface MockInputProps {
+  placeholder?: string;
+  value?: string;
+  onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  className?: string;
+  id?: string;
+  [key: string]: unknown;
+}
+
+interface MockDropdownProps extends MockComponentProps {
+  asChild?: boolean;
+  align?: string;
+}
+
+interface MockDropdownItemProps extends MockComponentProps {
+  onClick?: () => void;
+  className?: string;
+}
+
 // Mock the API client
 vi.mock("@/lib/api", () => ({
   apiClient: {
@@ -20,22 +49,22 @@ vi.mock("@/lib/timezone", () => ({
 
 // Mock the UI components
 vi.mock("@/components/ui/card", () => ({
-  Card: ({ children, ...props }: any) => (
+  Card: ({ children, ...props }: MockComponentProps) => (
     <div data-testid="card" {...props}>
       {children}
     </div>
   ),
-  CardContent: ({ children, ...props }: any) => (
+  CardContent: ({ children, ...props }: MockComponentProps) => (
     <div data-testid="card-content" {...props}>
       {children}
     </div>
   ),
-  CardHeader: ({ children, ...props }: any) => (
+  CardHeader: ({ children, ...props }: MockComponentProps) => (
     <div data-testid="card-header" {...props}>
       {children}
     </div>
   ),
-  CardTitle: ({ children, ...props }: any) => (
+  CardTitle: ({ children, ...props }: MockComponentProps) => (
     <h3 data-testid="card-title" {...props}>
       {children}
     </h3>
@@ -43,7 +72,7 @@ vi.mock("@/components/ui/card", () => ({
 }));
 
 vi.mock("@/components/ui/button", () => ({
-  Button: ({ children, onClick, ...props }: any) => (
+  Button: ({ children, onClick, ...props }: MockButtonProps) => (
     <button data-testid="button" onClick={onClick} {...props}>
       {children}
     </button>
@@ -51,13 +80,13 @@ vi.mock("@/components/ui/button", () => ({
 }));
 
 vi.mock("@/components/ui/input", () => ({
-  Input: ({ onChange, value, ...props }: any) => (
+  Input: ({ onChange, value, ...props }: MockInputProps) => (
     <input data-testid="input" onChange={onChange} value={value} {...props} />
   ),
 }));
 
 vi.mock("@/components/ui/badge", () => ({
-  Badge: ({ children, variant, ...props }: any) => (
+  Badge: ({ children, variant, ...props }: MockComponentProps & { variant?: string }) => (
     <span data-testid="badge" data-variant={variant} {...props}>
       {children}
     </span>
@@ -65,14 +94,24 @@ vi.mock("@/components/ui/badge", () => ({
 }));
 
 vi.mock("@/components/ui/dropdown-menu", () => ({
-  DropdownMenu: ({ children }: any) => <div data-testid="dropdown-menu">{children}</div>,
-  DropdownMenuContent: ({ children }: any) => <div data-testid="dropdown-content">{children}</div>,
-  DropdownMenuItem: ({ children, onClick }: any) => (
-    <div data-testid="dropdown-item" onClick={onClick}>
+  DropdownMenu: ({ children }: MockComponentProps) => (
+    <div data-testid="dropdown-menu">{children}</div>
+  ),
+  DropdownMenuContent: ({ children, align, ...props }: MockDropdownProps) => (
+    <div data-testid="dropdown-content" data-align={align} {...props}>
       {children}
     </div>
   ),
-  DropdownMenuTrigger: ({ children }: any) => <div data-testid="dropdown-trigger">{children}</div>,
+  DropdownMenuItem: ({ children, onClick, className, ...props }: MockDropdownItemProps) => (
+    <div data-testid="dropdown-item" onClick={onClick} className={className} {...props}>
+      {children}
+    </div>
+  ),
+  DropdownMenuTrigger: ({ children, asChild, ...props }: MockDropdownProps) => (
+    <div data-testid="dropdown-trigger" data-as-child={asChild} {...props}>
+      {children}
+    </div>
+  ),
 }));
 
 // Mock Lucide React icons
@@ -127,14 +166,38 @@ describe("AdminUsers (Regular Users)", () => {
 
     // Mock successful API responses
     const { apiClient } = await import("@/lib/api");
-    (apiClient.getUsers as any).mockResolvedValue(mockUsers);
-    (apiClient.toggleUserStatus as any).mockResolvedValue({ ...mockUsers[0], is_active: false });
-    (apiClient.deleteUser as any).mockResolvedValue({});
+    (
+      apiClient.getUsers as unknown as {
+        mockResolvedValue: (value: unknown) => void;
+        mockRejectedValue: (value: unknown) => void;
+        mockImplementation: (value: unknown) => void;
+      }
+    ).mockResolvedValue(mockUsers);
+    (
+      apiClient.toggleUserStatus as unknown as {
+        mockResolvedValue: (value: unknown) => void;
+        mockRejectedValue: (value: unknown) => void;
+        mockImplementation: (value: unknown) => void;
+      }
+    ).mockResolvedValue({ ...mockUsers[0], is_active: false });
+    (
+      apiClient.deleteUser as unknown as {
+        mockResolvedValue: (value: unknown) => void;
+        mockRejectedValue: (value: unknown) => void;
+        mockImplementation: (value: unknown) => void;
+      }
+    ).mockResolvedValue({});
   });
 
   it("should render the page title for regular users", async () => {
     const { apiClient } = await import("@/lib/api");
-    (apiClient.getUsers as any).mockResolvedValue(mockUsers);
+    (
+      apiClient.getUsers as unknown as {
+        mockResolvedValue: (value: unknown) => void;
+        mockRejectedValue: (value: unknown) => void;
+        mockImplementation: (value: unknown) => void;
+      }
+    ).mockResolvedValue(mockUsers);
 
     render(<AdminUsers />);
 
@@ -178,7 +241,13 @@ describe("AdminUsers (Regular Users)", () => {
 
   it("should have correct role filter options", async () => {
     const { apiClient } = await import("@/lib/api");
-    (apiClient.getUsers as any).mockResolvedValue(mockUsers);
+    (
+      apiClient.getUsers as unknown as {
+        mockResolvedValue: (value: unknown) => void;
+        mockRejectedValue: (value: unknown) => void;
+        mockImplementation: (value: unknown) => void;
+      }
+    ).mockResolvedValue(mockUsers);
 
     render(<AdminUsers />);
 
@@ -227,7 +296,13 @@ describe("AdminUsers (Regular Users)", () => {
 
   it("should handle toggle user status", async () => {
     const { apiClient } = await import("@/lib/api");
-    (apiClient.getUsers as any).mockResolvedValue(mockUsers);
+    (
+      apiClient.getUsers as unknown as {
+        mockResolvedValue: (value: unknown) => void;
+        mockRejectedValue: (value: unknown) => void;
+        mockImplementation: (value: unknown) => void;
+      }
+    ).mockResolvedValue(mockUsers);
 
     render(<AdminUsers />);
 
@@ -245,7 +320,13 @@ describe("AdminUsers (Regular Users)", () => {
 
   it("should handle delete user", async () => {
     const { apiClient } = await import("@/lib/api");
-    (apiClient.getUsers as any).mockResolvedValue(mockUsers);
+    (
+      apiClient.getUsers as unknown as {
+        mockResolvedValue: (value: unknown) => void;
+        mockRejectedValue: (value: unknown) => void;
+        mockImplementation: (value: unknown) => void;
+      }
+    ).mockResolvedValue(mockUsers);
 
     render(<AdminUsers />);
 
@@ -266,7 +347,13 @@ describe("AdminUsers (Regular Users)", () => {
 
   it("should display error message when API fails", async () => {
     const { apiClient } = await import("@/lib/api");
-    (apiClient.getUsers as any).mockRejectedValue(new Error("API Error"));
+    (
+      apiClient.getUsers as unknown as {
+        mockResolvedValue: (value: unknown) => void;
+        mockRejectedValue: (value: unknown) => void;
+        mockImplementation: (value: unknown) => void;
+      }
+    ).mockRejectedValue(new Error("API Error"));
 
     render(<AdminUsers />);
 
@@ -294,7 +381,13 @@ describe("AdminUsers (Regular Users)", () => {
 
   it("should show no users message when no regular users exist", async () => {
     const { apiClient } = await import("@/lib/api");
-    (apiClient.getUsers as any).mockResolvedValue([]);
+    (
+      apiClient.getUsers as unknown as {
+        mockResolvedValue: (value: unknown) => void;
+        mockRejectedValue: (value: unknown) => void;
+        mockImplementation: (value: unknown) => void;
+      }
+    ).mockResolvedValue([]);
 
     render(<AdminUsers />);
 

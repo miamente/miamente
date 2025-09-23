@@ -5,6 +5,14 @@ import { usePathname } from "next/navigation";
 
 import AdminLayout from "../layout";
 
+// Define proper types for mock components
+interface MockLinkProps {
+  children?: React.ReactNode;
+  href?: string;
+  className?: string;
+  [key: string]: unknown;
+}
+
 // Mock Next.js navigation
 vi.mock("next/navigation", () => ({
   usePathname: vi.fn(),
@@ -16,7 +24,7 @@ vi.mock("next/navigation", () => ({
 
 // Mock Link component
 vi.mock("next/link", () => ({
-  default: ({ children, href, className }: any) => (
+  default: ({ children, href, className }: MockLinkProps) => (
     <a href={href} className={className} data-testid="link">
       {children}
     </a>
@@ -36,7 +44,7 @@ vi.mock("lucide-react", () => ({
 
 // Mock the cn utility
 vi.mock("@/lib/utils", () => ({
-  cn: (...classes: any[]) => {
+  cn: (...classes: (string | undefined | null | false)[]) => {
     return classes.filter(Boolean).join(" ");
   },
 }));
@@ -65,14 +73,28 @@ describe("AdminLayout", () => {
   });
 
   it("should render the admin layout with navigation", () => {
-    (usePathname as any).mockReturnValue("/admin");
+    (
+      usePathname as unknown as {
+        mockResolvedValue: (value: unknown) => void;
+        mockRejectedValue: (value: unknown) => void;
+        mockImplementation: (value: unknown) => void;
+        mockReturnValue: (value: unknown) => void;
+      }
+    ).mockReturnValue("/admin");
     render(<AdminLayout>{mockChildren}</AdminLayout>);
 
     expect(screen.getByTestId("admin-content")).toBeInTheDocument();
   });
 
   it("should render all navigation items", () => {
-    (usePathname as any).mockReturnValue("/admin");
+    (
+      usePathname as unknown as {
+        mockResolvedValue: (value: unknown) => void;
+        mockRejectedValue: (value: unknown) => void;
+        mockImplementation: (value: unknown) => void;
+        mockReturnValue: (value: unknown) => void;
+      }
+    ).mockReturnValue("/admin");
     render(<AdminLayout>{mockChildren}</AdminLayout>);
 
     // Check for navigation items
@@ -86,7 +108,14 @@ describe("AdminLayout", () => {
   });
 
   it("should render navigation icons", () => {
-    (usePathname as any).mockReturnValue("/admin");
+    (
+      usePathname as unknown as {
+        mockResolvedValue: (value: unknown) => void;
+        mockRejectedValue: (value: unknown) => void;
+        mockImplementation: (value: unknown) => void;
+        mockReturnValue: (value: unknown) => void;
+      }
+    ).mockReturnValue("/admin");
     render(<AdminLayout>{mockChildren}</AdminLayout>);
 
     expect(screen.getByTestId("users-icon")).toBeInTheDocument();
@@ -98,7 +127,14 @@ describe("AdminLayout", () => {
   });
 
   it("should have correct navigation links", () => {
-    (usePathname as any).mockReturnValue("/admin");
+    (
+      usePathname as unknown as {
+        mockResolvedValue: (value: unknown) => void;
+        mockRejectedValue: (value: unknown) => void;
+        mockImplementation: (value: unknown) => void;
+        mockReturnValue: (value: unknown) => void;
+      }
+    ).mockReturnValue("/admin");
     render(<AdminLayout>{mockChildren}</AdminLayout>);
 
     const links = screen.getAllByTestId("link");
@@ -113,7 +149,14 @@ describe("AdminLayout", () => {
   });
 
   it("should highlight active navigation item", () => {
-    (usePathname as any).mockReturnValue("/admin/users");
+    (
+      usePathname as unknown as {
+        mockResolvedValue: (value: unknown) => void;
+        mockRejectedValue: (value: unknown) => void;
+        mockImplementation: (value: unknown) => void;
+        mockReturnValue: (value: unknown) => void;
+      }
+    ).mockReturnValue("/admin/users");
     render(<AdminLayout>{mockChildren}</AdminLayout>);
 
     const activeLink = screen.getByText("Usuarios Regulares");
@@ -123,7 +166,14 @@ describe("AdminLayout", () => {
   });
 
   it("should highlight admin users navigation item when on admin-users page", () => {
-    (usePathname as any).mockReturnValue("/admin/admin-users");
+    (
+      usePathname as unknown as {
+        mockResolvedValue: (value: unknown) => void;
+        mockRejectedValue: (value: unknown) => void;
+        mockImplementation: (value: unknown) => void;
+        mockReturnValue: (value: unknown) => void;
+      }
+    ).mockReturnValue("/admin/admin-users");
     render(<AdminLayout>{mockChildren}</AdminLayout>);
 
     const activeLink = screen.getByText("Usuarios Administrativos");
@@ -132,7 +182,14 @@ describe("AdminLayout", () => {
   });
 
   it("should highlight professionals navigation item when on professionals page", () => {
-    (usePathname as any).mockReturnValue("/admin/professionals");
+    (
+      usePathname as unknown as {
+        mockResolvedValue: (value: unknown) => void;
+        mockRejectedValue: (value: unknown) => void;
+        mockImplementation: (value: unknown) => void;
+        mockReturnValue: (value: unknown) => void;
+      }
+    ).mockReturnValue("/admin/professionals");
     render(<AdminLayout>{mockChildren}</AdminLayout>);
 
     const activeLink = screen.getByText("Profesionales");
@@ -141,7 +198,14 @@ describe("AdminLayout", () => {
   });
 
   it("should have correct layout structure", () => {
-    (usePathname as any).mockReturnValue("/admin");
+    (
+      usePathname as unknown as {
+        mockResolvedValue: (value: unknown) => void;
+        mockRejectedValue: (value: unknown) => void;
+        mockImplementation: (value: unknown) => void;
+        mockReturnValue: (value: unknown) => void;
+      }
+    ).mockReturnValue("/admin");
     render(<AdminLayout>{mockChildren}</AdminLayout>);
 
     // Check for main container
@@ -161,7 +225,14 @@ describe("AdminLayout", () => {
   });
 
   it("should apply dark mode classes correctly", () => {
-    (usePathname as any).mockReturnValue("/admin");
+    (
+      usePathname as unknown as {
+        mockResolvedValue: (value: unknown) => void;
+        mockRejectedValue: (value: unknown) => void;
+        mockImplementation: (value: unknown) => void;
+        mockReturnValue: (value: unknown) => void;
+      }
+    ).mockReturnValue("/admin");
     render(<AdminLayout>{mockChildren}</AdminLayout>);
 
     const mainContainer = screen.getByTestId("admin-content").closest(".fixed");
@@ -172,7 +243,14 @@ describe("AdminLayout", () => {
   });
 
   it("should render children in main content area", () => {
-    (usePathname as any).mockReturnValue("/admin");
+    (
+      usePathname as unknown as {
+        mockResolvedValue: (value: unknown) => void;
+        mockRejectedValue: (value: unknown) => void;
+        mockImplementation: (value: unknown) => void;
+        mockReturnValue: (value: unknown) => void;
+      }
+    ).mockReturnValue("/admin");
     render(<AdminLayout>{mockChildren}</AdminLayout>);
 
     const mainContent = screen.getByTestId("admin-content").closest("main");
@@ -180,7 +258,14 @@ describe("AdminLayout", () => {
   });
 
   it("should have proper navigation item styling for inactive items", () => {
-    (usePathname as any).mockReturnValue("/admin/users");
+    (
+      usePathname as unknown as {
+        mockResolvedValue: (value: unknown) => void;
+        mockRejectedValue: (value: unknown) => void;
+        mockImplementation: (value: unknown) => void;
+        mockReturnValue: (value: unknown) => void;
+      }
+    ).mockReturnValue("/admin/users");
     render(<AdminLayout>{mockChildren}</AdminLayout>);
 
     const inactiveLink = screen.getByText("Profesionales");

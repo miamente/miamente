@@ -24,7 +24,9 @@ describe("AdminProfessionals", () => {
 
     // Mock successful API response
     const { apiClient } = await import("@/lib/api");
-    (apiClient.getProfessionals as any).mockResolvedValue([
+    (
+      apiClient.getProfessionals as unknown as { mockResolvedValue: (value: unknown) => void }
+    ).mockResolvedValue([
       {
         id: "1",
         email: "professional@example.com",
