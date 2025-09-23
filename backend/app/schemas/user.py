@@ -7,6 +7,7 @@ from datetime import datetime
 from typing import Optional
 
 from pydantic import BaseModel, ConfigDict, EmailStr, field_validator
+from app.models.user import UserRole
 
 
 class UserBase(BaseModel):
@@ -24,6 +25,7 @@ class UserCreate(UserBase):
     """User creation schema."""
 
     password: str
+    role: Optional[UserRole] = UserRole.USER
 
     @field_validator("password")
     @classmethod
@@ -52,6 +54,7 @@ class UserResponse(UserBase):
     id: uuid.UUID
     is_active: bool
     is_verified: bool
+    role: UserRole
     profile_picture: Optional[str] = None
     created_at: datetime
     updated_at: Optional[datetime] = None

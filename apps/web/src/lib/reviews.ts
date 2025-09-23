@@ -1,7 +1,6 @@
 import { apiClient } from "./api";
 
 export interface Review {
-  appointmentId: string;
   userId: string;
   proId: string;
   rating: number; // 1-5
@@ -10,13 +9,13 @@ export interface Review {
 }
 
 export interface CreateReviewRequest {
-  appointmentId: string;
+  professional_id: string;
   rating: number;
   comment?: string;
 }
 
 /**
- * Create a review for an appointment
+ * Create a review for a professional
  */
 export async function createReview(
   userId: string,
@@ -34,9 +33,7 @@ export async function createReview(
 
     // Create the review using FastAPI
     const response = await apiClient.post("/reviews", {
-      appointment_id: reviewData.appointmentId,
-      user_id: userId,
-      professional_id: proId,
+      professional_id: reviewData.professional_id,
       rating: reviewData.rating,
       comment: reviewData.comment || "",
     });
@@ -74,7 +71,6 @@ export async function getProfessionalReviews(
     const response = await apiClient.get(`/reviews/professional/${proId}?limit=${limit}`);
     return (response as Array<Record<string, unknown>>).map((review: Record<string, unknown>) => ({
       id: review.id as string,
-      appointmentId: review.appointment_id as string,
       userId: review.user_id as string,
       proId: review.professional_id as string,
       rating: review.rating as number,
@@ -98,7 +94,6 @@ export async function getUserReviews(
     const response = await apiClient.get(`/reviews/user/${userId}?limit=${limit}`);
     return (response as Array<Record<string, unknown>>).map((review: Record<string, unknown>) => ({
       id: review.id as string,
-      appointmentId: review.appointment_id as string,
       userId: review.user_id as string,
       proId: review.professional_id as string,
       rating: review.rating as number,
@@ -108,22 +103,6 @@ export async function getUserReviews(
   } catch (error) {
     console.error("Error getting user reviews:", error);
     return [];
-  }
-}
-
-/**
- * Check if user has already reviewed an appointment
- */
-export async function hasUserReviewedAppointment(
-  userId: string,
-  appointmentId: string,
-): Promise<boolean> {
-  try {
-    const response = await apiClient.get(`/reviews/check/${appointmentId}/${userId}`);
-    return (response as { hasReviewed?: boolean }).hasReviewed || false;
-  } catch (error) {
-    console.error("Error checking if user reviewed appointment:", error);
-    return false;
   }
 }
 

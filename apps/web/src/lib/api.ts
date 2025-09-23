@@ -5,7 +5,6 @@
 import type {
   User,
   Professional,
-  Appointment,
   Specialty,
   TherapeuticApproach,
   Modality,
@@ -13,7 +12,6 @@ import type {
   LoginResponse,
   UserCreate,
   ProfessionalCreate,
-  AppointmentCreate,
   SpecialtyCreate,
   TherapeuticApproachCreate,
   ModalityCreate,
@@ -24,12 +22,9 @@ import type {
   AuthUser,
   UserUpdate,
   ProfessionalUpdate,
-  AppointmentUpdate,
   SpecialtyUpdate,
   TherapeuticApproachUpdate,
   ModalityUpdate,
-  BookAppointmentRequest,
-  BookAppointmentResponse,
   ReviewStats,
   UploadResponse,
 } from "./types";
@@ -42,7 +37,6 @@ const API_VERSION = "/api/v1";
 export type {
   User,
   Professional,
-  Appointment,
   Specialty,
   TherapeuticApproach,
   Modality,
@@ -50,7 +44,6 @@ export type {
   LoginResponse,
   UserCreate,
   ProfessionalCreate,
-  AppointmentCreate,
   SpecialtyCreate,
   TherapeuticApproachCreate,
   ModalityCreate,
@@ -61,12 +54,9 @@ export type {
   AuthUser,
   UserUpdate,
   ProfessionalUpdate,
-  AppointmentUpdate,
   SpecialtyUpdate,
   TherapeuticApproachUpdate,
   ModalityUpdate,
-  BookAppointmentRequest,
-  BookAppointmentResponse,
   ReviewStats,
   UploadResponse,
 };
@@ -245,6 +235,17 @@ class ApiClient {
   }
 
   // User methods
+  async getUsers(params?: { skip?: number; limit?: number; role?: string }): Promise<User[]> {
+    const searchParams = new URLSearchParams();
+    if (params?.skip) searchParams.set("skip", params.skip.toString());
+    if (params?.limit) searchParams.set("limit", params.limit.toString());
+    if (params?.role) searchParams.set("role", params.role);
+
+    const queryString = searchParams.toString();
+    const endpoint = queryString ? `/users?${queryString}` : "/users";
+    return this.get<User[]>(endpoint);
+  }
+
   async getUser(userId: string): Promise<User> {
     return this.get<User>(`/users/${userId}`);
   }
@@ -257,26 +258,34 @@ class ApiClient {
     return this.delete<void>(`/users/${userId}`);
   }
 
+  async toggleUserStatus(userId: string, isActive: boolean): Promise<User> {
+    return this.patch<User>(`/users/${userId}/status`, { is_active: isActive });
+  }
+
   // Professional methods
   async getProfessional(professionalId: string): Promise<Professional> {
     return this.get<Professional>(`/professionals/${professionalId}`);
   }
 
   async getProfessionals(params?: {
-    page?: number;
-    size?: number;
+    skip?: number;
+    limit?: number;
     specialty?: string;
-    verified?: boolean;
-  }): Promise<PaginatedResponse<Professional>> {
+    min_rate_cents?: number;
+    max_rate_cents?: number;
+  }): Promise<Professional[]> {
     const searchParams = new URLSearchParams();
-    if (params?.page) searchParams.set("page", params.page.toString());
-    if (params?.size) searchParams.set("size", params.size.toString());
+    if (params?.skip) searchParams.set("skip", params.skip.toString());
+    if (params?.limit) searchParams.set("limit", params.limit.toString());
     if (params?.specialty) searchParams.set("specialty", params.specialty);
-    if (params?.verified !== undefined) searchParams.set("verified", params.verified.toString());
+    if (params?.min_rate_cents !== undefined)
+      searchParams.set("min_rate_cents", params.min_rate_cents.toString());
+    if (params?.max_rate_cents !== undefined)
+      searchParams.set("max_rate_cents", params.max_rate_cents.toString());
 
     const queryString = searchParams.toString();
     const endpoint = queryString ? `/professionals?${queryString}` : "/professionals";
-    return this.get<PaginatedResponse<Professional>>(endpoint);
+    return this.get<Professional[]>(endpoint);
   }
 
   async updateProfessional(
@@ -290,62 +299,9 @@ class ApiClient {
     return this.delete<void>(`/professionals/${professionalId}`);
   }
 
-  // Appointment methods
-  async getAppointments(params?: {
-    page?: number;
-    size?: number;
-    status?: string;
-    user_id?: string;
-    professional_id?: string;
-  }): Promise<PaginatedResponse<Appointment>> {
-    const searchParams = new URLSearchParams();
-    if (params?.page) searchParams.set("page", params.page.toString());
-    if (params?.size) searchParams.set("size", params.size.toString());
-    if (params?.status) searchParams.set("status", params.status);
-    if (params?.user_id) searchParams.set("user_id", params.user_id);
-    if (params?.professional_id) searchParams.set("professional_id", params.professional_id);
-
-    const queryString = searchParams.toString();
-    const endpoint = queryString ? `/appointments?${queryString}` : "/appointments";
-    return this.get<PaginatedResponse<Appointment>>(endpoint);
-  }
-
-  async getAppointment(appointmentId: string): Promise<Appointment> {
-    return this.get<Appointment>(`/appointments/${appointmentId}`);
-  }
-
-  async createAppointment(appointmentData: AppointmentCreate): Promise<Appointment> {
-    return this.post<Appointment>("/appointments", appointmentData);
-  }
-
-  async updateAppointment(
-    appointmentId: string,
-    appointmentData: AppointmentUpdate,
-  ): Promise<Appointment> {
-    return this.patch<Appointment>(`/appointments/${appointmentId}`, appointmentData);
-  }
-
-  async cancelAppointment(appointmentId: string): Promise<Appointment> {
-    return this.patch<Appointment>(`/appointments/${appointmentId}`, { status: "cancelled" });
-  }
-
-  async bookAppointment(bookingData: BookAppointmentRequest): Promise<BookAppointmentResponse> {
-    return this.post<BookAppointmentResponse>("/appointments/book", bookingData);
-  }
-
-  async getUserAppointments(): Promise<Appointment[]> {
-    return this.get<Appointment[]>("/appointments/my-appointments");
-  }
-
-  async bookAppointmentDirect(
-    professionalId: string,
-    startTime: string,
-    endTime: string,
-  ): Promise<BookAppointmentResponse> {
-    return this.post<BookAppointmentResponse>("/appointments/book", {
-      professional_id: professionalId,
-      start_time: startTime,
-      end_time: endTime,
+  async toggleProfessionalStatus(professionalId: string, isActive: boolean): Promise<Professional> {
+    return this.patch<Professional>(`/professionals/${professionalId}/status`, {
+      is_active: isActive,
     });
   }
 
@@ -452,13 +408,6 @@ class ApiClient {
 
   async getProfessionalAverageRating(professionalId: string): Promise<ReviewStats> {
     return this.get<ReviewStats>(`/reviews/professional/${professionalId}/stats`);
-  }
-
-  async hasUserReviewedAppointment(
-    userId: string,
-    appointmentId: string,
-  ): Promise<{ hasReviewed: boolean }> {
-    return this.get<{ hasReviewed: boolean }>(`/reviews/check/${appointmentId}/${userId}`);
   }
 
   // File upload methods

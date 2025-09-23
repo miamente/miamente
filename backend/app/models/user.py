@@ -2,13 +2,21 @@
 User model for the Miamente platform.
 """
 
+import enum
 import uuid
 
-from sqlalchemy import Boolean, Column, DateTime, String, Text
+from sqlalchemy import Boolean, Column, DateTime, String, Text, Enum
 from sqlalchemy.dialects.postgresql import UUID
 
 from app.core.database import Base
 from app.models.mixins import TimestampMixin
+
+
+class UserRole(enum.Enum):
+    """User role enumeration."""
+
+    USER = "user"
+    ADMIN = "admin"
 
 
 class User(Base, TimestampMixin):
@@ -23,6 +31,7 @@ class User(Base, TimestampMixin):
     hashed_password = Column(String(255), nullable=False)
     is_active = Column(Boolean, default=True)
     is_verified = Column(Boolean, default=False)
+    role = Column(Enum(UserRole), default=UserRole.USER, nullable=False)
     profile_picture = Column(Text, nullable=True)
     date_of_birth = Column(DateTime, nullable=True)
     emergency_contact = Column(String(255), nullable=True)

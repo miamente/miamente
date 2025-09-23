@@ -371,28 +371,27 @@ describe("ApiClient", () => {
     });
 
     it("should get professionals with parameters", async () => {
-      const mockResponse = { items: [], total: 0, page: 1, size: 10 };
+      const mockResponse = [{ id: "1", email: "test@example.com", full_name: "Test Professional" }];
       vi.mocked(fetch).mockResolvedValue({
         ok: true,
         json: () => Promise.resolve(mockResponse),
       } as Response);
 
       const result = await apiClient.getProfessionals({
-        page: 1,
-        size: 10,
+        skip: 0,
+        limit: 10,
         specialty: "Psychology",
-        verified: true,
       });
 
       expect(fetch).toHaveBeenCalledWith(
-        expect.stringContaining("/professionals?page=1&size=10&specialty=Psychology&verified=true"),
+        expect.stringContaining("/professionals?limit=10&specialty=Psychology"),
         expect.objectContaining({ method: "GET" }),
       );
       expect(result).toEqual(mockResponse);
     });
 
     it("should get professionals without parameters", async () => {
-      const mockResponse = { items: [], total: 0, page: 1, size: 10 };
+      const mockResponse = [{ id: "1", email: "test@example.com", full_name: "Test Professional" }];
       vi.mocked(fetch).mockResolvedValue({
         ok: true,
         json: () => Promise.resolve(mockResponse),

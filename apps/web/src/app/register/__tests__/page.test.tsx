@@ -6,7 +6,6 @@ import { useRouter } from "next/navigation";
 
 import RegisterPage from "../page";
 import { useAuth, isUserVerified } from "@/hooks/useAuth";
-import { useAnalytics } from "@/hooks/useAnalytics";
 import { registerWithEmail } from "@/lib/auth";
 import { UserRole } from "@/lib/types";
 
@@ -14,11 +13,6 @@ import { UserRole } from "@/lib/types";
 vi.mock("@/hooks/useAuth", () => ({
   useAuth: vi.fn(),
   isUserVerified: vi.fn(),
-}));
-
-// Mock the useAnalytics hook
-vi.mock("@/hooks/useAnalytics", () => ({
-  useAnalytics: vi.fn(),
 }));
 
 // Mock the auth utilities
@@ -33,13 +27,11 @@ vi.mock("next/navigation", () => ({
 
 const mockUseAuth = vi.mocked(useAuth);
 const mockIsUserVerified = vi.mocked(isUserVerified);
-const mockUseAnalytics = vi.mocked(useAnalytics);
 const mockRegisterWithEmail = vi.mocked(registerWithEmail);
 const mockUseRouter = vi.mocked(useRouter);
 
 describe("RegisterPage", () => {
   const mockPush = vi.fn();
-  const mockTrackSignup = vi.fn();
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -51,15 +43,6 @@ describe("RegisterPage", () => {
       forward: vi.fn(),
       refresh: vi.fn(),
       prefetch: vi.fn(),
-    });
-
-    mockUseAnalytics.mockReturnValue({
-      trackEvent: vi.fn(),
-      trackSignup: mockTrackSignup,
-      trackProfileComplete: vi.fn(),
-      trackSlotCreated: vi.fn(),
-      trackAppointmentConfirmed: vi.fn(),
-      trackCTAClick: vi.fn(),
     });
   });
 
@@ -206,7 +189,6 @@ describe("RegisterPage", () => {
       created_at: "2023-01-01T00:00:00Z",
       updated_at: "2023-01-01T00:00:00Z",
     });
-    mockTrackSignup.mockResolvedValue(undefined);
 
     mockUseAuth.mockReturnValue({
       user: null,
@@ -242,10 +224,6 @@ describe("RegisterPage", () => {
       password: "password123",
       full_name: "Test User",
     });
-    expect(mockTrackSignup).toHaveBeenCalledWith({
-      email: "test@example.com",
-      timestamp: expect.any(String),
-    });
   });
 
   it("should show success page after registration", async () => {
@@ -260,7 +238,6 @@ describe("RegisterPage", () => {
       created_at: "2023-01-01T00:00:00Z",
       updated_at: "2023-01-01T00:00:00Z",
     });
-    mockTrackSignup.mockResolvedValue(undefined);
 
     mockUseAuth.mockReturnValue({
       user: null,
@@ -305,7 +282,6 @@ describe("RegisterPage", () => {
       created_at: "2023-01-01T00:00:00Z",
       updated_at: "2023-01-01T00:00:00Z",
     });
-    mockTrackSignup.mockResolvedValue(undefined);
 
     mockUseAuth.mockReturnValue({
       user: null,

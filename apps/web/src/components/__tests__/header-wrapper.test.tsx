@@ -1,26 +1,39 @@
 import React from "react";
 import { render, screen } from "@testing-library/react";
 import { HeaderWrapper } from "../header/header-wrapper";
+import { AuthProvider } from "@/contexts/AuthContext";
 import { describe, it, expect, beforeEach, vi } from "vitest";
 
 // Mock Next.js navigation
 vi.mock("next/navigation", () => ({
   usePathname: vi.fn(),
+  useRouter: vi.fn(() => ({
+    push: vi.fn(),
+    replace: vi.fn(),
+    back: vi.fn(),
+    forward: vi.fn(),
+    refresh: vi.fn(),
+    prefetch: vi.fn(),
+  })),
 }));
 
-// Mock child components
-vi.mock("../header/admin-header", () => ({
-  AdminHeader: ({ config, className }: { config: unknown; className?: string }) => (
-    <header data-testid="admin-header" data-config={JSON.stringify(config)} className={className}>
-      Admin Header
-    </header>
-  ),
-}));
-
-vi.mock("../header/header", () => ({
-  Header: ({ config, className }: { config: unknown; className?: string }) => (
-    <header data-testid="header" data-config={JSON.stringify(config)} className={className}>
-      Regular Header
+// Mock UnifiedHeader component
+vi.mock("../header/unified-header", () => ({
+  UnifiedHeader: ({
+    variant,
+    config,
+    className,
+  }: {
+    variant: string;
+    config: unknown;
+    className?: string;
+  }) => (
+    <header
+      data-testid={variant === "admin" ? "admin-header" : "header"}
+      data-config={JSON.stringify(config)}
+      className={className}
+    >
+      {variant === "admin" ? "Admin Header" : "Regular Header"}
     </header>
   ),
 }));
@@ -29,6 +42,10 @@ import { usePathname } from "next/navigation";
 const mockUsePathname = vi.mocked(usePathname);
 
 describe("HeaderWrapper", () => {
+  const renderWithAuthProvider = (ui: React.ReactElement) => {
+    return render(<AuthProvider>{ui}</AuthProvider>);
+  };
+
   beforeEach(() => {
     vi.clearAllMocks();
   });
@@ -36,7 +53,7 @@ describe("HeaderWrapper", () => {
   it("should render AdminHeader for admin routes", () => {
     mockUsePathname.mockReturnValue("/admin/dashboard");
 
-    render(<HeaderWrapper />);
+    renderWithAuthProvider(<HeaderWrapper />);
 
     expect(screen.getByTestId("admin-header")).toBeInTheDocument();
     expect(screen.getByText("Admin Header")).toBeInTheDocument();
@@ -46,7 +63,7 @@ describe("HeaderWrapper", () => {
   it("should render Header for non-admin routes", () => {
     mockUsePathname.mockReturnValue("/dashboard");
 
-    render(<HeaderWrapper />);
+    renderWithAuthProvider(<HeaderWrapper />);
 
     expect(screen.getByTestId("header")).toBeInTheDocument();
     expect(screen.getByText("Regular Header")).toBeInTheDocument();
@@ -56,7 +73,7 @@ describe("HeaderWrapper", () => {
   it("should render AdminHeader for admin sub-routes", () => {
     mockUsePathname.mockReturnValue("/admin/users/profile");
 
-    render(<HeaderWrapper />);
+    renderWithAuthProvider(<HeaderWrapper />);
 
     expect(screen.getByTestId("admin-header")).toBeInTheDocument();
     expect(screen.getByText("Admin Header")).toBeInTheDocument();
@@ -66,7 +83,7 @@ describe("HeaderWrapper", () => {
   it("should render Header for root route", () => {
     mockUsePathname.mockReturnValue("/");
 
-    render(<HeaderWrapper />);
+    renderWithAuthProvider(<HeaderWrapper />);
 
     expect(screen.getByTestId("header")).toBeInTheDocument();
     expect(screen.getByText("Regular Header")).toBeInTheDocument();
@@ -76,7 +93,7 @@ describe("HeaderWrapper", () => {
   it("should render Header for nested non-admin routes", () => {
     mockUsePathname.mockReturnValue("/professionals/123");
 
-    render(<HeaderWrapper />);
+    renderWithAuthProvider(<HeaderWrapper />);
 
     expect(screen.getByTestId("header")).toBeInTheDocument();
     expect(screen.getByText("Regular Header")).toBeInTheDocument();
@@ -89,10 +106,13 @@ describe("HeaderWrapper", () => {
     const config = { logoText: "TestApp" };
     const className = "custom-class";
 
-    render(<HeaderWrapper config={config} className={className} />);
+    renderWithAuthProvider(<HeaderWrapper config={config} className={className} />);
 
     const adminHeader = screen.getByTestId("admin-header");
-    expect(adminHeader).toHaveAttribute("data-config", JSON.stringify(config));
+    // The config gets merged with default values, so we check for the expected properties
+    const configData = JSON.parse(adminHeader.getAttribute("data-config") || "{}");
+    expect(configData.logoText).toBe("TestApp");
+    expect(configData.hideUserMenuOnLogin).toBe(true); // Admin routes should hide user menu on login
     expect(adminHeader).toHaveClass("custom-class");
   });
 
@@ -112,7 +132,7 @@ describe("HeaderWrapper", () => {
   it("should handle admin route with query parameters", () => {
     mockUsePathname.mockReturnValue("/admin/users?id=123");
 
-    render(<HeaderWrapper />);
+    renderWithAuthProvider(<HeaderWrapper />);
 
     expect(screen.getByTestId("admin-header")).toBeInTheDocument();
     expect(screen.getByText("Admin Header")).toBeInTheDocument();
@@ -122,7 +142,7 @@ describe("HeaderWrapper", () => {
   it("should handle admin route with hash", () => {
     mockUsePathname.mockReturnValue("/admin/settings#general");
 
-    render(<HeaderWrapper />);
+    renderWithAuthProvider(<HeaderWrapper />);
 
     expect(screen.getByTestId("admin-header")).toBeInTheDocument();
     expect(screen.getByText("Admin Header")).toBeInTheDocument();
@@ -132,7 +152,7 @@ describe("HeaderWrapper", () => {
   it("should handle edge case with admin in path but not at start", () => {
     mockUsePathname.mockReturnValue("/users/admin-profile");
 
-    render(<HeaderWrapper />);
+    renderWithAuthProvider(<HeaderWrapper />);
 
     expect(screen.getByTestId("header")).toBeInTheDocument();
     expect(screen.getByText("Regular Header")).toBeInTheDocument();
@@ -142,7 +162,7 @@ describe("HeaderWrapper", () => {
   it("should handle empty pathname", () => {
     mockUsePathname.mockReturnValue("");
 
-    render(<HeaderWrapper />);
+    renderWithAuthProvider(<HeaderWrapper />);
 
     expect(screen.getByTestId("header")).toBeInTheDocument();
     expect(screen.getByText("Regular Header")).toBeInTheDocument();
@@ -152,7 +172,7 @@ describe("HeaderWrapper", () => {
   it("should handle pathname with only slash", () => {
     mockUsePathname.mockReturnValue("/");
 
-    render(<HeaderWrapper />);
+    renderWithAuthProvider(<HeaderWrapper />);
 
     expect(screen.getByTestId("header")).toBeInTheDocument();
     expect(screen.getByText("Regular Header")).toBeInTheDocument();

@@ -1,0 +1,3 @@
+"""
+Admin integration tests package.
+"""

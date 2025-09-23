@@ -1,6 +1,8 @@
 import { UserRole } from "@/lib/types";
 import { ComponentType } from "react";
 
+export type HeaderVariant = "default" | "admin";
+
 export interface NavigationItem {
   label: string;
   href: string;
@@ -19,26 +21,27 @@ export interface UserMenuOption {
 }
 
 export interface HeaderConfig {
-  showThemeToggle?: boolean;
   showUserMenu?: boolean;
   showMobileMenu?: boolean;
   logoHref?: string;
   logoText?: string;
   maxWidth?: string;
+  hideUserMenuOnLogin?: boolean;
 }
 
 export interface HeaderProps {
   readonly config?: HeaderConfig;
   readonly className?: string;
+  readonly variant?: HeaderVariant;
 }
 
 export const DEFAULT_HEADER_CONFIG: Required<HeaderConfig> = {
-  showThemeToggle: true,
   showUserMenu: true,
   showMobileMenu: true,
   logoHref: "/",
   logoText: "Miamente",
   maxWidth: "max-w-6xl",
+  hideUserMenuOnLogin: false,
 };
 
 // Navigation items for regular users (user and pro)
@@ -60,11 +63,6 @@ export const ADMIN_NAVIGATION_ITEMS: NavigationItem[] = [
   {
     label: "Profesionales",
     href: "/admin/professionals",
-    roles: [UserRole.ADMIN],
-  },
-  {
-    label: "Citas",
-    href: "/admin/appointments",
     roles: [UserRole.ADMIN],
   },
   {
@@ -94,7 +92,7 @@ export const USER_MENU_OPTIONS: UserMenuOption[] = [
   {
     label: "Cerrar Sesión",
     action: "logout", // Special action identifier
-    roles: [UserRole.USER, UserRole.PROFESSIONAL],
+    // No roles restriction - logout should be available to all authenticated users
     divider: true,
   },
 ];
@@ -114,7 +112,7 @@ export const ADMIN_MENU_OPTIONS: UserMenuOption[] = [
   {
     label: "Cerrar Sesión",
     action: "logout", // Special action identifier
-    roles: [UserRole.ADMIN],
+    // No roles restriction - logout should be available to all authenticated users
     divider: true,
   },
 ];

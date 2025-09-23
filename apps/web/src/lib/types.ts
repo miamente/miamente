@@ -9,14 +9,6 @@ import { ComponentType } from "react";
 // ENUMS
 // ============================================================================
 
-export enum AppointmentStatus {
-  CONFIRMED = "confirmed",
-  IN_PROGRESS = "in_progress",
-  COMPLETED = "completed",
-  CANCELLED = "cancelled",
-  NO_SHOW = "no_show",
-}
-
 export enum UserRole {
   USER = "user",
   PROFESSIONAL = "professional",
@@ -163,66 +155,6 @@ export interface ProfessionalUpdate {
 export interface ProfessionalLogin {
   email: string;
   password: string;
-}
-
-// ============================================================================
-// APPOINTMENT TYPES
-// ============================================================================
-
-export interface Appointment extends BaseEntity {
-  user_id: string;
-  professional_id: string;
-  status: AppointmentStatus;
-
-  // Time information
-  start_time: string;
-  end_time: string;
-  duration: number;
-  timezone: string;
-
-  // Session information
-  jitsi_url?: string;
-  session_notes?: string;
-  session_rating?: number;
-  session_feedback?: string;
-
-  // Metadata
-  cancelled_at?: string;
-  completed_at?: string;
-}
-
-export interface AppointmentCreate {
-  professional_id: string;
-  start_time: string;
-  end_time: string;
-  duration?: number;
-  timezone?: string;
-}
-
-export interface AppointmentCreateDirect {
-  professional_id: string;
-  start_time: string;
-  end_time: string;
-  notes?: string;
-}
-
-export interface AppointmentUpdate {
-  status?: AppointmentStatus;
-  session_notes?: string;
-  session_rating?: number;
-  session_feedback?: string;
-  jitsi_url?: string;
-}
-
-export interface BookAppointmentRequest {
-  professional_id: string;
-  start_time: string;
-  end_time: string;
-}
-
-export interface BookAppointmentResponse {
-  appointment_id: string;
-  message: string;
 }
 
 // ============================================================================
@@ -408,16 +340,6 @@ export interface UserProfile {
   created_at?: string;
 }
 
-export interface AdminMetrics {
-  total_users: number;
-  new_users_7_days: number;
-  new_users_30_days: number;
-  verified_professionals: number;
-  total_professionals: number;
-  confirmed_appointments_today: number;
-  total_appointments_today: number;
-}
-
 export interface ProfessionalSpecialty {
   id: string;
   professional_id: string;
@@ -501,16 +423,6 @@ export interface NavigationItem {
   roles?: UserRole[];
 }
 
-export interface AdminMetrics {
-  total_users: number;
-  new_users_7_days: number;
-  new_users_30_days: number;
-  verified_professionals: number;
-  total_professionals: number;
-  confirmed_appointments_today: number;
-  total_appointments_today: number;
-}
-
 export interface EventLogEntry {
   id: string;
   event_type: string;
@@ -526,21 +438,7 @@ export interface ProfessionalSummary {
   specialty_ids: string[];
   is_verified: boolean;
   created_at: string;
-  appointment_count: number;
   average_rating: number;
-}
-
-export interface AppointmentSummary {
-  id: string;
-  user_id: string;
-  professional_id: string;
-  start: string;
-  end: string;
-  status: string;
-  paid: boolean;
-  user_full_name?: string;
-  professional_full_name?: string;
-  professional_specialty?: string;
 }
 
 // ============================================================================
@@ -549,7 +447,6 @@ export interface AppointmentSummary {
 
 export interface Review {
   id: string;
-  appointment_id: string;
   user_id: string;
   professional_id: string;
   rating: number; // 1-5
@@ -558,7 +455,7 @@ export interface Review {
 }
 
 export interface CreateReviewRequest {
-  appointment_id: string;
+  professional_id: string;
   rating: number;
   comment?: string;
 }
@@ -592,22 +489,9 @@ export interface EventLogData {
   metadata?: Record<string, unknown>;
 }
 
-export interface AppointmentChartData {
-  date: string;
-  confirmed: number;
-  total: number;
-}
-
 export interface EventStats {
   total_events: number;
   events_by_type: Record<string, number>;
   events_by_day: Record<string, number>;
   unique_users: number;
-}
-
-export interface ConversionFunnelData {
-  signups: number;
-  profile_completions: number;
-  slot_creations: number;
-  appointment_confirmations: number;
 }
