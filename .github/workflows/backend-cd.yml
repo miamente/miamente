@@ -75,8 +75,6 @@ jobs:
         options: >-
           --health-cmd="pg_isready -U ${{ secrets.POSTGRES_USER }} -d ${{ secrets.POSTGRES_DB }}"
           --health-interval=5s --health-timeout=5s --health-retries=20
-    env:
-      DATABASE_URL: postgresql+psycopg2://${{ secrets.POSTGRES_USER }}:${{ secrets.POSTGRES_PASSWORD }}@localhost:5432/${{ secrets.POSTGRES_DB }}
     steps:
       - uses: actions/checkout@v4
 
