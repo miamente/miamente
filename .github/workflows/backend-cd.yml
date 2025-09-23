@@ -64,7 +64,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: [unit-tests]
 
-     services:
+    services:
       postgres:
         image: postgres:15
         env:
@@ -78,35 +78,36 @@ jobs:
           --health-interval=5s
           --health-timeout=5s
           --health-retries=20
-      steps:
-        - uses: actions/checkout@v4
+          
+    steps:
+      - uses: actions/checkout@v4
 
-        - name: Setup Python & deps
-          uses: ./.github/actions/setup-backend
-          with:
-            python-version: "3.13"
+      - name: Setup Python & deps
+        uses: ./.github/actions/setup-backend
+        with:
+          python-version: "3.13"
 
-        - name: Run DB migrations
-          run: alembic upgrade head
+      - name: Run DB migrations
+        run: alembic upgrade head
 
-        - name: Run Integration Tests
-          run: |
-            uvicorn app.main:app --host 0.0.0.0 --port 8000 &
-            sleep 8
-            pytest tests/integration \
-              --cov=app \
-              --cov-report=xml:integration_coverage.xml \
-              --html=integration_report.html \
-              --self-contained-html
+      - name: Run Integration Tests
+        run: |
+          uvicorn app.main:app --host 0.0.0.0 --port 8000 &
+          sleep 8
+          pytest tests/integration \
+            --cov=app \
+            --cov-report=xml:integration_coverage.xml \
+            --html=integration_report.html \
+            --self-contained-html
 
-        - name: Upload Test Reports Artifacts
-          uses: actions/upload-artifact@v4
-          if: always()
-          with:
-            name: integration-test-reports
-            path: |
-              backend/integration_report.html
-              backend/integration_coverage.xml
+      - name: Upload Test Reports Artifacts
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: integration-test-reports
+          path: |
+            backend/integration_report.html
+            backend/integration_coverage.xml
 
   sonar:
     name: SonarCloud (aggregate coverage)
