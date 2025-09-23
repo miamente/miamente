@@ -2,7 +2,7 @@ name: Frontend CD
 
 on:
   pull_request:
-    branches: [fix]
+    branches: [main, staging]
     paths:
       - "apps/web/**"
       - "package.json"
@@ -18,8 +18,6 @@ jobs:
   unit-tests:
     name: Unit & Accessibility Tests
     runs-on: ubuntu-latest
-    needs:
-      - lint
     steps:
       - uses: actions/checkout@v4
 
@@ -63,17 +61,6 @@ jobs:
       - name: Install Playwright browsers
         run: npx playwright install --with-deps
 
-      - name: Compute API URL and base URL
-        id: meta
-        run: |
-          BRANCH="${GITHUB_BASE_REF:-${GITHUB_REF##*/}}"
-          if [ "$BRANCH" = "main" ]; then
-            echo "NEXT_PUBLIC_API_URL=${{ vars.NEXT_PUBLIC_API_URL_PROD }}" >> $GITHUB_ENV
-          else
-            echo "NEXT_PUBLIC_API_URL=${{ vars.NEXT_PUBLIC_API_URL_STAGING }}" >> $GITHUB_ENV
-          fi
-          echo "E2E_BASE_URL=http://localhost:3000" >> $GITHUB_ENV
-
       - name: Build & start Next (background)
         env:
           NEXT_PUBLIC_API_URL: ${{ env.NEXT_PUBLIC_API_URL }}
@@ -87,10 +74,7 @@ jobs:
           done
 
       - name: Run Playwright E2E
-        env:
-          NEXT_PUBLIC_API_URL: ${{ env.NEXT_PUBLIC_API_URL }}
-          E2E_BASE_URL: ${{ env.E2E_BASE_URL }}
-        run: npx playwright test
+        run: npm run test:e2e
 
       - name: Upload Playwright report
         if: always()
@@ -102,7 +86,7 @@ jobs:
   docker-build-push:
     name: Build & Push Docker image (main only)
     runs-on: ubuntu-latest
-    needs: [unit-tests, e2e-tests, sonar]
+    needs: [unit-tests, e2e-tests]
     steps:
       - uses: actions/checkout@v4
 
@@ -134,9 +118,8 @@ jobs:
     name: SonarCloud Frontend Analysis
     runs-on: ubuntu-latest
     needs:
-      - docker-build-validate
+      - docker-build-push
     steps:
-      - uses: actions/checkout@v4
 
       - name: Download unit test artifacts
         uses: actions/download-artifact@v4
