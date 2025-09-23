@@ -8,7 +8,8 @@ from typing import List
 from functools import lru_cache
 from pydantic import AnyHttpUrl, ConfigDict, field_validator
 from pydantic_settings import BaseSettings
-
+from dotenv import load_dotenv
+load_dotenv()
 
 class Settings(BaseSettings):
     """Application settings."""
