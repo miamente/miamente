@@ -115,9 +115,8 @@ export default function AdminApproaches() {
   const filteredApproaches = approaches.filter(
     (approach) =>
       approach.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (approach.description &&
-        approach.description.toLowerCase().includes(searchTerm.toLowerCase())) ||
-      (approach.category && approach.category.toLowerCase().includes(searchTerm.toLowerCase())),
+      approach.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      approach.category?.toLowerCase().includes(searchTerm.toLowerCase()),
   );
 
   const handleCreateApproach = () => {

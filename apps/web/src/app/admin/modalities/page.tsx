@@ -103,8 +103,7 @@ export default function AdminModalities() {
   const filteredModalities = modalities.filter(
     (modality) =>
       modality.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (modality.description &&
-        modality.description.toLowerCase().includes(searchTerm.toLowerCase())),
+      modality.description?.toLowerCase().includes(searchTerm.toLowerCase()),
   );
 
   const formatPrice = (price: number) => {
