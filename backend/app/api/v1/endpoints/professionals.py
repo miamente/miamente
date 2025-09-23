@@ -21,6 +21,7 @@ router = APIRouter()
 
 # Constants
 PROFESSIONAL_NOT_FOUND_MESSAGE = "Professional not found"
+INVALID_ID_FORMAT_MESSAGE = "Invalid ID format"
 
 # Fields that require special handling
 JSON_FIELDS = ["academic_experience", "work_experience", "certifications"]
@@ -71,7 +72,7 @@ async def get_professional(professional_id: str, db: Session = Depends(get_db)):
     try:
         professional_uuid = uuid.UUID(professional_id)
     except ValueError as exc:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid ID format") from exc
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=INVALID_ID_FORMAT_MESSAGE) from exc
 
     professional = db.query(Professional).filter(Professional.id == professional_uuid, Professional.is_active).first()
 
@@ -232,7 +233,7 @@ async def toggle_professional_status(
     try:
         professional_uuid = uuid.UUID(professional_id)
     except ValueError as exc:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid ID format") from exc
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=INVALID_ID_FORMAT_MESSAGE) from exc
 
     professional = db.query(Professional).filter(Professional.id == professional_uuid).first()
 
@@ -262,7 +263,7 @@ async def delete_professional_admin(
     try:
         professional_uuid = uuid.UUID(professional_id)
     except ValueError as exc:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid ID format") from exc
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=INVALID_ID_FORMAT_MESSAGE) from exc
 
     professional = db.query(Professional).filter(Professional.id == professional_uuid).first()
 

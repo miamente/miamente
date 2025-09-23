@@ -52,7 +52,12 @@ describe("LandingPage", () => {
     render(<LandingPage />);
 
     const registerButtons = screen.getAllByText("Crear cuenta gratis");
+    expect(registerButtons[0]).toBeInTheDocument();
+
     fireEvent.click(registerButtons[0]); // Click the first one (hero section)
+
+    // Verify the button is clickable and navigates to register page
+    expect(registerButtons[0].closest("a")).toHaveAttribute("href", "/register");
   });
 
   it("should render value proposition section", () => {
@@ -127,8 +132,16 @@ describe("LandingPage", () => {
   it("should track final CTA clicks", () => {
     render(<LandingPage />);
 
-    const finalRegisterButton = screen.getAllByText("Crear cuenta gratis")[1]; // Second instance
+    const registerButtons = screen.getAllByText("Crear cuenta gratis");
+    expect(registerButtons).toHaveLength(2); // Verify we have both buttons
+
+    const finalRegisterButton = registerButtons[1]; // Second instance (final CTA)
+    expect(finalRegisterButton).toBeInTheDocument();
+
     fireEvent.click(finalRegisterButton);
+
+    // Verify the final CTA button navigates to register page
+    expect(finalRegisterButton.closest("a")).toHaveAttribute("href", "/register");
   });
 
   it("should have proper links", () => {
