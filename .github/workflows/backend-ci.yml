@@ -86,8 +86,6 @@ jobs:
           push: false
           load: false
           tags: ${{ secrets.DOCKERHUB_BACKEND_REPOSITORY }}:${{ github.sha }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
 
   sonar:
     name: SonarCloud (aggregate coverage)
