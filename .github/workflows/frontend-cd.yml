@@ -2,7 +2,7 @@ name: Frontend CD
 
 on:
   pull_request:
-    branches: [main, staging]
+    branches: [fix]
     paths:
       - "apps/web/**"
       - "package.json"
