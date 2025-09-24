@@ -215,17 +215,17 @@ jobs:
               ParameterKey=DBSubnetIds,ParameterValue="${{ secrets.DB_SUBNET_IDS }}" \
               ParameterKey=DBUsername,ParameterValue="${{ secrets.DB_USERNAME }}" \
               ParameterKey=DBPassword,ParameterValue="${{ secrets.DB_PASSWORD }}" \
-              ParameterKey=PROJECT_NAME,ParameterValue="${{ secrets.PROJECT_NAME }}" \
+              ParameterKey=PROJECTNAME,ParameterValue="${{ secrets.PROJECT_NAME }}" \
               ParameterKey=VERSION,ParameterValue="${{ secrets.VERSION }}" \
-              ParameterKey=API_V1_STR,ParameterValue="${{ secrets.API_V1_STR }}" \
+              ParameterKey=APIV1STR,ParameterValue="${{ secrets.API_V1_STR }}" \
               ParameterKey=DEBUG,ParameterValue="${{ secrets.DEBUG }}" \
               ParameterKey=ALGORITHM,ParameterValue="${{ secrets.ALGORITHM }}" \
-              ParameterKey=ACCESS_TOKEN_EXPIRE_MINUTES,ParameterValue="${{ secrets.ACCESS_TOKEN_EXPIRE_MINUTES }}" \
-              ParameterKey=REFRESH_TOKEN_EXPIRE_MINUTES,ParameterValue="${{ secrets.REFRESH_TOKEN_EXPIRE_MINUTES }}" \
-              ParameterKey=SERVER_NAME,ParameterValue="${{ secrets.SERVER_NAME }}" \
-              ParameterKey=SERVER_HOST,ParameterValue="${{ secrets.SERVER_HOST }}" \
-              ParameterKey=ALLOWED_HOSTS,ParameterValue="${{ secrets.ALLOWED_HOSTS }}" \
-              ParameterKey=BACKEND_CORS_ORIGINS,ParameterValue="${{ secrets.BACKEND_CORS_ORIGINS }}" \
+              ParameterKey=ACCESSTOKENEXPIREMINUTES,ParameterValue="${{ secrets.ACCESS_TOKEN_EXPIRE_MINUTES }}" \
+              ParameterKey=REFRESHTOKENEXPIREMINUTES,ParameterValue="${{ secrets.REFRESH_TOKEN_EXPIRE_MINUTES }}" \
+              ParameterKey=SERVERNAME,ParameterValue="${{ secrets.SERVER_NAME }}" \
+              ParameterKey=SERVERHOST,ParameterValue="${{ secrets.SERVER_HOST }}" \
+              ParameterKey=ALLOWEDHOSTS,ParameterValue="${{ secrets.ALLOWED_HOSTS }}" \
+              ParameterKey=BACKENDCORSORIGINS,ParameterValue="${{ secrets.BACKEND_CORS_ORIGINS }}" \
               ParameterKey=TIMEZONE,ParameterValue="${{ secrets.TIMEZONE }}" \
               ParameterKey=SECRET_KEY,ParameterValue="${{ secrets.SECRET_KEY }}" \
             --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM \
