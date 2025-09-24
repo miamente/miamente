@@ -59,6 +59,7 @@ class AuthService:
             emergency_contact=user_data.emergency_contact,
             emergency_phone=user_data.emergency_phone,
             hashed_password=hashed_password,
+            role=user_data.role,
         )
 
         self.db.add(db_user)

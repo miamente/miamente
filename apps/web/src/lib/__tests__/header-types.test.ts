@@ -16,17 +16,16 @@ describe("Header Types and Constants", () => {
   describe("DEFAULT_HEADER_CONFIG", () => {
     it("should have correct default values", () => {
       expect(DEFAULT_HEADER_CONFIG).toEqual({
-        showThemeToggle: true,
         showUserMenu: true,
         showMobileMenu: true,
         logoHref: "/",
         logoText: "Miamente",
         maxWidth: "max-w-6xl",
+        hideUserMenuOnLogin: false,
       });
     });
 
     it("should have all required properties", () => {
-      expect(DEFAULT_HEADER_CONFIG).toHaveProperty("showThemeToggle");
       expect(DEFAULT_HEADER_CONFIG).toHaveProperty("showUserMenu");
       expect(DEFAULT_HEADER_CONFIG).toHaveProperty("showMobileMenu");
       expect(DEFAULT_HEADER_CONFIG).toHaveProperty("logoHref");
@@ -35,7 +34,6 @@ describe("Header Types and Constants", () => {
     });
 
     it("should have correct types", () => {
-      expect(typeof DEFAULT_HEADER_CONFIG.showThemeToggle).toBe("boolean");
       expect(typeof DEFAULT_HEADER_CONFIG.showUserMenu).toBe("boolean");
       expect(typeof DEFAULT_HEADER_CONFIG.showMobileMenu).toBe("boolean");
       expect(typeof DEFAULT_HEADER_CONFIG.logoHref).toBe("string");
@@ -83,7 +81,7 @@ describe("Header Types and Constants", () => {
 
   describe("ADMIN_NAVIGATION_ITEMS", () => {
     it("should contain expected admin navigation items", () => {
-      expect(ADMIN_NAVIGATION_ITEMS).toHaveLength(3);
+      expect(ADMIN_NAVIGATION_ITEMS).toHaveLength(2);
 
       expect(ADMIN_NAVIGATION_ITEMS[0]).toEqual({
         label: "Profesionales",
@@ -92,12 +90,6 @@ describe("Header Types and Constants", () => {
       });
 
       expect(ADMIN_NAVIGATION_ITEMS[1]).toEqual({
-        label: "Citas",
-        href: "/admin/appointments",
-        roles: [UserRole.ADMIN],
-      });
-
-      expect(ADMIN_NAVIGATION_ITEMS[2]).toEqual({
         label: "Configuración",
         href: "/admin/feature-flags",
         roles: [UserRole.ADMIN],
@@ -159,7 +151,6 @@ describe("Header Types and Constants", () => {
       expect(USER_MENU_OPTIONS[3]).toEqual({
         label: "Cerrar Sesión",
         action: "logout",
-        roles: [UserRole.USER, UserRole.PROFESSIONAL],
         divider: true,
       });
     });
@@ -167,12 +158,15 @@ describe("Header Types and Constants", () => {
     it("should have correct structure for each option", () => {
       USER_MENU_OPTIONS.forEach((option) => {
         expect(option).toHaveProperty("label");
-        expect(option).toHaveProperty("roles");
         expect(typeof option.label).toBe("string");
-        expect(Array.isArray(option.roles)).toBe(true);
 
         // Should have either href or action
         expect(option.href || option.action).toBeDefined();
+
+        // If it has roles, it should be an array
+        if (option.roles) {
+          expect(Array.isArray(option.roles)).toBe(true);
+        }
       });
     });
 
@@ -203,7 +197,6 @@ describe("Header Types and Constants", () => {
       expect(ADMIN_MENU_OPTIONS[2]).toEqual({
         label: "Cerrar Sesión",
         action: "logout",
-        roles: [UserRole.ADMIN],
         divider: true,
       });
     });
@@ -211,15 +204,21 @@ describe("Header Types and Constants", () => {
     it("should have correct structure for each option", () => {
       ADMIN_MENU_OPTIONS.forEach((option) => {
         expect(option).toHaveProperty("label");
-        expect(option).toHaveProperty("roles");
         expect(typeof option.label).toBe("string");
-        expect(Array.isArray(option.roles)).toBe(true);
+
+        // If it has roles, it should be an array
+        if (option.roles) {
+          expect(Array.isArray(option.roles)).toBe(true);
+        }
       });
     });
 
     it("should include only ADMIN role", () => {
       ADMIN_MENU_OPTIONS.forEach((option) => {
-        expect(option.roles).toEqual([UserRole.ADMIN]);
+        // Only check roles if the option has them (logout doesn't have roles)
+        if (option.roles) {
+          expect(option.roles).toEqual([UserRole.ADMIN]);
+        }
       });
     });
 
@@ -275,7 +274,6 @@ describe("Header Types and Constants", () => {
 
     it("should allow HeaderConfig with all properties", () => {
       const config: HeaderConfig = {
-        showThemeToggle: true,
         showUserMenu: false,
         showMobileMenu: true,
         logoHref: "/custom",
@@ -283,7 +281,6 @@ describe("Header Types and Constants", () => {
         maxWidth: "max-w-4xl",
       };
 
-      expect(config.showThemeToggle).toBe(true);
       expect(config.showUserMenu).toBe(false);
       expect(config.logoText).toBe("Custom");
     });
@@ -291,12 +288,12 @@ describe("Header Types and Constants", () => {
     it("should allow HeaderProps with config", () => {
       const props: HeaderProps = {
         config: {
-          showThemeToggle: false,
+          showUserMenu: false,
         },
         className: "custom-class",
       };
 
-      expect(props.config?.showThemeToggle).toBe(false);
+      expect(props.config?.showUserMenu).toBe(false);
       expect(props.className).toBe("custom-class");
     });
   });
@@ -317,7 +314,7 @@ describe("Header Types and Constants", () => {
         item.roles?.includes(UserRole.ADMIN),
       );
 
-      expect(adminItems).toHaveLength(3);
+      expect(adminItems).toHaveLength(2);
     });
 
     it("should allow filtering USER_MENU_OPTIONS by role", () => {
@@ -328,10 +325,10 @@ describe("Header Types and Constants", () => {
         option.roles?.includes(UserRole.PROFESSIONAL),
       );
 
-      // USER role appears in 3 options: Dashboard, Mi Perfil (user), Cerrar Sesión
-      expect(userOptions).toHaveLength(3);
-      // PROFESSIONAL role appears in 3 options: Dashboard, Mi Perfil (professional), Cerrar Sesión
-      expect(professionalOptions).toHaveLength(3);
+      // USER role appears in 2 options: Dashboard, Mi Perfil (user)
+      expect(userOptions).toHaveLength(2);
+      // PROFESSIONAL role appears in 2 options: Dashboard, Mi Perfil (professional)
+      expect(professionalOptions).toHaveLength(2);
     });
   });
 });

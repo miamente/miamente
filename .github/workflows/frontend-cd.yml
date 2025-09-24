@@ -2,7 +2,7 @@ name: Frontend CD
 
 on:
   pull_request:
-    branches: [fix]
+    branches: [main, staging]
     paths:
       - "apps/web/**"
       - "package.json"
@@ -18,8 +18,6 @@ jobs:
   unit-tests:
     name: Unit & Accessibility Tests
     runs-on: ubuntu-latest
-    needs:
-      - lint
     steps:
       - uses: actions/checkout@v4
 
@@ -52,57 +50,141 @@ jobs:
     name: E2E Tests (Playwright)
     runs-on: ubuntu-latest
     needs: [unit-tests]
+
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
+          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+          POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=20
+
+    env:
+      NEXT_PUBLIC_API_URL: http://localhost:8000
+      NODE_ENV: production
+      E2E_BASE_URL: http://localhost:3000
+      PROJECT_NAME: ${{ secrets.PROJECT_NAME }}
+      VERSION: ${{ secrets.VERSION }}
+      API_V1_STR: ${{ secrets.API_V1_STR }}
+      DEBUG: ${{ secrets.DEBUG }}
+      ALGORITHM: ${{ secrets.ALGORITHM }}
+      ACCESS_TOKEN_EXPIRE_MINUTES: ${{ secrets.ACCESS_TOKEN_EXPIRE_MINUTES }}
+      REFRESH_TOKEN_EXPIRE_MINUTES: ${{ secrets.REFRESH_TOKEN_EXPIRE_MINUTES }}
+      SERVER_NAME: ${{ secrets.SERVER_NAME }}
+      SERVER_HOST: ${{ secrets.SERVER_HOST }}
+      ALLOWED_HOSTS: ${{ secrets.ALLOWED_HOSTS }}
+      BACKEND_CORS_ORIGINS: ${{ secrets.BACKEND_CORS_ORIGINS }}
+      TIMEZONE: ${{ secrets.TIMEZONE }}
+      SECRET_KEY: ${{ secrets.SECRET_KEY }}
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+
     steps:
       - uses: actions/checkout@v4
+
+      - name: Setup Python & backend deps
+        uses: ./.github/actions/setup-backend
+        with:
+          python-version: "3.13"
+
+      - name: Run DB migrations
+        working-directory: backend
+        run: alembic upgrade head
+
+      - name: Start backend (background) & wait for health
+        working-directory: backend
+        run: |
+          uvicorn app.main:app --host 0.0.0.0 --port 8000 > backend.out 2>&1 &
+          echo "Waiting for backend at $NEXT_PUBLIC_API_URL/health ..."
+          for i in {1..60}; do
+            if curl -fsS "$NEXT_PUBLIC_API_URL/health" >/dev/null; then
+              echo "Backend is up ✅"
+              break
+            fi
+            echo "Attempt $i/60: Backend not ready yet..."
+            sleep 2
+          done
+          # Final check
+          if ! curl -fsS "$NEXT_PUBLIC_API_URL/health" >/dev/null; then
+            echo "❌ Backend failed to start after 2 minutes"
+            echo "Backend logs:"
+            cat backend.out || echo "No backend logs found"
+            exit 1
+          fi
 
       - name: Setup Node.js & deps
         uses: ./.github/actions/setup-frontend
         with:
           node-version: "22"
 
-      - name: Install Playwright browsers
+      - name: Ensure devDependencies (Tailwind/PostCSS)
+        run: npm ci --include=dev
+        env:
+          NODE_ENV: development
+
+      - name: Install Playwright browsers & system deps
+        working-directory: .
         run: npx playwright install --with-deps
 
-      - name: Compute API URL and base URL
-        id: meta
-        run: |
-          BRANCH="${GITHUB_BASE_REF:-${GITHUB_REF##*/}}"
-          if [ "$BRANCH" = "main" ]; then
-            echo "NEXT_PUBLIC_API_URL=${{ vars.NEXT_PUBLIC_API_URL_PROD }}" >> $GITHUB_ENV
-          else
-            echo "NEXT_PUBLIC_API_URL=${{ vars.NEXT_PUBLIC_API_URL_STAGING }}" >> $GITHUB_ENV
-          fi
-          echo "E2E_BASE_URL=http://localhost:3000" >> $GITHUB_ENV
-
       - name: Build & start Next (background)
-        env:
-          NEXT_PUBLIC_API_URL: ${{ env.NEXT_PUBLIC_API_URL }}
-          NODE_ENV: production
         run: |
           npm run build
           nohup npm run start -- -p 3000 > .next.out 2>&1 &
+          echo "Waiting for frontend at $E2E_BASE_URL ..."
           for i in {1..60}; do
-            if curl -sSf "$E2E_BASE_URL" >/dev/null; then echo "Frontend is up"; break; fi
+            if curl -fsS "$E2E_BASE_URL" >/dev/null; then
+              echo "Frontend is up ✅"
+              break
+            fi
+            echo "Attempt $i/60: Frontend not ready yet..."
             sleep 2
           done
+          # Final check
+          if ! curl -fsS "$E2E_BASE_URL" >/dev/null; then
+            echo "❌ Frontend failed to start after 2 minutes"
+            echo "Frontend logs:"
+            cat .next.out || echo "No frontend logs found"
+            exit 1
+          fi
 
       - name: Run Playwright E2E
+        working-directory: .
         env:
           NEXT_PUBLIC_API_URL: ${{ env.NEXT_PUBLIC_API_URL }}
-          E2E_BASE_URL: ${{ env.E2E_BASE_URL }}
-        run: npx playwright test
+        run: |
+          echo "🔍 Running Playwright tests..."
+          echo "Backend URL: $NEXT_PUBLIC_API_URL"
+          echo "Frontend URL: $E2E_BASE_URL"
+
+          # Verify services are running
+          echo "Checking backend health..."
+          curl -fsS "$NEXT_PUBLIC_API_URL/health" || echo "❌ Backend health check failed"
+
+          echo "Checking frontend..."
+          curl -fsS "$E2E_BASE_URL" || echo "❌ Frontend check failed"
+
+          # Run tests with verbose output
+          npx playwright test --reporter=line
 
       - name: Upload Playwright report
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: playwright-report
-          path: apps/web/playwright-report/
+          path: |
+            playwright-report/
+            test-results/
 
   docker-build-push:
     name: Build & Push Docker image (main only)
     runs-on: ubuntu-latest
-    needs: [unit-tests, e2e-tests, sonar]
+    needs: [unit-tests, e2e-tests]
     steps:
       - uses: actions/checkout@v4
 
@@ -134,10 +216,8 @@ jobs:
     name: SonarCloud Frontend Analysis
     runs-on: ubuntu-latest
     needs:
-      - docker-build-validate
+      - docker-build-push
     steps:
-      - uses: actions/checkout@v4
-
       - name: Download unit test artifacts
         uses: actions/download-artifact@v4
         with:
@@ -157,4 +237,3 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-

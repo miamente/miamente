@@ -16,7 +16,7 @@ export function useProfessionals() {
 
     try {
       const response = await apiClient.getProfessionals();
-      setProfessionals(response.data);
+      setProfessionals(response);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to fetch professionals");
     } finally {

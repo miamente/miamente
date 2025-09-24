@@ -73,5 +73,5 @@ class Professional(Base, TimestampMixin):
     def __repr__(self):
         return (
             f"<Professional(id={self.id}, email={self.email}, "
-            f"full_name={self.full_name}, specialty={self.specialty})>"
+            f"full_name={self.full_name}, specialty_ids={self.specialty_ids})>"
         )

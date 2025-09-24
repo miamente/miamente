@@ -11,7 +11,6 @@ import {
   createReview,
   getProfessionalReviews,
   getUserReviews,
-  hasUserReviewedAppointment,
   getProfessionalAverageRating,
   type CreateReviewRequest,
 } from "../reviews";
@@ -19,7 +18,7 @@ import { apiClient } from "../api";
 
 describe("reviews", () => {
   const mockReviewData: CreateReviewRequest = {
-    appointmentId: "appointment-1",
+    professional_id: "pro-1",
     rating: 5,
     comment: "Excellent service!",
   };
@@ -39,8 +38,6 @@ describe("reviews", () => {
       const result = await createReview("user-1", "pro-1", mockReviewData);
 
       expect(mockApiClient.post).toHaveBeenCalledWith("/reviews", {
-        appointment_id: "appointment-1",
-        user_id: "user-1",
         professional_id: "pro-1",
         rating: 5,
         comment: "Excellent service!",
@@ -58,8 +55,6 @@ describe("reviews", () => {
       const result = await createReview("user-1", "pro-1", reviewDataWithoutComment);
 
       expect(mockApiClient.post).toHaveBeenCalledWith("/reviews", {
-        appointment_id: "appointment-1",
-        user_id: "user-1",
         professional_id: "pro-1",
         rating: 5,
         comment: "",
@@ -92,7 +87,7 @@ describe("reviews", () => {
     });
 
     it("should handle already reviewed error", async () => {
-      const error = new Error("User has already reviewed this appointment");
+      const error = new Error("User has already reviewed this professional");
       mockApiClient.post.mockRejectedValue(error);
 
       const result = await createReview("user-1", "pro-1", mockReviewData);
@@ -135,7 +130,6 @@ describe("reviews", () => {
       const mockApiResponse = [
         {
           id: "review-1",
-          appointment_id: "appointment-1",
           user_id: "user-1",
           professional_id: "pro-1",
           rating: 5,
@@ -151,7 +145,6 @@ describe("reviews", () => {
       expect(result).toEqual([
         {
           id: "review-1",
-          appointmentId: "appointment-1",
           userId: "user-1",
           proId: "pro-1",
           rating: 5,
@@ -193,7 +186,6 @@ describe("reviews", () => {
       const mockApiResponse = [
         {
           id: "review-1",
-          appointment_id: "appointment-1",
           user_id: "user-1",
           professional_id: "pro-1",
           rating: 5,
@@ -209,7 +201,6 @@ describe("reviews", () => {
       expect(result).toEqual([
         {
           id: "review-1",
-          appointmentId: "appointment-1",
           userId: "user-1",
           proId: "pro-1",
           rating: 5,
@@ -235,46 +226,6 @@ describe("reviews", () => {
 
       expect(result).toEqual([]);
       expect(console.error).toHaveBeenCalledWith("Error getting user reviews:", error);
-    });
-  });
-
-  describe("hasUserReviewedAppointment", () => {
-    it("should return true if user has reviewed", async () => {
-      mockApiClient.get.mockResolvedValue({ hasReviewed: true });
-
-      const result = await hasUserReviewedAppointment("user-1", "appointment-1");
-
-      expect(mockApiClient.get).toHaveBeenCalledWith("/reviews/check/appointment-1/user-1");
-      expect(result).toBe(true);
-    });
-
-    it("should return false if user has not reviewed", async () => {
-      mockApiClient.get.mockResolvedValue({ hasReviewed: false });
-
-      const result = await hasUserReviewedAppointment("user-1", "appointment-1");
-
-      expect(result).toBe(false);
-    });
-
-    it("should return false if response has no hasReviewed field", async () => {
-      mockApiClient.get.mockResolvedValue({});
-
-      const result = await hasUserReviewedAppointment("user-1", "appointment-1");
-
-      expect(result).toBe(false);
-    });
-
-    it("should handle API errors gracefully", async () => {
-      const error = new Error("API Error");
-      mockApiClient.get.mockRejectedValue(error);
-
-      const result = await hasUserReviewedAppointment("user-1", "appointment-1");
-
-      expect(result).toBe(false);
-      expect(console.error).toHaveBeenCalledWith(
-        "Error checking if user reviewed appointment:",
-        error,
-      );
     });
   });
 

@@ -1,11 +1,9 @@
 import { describe, it, expect } from "vitest";
 import {
-  AppointmentStatus,
   UserRole,
   type BaseEntity,
   type User,
   type Professional,
-  type Appointment,
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   type Specialty,
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -23,10 +21,6 @@ import {
   type PaginatedResponse,
   type ErrorResponse,
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  type UserProfile,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  type AdminMetrics,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   type ProfessionalSpecialty,
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   type ProfessionalTherapeuticApproach,
@@ -43,8 +37,6 @@ import {
   type EventLogEntry,
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   type ProfessionalSummary,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  type AppointmentSummary,
   type Review,
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   type CreateReviewRequest,
@@ -52,28 +44,11 @@ import {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   type UploadResponse,
   type EventLogData,
-  type AppointmentChartData,
   type EventStats,
-  type ConversionFunnelData,
 } from "../types";
 
 describe("Type Definitions", () => {
   describe("Enums", () => {
-    describe("AppointmentStatus", () => {
-      it("should have correct values", () => {
-        expect(AppointmentStatus.CONFIRMED).toBe("confirmed");
-        expect(AppointmentStatus.IN_PROGRESS).toBe("in_progress");
-        expect(AppointmentStatus.COMPLETED).toBe("completed");
-        expect(AppointmentStatus.CANCELLED).toBe("cancelled");
-        expect(AppointmentStatus.NO_SHOW).toBe("no_show");
-      });
-
-      it("should be usable in type annotations", () => {
-        const status: AppointmentStatus = AppointmentStatus.CONFIRMED;
-        expect(status).toBe("confirmed");
-      });
-    });
-
     describe("UserRole", () => {
       it("should have correct values", () => {
         expect(UserRole.USER).toBe("user");
@@ -213,52 +188,6 @@ describe("Type Definitions", () => {
         expect(professional.phone_country_code).toBe("+1");
         expect(professional.license_number).toBe("LIC123");
         expect(professional.bio).toBe("Experienced therapist");
-      });
-    });
-  });
-
-  describe("Appointment Types", () => {
-    describe("Appointment", () => {
-      it("should have all required properties", () => {
-        const appointment: Appointment = {
-          id: "123",
-          created_at: "2023-01-01T00:00:00Z",
-          user_id: "user123",
-          professional_id: "pro123",
-          status: AppointmentStatus.CONFIRMED,
-          start_time: "2023-01-01T10:00:00Z",
-          end_time: "2023-01-01T11:00:00Z",
-          duration: 60,
-          timezone: "UTC",
-        };
-
-        expect(appointment.user_id).toBe("user123");
-        expect(appointment.professional_id).toBe("pro123");
-        expect(appointment.status).toBe(AppointmentStatus.CONFIRMED);
-        expect(appointment.duration).toBe(60);
-      });
-
-      it("should allow optional session properties", () => {
-        const appointment: Appointment = {
-          id: "123",
-          created_at: "2023-01-01T00:00:00Z",
-          user_id: "user123",
-          professional_id: "pro123",
-          status: AppointmentStatus.COMPLETED,
-          start_time: "2023-01-01T10:00:00Z",
-          end_time: "2023-01-01T11:00:00Z",
-          duration: 60,
-          timezone: "UTC",
-          jitsi_url: "https://meet.jit.si/room123",
-          session_notes: "Great session",
-          session_rating: 5,
-          session_feedback: "Very helpful",
-          completed_at: "2023-01-01T11:00:00Z",
-        };
-
-        expect(appointment.jitsi_url).toBe("https://meet.jit.si/room123");
-        expect(appointment.session_notes).toBe("Great session");
-        expect(appointment.session_rating).toBe(5);
       });
     });
   });
@@ -563,7 +492,6 @@ describe("Type Definitions", () => {
       it("should have all required properties", () => {
         const review: Review = {
           id: "123",
-          appointment_id: "apt123",
           user_id: "user123",
           professional_id: "pro123",
           rating: 5,
@@ -571,13 +499,11 @@ describe("Type Definitions", () => {
         };
 
         expect(review.rating).toBe(5);
-        expect(review.appointment_id).toBe("apt123");
       });
 
       it("should allow optional comment", () => {
         const review: Review = {
           id: "123",
-          appointment_id: "apt123",
           user_id: "user123",
           professional_id: "pro123",
           rating: 5,
@@ -620,7 +546,7 @@ describe("Type Definitions", () => {
         const event: EventLogData = {
           id: "123",
           user_id: "user123",
-          action: "appointment_created",
+          action: "review_created",
           entity_id: "apt123",
           timestamp: "2023-01-01T00:00:00Z",
           metadata: { source: "web", device: "desktop" },
@@ -631,25 +557,11 @@ describe("Type Definitions", () => {
       });
     });
 
-    describe("AppointmentChartData", () => {
-      it("should have required properties", () => {
-        const data: AppointmentChartData = {
-          date: "2023-01-01",
-          confirmed: 10,
-          total: 15,
-        };
-
-        expect(data.date).toBe("2023-01-01");
-        expect(data.confirmed).toBe(10);
-        expect(data.total).toBe(15);
-      });
-    });
-
     describe("EventStats", () => {
       it("should have all required properties", () => {
         const stats: EventStats = {
           total_events: 100,
-          events_by_type: { login: 50, signup: 30, appointment: 20 },
+          events_by_type: { login: 50, signup: 30, review: 20 },
           events_by_day: { "2023-01-01": 25, "2023-01-02": 30 },
           unique_users: 45,
         };
@@ -657,22 +569,6 @@ describe("Type Definitions", () => {
         expect(stats.total_events).toBe(100);
         expect(stats.events_by_type.login).toBe(50);
         expect(stats.unique_users).toBe(45);
-      });
-    });
-
-    describe("ConversionFunnelData", () => {
-      it("should have required properties", () => {
-        const funnel: ConversionFunnelData = {
-          signups: 100,
-          profile_completions: 80,
-          slot_creations: 60,
-          appointment_confirmations: 45,
-        };
-
-        expect(funnel.signups).toBe(100);
-        expect(funnel.profile_completions).toBe(80);
-        expect(funnel.slot_creations).toBe(60);
-        expect(funnel.appointment_confirmations).toBe(45);
       });
     });
   });
