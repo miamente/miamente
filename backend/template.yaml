@@ -73,22 +73,6 @@ Resources:
         - Key: Environment
           Value: !Ref EnvironmentName
 
-  # Security Group para RDS PostgreSQL
-  RDSSecurityGroup:
-    Type: AWS::EC2::SecurityGroup
-    Properties:
-      GroupName: !Sub 'rds-sg-${EnvironmentName}'
-      GroupDescription: Permite trafico PostgreSQL desde ECS
-      VpcId: !Ref VpcId
-      SecurityGroupIngress:
-        - IpProtocol: tcp
-          FromPort: 5432
-          ToPort: 5432
-          SourceSecurityGroupId: !Ref ECSServiceSecurityGroup
-      Tags:
-        - Key: Environment
-          Value: !Ref EnvironmentName
-
   # Security Group para el Servicio ECS (permite trafico desde el ALB en el puerto 8000)
   ECSServiceSecurityGroup:
     Type: AWS::EC2::SecurityGroup
@@ -105,7 +89,7 @@ Resources:
         - IpProtocol: tcp
           FromPort: 5432
           ToPort: 5432
-          DestinationSecurityGroupId: !Ref RDSSecurityGroup
+          CidrIp: 10.0.0.0/8 # Permite conexión a RDS en el rango privado de VPC
         - IpProtocol: tcp
           FromPort: 443
           ToPort: 443
@@ -114,6 +98,22 @@ Resources:
           FromPort: 80
           ToPort: 80
           CidrIp: 0.0.0.0/0 # Para llamadas HTTP salientes
+      Tags:
+        - Key: Environment
+          Value: !Ref EnvironmentName
+
+  # Security Group para RDS PostgreSQL
+  RDSSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupName: !Sub 'rds-sg-${EnvironmentName}'
+      GroupDescription: Permite trafico PostgreSQL desde ECS
+      VpcId: !Ref VpcId
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 5432
+          ToPort: 5432
+          SourceSecurityGroupId: !Ref ECSServiceSecurityGroup
       Tags:
         - Key: Environment
           Value: !Ref EnvironmentName
@@ -209,7 +209,6 @@ Resources:
     Type: AWS::ECS::TaskDefinition
     DependsOn: 
       - ECSLogGroup # Asegura que el Log Group exista primero
-      - PostgreSQLDatabase # Asegura que la BD exista antes de crear la tarea
     Properties:
       Family: !Sub 'miamente-backend-${EnvironmentName}-task'
       RequiresCompatibilities:
