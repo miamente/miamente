@@ -356,7 +356,9 @@ jobs:
     needs: [docker-build-push, deploy-cfn-staging]
     runs-on: ubuntu-latest
     if: github.event_name == 'push' && github.ref == 'refs/heads/staging'
-
+    defaults:
+      run:
+        working-directory: .
     steps:
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
@@ -382,7 +384,9 @@ jobs:
     needs: [update-service-staging, deploy-cfn-staging]
     runs-on: ubuntu-latest
     if: github.event_name == 'push' && github.ref == 'refs/heads/staging'
-
+    defaults:
+      run:
+        working-directory: .
     steps:
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
