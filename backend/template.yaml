@@ -35,13 +35,13 @@ Parameters:
     NoEcho: true
     MinLength: 8
     MaxLength: 128
-  PROJECT_NAME:
+  PROJECTNAME:
     Type: String
     Description: Nombre del proyecto
   VERSION:
     Type: String
     Description: Version de la app
-  API_V1_STR:
+  APIV1STR:
     Type: String
     Description: Prefijo de la API
   DEBUG:
@@ -50,28 +50,28 @@ Parameters:
   ALGORITHM:
     Type: String
     Description: Algoritmo de JWT
-  ACCESS_TOKEN_EXPIRE_MINUTES:
+  ACCESSTOKENEXPIREMINUTES:
     Type: String
     Description: Expiracion de access token
-  REFRESH_TOKEN_EXPIRE_MINUTES:
+  REFRESHTOKENEXPIREMINUTES:
     Type: String
     Description: Expiracion de refresh token
-  SERVER_NAME:
+  SERVERNAME:
     Type: String
     Description: Nombre del servidor
-  SERVER_HOST:
+  SERVERHOST:
     Type: String
     Description: Host del servidor
-  ALLOWED_HOSTS:
+  ALLOWEDHOSTS:
     Type: String
     Description: Hosts permitidos
-  BACKEND_CORS_ORIGINS:
+  BACKENDCORSORIGINS:
     Type: String
     Description: Origenes permitidos CORS
   TIMEZONE:
     Type: String
     Description: Zona horaria
-  SECRET_KEY:
+  SECRETKEY:
     Type: String
     Description: Llave secreta
 
