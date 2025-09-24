@@ -6,7 +6,7 @@ to avoid code duplication and maintain consistency.
 """
 
 import uuid
-from sqlalchemy import Column, DateTime, ForeignKey, String, Text, text
+from sqlalchemy import Boolean, Column, DateTime, ForeignKey, String, Text, text
 from sqlalchemy.dialects.postgresql import UUID
 
 
@@ -42,6 +42,7 @@ class BaseNamedModelMixin:
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     name = Column(String(255), nullable=False, unique=True)
     category = Column(String(100), nullable=True)  # Optional category grouping
+    is_active = Column(Boolean, default=True, nullable=False)
 
     def __repr__(self) -> str:
         """Return a string representation of the model instance."""

@@ -2,7 +2,7 @@
 Professional Specialty model for the Miamente platform.
 """
 
-from sqlalchemy import Column, ForeignKey
+from sqlalchemy import Boolean, Column, ForeignKey
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 
@@ -16,6 +16,7 @@ class ProfessionalSpecialty(Base, BaseJunctionModelMixin, TimestampMixin):
     __tablename__ = "professional_specialties"
 
     specialty_id = Column(UUID(as_uuid=True), ForeignKey("specialties.id"), nullable=False)
+    is_active = Column(Boolean, default=True, nullable=False)
 
     # Relationships
     professional = relationship(

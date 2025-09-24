@@ -192,6 +192,7 @@ class TestSpecialtiesEndpoints:
         assert data["category"] == "creative_therapy"
 
         # Verify the specialty was updated in the database
+        db_session.commit()  # Ensure any pending changes are committed
         updated_specialty = db_session.query(Specialty).filter(Specialty.id == specialty.id).first()
         assert updated_specialty.name == updated_name
         assert updated_specialty.category == "creative_therapy"
@@ -253,6 +254,7 @@ class TestSpecialtiesEndpoints:
         assert response.status_code == 204
 
         # Verify the specialty was soft deleted in the database
+        db_session.commit()  # Ensure any pending changes are committed
         deleted_specialty = db_session.query(Specialty).filter(Specialty.id == specialty.id).first()
         assert deleted_specialty.is_active is False
 

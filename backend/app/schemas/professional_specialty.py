@@ -12,6 +12,7 @@ class ProfessionalSpecialtyBase(BaseModel):
     """Base professional specialty schema."""
 
     specialty_id: uuid.UUID
+    is_active: bool = True
 
 
 class ProfessionalSpecialtyCreate(ProfessionalSpecialtyBase):
@@ -24,6 +25,7 @@ class ProfessionalSpecialtyUpdate(BaseModel):
     """Professional specialty update schema."""
 
     specialty_id: Optional[uuid.UUID] = None
+    is_active: Optional[bool] = None
 
 
 class ProfessionalSpecialtyResponse(ProfessionalSpecialtyBase):

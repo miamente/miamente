@@ -228,6 +228,7 @@ class TestTherapeuticApproachesEndpoints:
         assert data["category"] == "expressive_therapy"
 
         # Verify the therapeutic approach was updated in the database
+        db_session.commit()  # Ensure any pending changes are committed
         updated_approach = db_session.query(TherapeuticApproach).filter(TherapeuticApproach.id == approach.id).first()
         assert updated_approach.name == updated_name
         assert updated_approach.description == "Updated description for music therapy"
@@ -294,6 +295,7 @@ class TestTherapeuticApproachesEndpoints:
         assert response.status_code == 204
 
         # Verify the therapeutic approach was soft deleted in the database
+        db_session.commit()  # Ensure any pending changes are committed
         deleted_approach = db_session.query(TherapeuticApproach).filter(TherapeuticApproach.id == approach.id).first()
         assert deleted_approach.is_active is False
 

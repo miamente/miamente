@@ -311,6 +311,7 @@ class TestProfessionalModalitiesEndpoints:
         assert data["is_default"] is True
 
         # Verify the professional modality was updated in the database
+        db_session.commit()  # Ensure any pending changes are committed
         updated_pm = (
             db_session.query(ProfessionalModality).filter(ProfessionalModality.id == professional_modality.id).first()
         )
@@ -375,6 +376,7 @@ class TestProfessionalModalitiesEndpoints:
         assert response.status_code == 204
 
         # Verify the professional modality was soft deleted in the database
+        db_session.commit()  # Ensure any pending changes are committed
         deleted_pm = (
             db_session.query(ProfessionalModality).filter(ProfessionalModality.id == professional_modality.id).first()
         )
@@ -436,6 +438,7 @@ class TestProfessionalModalitiesEndpoints:
         assert data["is_default"] is True
 
         # Verify the professional modality was updated in the database
+        db_session.commit()  # Ensure any pending changes are committed
         updated_pm = (
             db_session.query(ProfessionalModality).filter(ProfessionalModality.id == professional_modality.id).first()
         )

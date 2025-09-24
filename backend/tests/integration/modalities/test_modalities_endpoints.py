@@ -239,6 +239,7 @@ class TestModalitiesEndpoints:
         assert data["default_price_cents"] == 70000
 
         # Verify the modality was updated in the database
+        db_session.commit()  # Ensure any pending changes are committed
         updated_modality = db_session.query(Modality).filter(Modality.id == modality.id).first()
         assert updated_modality.name == updated_name
         assert updated_modality.description == "Updated couples therapy sessions"
@@ -310,6 +311,7 @@ class TestModalitiesEndpoints:
         assert response.status_code == 204
 
         # Verify the modality was soft deleted in the database
+        db_session.commit()  # Ensure any pending changes are committed
         deleted_modality = db_session.query(Modality).filter(Modality.id == modality.id).first()
         assert deleted_modality.is_active is False
 

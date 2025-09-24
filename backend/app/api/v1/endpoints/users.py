@@ -2,6 +2,8 @@
 User endpoints.
 """
 
+import uuid
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import SQLAlchemyError
@@ -37,15 +39,11 @@ async def get_users(
     return users
 
 
-@router.get("/{user_id}", response_model=UserResponse)
-async def get_user_by_id(
-    user_id: str,
-    _admin_user=Depends(get_current_admin_user),
-    db: Session = Depends(get_db),
-):
-    """Get user by ID (admin only)."""
-    user_service = UserService(db)
-    user = user_service.get_user_by_id(user_id)
+@router.get("/me", response_model=UserResponse)
+async def get_current_user(current_user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)):
+    """Get current user profile."""
+    auth_service = AuthService(db)
+    user = auth_service.get_user_by_id(current_user_id)
 
     if not user:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=USER_NOT_FOUND_MESSAGE)
@@ -53,11 +51,15 @@ async def get_user_by_id(
     return user
 
 
-@router.get("/me", response_model=UserResponse)
-async def get_current_user(current_user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)):
-    """Get current user profile."""
-    auth_service = AuthService(db)
-    user = auth_service.get_user_by_id(current_user_id)
+@router.get("/{user_id}", response_model=UserResponse)
+async def get_user_by_id(
+    user_id: uuid.UUID,
+    _admin_user=Depends(get_current_admin_user),
+    db: Session = Depends(get_db),
+):
+    """Get user by ID (admin only)."""
+    user_service = UserService(db)
+    user = user_service.get_user_by_id(user_id)
 
     if not user:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=USER_NOT_FOUND_MESSAGE)

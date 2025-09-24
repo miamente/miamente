@@ -6,7 +6,7 @@ import uuid
 from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
 
-# from app.models.professional import Professional  # Not used in this test
+from app.models.professional import Professional
 from app.models.user import User, UserRole
 
 

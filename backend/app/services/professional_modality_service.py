@@ -107,7 +107,7 @@ class ProfessionalModalityService:
                 other_modalities[0].is_default = True
                 self.db.commit()
 
-        self.db.delete(db_modality)
+        db_modality.is_active = False
         self.db.commit()
         return True
 

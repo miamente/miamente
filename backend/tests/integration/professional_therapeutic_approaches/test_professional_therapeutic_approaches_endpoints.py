@@ -201,6 +201,7 @@ class TestProfessionalTherapeuticApproachesEndpoints:
         assert data["therapeutic_approach_id"] == str(therapeutic_approach2.id)
 
         # Verify the professional therapeutic approach was updated in the database
+        db_session.commit()  # Ensure any pending changes are committed
         updated_pta = (
             db_session.query(ProfessionalTherapeuticApproach)
             .filter(ProfessionalTherapeuticApproach.id == professional_therapeutic_approach.id)
@@ -334,4 +335,4 @@ class TestProfessionalTherapeuticApproachesEndpoints:
         # Verify all therapeutic approach IDs are present
         created_approach_ids = [pta.therapeutic_approach_id for pta in created_ptas]
         for approach_id in approach_ids:
-            assert approach_id in created_approach_ids
+            assert approach_id in [str(aid) for aid in created_approach_ids]
