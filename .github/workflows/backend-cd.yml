@@ -207,27 +207,27 @@ jobs:
             --template-file template.yaml \
             --stack-name miamente-staging-stack \
             --parameter-overrides \
-              EnvironmentName=staging \
-              DockerImageUri=$IMAGE_URI \
-              LabRoleArn=${{ secrets.LAB_ROLE_ARN }} \
-              VpcId=${{ secrets.VPC_ID }} \
-              SubnetIds="${{ secrets.SUBNET_IDS }}" \
-              DBSubnetIds="${{ secrets.DB_SUBNET_IDS }}" \
-              DBUsername=${{ secrets.DB_USERNAME }} \
-              DBPassword=${{ secrets.DB_PASSWORD }} \
-              PROJECT_NAME=${{ secrets.PROJECT_NAME }} \
-              VERSION=${{ secrets.VERSION }} \
-              API_V1_STR=${{ secrets.API_V1_STR }} \
-              DEBUG=${{ secrets.DEBUG }} \
-              ALGORITHM=${{ secrets.ALGORITHM }} \
-              ACCESS_TOKEN_EXPIRE_MINUTES=${{ secrets.ACCESS_TOKEN_EXPIRE_MINUTES }} \
-              REFRESH_TOKEN_EXPIRE_MINUTES=${{ secrets.REFRESH_TOKEN_EXPIRE_MINUTES }} \
-              SERVER_NAME=${{ secrets.SERVER_NAME }} \
-              SERVER_HOST=${{ secrets.SERVER_HOST }} \
-              ALLOWED_HOSTS="${{ secrets.ALLOWED_HOSTS }}" \
-              BACKEND_CORS_ORIGINS="${{ secrets.BACKEND_CORS_ORIGINS }}" \
-              TIMEZONE=${{ secrets.TIMEZONE }} \
-              SECRET_KEY=${{ secrets.SECRET_KEY }} \
+              ParameterKey=EnvironmentName,ParameterValue=staging \
+              ParameterKey=DockerImageUri,ParameterValue="${IMAGE_URI}" \
+              ParameterKey=LabRoleArn,ParameterValue="${{ secrets.LAB_ROLE_ARN }}" \
+              ParameterKey=VpcId,ParameterValue="${{ secrets.VPC_ID }}" \
+              ParameterKey=SubnetIds,ParameterValue="${{ secrets.SUBNET_IDS }}" \
+              ParameterKey=DBSubnetIds,ParameterValue="${{ secrets.DB_SUBNET_IDS }}" \
+              ParameterKey=DBUsername,ParameterValue="${{ secrets.DB_USERNAME }}" \
+              ParameterKey=DBPassword,ParameterValue="${{ secrets.DB_PASSWORD }}" \
+              ParameterKey=PROJECT_NAME,ParameterValue="${{ secrets.PROJECT_NAME }}" \
+              ParameterKey=VERSION,ParameterValue="${{ secrets.VERSION }}" \
+              ParameterKey=API_V1_STR,ParameterValue="${{ secrets.API_V1_STR }}" \
+              ParameterKey=DEBUG,ParameterValue="${{ secrets.DEBUG }}" \
+              ParameterKey=ALGORITHM,ParameterValue="${{ secrets.ALGORITHM }}" \
+              ParameterKey=ACCESS_TOKEN_EXPIRE_MINUTES,ParameterValue="${{ secrets.ACCESS_TOKEN_EXPIRE_MINUTES }}" \
+              ParameterKey=REFRESH_TOKEN_EXPIRE_MINUTES,ParameterValue="${{ secrets.REFRESH_TOKEN_EXPIRE_MINUTES }}" \
+              ParameterKey=SERVER_NAME,ParameterValue="${{ secrets.SERVER_NAME }}" \
+              ParameterKey=SERVER_HOST,ParameterValue="${{ secrets.SERVER_HOST }}" \
+              ParameterKey=ALLOWED_HOSTS,ParameterValue="${{ secrets.ALLOWED_HOSTS }}" \
+              ParameterKey=BACKEND_CORS_ORIGINS,ParameterValue="${{ secrets.BACKEND_CORS_ORIGINS }}" \
+              ParameterKey=TIMEZONE,ParameterValue="${{ secrets.TIMEZONE }}" \
+              ParameterKey=SECRET_KEY,ParameterValue="${{ secrets.SECRET_KEY }}" \
             --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM \
             --no-fail-on-empty-changes
 
