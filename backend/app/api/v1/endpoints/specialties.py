@@ -4,7 +4,7 @@ Specialty (new version) endpoints.
 
 from typing import List
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Response
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
@@ -47,7 +47,7 @@ def get_specialty(specialty_id: str, db: Session = Depends(get_db)):
     return specialty
 
 
-@router.post("/", response_model=SpecialtyResponse)
+@router.post("/", response_model=SpecialtyResponse, status_code=status.HTTP_201_CREATED)
 def create_specialty(specialty: SpecialtyCreate, db: Session = Depends(get_db)):
     """Create a new specialty."""
     service = SpecialtyService(db)
@@ -71,4 +71,4 @@ def delete_specialty(specialty_id: str, db: Session = Depends(get_db)):
     success = service.delete_specialty(specialty_id)
     if not success:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=SPECIALTY_NOT_FOUND_MESSAGE)
-    return {"message": "Specialty deleted successfully"}
+    return Response(status_code=status.HTTP_204_NO_CONTENT)

@@ -4,7 +4,7 @@ Professional modality endpoints.
 
 from typing import List
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Response
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
@@ -58,7 +58,7 @@ def get_professional_modality(modality_id: str, db: Session = Depends(get_db)):
     return modality
 
 
-@router.post("/", response_model=ProfessionalModalityResponse)
+@router.post("/", response_model=ProfessionalModalityResponse, status_code=status.HTTP_201_CREATED)
 def create_professional_modality(modality: ProfessionalModalityCreate, db: Session = Depends(get_db)):
     """Create a new professional modality."""
     service = ProfessionalModalityService(db)
@@ -92,7 +92,7 @@ def delete_professional_modality(modality_id: str, db: Session = Depends(get_db)
             status_code=status.HTTP_404_NOT_FOUND,
             detail=PROFESSIONAL_MODALITY_NOT_FOUND_MESSAGE,
         )
-    return {"message": "Professional modality deleted successfully"}
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
 @router.put("/{modality_id}/set-default")
@@ -114,4 +114,7 @@ def set_default_modality(modality_id: str, db: Session = Depends(get_db)):
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Failed to set modality as default",
         )
-    return {"message": "Modality set as default successfully"}
+
+    # Return the updated modality
+    updated_modality = service.get_professional_modality(modality_id)
+    return updated_modality

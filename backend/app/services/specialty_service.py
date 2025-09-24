@@ -56,6 +56,6 @@ class SpecialtyService:
         if not db_specialty:
             return False
 
-        self.db.delete(db_specialty)
+        db_specialty.is_active = False
         self.db.commit()
         return True

@@ -2,8 +2,10 @@
 Unit tests for ProfessionalModalityService.
 """
 
-import pytest
+import uuid
 from unittest.mock import Mock
+
+import pytest
 from sqlalchemy.orm import Session
 
 from app.services.professional_modality_service import ProfessionalModalityService
@@ -137,11 +139,12 @@ class TestProfessionalModalityServiceUnit:
         # Arrange
         modality_data = ProfessionalModalityCreate(
             professional_id="test-professional-1",
-            modality_id="modality-1",
-            name="Individual Therapy",
+            modality_id=uuid.uuid4(),
+            modality_name="Individual Therapy",
             description="One-on-one therapy sessions",
-            price_cents=50000,
-            currency="COP",
+            virtual_price=50000,
+            presencial_price=60000,
+            offers_presencial=True,
             is_default=True,
             is_active=True,
         )
@@ -160,8 +163,8 @@ class TestProfessionalModalityServiceUnit:
         mock_db.query.return_value = mock_query
 
         # Mock the ProfessionalModality constructor to avoid schema/model mismatch
-        with pytest.MonkeyPatch().context() as m:
-            m.setattr(ProfessionalModality, "__init__", lambda self, **kwargs: None)
+        with pytest.MonkeyPatch().context() as monkey_patch:
+            monkey_patch.setattr(ProfessionalModality, "__init__", lambda self, **kwargs: None)
 
             # Act
             result = professional_modality_service.create_professional_modality(modality_data)
@@ -177,11 +180,12 @@ class TestProfessionalModalityServiceUnit:
         # Arrange
         modality_data = ProfessionalModalityCreate(
             professional_id="test-professional-1",
-            modality_id="modality-1",
-            name="Group Therapy",
+            modality_id=uuid.uuid4(),
+            modality_name="Group Therapy",
             description="Group therapy sessions",
-            price_cents=30000,
-            currency="COP",
+            virtual_price=30000,
+            presencial_price=35000,
+            offers_presencial=True,
             is_default=False,
             is_active=True,
         )
@@ -192,8 +196,8 @@ class TestProfessionalModalityServiceUnit:
         mock_db.refresh = Mock()
 
         # Mock the ProfessionalModality constructor to avoid schema/model mismatch
-        with pytest.MonkeyPatch().context() as m:
-            m.setattr(ProfessionalModality, "__init__", lambda self, **kwargs: None)
+        with pytest.MonkeyPatch().context() as monkey_patch:
+            monkey_patch.setattr(ProfessionalModality, "__init__", lambda self, **kwargs: None)
 
             # Act
             result = professional_modality_service.create_professional_modality(modality_data)
@@ -300,7 +304,8 @@ class TestProfessionalModalityServiceUnit:
 
         # Assert
         assert result is True
-        mock_db.delete.assert_called_once_with(sample_professional_modality)
+        # Verify soft delete - set is_active to False
+        assert sample_professional_modality.is_active is False
         mock_db.commit.assert_called()
 
     def test_delete_professional_modality_not_found(self, professional_modality_service, mock_db):
@@ -344,7 +349,8 @@ class TestProfessionalModalityServiceUnit:
 
         # Assert
         assert result is True
-        mock_db.delete.assert_called_once_with(sample_professional_modality)
+        # Verify soft delete - set is_active to False
+        assert sample_professional_modality.is_active is False
         mock_db.commit.assert_called()
 
     def test_set_default_modality_success(self, professional_modality_service, mock_db):

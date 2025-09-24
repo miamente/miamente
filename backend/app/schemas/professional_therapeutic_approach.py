@@ -11,7 +11,7 @@ from pydantic import BaseModel, ConfigDict
 class ProfessionalTherapeuticApproachBase(BaseModel):
     """Base professional therapeutic approach schema."""
 
-    therapeutic_approach_id: str
+    therapeutic_approach_id: uuid.UUID
 
 
 class ProfessionalTherapeuticApproachCreate(ProfessionalTherapeuticApproachBase):
@@ -23,7 +23,7 @@ class ProfessionalTherapeuticApproachCreate(ProfessionalTherapeuticApproachBase)
 class ProfessionalTherapeuticApproachUpdate(BaseModel):
     """Professional therapeutic approach update schema."""
 
-    therapeutic_approach_id: Optional[str] = None
+    therapeutic_approach_id: Optional[uuid.UUID] = None
 
 
 class ProfessionalTherapeuticApproachResponse(ProfessionalTherapeuticApproachBase):

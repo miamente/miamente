@@ -242,7 +242,8 @@ class TestTherapeuticApproachServiceUnit:
 
         # Assert
         assert result is True
-        mock_db.delete.assert_called_once_with(sample_approach)
+        # Verify soft delete - set is_active to False
+        assert sample_approach.is_active is False
         mock_db.commit.assert_called_once()
 
     def test_delete_therapeutic_approach_not_found(self, therapeutic_approach_service, mock_db):

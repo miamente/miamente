@@ -4,7 +4,7 @@ Professional therapeutic approach endpoints.
 
 from typing import List
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
@@ -47,7 +47,7 @@ def get_professional_therapeutic_approach(approach_id: str, db: Session = Depend
     return approach
 
 
-@router.post("/", response_model=ProfessionalTherapeuticApproachResponse)
+@router.post("/", response_model=ProfessionalTherapeuticApproachResponse, status_code=status.HTTP_201_CREATED)
 def create_professional_therapeutic_approach(
     approach: ProfessionalTherapeuticApproachCreate, db: Session = Depends(get_db)
 ):
@@ -83,14 +83,17 @@ def delete_professional_therapeutic_approach(approach_id: str, db: Session = Dep
             status_code=status.HTTP_404_NOT_FOUND,
             detail=PROFESSIONAL_THERAPEUTIC_APPROACH_NOT_FOUND_MESSAGE,
         )
-    return {"message": "Professional therapeutic approach deleted successfully"}
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
 @router.put("/professional/{professional_id}/approaches")
 def update_professional_therapeutic_approaches(
-    professional_id: str, approach_ids: List[str], db: Session = Depends(get_db)
+    professional_id: str, approach_ids: str = Query(...), db: Session = Depends(get_db)
 ):
     """Update therapeutic approaches for a professional."""
+    # Split the comma-separated approach_ids into a list
+    approach_ids_list = [aid.strip() for aid in approach_ids.split(",") if aid.strip()]
+
     service = ProfessionalTherapeuticApproachService(db)
-    approaches = service.add_therapeutic_approaches_to_professional(professional_id, approach_ids)
+    approaches = service.add_therapeutic_approaches_to_professional(professional_id, approach_ids_list)
     return {"message": f"Updated {len(approaches)} therapeutic approaches for professional"}

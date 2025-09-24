@@ -332,11 +332,13 @@ class TestAuthEndpointsExtended:
     def test_get_current_user_with_expired_token(self, client: TestClient):
         """Test getting current user with expired token."""
         # Use a fake expired token
-        expired_token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c"
-
-        response = client.get(
-            "/api/v1/auth/me", headers={"Authorization": f"Bearer {expired_token}"}
+        expired_token = (
+            "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9."
+            "eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ."
+            "SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c"
         )
+
+        response = client.get("/api/v1/auth/me", headers={"Authorization": f"Bearer {expired_token}"})
 
         assert response.status_code == 401
 

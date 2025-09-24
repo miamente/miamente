@@ -4,7 +4,7 @@ Therapeutic approach endpoints.
 
 from typing import List
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Response
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
@@ -50,7 +50,7 @@ def get_therapeutic_approach(approach_id: str, db: Session = Depends(get_db)):
     return approach
 
 
-@router.post("/", response_model=TherapeuticApproachResponse)
+@router.post("/", response_model=TherapeuticApproachResponse, status_code=status.HTTP_201_CREATED)
 def create_therapeutic_approach(approach: TherapeuticApproachCreate, db: Session = Depends(get_db)):
     """Create a new therapeutic approach."""
     service = TherapeuticApproachService(db)
@@ -84,4 +84,4 @@ def delete_therapeutic_approach(approach_id: str, db: Session = Depends(get_db))
             status_code=status.HTTP_404_NOT_FOUND,
             detail=THERAPEUTIC_APPROACH_NOT_FOUND_MESSAGE,
         )
-    return {"message": "Therapeutic approach deleted successfully"}
+    return Response(status_code=status.HTTP_204_NO_CONTENT)

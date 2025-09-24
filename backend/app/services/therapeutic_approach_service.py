@@ -61,6 +61,6 @@ class TherapeuticApproachService:
         if not db_approach:
             return False
 
-        self.db.delete(db_approach)
+        db_approach.is_active = False
         self.db.commit()
         return True
