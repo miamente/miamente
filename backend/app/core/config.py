@@ -2,12 +2,17 @@
 Application configuration settings.
 """
 
+import logging
+import os
 import secrets
 from functools import lru_cache
 from typing import List, Union
 
 from pydantic import ConfigDict, field_validator
 from pydantic_settings import BaseSettings
+
+# Set up logging
+logger = logging.getLogger(__name__)
 
 
 class Settings(BaseSettings):
@@ -39,10 +44,10 @@ class Settings(BaseSettings):
         Normaliza a list[str].
         """
         if isinstance(value, str):
-            v = value.strip()
-            if v == "*":
+            value = value.strip()
+            if value == "*":
                 return ["*"]
-            return [item.strip() for item in v.split(",") if item.strip()]
+            return [item.strip() for item in value.split(",") if item.strip()]
         if isinstance(value, list):
             return [str(item).strip() for item in value if str(item).strip()]
         raise ValueError(f"Invalid BACKEND_CORS_ORIGINS: {value}")
@@ -62,10 +67,10 @@ class Settings(BaseSettings):
         Normaliza a list[str].
         """
         if isinstance(value, str):
-            v = value.strip()
-            if v == "*":
+            value = value.strip()
+            if value == "*":
                 return ["*"]
-            return [item.strip() for item in v.split(",") if item.strip()]
+            return [item.strip() for item in value.split(",") if item.strip()]
         if isinstance(value, list):
             return [str(item).strip() for item in value if str(item).strip()]
         raise ValueError(f"Invalid ALLOWED_HOSTS: {value}")
@@ -124,4 +129,33 @@ class Settings(BaseSettings):
 @lru_cache(maxsize=1)
 def get_settings() -> Settings:
     """Return a cached Settings instance (singleton)."""
+    logger.info("SETTINGS: Creating new Settings instance")
     return Settings()
+
+
+def clear_settings_cache():
+    """Clear the settings cache to force reload from environment variables."""
+    logger.info("SETTINGS: Clearing settings cache")
+    get_settings.cache_clear()
+
+
+def reload_settings():
+    """Reload settings from environment variables and return the new instance."""
+    logger.info("SETTINGS: Reloading settings from environment")
+    clear_settings_cache()
+    return get_settings()
+
+
+def configure_logging():
+    """Configure logging for the application."""
+    log_level = os.getenv("LOG_LEVEL", "INFO").upper()
+
+    # Set up basic logging configuration
+    logging.basicConfig(
+        level=getattr(logging, log_level, logging.INFO),
+        format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+        datefmt="%Y-%m-%d %H:%M:%S",
+    )
+
+    logger.info("LOGGING: Configured logging with level: %s", log_level)
+    return log_level
