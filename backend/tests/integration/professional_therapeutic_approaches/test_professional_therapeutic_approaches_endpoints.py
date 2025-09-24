@@ -2,298 +2,336 @@
 Integration tests for professional therapeutic approaches endpoints.
 """
 
-import pytest
 from fastapi.testclient import TestClient
-from unittest.mock import Mock, patch
 from sqlalchemy.orm import Session
 
-from app.main import app
 from app.models.professional_therapeutic_approach import ProfessionalTherapeuticApproach
-
-# from app.schemas.professional_therapeutic_approach import (
-#     ProfessionalTherapeuticApproachCreate,
-#     ProfessionalTherapeuticApproachUpdate,
-# )
+from app.models.therapeutic_approach import TherapeuticApproach
 
 
 class TestProfessionalTherapeuticApproachesEndpoints:
     """Integration tests for professional therapeutic approaches endpoints."""
 
-    @pytest.fixture
-    def client(self):
-        """Test client."""
-        return TestClient(app)
-
-    @pytest.fixture
-    def mock_db(self):
-        """Mock database session."""
-        return Mock(spec=Session)
-
-    @pytest.fixture
-    def sample_professional_therapeutic_approach(self):
-        """Sample professional therapeutic approach for testing."""
-        approach = Mock(spec=ProfessionalTherapeuticApproach)
-        approach.id = "550e8400-e29b-41d4-a716-446655440003"
-        approach.professional_id = "550e8400-e29b-41d4-a716-446655440004"
-        approach.therapeutic_approach_id = "550e8400-e29b-41d4-a716-446655440005"
-        return approach
-
-    @patch("app.api.v1.endpoints.professional_therapeutic_approaches.get_db")
     def test_get_professional_therapeutic_approaches_success(
-        self, mock_get_db, client, mock_db, sample_professional_therapeutic_approach
+        self, client: TestClient, db_session: Session, test_data_factory
     ):
         """Test getting all therapeutic approaches for a professional successfully."""
-        # Arrange
-        mock_get_db.return_value = mock_db
-        professional_id = "550e8400-e29b-41d4-a716-446655440004"
+        # Create a professional and therapeutic approach in the database
+        professional_data = test_data_factory["professional"]("test_professional")
 
-        # Mock the ProfessionalTherapeuticApproachService
-        with patch(
-            "app.api.v1.endpoints.professional_therapeutic_approaches.ProfessionalTherapeuticApproachService"
-        ) as mock_service_class:
-            mock_service = Mock()
-            mock_service.get_professional_therapeutic_approaches.return_value = [
-                sample_professional_therapeutic_approach
-            ]
-            mock_service_class.return_value = mock_service
+        # Register professional
+        response = client.post("/api/v1/auth/register/professional", json=professional_data)
+        assert response.status_code == 201
+        professional = response.json()
 
-            # Act
-            response = client.get(
-                f"/api/v1/professional-therapeutic-approaches/professional/{professional_id}",
-                headers={"host": "localhost"},
-            )
+        # Create a therapeutic approach
+        therapeutic_approach = TherapeuticApproach(
+            name="Test Cognitive Behavioral Therapy",
+            description="A type of psychotherapy that helps people change negative thought patterns",
+            category="psychotherapy",
+        )
+        db_session.add(therapeutic_approach)
+        db_session.commit()
+        db_session.refresh(therapeutic_approach)
 
-            # Assert
-            assert response.status_code == 200
-            data = response.json()
-            assert len(data) == 1
-            assert data[0]["id"] == "550e8400-e29b-41d4-a716-446655440003"
-            assert data[0]["professional_id"] == "550e8400-e29b-41d4-a716-446655440004"
-            assert data[0]["therapeutic_approach_id"] == "550e8400-e29b-41d4-a716-446655440005"
+        # Create a professional therapeutic approach relationship
+        professional_therapeutic_approach = ProfessionalTherapeuticApproach(
+            professional_id=professional["id"], therapeutic_approach_id=str(therapeutic_approach.id)
+        )
+        db_session.add(professional_therapeutic_approach)
+        db_session.commit()
+        db_session.refresh(professional_therapeutic_approach)
 
-    @patch("app.api.v1.endpoints.professional_therapeutic_approaches.get_db")
+        # Test getting professional therapeutic approaches
+        response = client.get(f"/api/v1/professional-therapeutic-approaches/professional/{professional['id']}")
+
+        assert response.status_code == 200
+        data = response.json()
+        assert isinstance(data, list)
+        assert len(data) >= 1
+
+        # Check if our created professional therapeutic approach is in the response
+        professional_approach_ids = [pta["id"] for pta in data]
+        assert str(professional_therapeutic_approach.id) in professional_approach_ids
+
     def test_get_professional_therapeutic_approach_success(
-        self, mock_get_db, client, mock_db, sample_professional_therapeutic_approach
+        self, client: TestClient, db_session: Session, test_data_factory
     ):
         """Test getting a specific professional therapeutic approach successfully."""
-        # Arrange
-        mock_get_db.return_value = mock_db
-        approach_id = "550e8400-e29b-41d4-a716-446655440003"
+        # Create a professional and therapeutic approach in the database
+        professional_data = test_data_factory["professional"]("test_professional")
 
-        # Mock the ProfessionalTherapeuticApproachService
-        with patch(
-            "app.api.v1.endpoints.professional_therapeutic_approaches.ProfessionalTherapeuticApproachService"
-        ) as mock_service_class:
-            mock_service = Mock()
-            mock_service.get_professional_therapeutic_approach.return_value = sample_professional_therapeutic_approach
-            mock_service_class.return_value = mock_service
+        # Register professional
+        response = client.post("/api/v1/auth/register/professional", json=professional_data)
+        assert response.status_code == 201
+        professional = response.json()
 
-            # Act
-            response = client.get(
-                f"/api/v1/professional-therapeutic-approaches/{approach_id}", headers={"host": "localhost"}
-            )
+        # Create a therapeutic approach
+        therapeutic_approach = TherapeuticApproach(
+            name="Test Dialectical Behavior Therapy",
+            description="A type of therapy that combines cognitive-behavioral techniques with mindfulness",
+            category="psychotherapy",
+        )
+        db_session.add(therapeutic_approach)
+        db_session.commit()
+        db_session.refresh(therapeutic_approach)
 
-            # Assert
-            assert response.status_code == 200
-            data = response.json()
-            assert data["id"] == "550e8400-e29b-41d4-a716-446655440003"
-            assert data["professional_id"] == "550e8400-e29b-41d4-a716-446655440004"
-            assert data["therapeutic_approach_id"] == "550e8400-e29b-41d4-a716-446655440005"
+        # Create a professional therapeutic approach relationship
+        professional_therapeutic_approach = ProfessionalTherapeuticApproach(
+            professional_id=professional["id"], therapeutic_approach_id=str(therapeutic_approach.id)
+        )
+        db_session.add(professional_therapeutic_approach)
+        db_session.commit()
+        db_session.refresh(professional_therapeutic_approach)
 
-    @patch("app.api.v1.endpoints.professional_therapeutic_approaches.get_db")
-    def test_get_professional_therapeutic_approach_not_found(self, mock_get_db, client, mock_db):
+        # Test getting specific professional therapeutic approach
+        response = client.get(f"/api/v1/professional-therapeutic-approaches/{professional_therapeutic_approach.id}")
+
+        assert response.status_code == 200
+        data = response.json()
+        assert data["id"] == str(professional_therapeutic_approach.id)
+        assert data["professional_id"] == professional["id"]
+        assert data["therapeutic_approach_id"] == str(therapeutic_approach.id)
+
+    def test_get_professional_therapeutic_approach_not_found(self, client: TestClient):
         """Test getting a professional therapeutic approach that doesn't exist."""
-        # Arrange
-        mock_get_db.return_value = mock_db
-        approach_id = "non-existent-id"
+        # Test getting non-existent professional therapeutic approach
+        response = client.get("/api/v1/professional-therapeutic-approaches/550e8400-e29b-41d4-a716-446655440000")
 
-        # Mock the ProfessionalTherapeuticApproachService
-        with patch(
-            "app.api.v1.endpoints.professional_therapeutic_approaches.ProfessionalTherapeuticApproachService"
-        ) as mock_service_class:
-            mock_service = Mock()
-            mock_service.get_professional_therapeutic_approach.return_value = None
-            mock_service_class.return_value = mock_service
+        assert response.status_code == 404
+        data = response.json()
+        assert "Professional therapeutic approach not found" in data["detail"]
 
-            # Act
-            response = client.get(
-                f"/api/v1/professional-therapeutic-approaches/{approach_id}", headers={"host": "localhost"}
-            )
-
-            # Assert
-            assert response.status_code == 404
-            data = response.json()
-            assert "Professional therapeutic approach not found" in data["detail"]
-
-    @patch("app.api.v1.endpoints.professional_therapeutic_approaches.get_db")
     def test_create_professional_therapeutic_approach_success(
-        self, mock_get_db, client, mock_db, sample_professional_therapeutic_approach
+        self, client: TestClient, db_session: Session, test_data_factory
     ):
         """Test creating a professional therapeutic approach successfully."""
-        # Arrange
-        mock_get_db.return_value = mock_db
+        # Create a professional and therapeutic approach in the database
+        professional_data = test_data_factory["professional"]("test_professional")
 
-        # Mock the ProfessionalTherapeuticApproachService
-        with patch(
-            "app.api.v1.endpoints.professional_therapeutic_approaches.ProfessionalTherapeuticApproachService"
-        ) as mock_service_class:
-            mock_service = Mock()
-            mock_service.create_professional_therapeutic_approach.return_value = (
-                sample_professional_therapeutic_approach
+        # Register professional
+        response = client.post("/api/v1/auth/register/professional", json=professional_data)
+        assert response.status_code == 201
+        professional = response.json()
+
+        # Create a therapeutic approach
+        therapeutic_approach = TherapeuticApproach(
+            name="Test Gestalt Therapy",
+            description="A form of psychotherapy that focuses on the present moment",
+            category="psychotherapy",
+        )
+        db_session.add(therapeutic_approach)
+        db_session.commit()
+        db_session.refresh(therapeutic_approach)
+
+        # Test creating professional therapeutic approach
+        professional_therapeutic_approach_data = {
+            "professional_id": professional["id"],
+            "therapeutic_approach_id": str(therapeutic_approach.id),
+        }
+
+        response = client.post(
+            "/api/v1/professional-therapeutic-approaches/", json=professional_therapeutic_approach_data
+        )
+
+        assert response.status_code == 201
+        data = response.json()
+        assert data["professional_id"] == professional["id"]
+        assert data["therapeutic_approach_id"] == str(therapeutic_approach.id)
+        assert "id" in data
+
+        # Verify the professional therapeutic approach was created in the database
+        created_pta = (
+            db_session.query(ProfessionalTherapeuticApproach)
+            .filter(
+                ProfessionalTherapeuticApproach.professional_id == professional["id"],
+                ProfessionalTherapeuticApproach.therapeutic_approach_id == str(therapeutic_approach.id),
             )
-            mock_service_class.return_value = mock_service
+            .first()
+        )
+        assert created_pta is not None
 
-            # Act
-            response = client.post(
-                "/api/v1/professional-therapeutic-approaches/",
-                json={
-                    "professional_id": "550e8400-e29b-41d4-a716-446655440004",
-                    "therapeutic_approach_id": "550e8400-e29b-41d4-a716-446655440005",
-                },
-                headers={"host": "localhost"},
-            )
-
-            # Assert
-            assert response.status_code == 200
-            data = response.json()
-            assert data["id"] == "550e8400-e29b-41d4-a716-446655440003"
-            assert data["professional_id"] == "550e8400-e29b-41d4-a716-446655440004"
-            assert data["therapeutic_approach_id"] == "550e8400-e29b-41d4-a716-446655440005"
-
-    @patch("app.api.v1.endpoints.professional_therapeutic_approaches.get_db")
     def test_update_professional_therapeutic_approach_success(
-        self, mock_get_db, client, mock_db, sample_professional_therapeutic_approach
+        self, client: TestClient, db_session: Session, test_data_factory
     ):
         """Test updating a professional therapeutic approach successfully."""
-        # Arrange
-        mock_get_db.return_value = mock_db
-        approach_id = "550e8400-e29b-41d4-a716-446655440003"
+        # Create a professional and therapeutic approaches in the database
+        professional_data = test_data_factory["professional"]("test_professional")
 
-        # Mock the ProfessionalTherapeuticApproachService
-        with patch(
-            "app.api.v1.endpoints.professional_therapeutic_approaches.ProfessionalTherapeuticApproachService"
-        ) as mock_service_class:
-            mock_service = Mock()
-            mock_service.update_professional_therapeutic_approach.return_value = (
-                sample_professional_therapeutic_approach
-            )
-            mock_service_class.return_value = mock_service
+        # Register professional
+        response = client.post("/api/v1/auth/register/professional", json=professional_data)
+        assert response.status_code == 201
+        professional = response.json()
 
-            # Act
-            response = client.put(
-                f"/api/v1/professional-therapeutic-approaches/{approach_id}",
-                json={"therapeutic_approach_id": "550e8400-e29b-41d4-a716-446655440006"},
-                headers={"host": "localhost"},
-            )
+        # Create therapeutic approaches
+        therapeutic_approach1 = TherapeuticApproach(
+            name="Test EMDR Therapy",
+            description="Eye Movement Desensitization and Reprocessing therapy",
+            category="trauma_therapy",
+        )
+        therapeutic_approach2 = TherapeuticApproach(
+            name="Test Somatic Therapy",
+            description="A form of therapy that focuses on the body",
+            category="body_therapy",
+        )
+        db_session.add(therapeutic_approach1)
+        db_session.add(therapeutic_approach2)
+        db_session.commit()
+        db_session.refresh(therapeutic_approach1)
+        db_session.refresh(therapeutic_approach2)
 
-            # Assert
-            assert response.status_code == 200
-            data = response.json()
-            assert data["id"] == "550e8400-e29b-41d4-a716-446655440003"
-            assert data["professional_id"] == "550e8400-e29b-41d4-a716-446655440004"
-            assert data["therapeutic_approach_id"] == "550e8400-e29b-41d4-a716-446655440005"
+        # Create a professional therapeutic approach relationship
+        professional_therapeutic_approach = ProfessionalTherapeuticApproach(
+            professional_id=professional["id"], therapeutic_approach_id=str(therapeutic_approach1.id)
+        )
+        db_session.add(professional_therapeutic_approach)
+        db_session.commit()
+        db_session.refresh(professional_therapeutic_approach)
 
-    @patch("app.api.v1.endpoints.professional_therapeutic_approaches.get_db")
-    def test_update_professional_therapeutic_approach_not_found(self, mock_get_db, client, mock_db):
+        # Test updating professional therapeutic approach
+        update_data = {"therapeutic_approach_id": str(therapeutic_approach2.id)}
+
+        response = client.put(
+            f"/api/v1/professional-therapeutic-approaches/{professional_therapeutic_approach.id}", json=update_data
+        )
+
+        assert response.status_code == 200
+        data = response.json()
+        assert data["professional_id"] == professional["id"]
+        assert data["therapeutic_approach_id"] == str(therapeutic_approach2.id)
+
+        # Verify the professional therapeutic approach was updated in the database
+        updated_pta = (
+            db_session.query(ProfessionalTherapeuticApproach)
+            .filter(ProfessionalTherapeuticApproach.id == professional_therapeutic_approach.id)
+            .first()
+        )
+        assert updated_pta.therapeutic_approach_id == therapeutic_approach2.id
+
+    def test_update_professional_therapeutic_approach_not_found(self, client: TestClient):
         """Test updating a professional therapeutic approach that doesn't exist."""
-        # Arrange
-        mock_get_db.return_value = mock_db
-        approach_id = "non-existent-id"
+        # Test updating non-existent professional therapeutic approach
+        update_data = {"therapeutic_approach_id": "550e8400-e29b-41d4-a716-446655440001"}
 
-        # Mock the ProfessionalTherapeuticApproachService
-        with patch(
-            "app.api.v1.endpoints.professional_therapeutic_approaches.ProfessionalTherapeuticApproachService"
-        ) as mock_service_class:
-            mock_service = Mock()
-            mock_service.update_professional_therapeutic_approach.return_value = None
-            mock_service_class.return_value = mock_service
+        response = client.put(
+            "/api/v1/professional-therapeutic-approaches/550e8400-e29b-41d4-a716-446655440000", json=update_data
+        )
 
-            # Act
-            response = client.put(
-                f"/api/v1/professional-therapeutic-approaches/{approach_id}",
-                json={"therapeutic_approach_id": "550e8400-e29b-41d4-a716-446655440006"},
-                headers={"host": "localhost"},
-            )
+        assert response.status_code == 404
+        data = response.json()
+        assert "Professional therapeutic approach not found" in data["detail"]
 
-            # Assert
-            assert response.status_code == 404
-            data = response.json()
-            assert "Professional therapeutic approach not found" in data["detail"]
-
-    @patch("app.api.v1.endpoints.professional_therapeutic_approaches.get_db")
-    def test_delete_professional_therapeutic_approach_success(self, mock_get_db, client, mock_db):
+    def test_delete_professional_therapeutic_approach_success(
+        self, client: TestClient, db_session: Session, test_data_factory
+    ):
         """Test deleting a professional therapeutic approach successfully."""
-        # Arrange
-        mock_get_db.return_value = mock_db
-        approach_id = "550e8400-e29b-41d4-a716-446655440003"
+        # Create a professional and therapeutic approach in the database
+        professional_data = test_data_factory["professional"]("test_professional")
 
-        # Mock the ProfessionalTherapeuticApproachService
-        with patch(
-            "app.api.v1.endpoints.professional_therapeutic_approaches.ProfessionalTherapeuticApproachService"
-        ) as mock_service_class:
-            mock_service = Mock()
-            mock_service.delete_professional_therapeutic_approach.return_value = True
-            mock_service_class.return_value = mock_service
+        # Register professional
+        response = client.post("/api/v1/auth/register/professional", json=professional_data)
+        assert response.status_code == 201
+        professional = response.json()
 
-            # Act
-            response = client.delete(
-                f"/api/v1/professional-therapeutic-approaches/{approach_id}", headers={"host": "localhost"}
-            )
+        # Create a therapeutic approach
+        therapeutic_approach = TherapeuticApproach(
+            name="Test Art Therapy",
+            description="A form of psychotherapy that uses art as a medium for expression",
+            category="creative_therapy",
+        )
+        db_session.add(therapeutic_approach)
+        db_session.commit()
+        db_session.refresh(therapeutic_approach)
 
-            # Assert
-            assert response.status_code == 200
-            data = response.json()
-            assert data["message"] == "Professional therapeutic approach deleted successfully"
+        # Create a professional therapeutic approach relationship
+        professional_therapeutic_approach = ProfessionalTherapeuticApproach(
+            professional_id=professional["id"], therapeutic_approach_id=str(therapeutic_approach.id)
+        )
+        db_session.add(professional_therapeutic_approach)
+        db_session.commit()
+        db_session.refresh(professional_therapeutic_approach)
 
-    @patch("app.api.v1.endpoints.professional_therapeutic_approaches.get_db")
-    def test_delete_professional_therapeutic_approach_not_found(self, mock_get_db, client, mock_db):
+        # Test deleting professional therapeutic approach
+        response = client.delete(f"/api/v1/professional-therapeutic-approaches/{professional_therapeutic_approach.id}")
+
+        assert response.status_code == 204
+
+        # Verify the professional therapeutic approach was deleted from the database
+        deleted_pta = (
+            db_session.query(ProfessionalTherapeuticApproach)
+            .filter(ProfessionalTherapeuticApproach.id == professional_therapeutic_approach.id)
+            .first()
+        )
+        assert deleted_pta is None
+
+    def test_delete_professional_therapeutic_approach_not_found(self, client: TestClient):
         """Test deleting a professional therapeutic approach that doesn't exist."""
-        # Arrange
-        mock_get_db.return_value = mock_db
-        approach_id = "non-existent-id"
+        # Test deleting non-existent professional therapeutic approach
+        response = client.delete("/api/v1/professional-therapeutic-approaches/550e8400-e29b-41d4-a716-446655440000")
 
-        # Mock the ProfessionalTherapeuticApproachService
-        with patch(
-            "app.api.v1.endpoints.professional_therapeutic_approaches.ProfessionalTherapeuticApproachService"
-        ) as mock_service_class:
-            mock_service = Mock()
-            mock_service.delete_professional_therapeutic_approach.return_value = False
-            mock_service_class.return_value = mock_service
+        assert response.status_code == 404
+        data = response.json()
+        assert "Professional therapeutic approach not found" in data["detail"]
 
-            # Act
-            response = client.delete(
-                f"/api/v1/professional-therapeutic-approaches/{approach_id}", headers={"host": "localhost"}
-            )
+    def test_update_professional_therapeutic_approaches_success(
+        self, client: TestClient, db_session: Session, test_data_factory
+    ):
+        """Test updating multiple professional therapeutic approaches successfully."""
+        # Create a professional and therapeutic approaches in the database
+        professional_data = test_data_factory["professional"]("test_professional")
 
-            # Assert
-            assert response.status_code == 404
-            data = response.json()
-            assert "Professional therapeutic approach not found" in data["detail"]
+        # Register professional
+        response = client.post("/api/v1/auth/register/professional", json=professional_data)
+        assert response.status_code == 201
+        professional = response.json()
 
-    @patch("app.api.v1.endpoints.professional_therapeutic_approaches.get_db")
-    def test_update_professional_therapeutic_approaches_success(self, mock_get_db, client, mock_db):
-        """Test updating therapeutic approaches for a professional successfully."""
-        # Arrange
-        mock_get_db.return_value = mock_db
-        professional_id = "550e8400-e29b-41d4-a716-446655440004"
-        approach_ids = ["550e8400-e29b-41d4-a716-446655440005", "550e8400-e29b-41d4-a716-446655440006"]
+        # Create therapeutic approaches
+        therapeutic_approach1 = TherapeuticApproach(
+            name="Test Music Therapy",
+            description="A form of therapy that uses music to address physical and emotional needs",
+            category="creative_therapy",
+        )
+        therapeutic_approach2 = TherapeuticApproach(
+            name="Test Drama Therapy",
+            description="A form of therapy that uses drama and theater techniques",
+            category="creative_therapy",
+        )
+        therapeutic_approach3 = TherapeuticApproach(
+            name="Test Dance Therapy",
+            description="A form of therapy that uses movement and dance",
+            category="creative_therapy",
+        )
+        db_session.add(therapeutic_approach1)
+        db_session.add(therapeutic_approach2)
+        db_session.add(therapeutic_approach3)
+        db_session.commit()
+        db_session.refresh(therapeutic_approach1)
+        db_session.refresh(therapeutic_approach2)
+        db_session.refresh(therapeutic_approach3)
 
-        # Mock the ProfessionalTherapeuticApproachService
-        with patch(
-            "app.api.v1.endpoints.professional_therapeutic_approaches.ProfessionalTherapeuticApproachService"
-        ) as mock_service_class:
-            mock_service = Mock()
-            mock_service.add_therapeutic_approaches_to_professional.return_value = approach_ids
-            mock_service_class.return_value = mock_service
+        # Test updating professional therapeutic approaches with multiple approach IDs
+        approach_ids = [str(therapeutic_approach1.id), str(therapeutic_approach2.id), str(therapeutic_approach3.id)]
 
-            # Act
-            response = client.put(
-                f"/api/v1/professional-therapeutic-approaches/professional/{professional_id}/approaches",
-                json=approach_ids,
-                headers={"host": "localhost"},
-            )
+        url = (
+            f"/api/v1/professional-therapeutic-approaches/professional/{professional['id']}/approaches"
+            f"?approach_ids={','.join(approach_ids)}"
+        )
+        response = client.put(url)
 
-            # Assert
-            assert response.status_code == 200
-            data = response.json()
-            assert data["message"] == "Updated 2 therapeutic approaches for professional"
+        assert response.status_code == 200
+        data = response.json()
+        assert "message" in data
+        assert "Updated 3 therapeutic approaches" in data["message"]
+
+        # Verify the professional therapeutic approaches were created in the database
+        created_ptas = (
+            db_session.query(ProfessionalTherapeuticApproach)
+            .filter(ProfessionalTherapeuticApproach.professional_id == professional["id"])
+            .all()
+        )
+        assert len(created_ptas) == 3
+
+        # Verify all therapeutic approach IDs are present
+        created_approach_ids = [pta.therapeutic_approach_id for pta in created_ptas]
+        for approach_id in approach_ids:
+            assert approach_id in created_approach_ids

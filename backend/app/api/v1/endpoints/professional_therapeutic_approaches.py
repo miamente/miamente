@@ -4,7 +4,7 @@ Professional therapeutic approach endpoints.
 
 from typing import List
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Response, status
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
@@ -47,7 +47,7 @@ def get_professional_therapeutic_approach(approach_id: str, db: Session = Depend
     return approach
 
 
-@router.post("/", response_model=ProfessionalTherapeuticApproachResponse)
+@router.post("/", response_model=ProfessionalTherapeuticApproachResponse, status_code=status.HTTP_201_CREATED)
 def create_professional_therapeutic_approach(
     approach: ProfessionalTherapeuticApproachCreate, db: Session = Depends(get_db)
 ):
@@ -83,7 +83,7 @@ def delete_professional_therapeutic_approach(approach_id: str, db: Session = Dep
             status_code=status.HTTP_404_NOT_FOUND,
             detail=PROFESSIONAL_THERAPEUTIC_APPROACH_NOT_FOUND_MESSAGE,
         )
-    return {"message": "Professional therapeutic approach deleted successfully"}
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
 @router.put("/professional/{professional_id}/approaches")

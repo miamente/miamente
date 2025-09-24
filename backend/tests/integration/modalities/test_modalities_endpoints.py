@@ -2,333 +2,337 @@
 Integration tests for modalities endpoints.
 """
 
-import pytest
 from fastapi.testclient import TestClient
-from unittest.mock import Mock, patch
 from sqlalchemy.orm import Session
 
-from app.main import app
 from app.models.modality import Modality
-
-# from app.schemas.modality import ModalityCreate, ModalityUpdate
 
 
 class TestModalitiesEndpoints:
     """Integration tests for modalities endpoints."""
 
-    @pytest.fixture
-    def client(self):
-        """Test client."""
-        return TestClient(app)
-
-    @pytest.fixture
-    def mock_db(self):
-        """Mock database session."""
-        return Mock(spec=Session)
-
-    @pytest.fixture
-    def sample_modality(self):
-        """Sample modality for testing."""
-        modality = Mock(spec=Modality)
-        modality.id = "550e8400-e29b-41d4-a716-446655440000"
-        modality.name = "Individual Therapy"
-        modality.description = "One-on-one therapy sessions"
-        modality.category = "therapy"
-        modality.is_active = True
-        modality.currency = "COP"
-        modality.default_price_cents = 50000
-        modality.created_at = "2025-01-01T00:00:00Z"
-        modality.updated_at = None
-        return modality
-
-    def test_get_modalities_success(self, client, mock_db, sample_modality):
+    def test_get_modalities_success(self, client: TestClient, db_session: Session):
         """Test getting all modalities successfully."""
-        # Arrange
-        mock_query = Mock()
-        mock_filter = Mock()
-        mock_query.filter.return_value = mock_filter
-        mock_filter.all.return_value = [sample_modality]
-        mock_db.query.return_value = mock_query
+        # Create a modality in the database
+        modality = Modality(
+            name="Test Individual Therapy",
+            description="One-on-one therapy sessions",
+            category="therapy",
+            is_active=True,
+            currency="COP",
+            default_price_cents=50000,
+        )
+        db_session.add(modality)
+        db_session.commit()
+        db_session.refresh(modality)
 
-        # Override the dependency
-        from app.core.database import get_db
+        # Test getting all modalities
+        response = client.get("/api/v1/modalities/")
 
-        client.app.dependency_overrides[get_db] = lambda: mock_db
-
-        # Act
-        response = client.get("/api/v1/modalities/", headers={"host": "localhost"})
-
-        # Assert
         assert response.status_code == 200
         data = response.json()
-        assert len(data) == 1
-        assert data[0]["name"] == "Individual Therapy"
+        assert isinstance(data, list)
+        assert len(data) >= 1
 
-        # Clean up
-        client.app.dependency_overrides.clear()
+        # Check if our created modality is in the response
+        modality_names = [m["name"] for m in data]
+        assert "Test Individual Therapy" in modality_names
 
-    def test_get_modality_success(self, client, mock_db, sample_modality):
+    def test_get_modality_success(self, client: TestClient, db_session: Session, test_data_factory):
         """Test getting a specific modality successfully."""
-        # Arrange
-        mock_query = Mock()
-        mock_filter = Mock()
-        mock_query.filter.return_value = mock_filter
-        mock_filter.first.return_value = sample_modality
-        mock_db.query.return_value = mock_query
+        # Create a user for authentication
+        user_data = test_data_factory["user"]("test_user")
 
-        # Override the dependencies
-        from app.core.database import get_db
-        from app.api.v1.endpoints.auth import get_current_user_id
+        # Register user
+        response = client.post("/api/v1/auth/register/user", json=user_data)
+        assert response.status_code == 201
 
-        client.app.dependency_overrides[get_db] = lambda: mock_db
-        client.app.dependency_overrides[get_current_user_id] = lambda: "test-user-id"
+        # Login as user
+        login_response = client.post(
+            "/api/v1/auth/login/user", json={"email": user_data["email"], "password": user_data["password"]}
+        )
+        assert login_response.status_code == 200
+        token = login_response.json()["access_token"]
 
-        # Act
-        response = client.get("/api/v1/modalities/test-modality-1", headers={"host": "localhost"})
+        # Create a modality in the database
+        modality = Modality(
+            name="Test Group Therapy",
+            description="Group therapy sessions",
+            category="therapy",
+            is_active=True,
+            currency="COP",
+            default_price_cents=30000,
+        )
+        db_session.add(modality)
+        db_session.commit()
+        db_session.refresh(modality)
 
-        # Assert
+        # Test getting specific modality
+        headers = {"Authorization": f"Bearer {token}"}
+        response = client.get(f"/api/v1/modalities/{modality.id}", headers=headers)
+
         assert response.status_code == 200
         data = response.json()
-        assert data["name"] == "Individual Therapy"
-        assert data["id"] == "550e8400-e29b-41d4-a716-446655440000"
+        assert data["name"] == "Test Group Therapy"
+        assert data["id"] == str(modality.id)
 
-        # Clean up
-        client.app.dependency_overrides.clear()
-
-    def test_get_modality_not_found(self, client, mock_db):
+    def test_get_modality_not_found(self, client: TestClient, test_data_factory):
         """Test getting a modality that doesn't exist."""
-        # Arrange
-        mock_query = Mock()
-        mock_filter = Mock()
-        mock_query.filter.return_value = mock_filter
-        mock_filter.first.return_value = None
-        mock_db.query.return_value = mock_query
+        # Create a user for authentication
+        user_data = test_data_factory["user"]("test_user")
 
-        # Override the dependencies
-        from app.core.database import get_db
-        from app.api.v1.endpoints.auth import get_current_user_id
+        # Register user
+        response = client.post("/api/v1/auth/register/user", json=user_data)
+        assert response.status_code == 201
 
-        client.app.dependency_overrides[get_db] = lambda: mock_db
-        client.app.dependency_overrides[get_current_user_id] = lambda: "test-user-id"
+        # Login as user
+        login_response = client.post(
+            "/api/v1/auth/login/user", json={"email": user_data["email"], "password": user_data["password"]}
+        )
+        assert login_response.status_code == 200
+        token = login_response.json()["access_token"]
 
-        # Act
-        response = client.get("/api/v1/modalities/non-existent-id", headers={"host": "localhost"})
+        # Test getting non-existent modality
+        headers = {"Authorization": f"Bearer {token}"}
+        response = client.get("/api/v1/modalities/550e8400-e29b-41d4-a716-446655440000", headers=headers)
 
-        # Assert
         assert response.status_code == 404
         data = response.json()
-        assert data["detail"] == "Modality not found"
+        assert "Modality not found" in data["detail"]
 
-        # Clean up
-        client.app.dependency_overrides.clear()
-
-    def test_create_modality_success(self, client, mock_db, sample_modality):
+    def test_create_modality_success(self, client: TestClient, db_session: Session, test_data_factory):
         """Test creating a modality successfully."""
-        # Arrange
-        # Mock the query for checking existing modality
-        mock_query = Mock()
-        mock_filter = Mock()
-        mock_query.filter.return_value = mock_filter
-        mock_filter.first.return_value = None  # No existing modality
-        mock_db.query.return_value = mock_query
+        # Create a user for authentication
+        user_data = test_data_factory["user"]("test_user")
 
-        # Mock database operations
-        mock_db.add = Mock()
-        mock_db.commit = Mock()
-        mock_db.refresh = Mock()
+        # Register user
+        response = client.post("/api/v1/auth/register/user", json=user_data)
+        assert response.status_code == 201
 
-        # Override the dependencies
-        from app.core.database import get_db
-        from app.api.v1.endpoints.auth import get_current_user_id
-
-        client.app.dependency_overrides[get_db] = lambda: mock_db
-        client.app.dependency_overrides[get_current_user_id] = lambda: "test-user-id"
-
-        # Mock the Modality constructor
-        with patch("app.api.v1.endpoints.modalities.Modality") as mock_modality_class:
-            mock_modality_class.return_value = sample_modality
-
-            # Act
-            response = client.post(
-                "/api/v1/modalities/",
-                json={
-                    "name": "Group Therapy",
-                    "description": "Group therapy sessions",
-                    "category": "therapy",
-                    "is_active": True,
-                },
-                headers={"host": "localhost"},
-            )
-
-            # Assert
-            assert response.status_code == 200
-            data = response.json()
-            assert data["name"] == "Individual Therapy"
-
-            # Clean up
-            client.app.dependency_overrides.clear()
-
-    def test_create_modality_duplicate_name(self, client, mock_db, sample_modality):
-        """Test creating a modality with duplicate name."""
-        # Arrange
-        # Mock the query for checking existing modality
-        mock_query = Mock()
-        mock_filter = Mock()
-        mock_query.filter.return_value = mock_filter
-        mock_filter.first.return_value = sample_modality  # Existing modality found
-        mock_db.query.return_value = mock_query
-
-        # Override the dependencies
-        from app.core.database import get_db
-        from app.api.v1.endpoints.auth import get_current_user_id
-
-        client.app.dependency_overrides[get_db] = lambda: mock_db
-        client.app.dependency_overrides[get_current_user_id] = lambda: "test-user-id"
-
-        # Act
-        response = client.post(
-            "/api/v1/modalities/",
-            json={
-                "name": "Individual Therapy",  # Same name as existing
-                "description": "Group therapy sessions",
-                "category": "therapy",
-                "is_active": True,
-            },
-            headers={"host": "localhost"},
+        # Login as user
+        login_response = client.post(
+            "/api/v1/auth/login/user", json={"email": user_data["email"], "password": user_data["password"]}
         )
+        assert login_response.status_code == 200
+        token = login_response.json()["access_token"]
 
-        # Assert
+        # Test creating modality
+        import uuid
+        unique_name = f"Test Family Therapy {uuid.uuid4().hex[:8]}"
+        modality_data = {
+            "name": unique_name,
+            "description": "Family therapy sessions",
+            "category": "therapy",
+            "currency": "COP",
+            "default_price_cents": 40000,
+        }
+
+        headers = {"Authorization": f"Bearer {token}"}
+        response = client.post("/api/v1/modalities/", json=modality_data, headers=headers)
+
+        assert response.status_code == 201
+        data = response.json()
+        assert data["name"] == unique_name
+        assert data["description"] == "Family therapy sessions"
+        assert data["category"] == "therapy"
+        assert data["currency"] == "COP"
+        assert data["default_price_cents"] == 40000
+        assert "id" in data
+
+        # Verify the modality was created in the database
+        created_modality = db_session.query(Modality).filter(Modality.name == unique_name).first()
+        assert created_modality is not None
+        assert created_modality.description == "Family therapy sessions"
+
+    def test_create_modality_duplicate_name(self, client: TestClient, db_session: Session, test_data_factory):
+        """Test creating a modality with duplicate name."""
+        # Create a user for authentication
+        user_data = test_data_factory["user"]("test_user")
+
+        # Register user
+        response = client.post("/api/v1/auth/register/user", json=user_data)
+        assert response.status_code == 201
+
+        # Login as user
+        login_response = client.post(
+            "/api/v1/auth/login/user", json={"email": user_data["email"], "password": user_data["password"]}
+        )
+        assert login_response.status_code == 200
+        token = login_response.json()["access_token"]
+
+        # Create a modality in the database first
+        import uuid
+        duplicate_name = f"Duplicate Therapy {uuid.uuid4().hex[:8]}"
+        existing_modality = Modality(
+            name=duplicate_name,
+            description="Existing therapy",
+            category="therapy",
+            is_active=True,
+            currency="COP",
+            default_price_cents=50000,
+        )
+        db_session.add(existing_modality)
+        db_session.commit()
+
+        # Test creating modality with duplicate name
+        modality_data = {
+            "name": duplicate_name,
+            "description": "New therapy with same name",
+            "category": "therapy",
+            "currency": "COP",
+            "default_price_cents": 40000,
+        }
+
+        headers = {"Authorization": f"Bearer {token}"}
+        response = client.post("/api/v1/modalities/", json=modality_data, headers=headers)
+
         assert response.status_code == 400
         data = response.json()
-        assert data["detail"] == "Modality with this name already exists"
+        assert "already exists" in data["detail"].lower()
 
-        # Clean up
-        client.app.dependency_overrides.clear()
-
-    def test_update_modality_success(self, client, mock_db, sample_modality):
+    def test_update_modality_success(self, client: TestClient, db_session: Session, test_data_factory):
         """Test updating a modality successfully."""
-        # Arrange
-        # Mock the query for finding the modality
-        mock_query = Mock()
-        mock_filter = Mock()
-        mock_query.filter.return_value = mock_filter
-        mock_filter.first.return_value = sample_modality
-        mock_db.query.return_value = mock_query
+        # Create a user for authentication
+        user_data = test_data_factory["user"]("test_user")
 
-        # Mock database operations
-        mock_db.commit = Mock()
-        mock_db.refresh = Mock()
+        # Register user
+        response = client.post("/api/v1/auth/register/user", json=user_data)
+        assert response.status_code == 201
 
-        # Override the dependencies
-        from app.core.database import get_db
-        from app.api.v1.endpoints.auth import get_current_user_id
-
-        client.app.dependency_overrides[get_db] = lambda: mock_db
-        client.app.dependency_overrides[get_current_user_id] = lambda: "test-user-id"
-
-        # Act
-        response = client.put(
-            "/api/v1/modalities/test-modality-1",
-            json={"name": "Updated Individual Therapy", "description": "Updated description"},
-            headers={"host": "localhost"},
+        # Login as user
+        login_response = client.post(
+            "/api/v1/auth/login/user", json={"email": user_data["email"], "password": user_data["password"]}
         )
+        assert login_response.status_code == 200
+        token = login_response.json()["access_token"]
 
-        # Assert
+        # Create a modality in the database
+        import uuid
+        original_name = f"Test Couples Therapy {uuid.uuid4().hex[:8]}"
+        updated_name = f"Updated Couples Therapy {uuid.uuid4().hex[:8]}"
+        modality = Modality(
+            name=original_name,
+            description="Couples therapy sessions",
+            category="therapy",
+            is_active=True,
+            currency="COP",
+            default_price_cents=60000,
+        )
+        db_session.add(modality)
+        db_session.commit()
+        db_session.refresh(modality)
+
+        # Test updating modality
+        update_data = {
+            "name": updated_name,
+            "description": "Updated couples therapy sessions",
+            "default_price_cents": 70000,
+        }
+
+        headers = {"Authorization": f"Bearer {token}"}
+        response = client.put(f"/api/v1/modalities/{modality.id}", json=update_data, headers=headers)
+
         assert response.status_code == 200
         data = response.json()
-        assert data["name"] == "Updated Individual Therapy"
+        assert data["name"] == updated_name
+        assert data["description"] == "Updated couples therapy sessions"
+        assert data["default_price_cents"] == 70000
 
-        # Clean up
-        client.app.dependency_overrides.clear()
+        # Verify the modality was updated in the database
+        updated_modality = db_session.query(Modality).filter(Modality.id == modality.id).first()
+        assert updated_modality.name == updated_name
+        assert updated_modality.description == "Updated couples therapy sessions"
+        assert updated_modality.default_price_cents == 70000
 
-    def test_update_modality_not_found(self, client, mock_db):
+    def test_update_modality_not_found(self, client: TestClient, test_data_factory):
         """Test updating a modality that doesn't exist."""
-        # Arrange
-        # Mock the query for finding the modality
-        mock_query = Mock()
-        mock_filter = Mock()
-        mock_query.filter.return_value = mock_filter
-        mock_filter.first.return_value = None  # Modality not found
-        mock_db.query.return_value = mock_query
+        # Create a user for authentication
+        user_data = test_data_factory["user"]("test_user")
 
-        # Override the dependencies
-        from app.core.database import get_db
-        from app.api.v1.endpoints.auth import get_current_user_id
+        # Register user
+        response = client.post("/api/v1/auth/register/user", json=user_data)
+        assert response.status_code == 201
 
-        client.app.dependency_overrides[get_db] = lambda: mock_db
-        client.app.dependency_overrides[get_current_user_id] = lambda: "test-user-id"
+        # Login as user
+        login_response = client.post(
+            "/api/v1/auth/login/user", json={"email": user_data["email"], "password": user_data["password"]}
+        )
+        assert login_response.status_code == 200
+        token = login_response.json()["access_token"]
 
-        # Act
+        # Test updating non-existent modality
+        update_data = {"name": "Updated Therapy", "description": "Updated description"}
+
+        headers = {"Authorization": f"Bearer {token}"}
         response = client.put(
-            "/api/v1/modalities/non-existent-id",
-            json={"name": "Updated Individual Therapy"},
-            headers={"host": "localhost"},
+            "/api/v1/modalities/550e8400-e29b-41d4-a716-446655440000", json=update_data, headers=headers
         )
 
-        # Assert
         assert response.status_code == 404
         data = response.json()
-        assert data["detail"] == "Modality not found"
+        assert "Modality not found" in data["detail"]
 
-        # Clean up
-        client.app.dependency_overrides.clear()
-
-    def test_delete_modality_success(self, client, mock_db, sample_modality):
+    def test_delete_modality_success(self, client: TestClient, db_session: Session, test_data_factory):
         """Test deleting a modality successfully."""
-        # Arrange
-        # Mock the query for finding the modality
-        mock_query = Mock()
-        mock_filter = Mock()
-        mock_query.filter.return_value = mock_filter
-        mock_filter.first.return_value = sample_modality
-        mock_db.query.return_value = mock_query
+        # Create a user for authentication
+        user_data = test_data_factory["user"]("test_user")
 
-        # Mock database operations
-        mock_db.commit = Mock()
+        # Register user
+        response = client.post("/api/v1/auth/register/user", json=user_data)
+        assert response.status_code == 201
 
-        # Override the dependencies
-        from app.core.database import get_db
-        from app.api.v1.endpoints.auth import get_current_user_id
+        # Login as user
+        login_response = client.post(
+            "/api/v1/auth/login/user", json={"email": user_data["email"], "password": user_data["password"]}
+        )
+        assert login_response.status_code == 200
+        token = login_response.json()["access_token"]
 
-        client.app.dependency_overrides[get_db] = lambda: mock_db
-        client.app.dependency_overrides[get_current_user_id] = lambda: "test-user-id"
+        # Create a modality in the database
+        import uuid
+        unique_name = f"Test Art Therapy {uuid.uuid4().hex[:8]}"
+        modality = Modality(
+            name=unique_name,
+            description="Art therapy sessions",
+            category="therapy",
+            is_active=True,
+            currency="COP",
+            default_price_cents=45000,
+        )
+        db_session.add(modality)
+        db_session.commit()
+        db_session.refresh(modality)
 
-        # Act
-        response = client.delete("/api/v1/modalities/test-modality-1", headers={"host": "localhost"})
+        # Test deleting modality
+        headers = {"Authorization": f"Bearer {token}"}
+        response = client.delete(f"/api/v1/modalities/{modality.id}", headers=headers)
 
-        # Assert
-        assert response.status_code == 200
-        data = response.json()
-        assert data["message"] == "Modality deleted successfully"
-        assert sample_modality.is_active is False
+        assert response.status_code == 204
 
-        # Clean up
-        client.app.dependency_overrides.clear()
+        # Verify the modality was soft deleted in the database
+        deleted_modality = db_session.query(Modality).filter(Modality.id == modality.id).first()
+        assert deleted_modality.is_active is False
 
-    def test_delete_modality_not_found(self, client, mock_db):
+    def test_delete_modality_not_found(self, client: TestClient, test_data_factory):
         """Test deleting a modality that doesn't exist."""
-        # Arrange
-        # Mock the query for finding the modality
-        mock_query = Mock()
-        mock_filter = Mock()
-        mock_query.filter.return_value = mock_filter
-        mock_filter.first.return_value = None  # Modality not found
-        mock_db.query.return_value = mock_query
+        # Create a user for authentication
+        user_data = test_data_factory["user"]("test_user")
 
-        # Override the dependencies
-        from app.core.database import get_db
-        from app.api.v1.endpoints.auth import get_current_user_id
+        # Register user
+        response = client.post("/api/v1/auth/register/user", json=user_data)
+        assert response.status_code == 201
 
-        client.app.dependency_overrides[get_db] = lambda: mock_db
-        client.app.dependency_overrides[get_current_user_id] = lambda: "test-user-id"
+        # Login as user
+        login_response = client.post(
+            "/api/v1/auth/login/user", json={"email": user_data["email"], "password": user_data["password"]}
+        )
+        assert login_response.status_code == 200
+        token = login_response.json()["access_token"]
 
-        # Act
-        response = client.delete("/api/v1/modalities/non-existent-id", headers={"host": "localhost"})
+        # Test deleting non-existent modality
+        headers = {"Authorization": f"Bearer {token}"}
+        response = client.delete("/api/v1/modalities/550e8400-e29b-41d4-a716-446655440000", headers=headers)
 
-        # Assert
         assert response.status_code == 404
         data = response.json()
-        assert data["detail"] == "Modality not found"
-
-        # Clean up
-        client.app.dependency_overrides.clear()
+        assert "Modality not found" in data["detail"]

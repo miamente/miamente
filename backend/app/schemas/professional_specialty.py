@@ -11,7 +11,7 @@ from pydantic import BaseModel, ConfigDict
 class ProfessionalSpecialtyBase(BaseModel):
     """Base professional specialty schema."""
 
-    specialty_id: str
+    specialty_id: uuid.UUID
 
 
 class ProfessionalSpecialtyCreate(ProfessionalSpecialtyBase):
@@ -23,7 +23,7 @@ class ProfessionalSpecialtyCreate(ProfessionalSpecialtyBase):
 class ProfessionalSpecialtyUpdate(BaseModel):
     """Professional specialty update schema."""
 
-    specialty_id: Optional[str] = None
+    specialty_id: Optional[uuid.UUID] = None
 
 
 class ProfessionalSpecialtyResponse(ProfessionalSpecialtyBase):
