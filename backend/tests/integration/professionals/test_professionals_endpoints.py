@@ -496,10 +496,14 @@ class TestDeleteProfessional:
 class TestProfessionalValidation:
     """Test professional data validation."""
 
-    @patch('app.utils.auth.get_current_user_id')
-    def test_update_professional_with_invalid_json_fields(self, mock_get_current_user_id, client: TestClient, sample_professional):
+    def test_update_professional_with_invalid_json_fields(self, client: TestClient, sample_professional):
         """Test professional update with invalid JSON field data."""
-        mock_get_current_user_id.return_value = sample_professional.id
+        # Override the dependency to return our test professional ID
+        def override_get_current_user_id():
+            return str(sample_professional.id)
+        
+        from app.main import app
+        app.dependency_overrides[get_current_user_id] = override_get_current_user_id
         
         update_data = {
             "academic_experience": "invalid_json_string"  # Should be a list
@@ -509,11 +513,18 @@ class TestProfessionalValidation:
         
         # Should handle gracefully or return validation error
         assert response.status_code in [200, 422]
+        
+        # Clean up the override
+        app.dependency_overrides.clear()
 
-    @patch('app.utils.auth.get_current_user_id')
-    def test_update_professional_with_empty_data(self, mock_get_current_user_id, client: TestClient, sample_professional):
+    def test_update_professional_with_empty_data(self, client: TestClient, sample_professional):
         """Test professional update with empty data."""
-        mock_get_current_user_id.return_value = sample_professional.id
+        # Override the dependency to return our test professional ID
+        def override_get_current_user_id():
+            return str(sample_professional.id)
+        
+        from app.main import app
+        app.dependency_overrides[get_current_user_id] = override_get_current_user_id
         
         update_data = {}
         
@@ -522,28 +533,43 @@ class TestProfessionalValidation:
         assert response.status_code == 200
         # Should return the professional unchanged
         data = response.json()
-        assert data["id"] == sample_professional.id
+        assert data["id"] == str(sample_professional.id)
+        
+        # Clean up the override
+        app.dependency_overrides.clear()
 
 
 class TestProfessionalErrorHandling:
     """Test professional error handling scenarios."""
 
-    @patch('app.utils.auth.get_current_user_id')
     @patch('app.services.auth_service.AuthService.get_professional_by_id')
-    def test_get_current_professional_database_error(self, mock_get_professional, mock_get_current_user_id, client: TestClient):
+    def test_get_current_professional_database_error(self, mock_get_professional, client: TestClient):
         """Test current professional retrieval with database error."""
-        mock_get_current_user_id.return_value = "test-id"
+        # Override the dependency to return a valid user ID
+        def override_get_current_user_id():
+            return str(uuid.uuid4())
+        
+        from app.main import app
+        app.dependency_overrides[get_current_user_id] = override_get_current_user_id
+        
         mock_get_professional.side_effect = Exception("Database connection error")
         
         response = client.get("/api/v1/professionals/me/profile")
         
         # Should handle the error gracefully
         assert response.status_code in [500, 404]
+        
+        # Clean up the override
+        app.dependency_overrides.clear()
 
-    @patch('app.utils.auth.get_current_user_id')
-    def test_update_professional_database_error(self, mock_get_current_user_id, client: TestClient, sample_professional):
+    def test_update_professional_database_error(self, client: TestClient, sample_professional):
         """Test professional update with database error."""
-        mock_get_current_user_id.return_value = sample_professional.id
+        # Override the dependency to return our test professional ID
+        def override_get_current_user_id():
+            return str(sample_professional.id)
+        
+        from app.main import app
+        app.dependency_overrides[get_current_user_id] = override_get_current_user_id
         
         # This would need to be mocked at the database level to simulate a real error
         update_data = {"full_name": "Updated Name"}
@@ -552,3 +578,6 @@ class TestProfessionalErrorHandling:
         
         # Should succeed under normal conditions
         assert response.status_code == 200
+        
+        # Clean up the override
+        app.dependency_overrides.clear()

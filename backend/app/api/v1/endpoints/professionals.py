@@ -90,13 +90,20 @@ async def get_current_professional(
     db: Session = Depends(get_db),
 ):
     """Get current professional profile."""
-    auth_service = AuthService(db)
-    professional = auth_service.get_professional_by_id(current_user_id)
+    try:
+        auth_service = AuthService(db)
+        professional = auth_service.get_professional_by_id(current_user_id)
 
-    if not professional:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=PROFESSIONAL_NOT_FOUND_MESSAGE)
+        if not professional:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=PROFESSIONAL_NOT_FOUND_MESSAGE)
 
-    return parse_professional_data(professional)
+        return parse_professional_data(professional)
+    except HTTPException:
+        # Re-raise HTTP exceptions (like 404) as they are already handled correctly
+        raise
+    except Exception as exc:
+        # Handle database or other errors gracefully
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(exc)) from exc
 
 
 def _update_json_fields(professional: Professional, update_data: dict) -> None:

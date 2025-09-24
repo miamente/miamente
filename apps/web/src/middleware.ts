@@ -1,5 +1,5 @@
-import { NextResponse } from "next/server";
-import type { NextRequest } from "next/server";
+import { NextResponse } from "next/server.js";
+import type { NextRequest } from "next/server.js";
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
