@@ -198,36 +198,117 @@ jobs:
           aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
           aws-region: us-east-1
 
-      - name: Deploy CloudFormation Staging Stack
+      - name: Build params JSON + Precheck (Staging)
         run: |
-          IMAGE_URI="${{ secrets.DOCKERHUB_USERNAME }}/${{ secrets.DOCKERHUB_BACKEND_REPOSITORY }}:${{ github.sha }}"
-          echo "Deploying Image URI: $IMAGE_URI"
+          set -euo pipefail
 
+          # ---------- 1) Construcción de variables ----------
+          IMAGE_URI="${{ secrets.DOCKERHUB_USERNAME }}/${{ secrets.DOCKERHUB_BACKEND_REPOSITORY }}:${{ github.sha }}"
+          LAB_ROLE_ARN="${{ secrets.LAB_ROLE_ARN }}"
+          VPC_ID="${{ secrets.VPC_ID }}"
+          SUBNET_IDS="${{ secrets.SUBNET_IDS }}"            # ej: subnet-aaa,subnet-bbb (sin espacios)
+          DB_SUBNET_IDS="${{ secrets.DB_SUBNET_IDS }}"      # ej: subnet-xxx,subnet-yyy
+          DB_USERNAME="${{ secrets.DB_USERNAME }}"
+          DB_PASSWORD="${{ secrets.DB_PASSWORD }}"
+
+          PROJECTNAME="${{ secrets.PROJECT_NAME }}"
+          VERSION="${{ secrets.VERSION }}"
+          APIV1STR="${{ secrets.API_V1_STR }}"
+          DEBUG="${{ secrets.DEBUG }}"
+          ALGORITHM="${{ secrets.ALGORITHM }}"
+          ACCESSTOKENEXPIREMINUTES="${{ secrets.ACCESS_TOKEN_EXPIRE_MINUTES }}"
+          REFRESHTOKENEXPIREMINUTES="${{ secrets.REFRESH_TOKEN_EXPIRE_MINUTES }}"
+          SERVERNAME="${{ secrets.SERVER_NAME }}"
+          SERVERHOST="${{ secrets.SERVER_HOST }}"
+          ALLOWEDHOSTS="${{ secrets.ALLOWED_HOSTS }}"
+          BACKENDCORSORIGINS="${{ secrets.BACKEND_CORS_ORIGINS }}"
+          TIMEZONE="${{ secrets.TIMEZONE }}"
+          SECRETKEY="${{ secrets.SECRET_KEY }}"
+
+          # ---------- 2) Pre-chequeo de vacíos ----------
+          missing=()
+          check_empty () { var_name="$1"; val="${!var_name:-}"; if [ -z "$val" ]; then missing+=("$var_name"); fi; }
+
+          for k in IMAGE_URI LAB_ROLE_ARN VPC_ID SUBNET_IDS DB_SUBNET_IDS DB_USERNAME DB_PASSWORD \
+                   PROJECTNAME VERSION APIV1STR DEBUG ALGORITHM ACCESSTOKENEXPIREMINUTES \
+                   REFRESHTOKENEXPIREMINUTES SERVERNAME SERVERHOST ALLOWEDHOSTS BACKENDCORSORIGINS \
+                   TIMEZONE SECRETKEY; do
+            check_empty "$k"
+          done
+
+          if [ ${#missing[@]} -gt 0 ]; then
+            echo "❌ Parámetros/secretos VACÍOS detectados:"
+            for m in "${missing[@]}"; do echo " - $m"; done
+            exit 1
+          else
+            echo "✅ Todos los parámetros tienen valor (no vacíos)."
+          fi
+
+          # ---------- 3) Generar params-staging.json con jq ----------
+          if ! command -v jq &> /dev/null; then
+            sudo apt-get update && sudo apt-get install -y jq
+          fi
+
+          jq -n \
+            --arg envName "staging" \
+            --arg imageUri "$IMAGE_URI" \
+            --arg labRoleArn "$LAB_ROLE_ARN" \
+            --arg vpcId "$VPC_ID" \
+            --arg subnetIds "$SUBNET_IDS" \
+            --arg dbSubnetIds "$DB_SUBNET_IDS" \
+            --arg dbUser "$DB_USERNAME" \
+            --arg dbPass "$DB_PASSWORD" \
+            --arg projectname "$PROJECTNAME" \
+            --arg version "$VERSION" \
+            --arg apiv1str "$APIV1STR" \
+            --arg debug "$DEBUG" \
+            --arg algorithm "$ALGORITHM" \
+            --arg accessmins "$ACCESSTOKENEXPIREMINUTES" \
+            --arg refreshmins "$REFRESHTOKENEXPIREMINUTES" \
+            --arg servername "$SERVERNAME" \
+            --arg serverhost "$SERVERHOST" \
+            --arg allowedhosts "$ALLOWEDHOSTS" \
+            --arg backendcors "$BACKENDCORSORIGINS" \
+            --arg timezone "$TIMEZONE" \
+            --arg secretkey "$SECRETKEY" \
+            '[
+              {"ParameterKey":"EnvironmentName","ParameterValue":$envName},
+              {"ParameterKey":"DockerImageUri","ParameterValue":$imageUri},
+              {"ParameterKey":"LabRoleArn","ParameterValue":$labRoleArn},
+              {"ParameterKey":"VpcId","ParameterValue":$vpcId},
+              {"ParameterKey":"SubnetIds","ParameterValue":$subnetIds},
+              {"ParameterKey":"DBSubnetIds","ParameterValue":$dbSubnetIds},
+              {"ParameterKey":"DBUsername","ParameterValue":$dbUser},
+              {"ParameterKey":"DBPassword","ParameterValue":$dbPass},
+              {"ParameterKey":"PROJECTNAME","ParameterValue":$projectname},
+              {"ParameterKey":"VERSION","ParameterValue":$version},
+              {"ParameterKey":"APIV1STR","ParameterValue":$apiv1str},
+              {"ParameterKey":"DEBUG","ParameterValue":$debug},
+              {"ParameterKey":"ALGORITHM","ParameterValue":$algorithm},
+              {"ParameterKey":"ACCESSTOKENEXPIREMINUTES","ParameterValue":$accessmins},
+              {"ParameterKey":"REFRESHTOKENEXPIREMINUTES","ParameterValue":$refreshmins},
+              {"ParameterKey":"SERVERNAME","ParameterValue":$servername},
+              {"ParameterKey":"SERVERHOST","ParameterValue":$serverhost},
+              {"ParameterKey":"ALLOWEDHOSTS","ParameterValue":$allowedhosts},
+              {"ParameterKey":"BACKENDCORSORIGINS","ParameterValue":$backendcors},
+              {"ParameterKey":"TIMEZONE","ParameterValue":$timezone},
+              {"ParameterKey":"SECRETKEY","ParameterValue":$secretkey}
+            ]' > params-staging.json
+
+          # ---------- 4) Imprimir versión enmascarada para depurar ----------
+          echo "🔎 params-staging.json (enmascarado):"
+          jq '[ .[] | {ParameterKey, ParameterValue:"***"} ]' params-staging.json
+
+          
+      - name: Deploy CloudFormation Staging Stack (with params json)
+        run: |
+          set -euo pipefail
+
+          echo "🚀 Desplegando con params-staging.json…"
           aws cloudformation deploy \
             --template-file template.yaml \
             --stack-name miamente-staging-stack \
-            --parameter-overrides \
-              ParameterKey=EnvironmentName,ParameterValue=staging \
-              ParameterKey=DockerImageUri,ParameterValue="${IMAGE_URI}" \
-              ParameterKey=LabRoleArn,ParameterValue="${{ secrets.LAB_ROLE_ARN }}" \
-              ParameterKey=VpcId,ParameterValue="${{ secrets.VPC_ID }}" \
-              ParameterKey=SubnetIds,ParameterValue="${{ secrets.SUBNET_IDS }}" \
-              ParameterKey=DBSubnetIds,ParameterValue="${{ secrets.DB_SUBNET_IDS }}" \
-              ParameterKey=DBUsername,ParameterValue="${{ secrets.DB_USERNAME }}" \
-              ParameterKey=DBPassword,ParameterValue="${{ secrets.DB_PASSWORD }}" \
-              ParameterKey=PROJECTNAME,ParameterValue="${{ secrets.PROJECT_NAME }}" \
-              ParameterKey=VERSION,ParameterValue="${{ secrets.VERSION }}" \
-              ParameterKey=APIV1STR,ParameterValue="${{ secrets.API_V1_STR }}" \
-              ParameterKey=DEBUG,ParameterValue="${{ secrets.DEBUG }}" \
-              ParameterKey=ALGORITHM,ParameterValue="${{ secrets.ALGORITHM }}" \
-              ParameterKey=ACCESSTOKENEXPIREMINUTES,ParameterValue="${{ secrets.ACCESS_TOKEN_EXPIRE_MINUTES }}" \
-              ParameterKey=REFRESHTOKENEXPIREMINUTES,ParameterValue="${{ secrets.REFRESH_TOKEN_EXPIRE_MINUTES }}" \
-              ParameterKey=SERVERNAME,ParameterValue="${{ secrets.SERVER_NAME }}" \
-              ParameterKey=SERVERHOST,ParameterValue="${{ secrets.SERVER_HOST }}" \
-              ParameterKey=ALLOWEDHOSTS,ParameterValue="${{ secrets.ALLOWED_HOSTS }}" \
-              ParameterKey=BACKENDCORSORIGINS,ParameterValue="${{ secrets.BACKEND_CORS_ORIGINS }}" \
-              ParameterKey=TIMEZONE,ParameterValue="${{ secrets.TIMEZONE }}" \
-              ParameterKey=SECRETKEY,ParameterValue="${{ secrets.SECRET_KEY }}" \
+            --parameter-overrides $(jq -r '.[] | "\(.ParameterKey)=\(.ParameterValue)"' params-staging.json) \
             --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM \
             --no-fail-on-empty-changes
 
