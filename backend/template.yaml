@@ -137,7 +137,7 @@ Resources:
       DBInstanceIdentifier: !Sub 'miamente-postgres-${EnvironmentName}'
       DBName: miamente
       Engine: postgres
-      EngineVersion: '15.4' # Versión estable de PostgreSQL
+      EngineVersion: '15.14' # Versión estable de PostgreSQL
       DBInstanceClass: db.t3.micro # Instancia pequeña para desarrollo/staging
       AllocatedStorage: 20
       StorageType: gp2
