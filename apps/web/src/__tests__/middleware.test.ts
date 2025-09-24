@@ -1,9 +1,9 @@
 import { describe, it, expect, vi } from "vitest";
 import { middleware, config } from "../middleware";
-import type { NextRequest } from "next/server.js";
+import type { NextRequest } from "next/server";
 
 // Mock Next.js server
-vi.mock("next/server.js", () => ({
+vi.mock("next/server", () => ({
   NextResponse: {
     next: vi.fn(() => ({ status: 200, type: "next" })),
     redirect: vi.fn(() => ({ status: 302, type: "redirect" })),

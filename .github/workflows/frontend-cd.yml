@@ -107,20 +107,29 @@ jobs:
               echo "Backend is up ✅"
               break
             fi
+            echo "Attempt $i/60: Backend not ready yet..."
             sleep 2
           done
+          # Final check
+          if ! curl -fsS "$NEXT_PUBLIC_API_URL/health" >/dev/null; then
+            echo "❌ Backend failed to start after 2 minutes"
+            echo "Backend logs:"
+            cat backend.out || echo "No backend logs found"
+            exit 1
+          fi
 
       - name: Setup Node.js & deps
         uses: ./.github/actions/setup-frontend
         with:
-          node-version: "21"
-      
+          node-version: "22"
+
       - name: Ensure devDependencies (Tailwind/PostCSS)
         run: npm ci --include=dev
         env:
           NODE_ENV: development
 
       - name: Install Playwright browsers & system deps
+        working-directory: .
         run: npx playwright install --with-deps
 
       - name: Build & start Next (background)
@@ -133,13 +142,35 @@ jobs:
               echo "Frontend is up ✅"
               break
             fi
+            echo "Attempt $i/60: Frontend not ready yet..."
             sleep 2
           done
+          # Final check
+          if ! curl -fsS "$E2E_BASE_URL" >/dev/null; then
+            echo "❌ Frontend failed to start after 2 minutes"
+            echo "Frontend logs:"
+            cat .next.out || echo "No frontend logs found"
+            exit 1
+          fi
 
       - name: Run Playwright E2E
+        working-directory: .
         env:
           NEXT_PUBLIC_API_URL: ${{ env.NEXT_PUBLIC_API_URL }}
-        run: npx playwright test
+        run: |
+          echo "🔍 Running Playwright tests..."
+          echo "Backend URL: $NEXT_PUBLIC_API_URL"
+          echo "Frontend URL: $E2E_BASE_URL"
+
+          # Verify services are running
+          echo "Checking backend health..."
+          curl -fsS "$NEXT_PUBLIC_API_URL/health" || echo "❌ Backend health check failed"
+
+          echo "Checking frontend..."
+          curl -fsS "$E2E_BASE_URL" || echo "❌ Frontend check failed"
+
+          # Run tests with verbose output
+          npx playwright test --reporter=line
 
       - name: Upload Playwright report
         if: always()
@@ -149,7 +180,6 @@ jobs:
           path: |
             playwright-report/
             test-results/
-
 
   docker-build-push:
     name: Build & Push Docker image (main only)
@@ -188,7 +218,6 @@ jobs:
     needs:
       - docker-build-push
     steps:
-
       - name: Download unit test artifacts
         uses: actions/download-artifact@v4
         with:
@@ -208,4 +237,3 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-
