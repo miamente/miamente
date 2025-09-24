@@ -227,7 +227,7 @@ jobs:
               ParameterKey=ALLOWEDHOSTS,ParameterValue="${{ secrets.ALLOWED_HOSTS }}" \
               ParameterKey=BACKENDCORSORIGINS,ParameterValue="${{ secrets.BACKEND_CORS_ORIGINS }}" \
               ParameterKey=TIMEZONE,ParameterValue="${{ secrets.TIMEZONE }}" \
-              ParameterKey=SECRET_KEY,ParameterValue="${{ secrets.SECRET_KEY }}" \
+              ParameterKey=SECRETKEY,ParameterValue="${{ secrets.SECRET_KEY }}" \
             --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM \
             --no-fail-on-empty-changes
 
