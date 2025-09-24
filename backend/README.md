@@ -21,9 +21,9 @@ Backend API for the Miamente mental health platform built with FastAPI.
 
 ### Prerequisites
 
-- **Python 3.13.7** (exact version required)
-- PostgreSQL
-- Redis (optional, for caching and background tasks)
+- **Python 3.13.7** (exact version required).
+- PostgreSQL.
+- Redis (optional, for caching and background tasks).
 
 > **Note**: This project requires Python 3.13.7 specifically. Use pyenv, conda, or similar tools to manage Python versions.
 
