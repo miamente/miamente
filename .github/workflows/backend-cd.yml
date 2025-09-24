@@ -511,7 +511,7 @@ jobs:
             exit 1
           fi
 
-          ALB_URL_HTTP="http://${ALB_URL}/"
+          ALB_URL_HTTP="http://${ALB_URL}"
           echo "ALB URL Production: $ALB_URL_HTTP"
           echo "Database Endpoint Production: $DATABASE_ENDPOINT"
           echo "alb_url=${ALB_URL_HTTP}" >> $GITHUB_OUTPUT
