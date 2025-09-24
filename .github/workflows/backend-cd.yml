@@ -8,13 +8,6 @@ on:
       - ".github/workflows/backend-cd.yml"
       - ".github/actions/setup-backend/**"
 
-  pull_request:
-    branches: [main, staging]
-    paths:
-      - "backend/**"
-      - ".github/workflows/backend-cd.yml"
-      - ".github/actions/setup-backend/**"
-
 env:
   PROJECT_NAME: ${{ secrets.PROJECT_NAME }}
   VERSION: ${{ secrets.VERSION }}
@@ -39,7 +32,7 @@ jobs:
   unit-tests:
     name: Unit Tests
     runs-on: ubuntu-latest
-    if: github.event_name == 'pull_request'
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/staging')
     steps:
       - uses: actions/checkout@v4
 
@@ -66,34 +59,6 @@ jobs:
           path: |
             backend/unit_report.html
             backend/unit_coverage.xml
-
-  sonar:
-    name: SonarCloud (aggregate coverage)
-    runs-on: ubuntu-latest
-    needs: [unit-tests]
-    if: github.event_name == 'pull_request'
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Download unit artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: unit-test-reports
-          path: artifacts-downloaded
-
-      - name: Download integration artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: integration-test-reports
-          path: artifacts-downloaded
-
-      - name: SonarCloud Scan (Backend)
-        uses: SonarSource/sonarqube-scan-action@v5.0.0
-        with:
-          projectBaseDir: backend
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
   docker-build-push:
     name: Build & Push Docker image
@@ -401,145 +366,37 @@ jobs:
           path: |
             backend/integration_report.html
             backend/integration_coverage.xml
-
-  deploy-cfn-prod:
-    needs: [docker-build-push, test-staging]
+    
+  sonar:
+    name: SonarCloud (aggregate coverage)
     runs-on: ubuntu-latest
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    outputs:
-      alb_url_prod: ${{ steps.get_stack_outputs.outputs.alb_url }}
-      cluster_name_prod: "miamente-backend-production-cluster"
-      service_name_prod: "miamente-backend-production-service"
-      database_endpoint_prod: ${{ steps.get_stack_outputs.outputs.database_endpoint }}
-
+    needs: [unit-tests, test-staging]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/staging'
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v4
+      - name: Download unit artifacts
+        uses: actions/download-artifact@v4
         with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
-          aws-region: us-east-1
+          name: unit-test-reports
+          path: artifacts-downloaded
 
-      - name: Deploy CloudFormation Production Stack
-        run: |
-          IMAGE_URI="${{ secrets.DOCKERHUB_USERNAME }}/${{ secrets.DOCKERHUB_BACKEND_REPOSITORY }}:${{ github.sha }}"
-          echo "Deploying Image URI: $IMAGE_URI"
-
-          aws cloudformation deploy \
-            --template-file template.yaml \
-            --stack-name miamente-prod-stack \
-            --parameter-overrides \
-              EnvironmentName=production \
-              DockerImageUri=$IMAGE_URI \
-              LabRoleArn=${{ secrets.LAB_ROLE_ARN }} \
-              VpcId=${{ secrets.VPC_ID }} \
-              SubnetIds="${{ secrets.SUBNET_IDS }}" \
-              DBSubnetIds="${{ secrets.DB_SUBNET_IDS }}" \
-              DBUsername=${{ secrets.DB_USERNAME }} \
-              DBPassword=${{ secrets.DB_PASSWORD }} \
-            --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM \
-            --no-fail-on-empty-changes
-
-      - name: Get Production Stack Outputs
-        id: get_stack_outputs
-        run: |
-          if ! command -v jq &> /dev/null; then
-             sudo apt-get update && sudo apt-get install -y jq
-          fi
-
-          STACK_OUTPUTS=$(aws cloudformation describe-stacks --stack-name miamente-prod-stack --query "Stacks[0].Outputs" --region us-east-1 --output json)
-          echo "Raw Stack Outputs: $STACK_OUTPUTS"
-
-          ALB_URL=$(echo $STACK_OUTPUTS | jq -r '.[] | select(.OutputKey=="ALBDnsName") | .OutputValue')
-          DATABASE_ENDPOINT=$(echo $STACK_OUTPUTS | jq -r '.[] | select(.OutputKey=="DatabaseEndpoint") | .OutputValue')
-
-          if [ -z "$ALB_URL" ] || [ "$ALB_URL" == "null" ]; then
-            echo "Error: No se pudo obtener ALBDnsName del stack de Producción."
-            exit 1
-          fi
-
-          if [ -z "$DATABASE_ENDPOINT" ] || [ "$DATABASE_ENDPOINT" == "null" ]; then
-            echo "Error: No se pudo obtener DatabaseEndpoint del stack de Producción."
-            exit 1
-          fi
-
-          ALB_URL_HTTP="http://${ALB_URL}"
-          echo "ALB URL Production: $ALB_URL_HTTP"
-          echo "Database Endpoint Production: $DATABASE_ENDPOINT"
-          echo "alb_url=${ALB_URL_HTTP}" >> $GITHUB_OUTPUT
-          echo "database_endpoint=${DATABASE_ENDPOINT}" >> $GITHUB_OUTPUT
-
-  update-service-prod:
-    needs: [docker-build-push, deploy-cfn-prod]
-    runs-on: ubuntu-latest
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-
-    steps:
-      - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v4
+      - name: Download integration artifacts
+        uses: actions/download-artifact@v4
         with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
-          aws-region: us-east-1
+          name: integration-test-reports
+          path: artifacts-downloaded
 
-      - name: Force New Deployment ECS Service Production
-        run: |
-          echo "Forcing new deployment for Production service..."
-          aws ecs update-service --cluster ${{ needs.deploy-cfn-prod.outputs.cluster_name_prod }} \
-                                --service ${{ needs.deploy-cfn-prod.outputs.service_name_prod }} \
-                                --force-new-deployment \
-                                --region us-east-1
-
-          echo "Waiting for Production service deployment to stabilize..."
-          aws ecs wait services-stable --cluster ${{ needs.deploy-cfn-prod.outputs.cluster_name_prod }} --services ${{ needs.deploy-cfn-prod.outputs.service_name_prod }} --region us-east-1
-          echo "Production service deployment stable."
-
-  test-db-prod:
-    needs: [update-service-prod, deploy-cfn-prod]
-    runs-on: ubuntu-latest
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-
-    steps:
-      - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v4
+      - name: SonarCloud Scan (Backend)
+        uses: SonarSource/sonarqube-scan-action@v5.0.0
         with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
-          aws-region: us-east-1
-
-      - name: Test Database Connection Production
-        run: |
-          echo "Testing database connection for production environment..."
-          echo "Database endpoint: ${{ needs.deploy-cfn-prod.outputs.database_endpoint_prod }}"
-          
-          sleep 60
-          
-          HEALTH_CHECK_URL="${{ needs.deploy-cfn-prod.outputs.alb_url_prod }}health"
-          echo "Checking health endpoint: $HEALTH_CHECK_URL"
-          
-          for i in {1..5}; do
-            if curl -f -s "$HEALTH_CHECK_URL"; then
-              echo "Health check passed on attempt $i"
-              break
-            else
-              echo "Health check failed on attempt $i, retrying..."
-              sleep 30
-            fi
-            
-            if [ $i -eq 5 ]; then
-              echo "Health check failed after 5 attempts"
-              exit 1
-            fi
-          done
+          projectBaseDir: backend
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
   notify-success:
-    needs: [test-db-prod]
+    needs: [test-db-staging]
     runs-on: ubuntu-latest
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
 
@@ -549,5 +406,3 @@ jobs:
           echo "Deployment completed successfully!"
           echo "Staging URL: ${{ needs.deploy-cfn-staging.outputs.alb_url_staging }}"
           echo "Staging DB: ${{ needs.deploy-cfn-staging.outputs.database_endpoint_staging }}"
-          echo "Production URL: ${{ needs.deploy-cfn-prod.outputs.alb_url_prod }}"
-          echo "Production DB: ${{ needs.deploy-cfn-prod.outputs.database_endpoint_prod }}"
