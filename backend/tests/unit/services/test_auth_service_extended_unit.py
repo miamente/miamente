@@ -4,7 +4,7 @@ Extended unit tests for auth service.
 
 import pytest
 import uuid
-from unittest.mock import Mock, patch, MagicMock
+from unittest.mock import Mock, patch
 from fastapi import HTTPException, status
 
 from app.services.auth_service import AuthService

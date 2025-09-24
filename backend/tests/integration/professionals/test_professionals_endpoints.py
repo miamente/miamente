@@ -130,9 +130,7 @@ class TestGetProfessional:
         created_professional = register_response.json()
 
         # Update the professional to be inactive in database
-        professional_db = db_session.query(Professional).filter(
-            Professional.id == created_professional["id"]
-        ).first()
+        professional_db = db_session.query(Professional).filter(Professional.id == created_professional["id"]).first()
         professional_db.is_active = False
         db_session.commit()
 

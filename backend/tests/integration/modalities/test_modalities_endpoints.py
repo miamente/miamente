@@ -118,6 +118,7 @@ class TestModalitiesEndpoints:
 
         # Test creating modality
         import uuid
+
         unique_name = f"Test Family Therapy {uuid.uuid4().hex[:8]}"
         modality_data = {
             "name": unique_name,
@@ -162,6 +163,7 @@ class TestModalitiesEndpoints:
 
         # Create a modality in the database first
         import uuid
+
         duplicate_name = f"Duplicate Therapy {uuid.uuid4().hex[:8]}"
         existing_modality = Modality(
             name=duplicate_name,
@@ -208,6 +210,7 @@ class TestModalitiesEndpoints:
 
         # Create a modality in the database
         import uuid
+
         original_name = f"Test Couples Therapy {uuid.uuid4().hex[:8]}"
         updated_name = f"Updated Couples Therapy {uuid.uuid4().hex[:8]}"
         modality = Modality(
@@ -291,6 +294,7 @@ class TestModalitiesEndpoints:
 
         # Create a modality in the database
         import uuid
+
         unique_name = f"Test Art Therapy {uuid.uuid4().hex[:8]}"
         modality = Modality(
             name=unique_name,

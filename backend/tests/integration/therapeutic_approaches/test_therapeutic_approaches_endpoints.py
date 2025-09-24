@@ -200,6 +200,7 @@ class TestTherapeuticApproachesEndpoints:
 
         # Create a therapeutic approach in the database
         import uuid
+
         original_name = f"Test Music Therapy {uuid.uuid4().hex[:8]}"
         updated_name = f"Updated Music Therapy {uuid.uuid4().hex[:8]}"
         approach = TherapeuticApproach(

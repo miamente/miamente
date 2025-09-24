@@ -173,6 +173,7 @@ class TestSpecialtiesEndpoints:
 
         # Create a specialty in the database
         import uuid
+
         original_name = f"Test Music Therapy {uuid.uuid4().hex[:8]}"
         updated_name = f"Updated Music Therapy {uuid.uuid4().hex[:8]}"
         specialty = Specialty(name=original_name, category="therapy")
