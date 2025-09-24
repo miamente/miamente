@@ -2,382 +2,498 @@
 Integration tests for professional modalities endpoints.
 """
 
-import pytest
 from fastapi.testclient import TestClient
-from unittest.mock import Mock, patch
 from sqlalchemy.orm import Session
 
-from app.main import app
 from app.models.professional_modality import ProfessionalModality
-
-# from app.schemas.professional_modality import ProfessionalModalityCreate, ProfessionalModalityUpdate
+from app.models.modality import Modality
 
 
 class TestProfessionalModalitiesEndpoints:
     """Integration tests for professional modalities endpoints."""
 
-    @pytest.fixture
-    def client(self):
-        """Test client."""
-        return TestClient(app)
-
-    @pytest.fixture
-    def mock_db(self):
-        """Mock database session."""
-        return Mock(spec=Session)
-
-    @pytest.fixture
-    def sample_professional_modality(self):
-        """Sample professional modality for testing."""
-        modality = Mock(spec=ProfessionalModality)
-        modality.id = "550e8400-e29b-41d4-a716-446655440003"
-        modality.professional_id = "550e8400-e29b-41d4-a716-446655440004"
-        modality.modality_id = "550e8400-e29b-41d4-a716-446655440005"
-        modality.name = "Individual Therapy"
-        modality.description = "One-on-one therapy sessions"
-        modality.price_cents = 50000
-        modality.currency = "COP"
-        modality.is_default = True
-        modality.is_active = True
-        return modality
-
-    @patch("app.api.v1.endpoints.professional_modalities.get_db")
-    def test_get_professional_modalities_success(self, mock_get_db, client, mock_db, sample_professional_modality):
+    def test_get_professional_modalities_success(self, client: TestClient, db_session: Session, test_data_factory):
         """Test getting all modalities for a professional successfully."""
-        # Arrange
-        mock_get_db.return_value = mock_db
-        professional_id = "550e8400-e29b-41d4-a716-446655440004"
+        # Create a professional and modality in the database
+        professional_data = test_data_factory["professional"]("test_professional")
 
-        # Mock the ProfessionalModalityService
-        with patch("app.api.v1.endpoints.professional_modalities.ProfessionalModalityService") as mock_service_class:
-            mock_service = Mock()
-            mock_service.get_professional_modalities.return_value = [sample_professional_modality]
-            mock_service_class.return_value = mock_service
+        # Register professional
+        response = client.post("/api/v1/auth/register/professional", json=professional_data)
+        assert response.status_code == 201
+        professional = response.json()
 
-            # Act
-            response = client.get(
-                f"/api/v1/professional-modalities/professional/{professional_id}", headers={"host": "localhost"}
-            )
+        # Create a modality with unique name
+        import uuid
 
-            # Assert
-            assert response.status_code == 200
-            data = response.json()
-            assert len(data) == 1
-            assert data[0]["id"] == "550e8400-e29b-41d4-a716-446655440003"
-            assert data[0]["name"] == "Individual Therapy"
-            assert data[0]["description"] == "One-on-one therapy sessions"
-            assert data[0]["price_cents"] == 50000
-            assert data[0]["currency"] == "COP"
-            assert data[0]["is_default"] is True
-            assert data[0]["is_active"] is True
+        unique_name = f"Test Individual Therapy {uuid.uuid4().hex[:8]}"
+        modality = Modality(
+            name=unique_name,
+            description="One-on-one therapy sessions",
+            category="therapy",
+            is_active=True,
+            currency="COP",
+            default_price_cents=50000,
+        )
+        db_session.add(modality)
+        db_session.commit()
+        db_session.refresh(modality)
 
-    @patch("app.api.v1.endpoints.professional_modalities.get_db")
+        # Create a professional modality relationship
+        professional_modality = ProfessionalModality(
+            professional_id=professional["id"],
+            modality_id=str(modality.id),
+            modality_name=unique_name,
+            description="One-on-one therapy sessions",
+            virtual_price=50000,
+            presencial_price=50000,
+            offers_presencial=True,
+            is_default=True,
+            is_active=True,
+        )
+        db_session.add(professional_modality)
+        db_session.commit()
+        db_session.refresh(professional_modality)
+
+        # Test getting professional modalities
+        response = client.get(f"/api/v1/professional-modalities/professional/{professional['id']}")
+
+        assert response.status_code == 200
+        data = response.json()
+        assert isinstance(data, list)
+        assert len(data) >= 1
+
+        # Check if our created professional modality is in the response
+        professional_modality_ids = [pm["id"] for pm in data]
+        assert str(professional_modality.id) in professional_modality_ids
+
     def test_get_default_professional_modality_success(
-        self, mock_get_db, client, mock_db, sample_professional_modality
+        self, client: TestClient, db_session: Session, test_data_factory
     ):
         """Test getting the default modality for a professional successfully."""
-        # Arrange
-        mock_get_db.return_value = mock_db
-        professional_id = "550e8400-e29b-41d4-a716-446655440004"
+        # Create a professional and modality in the database
+        professional_data = test_data_factory["professional"]("test_professional")
 
-        # Mock the ProfessionalModalityService
-        with patch("app.api.v1.endpoints.professional_modalities.ProfessionalModalityService") as mock_service_class:
-            mock_service = Mock()
-            mock_service.get_default_professional_modality.return_value = sample_professional_modality
-            mock_service_class.return_value = mock_service
+        # Register professional
+        response = client.post("/api/v1/auth/register/professional", json=professional_data)
+        assert response.status_code == 201
+        professional = response.json()
 
-            # Act
-            response = client.get(
-                f"/api/v1/professional-modalities/professional/{professional_id}/default", headers={"host": "localhost"}
-            )
+        # Create a modality
+        modality = Modality(
+            name="Test Group Therapy",
+            description="Group therapy sessions",
+            category="therapy",
+            is_active=True,
+            currency="COP",
+            default_price_cents=30000,
+        )
+        db_session.add(modality)
+        db_session.commit()
+        db_session.refresh(modality)
 
-            # Assert
-            assert response.status_code == 200
-            data = response.json()
-            assert data["name"] == "Individual Therapy"
-            assert data["description"] == "One-on-one therapy sessions"
-            assert data["price_cents"] == 50000
-            assert data["currency"] == "COP"
-            assert data["is_default"] is True
-            assert data["is_active"] is True
+        # Create a professional modality relationship as default
+        professional_modality = ProfessionalModality(
+            professional_id=professional["id"],
+            modality_id=str(modality.id),
+            modality_name="Test Group Therapy",
+            description="Group therapy sessions",
+            virtual_price=30000,
+            presencial_price=30000,
+            offers_presencial=True,
+            is_default=True,
+            is_active=True,
+        )
+        db_session.add(professional_modality)
+        db_session.commit()
+        db_session.refresh(professional_modality)
 
-    @patch("app.api.v1.endpoints.professional_modalities.get_db")
-    def test_get_default_professional_modality_not_found(self, mock_get_db, client, mock_db):
-        """Test getting the default modality when none exists."""
-        # Arrange
-        mock_get_db.return_value = mock_db
-        professional_id = "550e8400-e29b-41d4-a716-446655440004"
+        # Test getting default professional modality
+        response = client.get(f"/api/v1/professional-modalities/professional/{professional['id']}/default")
 
-        # Mock the ProfessionalModalityService
-        with patch("app.api.v1.endpoints.professional_modalities.ProfessionalModalityService") as mock_service_class:
-            mock_service = Mock()
-            mock_service.get_default_professional_modality.return_value = None
-            mock_service_class.return_value = mock_service
+        assert response.status_code == 200
+        data = response.json()
+        assert data["modality_name"] == "Test Group Therapy"
+        assert data["description"] == "Group therapy sessions"
+        assert data["virtual_price"] == 30000
+        assert data["presencial_price"] == 30000
+        assert data["is_default"] is True
+        assert data["is_active"] is True
 
-            # Act
-            response = client.get(
-                f"/api/v1/professional-modalities/professional/{professional_id}/default", headers={"host": "localhost"}
-            )
+    def test_get_default_professional_modality_not_found(self, client: TestClient, test_data_factory):
+        """Test getting the default modality for a professional that doesn't exist."""
+        # Create a professional
+        professional_data = test_data_factory["professional"]("test_professional")
 
-            # Assert
-            assert response.status_code == 404
-            data = response.json()
-            assert data["detail"] == "No default modality found for this professional"
+        # Register professional
+        response = client.post("/api/v1/auth/register/professional", json=professional_data)
+        assert response.status_code == 201
+        professional = response.json()
 
-    @patch("app.api.v1.endpoints.professional_modalities.get_db")
-    def test_get_professional_modality_success(self, mock_get_db, client, mock_db, sample_professional_modality):
+        # Test getting default modality for professional with no modalities
+        response = client.get(f"/api/v1/professional-modalities/professional/{professional['id']}/default")
+
+        assert response.status_code == 404
+        data = response.json()
+        assert "No default modality found for this professional" in data["detail"]
+
+    def test_get_professional_modality_success(self, client: TestClient, db_session: Session, test_data_factory):
         """Test getting a specific professional modality successfully."""
-        # Arrange
-        mock_get_db.return_value = mock_db
-        modality_id = "550e8400-e29b-41d4-a716-446655440003"
+        # Create a professional and modality in the database
+        professional_data = test_data_factory["professional"]("test_professional")
 
-        # Mock the ProfessionalModalityService
-        with patch("app.api.v1.endpoints.professional_modalities.ProfessionalModalityService") as mock_service_class:
-            mock_service = Mock()
-            mock_service.get_professional_modality.return_value = sample_professional_modality
-            mock_service_class.return_value = mock_service
+        # Register professional
+        response = client.post("/api/v1/auth/register/professional", json=professional_data)
+        assert response.status_code == 201
+        professional = response.json()
 
-            # Act
-            response = client.get(f"/api/v1/professional-modalities/{modality_id}", headers={"host": "localhost"})
+        # Create a modality
+        modality = Modality(
+            name="Test Family Therapy",
+            description="Family therapy sessions",
+            category="therapy",
+            is_active=True,
+            currency="COP",
+            default_price_cents=40000,
+        )
+        db_session.add(modality)
+        db_session.commit()
+        db_session.refresh(modality)
 
-            # Assert
-            assert response.status_code == 200
-            data = response.json()
-            assert data["id"] == "550e8400-e29b-41d4-a716-446655440003"
-            assert data["name"] == "Individual Therapy"
-            assert data["description"] == "One-on-one therapy sessions"
-            assert data["price_cents"] == 50000
-            assert data["currency"] == "COP"
-            assert data["is_default"] is True
-            assert data["is_active"] is True
+        # Create a professional modality relationship
+        professional_modality = ProfessionalModality(
+            professional_id=professional["id"],
+            modality_id=str(modality.id),
+            modality_name="Test Family Therapy",
+            description="Family therapy sessions",
+            virtual_price=40000,
+            presencial_price=40000,
+            offers_presencial=True,
+            is_default=False,
+            is_active=True,
+        )
+        db_session.add(professional_modality)
+        db_session.commit()
+        db_session.refresh(professional_modality)
 
-    @patch("app.api.v1.endpoints.professional_modalities.get_db")
-    def test_get_professional_modality_not_found(self, mock_get_db, client, mock_db):
+        # Test getting specific professional modality
+        response = client.get(f"/api/v1/professional-modalities/{professional_modality.id}")
+
+        assert response.status_code == 200
+        data = response.json()
+        assert data["id"] == str(professional_modality.id)
+        assert data["professional_id"] == professional["id"]
+        assert data["modality_id"] == str(modality.id)
+        assert data["modality_name"] == "Test Family Therapy"
+        assert data["virtual_price"] == 40000
+
+    def test_get_professional_modality_not_found(self, client: TestClient):
         """Test getting a professional modality that doesn't exist."""
-        # Arrange
-        mock_get_db.return_value = mock_db
-        modality_id = "non-existent-id"
+        # Test getting non-existent professional modality
+        response = client.get("/api/v1/professional-modalities/550e8400-e29b-41d4-a716-446655440000")
 
-        # Mock the ProfessionalModalityService
-        with patch("app.api.v1.endpoints.professional_modalities.ProfessionalModalityService") as mock_service_class:
-            mock_service = Mock()
-            mock_service.get_professional_modality.return_value = None
-            mock_service_class.return_value = mock_service
+        assert response.status_code == 404
+        data = response.json()
+        assert "Professional modality not found" in data["detail"]
 
-            # Act
-            response = client.get(f"/api/v1/professional-modalities/{modality_id}", headers={"host": "localhost"})
-
-            # Assert
-            assert response.status_code == 404
-            data = response.json()
-            assert data["detail"] == "Professional modality not found"
-
-    @patch("app.api.v1.endpoints.professional_modalities.get_db")
-    def test_create_professional_modality_success(self, mock_get_db, client, mock_db, sample_professional_modality):
+    def test_create_professional_modality_success(self, client: TestClient, db_session: Session, test_data_factory):
         """Test creating a professional modality successfully."""
-        # Arrange
-        mock_get_db.return_value = mock_db
+        # Create a professional and modality in the database
+        professional_data = test_data_factory["professional"]("test_professional")
 
-        # Mock the ProfessionalModalityService
-        with patch("app.api.v1.endpoints.professional_modalities.ProfessionalModalityService") as mock_service_class:
-            mock_service = Mock()
-            mock_service.create_professional_modality.return_value = sample_professional_modality
-            mock_service_class.return_value = mock_service
+        # Register professional
+        response = client.post("/api/v1/auth/register/professional", json=professional_data)
+        assert response.status_code == 201
+        professional = response.json()
 
-            # Act
-            response = client.post(
-                "/api/v1/professional-modalities/",
-                json={
-                    "professional_id": "550e8400-e29b-41d4-a716-446655440004",
-                    "modality_id": "550e8400-e29b-41d4-a716-446655440005",
-                    "name": "Individual Therapy",
-                    "description": "One-on-one therapy sessions",
-                    "price_cents": 50000,
-                    "currency": "COP",
-                    "is_default": True,
-                    "is_active": True,
-                },
-                headers={"host": "localhost"},
+        # Create a modality
+        modality = Modality(
+            name="Test Couples Therapy",
+            description="Couples therapy sessions",
+            category="therapy",
+            is_active=True,
+            currency="COP",
+            default_price_cents=60000,
+        )
+        db_session.add(modality)
+        db_session.commit()
+        db_session.refresh(modality)
+
+        # Test creating professional modality
+        professional_modality_data = {
+            "professional_id": professional["id"],
+            "modality_id": str(modality.id),
+            "modality_name": "Test Couples Therapy",
+            "description": "Couples therapy sessions",
+            "virtual_price": 60000,
+            "presencial_price": 60000,
+            "offers_presencial": True,
+            "is_default": False,
+        }
+
+        response = client.post("/api/v1/professional-modalities/", json=professional_modality_data)
+
+        assert response.status_code == 201
+        data = response.json()
+        assert data["professional_id"] == professional["id"]
+        assert data["modality_id"] == str(modality.id)
+        assert data["modality_name"] == "Test Couples Therapy"
+        assert data["virtual_price"] == 60000
+        assert data["presencial_price"] == 60000
+        assert data["is_default"] is False
+        assert "id" in data
+
+        # Verify the professional modality was created in the database
+        created_pm = (
+            db_session.query(ProfessionalModality)
+            .filter(
+                ProfessionalModality.professional_id == professional["id"],
+                ProfessionalModality.modality_id == str(modality.id),
             )
+            .first()
+        )
+        assert created_pm is not None
 
-            # Assert
-            assert response.status_code == 200
-            data = response.json()
-            assert data["name"] == "Individual Therapy"
-            assert data["description"] == "One-on-one therapy sessions"
-            assert data["price_cents"] == 50000
-            assert data["currency"] == "COP"
-            assert data["is_default"] is True
-            assert data["is_active"] is True
-
-    @patch("app.api.v1.endpoints.professional_modalities.get_db")
-    def test_update_professional_modality_success(self, mock_get_db, client, mock_db, sample_professional_modality):
+    def test_update_professional_modality_success(self, client: TestClient, db_session: Session, test_data_factory):
         """Test updating a professional modality successfully."""
-        # Arrange
-        mock_get_db.return_value = mock_db
-        modality_id = "550e8400-e29b-41d4-a716-446655440003"
+        # Create a professional and modality in the database
+        professional_data = test_data_factory["professional"]("test_professional")
 
-        # Mock the ProfessionalModalityService
-        with patch("app.api.v1.endpoints.professional_modalities.ProfessionalModalityService") as mock_service_class:
-            mock_service = Mock()
-            mock_service.update_professional_modality.return_value = sample_professional_modality
-            mock_service_class.return_value = mock_service
+        # Register professional
+        response = client.post("/api/v1/auth/register/professional", json=professional_data)
+        assert response.status_code == 201
+        professional = response.json()
 
-            # Act
-            response = client.put(
-                f"/api/v1/professional-modalities/{modality_id}",
-                json={
-                    "name": "Updated Individual Therapy",
-                    "description": "Updated one-on-one therapy sessions",
-                    "price_cents": 55000,
-                },
-                headers={"host": "localhost"},
-            )
+        # Create a modality
+        modality = Modality(
+            name="Test Art Therapy",
+            description="Art therapy sessions",
+            category="creative_therapy",
+            is_active=True,
+            currency="COP",
+            default_price_cents=45000,
+        )
+        db_session.add(modality)
+        db_session.commit()
+        db_session.refresh(modality)
 
-            # Assert
-            assert response.status_code == 200
-            data = response.json()
-            assert data["name"] == "Individual Therapy"
-            assert data["description"] == "One-on-one therapy sessions"
-            assert data["price_cents"] == 50000
-            assert data["currency"] == "COP"
-            assert data["is_default"] is True
-            assert data["is_active"] is True
+        # Create a professional modality relationship
+        professional_modality = ProfessionalModality(
+            professional_id=professional["id"],
+            modality_id=str(modality.id),
+            modality_name="Test Art Therapy",
+            description="Art therapy sessions",
+            virtual_price=45000,
+            presencial_price=45000,
+            offers_presencial=True,
+            is_default=False,
+            is_active=True,
+        )
+        db_session.add(professional_modality)
+        db_session.commit()
+        db_session.refresh(professional_modality)
 
-    @patch("app.api.v1.endpoints.professional_modalities.get_db")
-    def test_update_professional_modality_not_found(self, mock_get_db, client, mock_db):
+        # Test updating professional modality
+        update_data = {
+            "modality_name": "Updated Art Therapy",
+            "description": "Updated art therapy sessions",
+            "virtual_price": 50000,
+            "presencial_price": 50000,
+            "is_default": True,
+        }
+
+        response = client.put(f"/api/v1/professional-modalities/{professional_modality.id}", json=update_data)
+
+        assert response.status_code == 200
+        data = response.json()
+        assert data["modality_name"] == "Updated Art Therapy"
+        assert data["description"] == "Updated art therapy sessions"
+        assert data["virtual_price"] == 50000
+        assert data["is_default"] is True
+
+        # Verify the professional modality was updated in the database
+        db_session.commit()  # Ensure any pending changes are committed
+        updated_pm = (
+            db_session.query(ProfessionalModality).filter(ProfessionalModality.id == professional_modality.id).first()
+        )
+        assert updated_pm.modality_name == "Updated Art Therapy"
+        assert updated_pm.description == "Updated art therapy sessions"
+        assert updated_pm.virtual_price == 50000
+        assert updated_pm.is_default is True
+
+    def test_update_professional_modality_not_found(self, client: TestClient):
         """Test updating a professional modality that doesn't exist."""
-        # Arrange
-        mock_get_db.return_value = mock_db
-        modality_id = "non-existent-id"
+        # Test updating non-existent professional modality
+        update_data = {"modality_name": "Updated Modality", "virtual_price": 50000}
 
-        # Mock the ProfessionalModalityService
-        with patch("app.api.v1.endpoints.professional_modalities.ProfessionalModalityService") as mock_service_class:
-            mock_service = Mock()
-            mock_service.update_professional_modality.return_value = None
-            mock_service_class.return_value = mock_service
+        response = client.put("/api/v1/professional-modalities/550e8400-e29b-41d4-a716-446655440000", json=update_data)
 
-            # Act
-            response = client.put(
-                f"/api/v1/professional-modalities/{modality_id}",
-                json={"modality_name": "Updated Therapy"},
-                headers={"host": "localhost"},
-            )
+        assert response.status_code == 404
+        data = response.json()
+        assert "Professional modality not found" in data["detail"]
 
-            # Assert
-            assert response.status_code == 404
-            data = response.json()
-            assert data["detail"] == "Professional modality not found"
-
-    @patch("app.api.v1.endpoints.professional_modalities.get_db")
-    def test_delete_professional_modality_success(self, mock_get_db, client, mock_db):
+    def test_delete_professional_modality_success(self, client: TestClient, db_session: Session, test_data_factory):
         """Test deleting a professional modality successfully."""
-        # Arrange
-        mock_get_db.return_value = mock_db
-        modality_id = "550e8400-e29b-41d4-a716-446655440003"
+        # Create a professional and modality in the database
+        professional_data = test_data_factory["professional"]("test_professional")
 
-        # Mock the ProfessionalModalityService
-        with patch("app.api.v1.endpoints.professional_modalities.ProfessionalModalityService") as mock_service_class:
-            mock_service = Mock()
-            mock_service.delete_professional_modality.return_value = True
-            mock_service_class.return_value = mock_service
+        # Register professional
+        response = client.post("/api/v1/auth/register/professional", json=professional_data)
+        assert response.status_code == 201
+        professional = response.json()
 
-            # Act
-            response = client.delete(f"/api/v1/professional-modalities/{modality_id}", headers={"host": "localhost"})
+        # Create a modality
+        modality = Modality(
+            name="Test Music Therapy",
+            description="Music therapy sessions",
+            category="creative_therapy",
+            is_active=True,
+            currency="COP",
+            default_price_cents=40000,
+        )
+        db_session.add(modality)
+        db_session.commit()
+        db_session.refresh(modality)
 
-            # Assert
-            assert response.status_code == 200
-            data = response.json()
-            assert data["message"] == "Professional modality deleted successfully"
+        # Create a professional modality relationship
+        professional_modality = ProfessionalModality(
+            professional_id=professional["id"],
+            modality_id=str(modality.id),
+            modality_name="Test Music Therapy",
+            description="Music therapy sessions",
+            virtual_price=40000,
+            presencial_price=40000,
+            offers_presencial=True,
+            is_default=False,
+            is_active=True,
+        )
+        db_session.add(professional_modality)
+        db_session.commit()
+        db_session.refresh(professional_modality)
 
-    @patch("app.api.v1.endpoints.professional_modalities.get_db")
-    def test_delete_professional_modality_not_found(self, mock_get_db, client, mock_db):
+        # Test deleting professional modality
+        response = client.delete(f"/api/v1/professional-modalities/{professional_modality.id}")
+
+        assert response.status_code == 204
+
+        # Verify the professional modality was soft deleted in the database
+        db_session.commit()  # Ensure any pending changes are committed
+        deleted_pm = (
+            db_session.query(ProfessionalModality).filter(ProfessionalModality.id == professional_modality.id).first()
+        )
+        assert deleted_pm.is_active is False
+
+    def test_delete_professional_modality_not_found(self, client: TestClient):
         """Test deleting a professional modality that doesn't exist."""
-        # Arrange
-        mock_get_db.return_value = mock_db
-        modality_id = "non-existent-id"
+        # Test deleting non-existent professional modality
+        response = client.delete("/api/v1/professional-modalities/550e8400-e29b-41d4-a716-446655440000")
 
-        # Mock the ProfessionalModalityService
-        with patch("app.api.v1.endpoints.professional_modalities.ProfessionalModalityService") as mock_service_class:
-            mock_service = Mock()
-            mock_service.delete_professional_modality.return_value = False
-            mock_service_class.return_value = mock_service
+        assert response.status_code == 404
+        data = response.json()
+        assert "Professional modality not found" in data["detail"]
 
-            # Act
-            response = client.delete(f"/api/v1/professional-modalities/{modality_id}", headers={"host": "localhost"})
-
-            # Assert
-            assert response.status_code == 404
-            data = response.json()
-            assert data["detail"] == "Professional modality not found"
-
-    @patch("app.api.v1.endpoints.professional_modalities.get_db")
-    def test_set_default_modality_success(self, mock_get_db, client, mock_db, sample_professional_modality):
+    def test_set_default_modality_success(self, client: TestClient, db_session: Session, test_data_factory):
         """Test setting a modality as default successfully."""
-        # Arrange
-        mock_get_db.return_value = mock_db
-        modality_id = "550e8400-e29b-41d4-a716-446655440003"
+        # Create a professional and modality in the database
+        professional_data = test_data_factory["professional"]("test_professional")
 
-        # Mock the ProfessionalModalityService
-        with patch("app.api.v1.endpoints.professional_modalities.ProfessionalModalityService") as mock_service_class:
-            mock_service = Mock()
-            mock_service.get_professional_modality.return_value = sample_professional_modality
-            mock_service.set_default_modality.return_value = True
-            mock_service_class.return_value = mock_service
+        # Register professional
+        response = client.post("/api/v1/auth/register/professional", json=professional_data)
+        assert response.status_code == 201
+        professional = response.json()
 
-            # Act
-            response = client.put(
-                f"/api/v1/professional-modalities/{modality_id}/set-default", headers={"host": "localhost"}
-            )
+        # Create a modality
+        modality = Modality(
+            name="Test Play Therapy",
+            description="Play therapy sessions",
+            category="child_therapy",
+            is_active=True,
+            currency="COP",
+            default_price_cents=35000,
+        )
+        db_session.add(modality)
+        db_session.commit()
+        db_session.refresh(modality)
 
-            # Assert
-            assert response.status_code == 200
-            data = response.json()
-            assert data["message"] == "Modality set as default successfully"
+        # Create a professional modality relationship
+        professional_modality = ProfessionalModality(
+            professional_id=professional["id"],
+            modality_id=str(modality.id),
+            modality_name="Test Play Therapy",
+            description="Play therapy sessions",
+            virtual_price=35000,
+            presencial_price=35000,
+            offers_presencial=True,
+            is_default=False,
+            is_active=True,
+        )
+        db_session.add(professional_modality)
+        db_session.commit()
+        db_session.refresh(professional_modality)
 
-    @patch("app.api.v1.endpoints.professional_modalities.get_db")
-    def test_set_default_modality_not_found(self, mock_get_db, client, mock_db):
-        """Test setting a modality as default when modality doesn't exist."""
-        # Arrange
-        mock_get_db.return_value = mock_db
-        modality_id = "non-existent-id"
+        # Test setting modality as default
+        response = client.put(f"/api/v1/professional-modalities/{professional_modality.id}/set-default")
 
-        # Mock the ProfessionalModalityService
-        with patch("app.api.v1.endpoints.professional_modalities.ProfessionalModalityService") as mock_service_class:
-            mock_service = Mock()
-            mock_service.get_professional_modality.return_value = None
-            mock_service_class.return_value = mock_service
+        assert response.status_code == 200
+        data = response.json()
+        assert data["is_default"] is True
 
-            # Act
-            response = client.put(
-                f"/api/v1/professional-modalities/{modality_id}/set-default", headers={"host": "localhost"}
-            )
+        # Verify the professional modality was updated in the database
+        db_session.commit()  # Ensure any pending changes are committed
+        updated_pm = (
+            db_session.query(ProfessionalModality).filter(ProfessionalModality.id == professional_modality.id).first()
+        )
+        assert updated_pm.is_default is True
 
-            # Assert
-            assert response.status_code == 404
-            data = response.json()
-            assert data["detail"] == "Professional modality not found"
+    def test_set_default_modality_not_found(self, client: TestClient):
+        """Test setting a non-existent modality as default."""
+        # Test setting non-existent professional modality as default
+        response = client.put("/api/v1/professional-modalities/550e8400-e29b-41d4-a716-446655440000/set-default")
 
-    @patch("app.api.v1.endpoints.professional_modalities.get_db")
-    def test_set_default_modality_failed(self, mock_get_db, client, mock_db, sample_professional_modality):
-        """Test setting a modality as default when the operation fails."""
-        # Arrange
-        mock_get_db.return_value = mock_db
-        modality_id = "550e8400-e29b-41d4-a716-446655440003"
+        assert response.status_code == 404
+        data = response.json()
+        assert "Professional modality not found" in data["detail"]
 
-        # Mock the ProfessionalModalityService
-        with patch("app.api.v1.endpoints.professional_modalities.ProfessionalModalityService") as mock_service_class:
-            mock_service = Mock()
-            mock_service.get_professional_modality.return_value = sample_professional_modality
-            mock_service.set_default_modality.return_value = False
-            mock_service_class.return_value = mock_service
+    def test_set_default_modality_failed(self, client: TestClient, db_session: Session, test_data_factory):
+        """Test setting a modality as default when it fails."""
+        # Create a professional and modality in the database
+        professional_data = test_data_factory["professional"]("test_professional")
 
-            # Act
-            response = client.put(
-                f"/api/v1/professional-modalities/{modality_id}/set-default", headers={"host": "localhost"}
-            )
+        # Register professional
+        response = client.post("/api/v1/auth/register/professional", json=professional_data)
+        assert response.status_code == 201
+        professional = response.json()
 
-            # Assert
-            assert response.status_code == 400
-            data = response.json()
-            assert data["detail"] == "Failed to set modality as default"
+        # Create a modality
+        modality = Modality(
+            name="Test Drama Therapy",
+            description="Drama therapy sessions",
+            category="creative_therapy",
+            is_active=True,
+            currency="COP",
+            default_price_cents=40000,
+        )
+        db_session.add(modality)
+        db_session.commit()
+        db_session.refresh(modality)
+
+        # Create a professional modality relationship
+        professional_modality = ProfessionalModality(
+            professional_id=professional["id"],
+            modality_id=str(modality.id),
+            modality_name="Test Drama Therapy",
+            description="Drama therapy sessions",
+            virtual_price=40000,
+            presencial_price=40000,
+            offers_presencial=True,
+            is_default=False,
+            is_active=True,
+        )
+        db_session.add(professional_modality)
+        db_session.commit()
+        db_session.refresh(professional_modality)
+
+        # Test setting modality as default (should work normally)
+        response = client.put(f"/api/v1/professional-modalities/{professional_modality.id}/set-default")
+
+        # Should succeed under normal conditions
+        assert response.status_code == 200

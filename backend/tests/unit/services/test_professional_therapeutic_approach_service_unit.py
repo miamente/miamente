@@ -2,8 +2,10 @@
 Unit tests for ProfessionalTherapeuticApproachService.
 """
 
-import pytest
+import uuid
 from unittest.mock import Mock
+
+import pytest
 from sqlalchemy.orm import Session
 
 from app.services.professional_therapeutic_approach_service import ProfessionalTherapeuticApproachService
@@ -99,7 +101,7 @@ class TestProfessionalTherapeuticApproachServiceUnit:
         """Test creating a professional therapeutic approach successfully."""
         # Arrange
         approach_data = ProfessionalTherapeuticApproachCreate(
-            professional_id="test-professional-1", therapeutic_approach_id="approach-1"
+            professional_id="test-professional-1", therapeutic_approach_id=uuid.uuid4()
         )
 
         # Mock the database operations
@@ -108,8 +110,8 @@ class TestProfessionalTherapeuticApproachServiceUnit:
         mock_db.refresh = Mock()
 
         # Mock the ProfessionalTherapeuticApproach constructor to avoid schema/model mismatch
-        with pytest.MonkeyPatch().context() as m:
-            m.setattr(ProfessionalTherapeuticApproach, "__init__", lambda self, **kwargs: None)
+        with pytest.MonkeyPatch().context() as monkey_patch:
+            monkey_patch.setattr(ProfessionalTherapeuticApproach, "__init__", lambda self, **kwargs: None)
 
             # Act
             result = professional_therapeutic_approach_service.create_professional_therapeutic_approach(approach_data)
@@ -126,7 +128,8 @@ class TestProfessionalTherapeuticApproachServiceUnit:
         """Test updating a professional therapeutic approach successfully."""
         # Arrange
         approach_id = "test-approach-1"
-        update_data = ProfessionalTherapeuticApproachUpdate(therapeutic_approach_id="approach-2")
+        new_approach_id = uuid.uuid4()
+        update_data = ProfessionalTherapeuticApproachUpdate(therapeutic_approach_id=new_approach_id)
 
         # Mock get_professional_therapeutic_approach to return our sample approach
         professional_therapeutic_approach_service.get_professional_therapeutic_approach = Mock(
@@ -142,7 +145,7 @@ class TestProfessionalTherapeuticApproachServiceUnit:
 
         # Assert
         assert result == sample_professional_therapeutic_approach
-        assert sample_professional_therapeutic_approach.therapeutic_approach_id == "approach-2"
+        assert sample_professional_therapeutic_approach.therapeutic_approach_id == new_approach_id
         mock_db.commit.assert_called_once()
         mock_db.refresh.assert_called_once()
 
@@ -152,7 +155,7 @@ class TestProfessionalTherapeuticApproachServiceUnit:
         """Test updating a professional therapeutic approach that doesn't exist."""
         # Arrange
         approach_id = "non-existent-id"
-        update_data = ProfessionalTherapeuticApproachUpdate(therapeutic_approach_id="approach-2")
+        update_data = ProfessionalTherapeuticApproachUpdate(therapeutic_approach_id=uuid.uuid4())
 
         # Mock get_professional_therapeutic_approach to return None
         professional_therapeutic_approach_service.get_professional_therapeutic_approach = Mock(return_value=None)
@@ -213,7 +216,7 @@ class TestProfessionalTherapeuticApproachServiceUnit:
         """Test adding multiple therapeutic approaches to a professional successfully."""
         # Arrange
         professional_id = "test-professional-1"
-        approach_ids = ["approach-1", "approach-2", "approach-3"]
+        approach_ids = [str(uuid.uuid4()), str(uuid.uuid4()), str(uuid.uuid4())]
 
         # Mock the query for deleting existing approaches
         mock_query = Mock()
@@ -228,8 +231,8 @@ class TestProfessionalTherapeuticApproachServiceUnit:
         mock_db.refresh = Mock()
 
         # Mock the ProfessionalTherapeuticApproach constructor to avoid schema/model mismatch
-        with pytest.MonkeyPatch().context() as m:
-            m.setattr(ProfessionalTherapeuticApproach, "__init__", lambda self, **kwargs: None)
+        with pytest.MonkeyPatch().context() as monkey_patch:
+            monkey_patch.setattr(ProfessionalTherapeuticApproach, "__init__", lambda self, **kwargs: None)
 
             # Act
             result = professional_therapeutic_approach_service.add_therapeutic_approaches_to_professional(
@@ -279,7 +282,7 @@ class TestProfessionalTherapeuticApproachServiceUnit:
         """Test adding a single therapeutic approach to a professional."""
         # Arrange
         professional_id = "test-professional-1"
-        approach_ids = ["approach-1"]
+        approach_ids = [str(uuid.uuid4())]
 
         # Mock the query for deleting existing approaches
         mock_query = Mock()
@@ -294,8 +297,8 @@ class TestProfessionalTherapeuticApproachServiceUnit:
         mock_db.refresh = Mock()
 
         # Mock the ProfessionalTherapeuticApproach constructor to avoid schema/model mismatch
-        with pytest.MonkeyPatch().context() as m:
-            m.setattr(ProfessionalTherapeuticApproach, "__init__", lambda self, **kwargs: None)
+        with pytest.MonkeyPatch().context() as monkey_patch:
+            monkey_patch.setattr(ProfessionalTherapeuticApproach, "__init__", lambda self, **kwargs: None)
 
             # Act
             result = professional_therapeutic_approach_service.add_therapeutic_approaches_to_professional(

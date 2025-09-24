@@ -2,7 +2,7 @@
 
 from typing import List
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Response
 from sqlalchemy.orm import Session
 
 from app.utils.auth import get_current_user_id
@@ -36,7 +36,7 @@ async def get_modality(
     return modality
 
 
-@router.post("/", response_model=ModalityResponse)
+@router.post("/", response_model=ModalityResponse, status_code=status.HTTP_201_CREATED)
 async def create_modality(
     modality: ModalityCreate,
     db: Session = Depends(get_db),
@@ -92,4 +92,4 @@ async def delete_modality(
 
     modality.is_active = False
     db.commit()
-    return {"message": "Modality deleted successfully"}
+    return Response(status_code=status.HTTP_204_NO_CONTENT)

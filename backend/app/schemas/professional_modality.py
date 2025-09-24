@@ -11,11 +11,12 @@ from pydantic import BaseModel, ConfigDict
 class ProfessionalModalityBase(BaseModel):
     """Base professional modality schema."""
 
-    modality_id: Optional[str] = None
-    name: str
+    modality_id: Optional[uuid.UUID] = None
+    modality_name: str
     description: str
-    price_cents: int
-    currency: str = "COP"
+    virtual_price: int
+    presencial_price: int
+    offers_presencial: bool = False
     is_default: bool = False
     is_active: bool = True
 
@@ -29,11 +30,12 @@ class ProfessionalModalityCreate(ProfessionalModalityBase):
 class ProfessionalModalityUpdate(BaseModel):
     """Professional modality update schema."""
 
-    modality_id: Optional[str] = None
-    name: Optional[str] = None
+    modality_id: Optional[uuid.UUID] = None
+    modality_name: Optional[str] = None
     description: Optional[str] = None
-    price_cents: Optional[int] = None
-    currency: Optional[str] = None
+    virtual_price: Optional[int] = None
+    presencial_price: Optional[int] = None
+    offers_presencial: Optional[bool] = None
     is_default: Optional[bool] = None
     is_active: Optional[bool] = None
 

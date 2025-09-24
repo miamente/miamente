@@ -3,7 +3,7 @@ Unit tests for authentication utilities.
 """
 
 import pytest
-from unittest.mock import Mock, patch, MagicMock
+from unittest.mock import Mock, patch
 from fastapi import HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials
 
@@ -12,8 +12,6 @@ from app.utils.auth import (
     get_current_admin_user,
     INVALID_AUTH_CREDENTIALS_MESSAGE,
 )
-from app.core.security import verify_token
-from app.services.auth_service import AuthService
 
 
 class TestGetCurrentUserId:

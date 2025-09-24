@@ -115,32 +115,12 @@ def _cleanup_test_data(session_factory):
             )
         ).fetchall()
 
-        # Clean test users
-        result = session.execute(
-            text(
-                f"""
-            DELETE FROM users WHERE {where_clause}
-        """
-            )
-        )
-        deleted_users = result.rowcount
-
-        # Clean test professionals
-        result = session.execute(
-            text(
-                f"""
-            DELETE FROM professionals WHERE {where_clause}
-        """
-            )
-        )
-        deleted_professionals = result.rowcount
-
-        # Clean related data only for test professionals
+        # Clean related data first for test professionals
         if test_professional_ids:
             professional_id_list = [str(row[0]) for row in test_professional_ids]
             professional_ids_str = "', '".join(professional_id_list)
 
-            # Clean professional-related tables
+            # Clean professional-related tables first
             session.execute(
                 text(
                     f"""
@@ -167,6 +147,26 @@ def _cleanup_test_data(session_factory):
             """
                 )
             )
+
+        # Clean test users
+        result = session.execute(
+            text(
+                f"""
+            DELETE FROM users WHERE {where_clause}
+        """
+            )
+        )
+        deleted_users = result.rowcount
+
+        # Clean test professionals (after cleaning related data)
+        result = session.execute(
+            text(
+                f"""
+            DELETE FROM professionals WHERE {where_clause}
+        """
+            )
+        )
+        deleted_professionals = result.rowcount
 
         # Clean test data from reference tables (only test-specific data)
         session.execute(

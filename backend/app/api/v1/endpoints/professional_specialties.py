@@ -47,7 +47,7 @@ def get_professional_specialty(specialty_id: str, db: Session = Depends(get_db))
     return specialty
 
 
-@router.post("/", response_model=ProfessionalSpecialtyResponse)
+@router.post("/", response_model=ProfessionalSpecialtyResponse, status_code=status.HTTP_201_CREATED)
 def create_professional_specialty(specialty: ProfessionalSpecialtyCreate, db: Session = Depends(get_db)):
     """Create a new professional specialty."""
     service = ProfessionalSpecialtyService(db)

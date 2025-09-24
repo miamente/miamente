@@ -230,7 +230,8 @@ class TestSpecialtyServiceUnit:
 
         # Assert
         assert result is True
-        mock_db.delete.assert_called_once_with(sample_specialty)
+        # Verify soft delete - set is_active to False
+        assert sample_specialty.is_active is False
         mock_db.commit.assert_called_once()
 
     def test_delete_specialty_not_found(self, specialty_service, mock_db):

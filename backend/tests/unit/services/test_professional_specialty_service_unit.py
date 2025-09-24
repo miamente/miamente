@@ -2,8 +2,10 @@
 Unit tests for ProfessionalSpecialtyService.
 """
 
-import pytest
+import uuid
 from unittest.mock import Mock
+
+import pytest
 from sqlalchemy.orm import Session
 
 from app.services.professional_specialty_service import ProfessionalSpecialtyService
@@ -95,7 +97,7 @@ class TestProfessionalSpecialtyServiceUnit:
     def test_create_professional_specialty_success(self, professional_specialty_service, mock_db):
         """Test creating a professional specialty successfully."""
         # Arrange
-        specialty_data = ProfessionalSpecialtyCreate(professional_id="test-professional-1", specialty_id="specialty-1")
+        specialty_data = ProfessionalSpecialtyCreate(professional_id="test-professional-1", specialty_id=uuid.uuid4())
 
         # Mock the database operations
         mock_db.add = Mock()
@@ -103,8 +105,8 @@ class TestProfessionalSpecialtyServiceUnit:
         mock_db.refresh = Mock()
 
         # Mock the ProfessionalSpecialty constructor to avoid schema/model mismatch
-        with pytest.MonkeyPatch().context() as m:
-            m.setattr(ProfessionalSpecialty, "__init__", lambda self, **kwargs: None)
+        with pytest.MonkeyPatch().context() as monkey_patch:
+            monkey_patch.setattr(ProfessionalSpecialty, "__init__", lambda self, **kwargs: None)
 
             # Act
             result = professional_specialty_service.create_professional_specialty(specialty_data)
@@ -121,7 +123,8 @@ class TestProfessionalSpecialtyServiceUnit:
         """Test updating a professional specialty successfully."""
         # Arrange
         specialty_id = "test-specialty-1"
-        update_data = ProfessionalSpecialtyUpdate(specialty_id="specialty-2")
+        new_specialty_id = uuid.uuid4()
+        update_data = ProfessionalSpecialtyUpdate(specialty_id=new_specialty_id)
 
         # Mock get_professional_specialty to return our sample specialty
         professional_specialty_service.get_professional_specialty = Mock(return_value=sample_professional_specialty)
@@ -133,7 +136,7 @@ class TestProfessionalSpecialtyServiceUnit:
 
         # Assert
         assert result == sample_professional_specialty
-        assert sample_professional_specialty.specialty_id == "specialty-2"
+        assert sample_professional_specialty.specialty_id == new_specialty_id
         mock_db.commit.assert_called_once()
         mock_db.refresh.assert_called_once()
 
@@ -141,7 +144,7 @@ class TestProfessionalSpecialtyServiceUnit:
         """Test updating a professional specialty that doesn't exist."""
         # Arrange
         specialty_id = "non-existent-id"
-        update_data = ProfessionalSpecialtyUpdate(specialty_id="specialty-2")
+        update_data = ProfessionalSpecialtyUpdate(specialty_id=uuid.uuid4())
 
         # Mock get_professional_specialty to return None
         professional_specialty_service.get_professional_specialty = Mock(return_value=None)
@@ -194,7 +197,7 @@ class TestProfessionalSpecialtyServiceUnit:
         """Test adding multiple specialties to a professional successfully."""
         # Arrange
         professional_id = "test-professional-1"
-        specialty_ids = ["specialty-1", "specialty-2", "specialty-3"]
+        specialty_ids = [str(uuid.uuid4()), str(uuid.uuid4()), str(uuid.uuid4())]
 
         # Mock the query for deleting existing specialties
         mock_query = Mock()
@@ -209,8 +212,8 @@ class TestProfessionalSpecialtyServiceUnit:
         mock_db.refresh = Mock()
 
         # Mock the ProfessionalSpecialty constructor to avoid schema/model mismatch
-        with pytest.MonkeyPatch().context() as m:
-            m.setattr(ProfessionalSpecialty, "__init__", lambda self, **kwargs: None)
+        with pytest.MonkeyPatch().context() as monkey_patch:
+            monkey_patch.setattr(ProfessionalSpecialty, "__init__", lambda self, **kwargs: None)
 
             # Act
             result = professional_specialty_service.add_specialties_to_professional(professional_id, specialty_ids)
@@ -252,7 +255,7 @@ class TestProfessionalSpecialtyServiceUnit:
         """Test adding a single specialty to a professional."""
         # Arrange
         professional_id = "test-professional-1"
-        specialty_ids = ["specialty-1"]
+        specialty_ids = [str(uuid.uuid4())]
 
         # Mock the query for deleting existing specialties
         mock_query = Mock()
@@ -267,8 +270,8 @@ class TestProfessionalSpecialtyServiceUnit:
         mock_db.refresh = Mock()
 
         # Mock the ProfessionalSpecialty constructor to avoid schema/model mismatch
-        with pytest.MonkeyPatch().context() as m:
-            m.setattr(ProfessionalSpecialty, "__init__", lambda self, **kwargs: None)
+        with pytest.MonkeyPatch().context() as monkey_patch:
+            monkey_patch.setattr(ProfessionalSpecialty, "__init__", lambda self, **kwargs: None)
 
             # Act
             result = professional_specialty_service.add_specialties_to_professional(professional_id, specialty_ids)

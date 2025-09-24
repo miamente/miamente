@@ -4,7 +4,7 @@ Unit tests for data parsing utilities.
 
 import json
 import pytest
-from unittest.mock import Mock, patch
+from unittest.mock import Mock
 from datetime import datetime
 
 from app.utils.parsers import parse_professional_data, parse_user_data
