@@ -91,31 +91,31 @@ class TestAdminEndpoints:
         """Test getting all users with admin authentication."""
         # Arrange
         mock_get_db.return_value = mock_db
-        
+
         # Mock admin user for authentication
         from app.core.database import get_db
         from app.utils.auth import get_current_admin_user
-        
+
         client.app.dependency_overrides[get_db] = lambda: mock_db
         client.app.dependency_overrides[get_current_admin_user] = lambda: sample_admin_user
-        
+
         # Mock UserService
         mock_user_service = Mock()
         mock_user_service.get_users.return_value = [sample_regular_user, sample_admin_user]
-        
+
         with patch("app.api.v1.endpoints.users.UserService") as mock_service_class:
             mock_service_class.return_value = mock_user_service
-            
+
             # Act
             response = client.get("/api/v1/users/", headers={"host": "localhost"})
-            
+
             # Assert
             assert response.status_code == 200
             data = response.json()
             assert len(data) == 2
             assert data[0]["email"] == "user@example.com"
             assert data[1]["email"] == "admin@example.com"
-        
+
         # Clean up
         client.app.dependency_overrides.clear()
 
@@ -124,30 +124,30 @@ class TestAdminEndpoints:
         """Test getting users filtered by role."""
         # Arrange
         mock_get_db.return_value = mock_db
-        
+
         # Mock admin user for authentication
         from app.core.database import get_db
         from app.utils.auth import get_current_admin_user
-        
+
         client.app.dependency_overrides[get_db] = lambda: mock_db
         client.app.dependency_overrides[get_current_admin_user] = lambda: sample_admin_user
-        
+
         # Mock UserService
         mock_user_service = Mock()
         mock_user_service.get_users.return_value = [sample_regular_user]
-        
+
         with patch("app.api.v1.endpoints.users.UserService") as mock_service_class:
             mock_service_class.return_value = mock_user_service
-            
+
             # Act
             response = client.get("/api/v1/users/?role=user", headers={"host": "localhost"})
-            
+
             # Assert
             assert response.status_code == 200
             data = response.json()
             assert len(data) == 1
             assert data[0]["email"] == "user@example.com"
-        
+
         # Clean up
         client.app.dependency_overrides.clear()
 
@@ -156,15 +156,15 @@ class TestAdminEndpoints:
         """Test getting users without admin authentication."""
         # Arrange
         mock_get_db.return_value = mock_db
-        
+
         # Act
         response = client.get("/api/v1/users/", headers={"host": "localhost"})
-        
+
         # Assert
         assert response.status_code == 401
         data = response.json()
         assert "Not authenticated" in data["detail"]
-        
+
         # Clean up
         client.app.dependency_overrides.clear()
 
@@ -174,30 +174,30 @@ class TestAdminEndpoints:
         """Test getting user by ID with admin authentication."""
         # Arrange
         mock_get_db.return_value = mock_db
-        
+
         # Mock admin user for authentication
         from app.core.database import get_db
         from app.utils.auth import get_current_admin_user
-        
+
         client.app.dependency_overrides[get_db] = lambda: mock_db
         client.app.dependency_overrides[get_current_admin_user] = lambda: sample_admin_user
-        
+
         # Mock UserService
         mock_user_service = Mock()
         mock_user_service.get_user_by_id.return_value = sample_regular_user
-        
+
         with patch("app.api.v1.endpoints.users.UserService") as mock_service_class:
             mock_service_class.return_value = mock_user_service
-            
+
             # Act
             response = client.get("/api/v1/users/550e8400-e29b-41d4-a716-446655440002", headers={"host": "localhost"})
-            
+
             # Assert
             assert response.status_code == 200
             data = response.json()
             assert data["email"] == "user@example.com"
             assert data["full_name"] == "Regular User"
-        
+
         # Clean up
         client.app.dependency_overrides.clear()
 
@@ -206,29 +206,29 @@ class TestAdminEndpoints:
         """Test getting user by ID when user doesn't exist."""
         # Arrange
         mock_get_db.return_value = mock_db
-        
+
         # Mock admin user for authentication
         from app.core.database import get_db
         from app.utils.auth import get_current_admin_user
-        
+
         client.app.dependency_overrides[get_db] = lambda: mock_db
         client.app.dependency_overrides[get_current_admin_user] = lambda: sample_admin_user
-        
+
         # Mock UserService
         mock_user_service = Mock()
         mock_user_service.get_user_by_id.return_value = None
-        
+
         with patch("app.api.v1.endpoints.users.UserService") as mock_service_class:
             mock_service_class.return_value = mock_user_service
-            
+
             # Act
             response = client.get("/api/v1/users/nonexistent-id", headers={"host": "localhost"})
-            
+
             # Assert
             assert response.status_code == 404
             data = response.json()
             assert data["detail"] == "User not found"
-        
+
         # Clean up
         client.app.dependency_overrides.clear()
 
@@ -238,32 +238,32 @@ class TestAdminEndpoints:
         """Test toggling user status with admin authentication."""
         # Arrange
         mock_get_db.return_value = mock_db
-        
+
         # Mock admin user for authentication
         from app.core.database import get_db
         from app.utils.auth import get_current_admin_user
-        
+
         client.app.dependency_overrides[get_db] = lambda: mock_db
         client.app.dependency_overrides[get_current_admin_user] = lambda: sample_admin_user
-        
+
         # Mock UserService
         mock_user_service = Mock()
         mock_user_service.get_user_by_id.return_value = sample_regular_user
-        
+
         # Mock database operations
         mock_db.commit = Mock()
         mock_db.refresh = Mock()
-        
+
         with patch("app.api.v1.endpoints.users.UserService") as mock_service_class:
             mock_service_class.return_value = mock_user_service
-            
+
             # Act
             response = client.patch(
                 "/api/v1/users/550e8400-e29b-41d4-a716-446655440002/status",
                 json={"is_active": False},
-                headers={"host": "localhost"}
+                headers={"host": "localhost"},
             )
-            
+
             # Assert
             assert response.status_code == 200
             data = response.json()
@@ -271,7 +271,7 @@ class TestAdminEndpoints:
             assert sample_regular_user.is_active is False
             mock_db.commit.assert_called_once()
             mock_db.refresh.assert_called_once()
-        
+
         # Clean up
         client.app.dependency_overrides.clear()
 
@@ -281,58 +281,62 @@ class TestAdminEndpoints:
         """Test deleting user with admin authentication."""
         # Arrange
         mock_get_db.return_value = mock_db
-        
+
         # Mock admin user for authentication
         from app.core.database import get_db
         from app.utils.auth import get_current_admin_user
-        
+
         client.app.dependency_overrides[get_db] = lambda: mock_db
         client.app.dependency_overrides[get_current_admin_user] = lambda: sample_admin_user
-        
+
         # Mock UserService
         mock_user_service = Mock()
         mock_user_service.get_user_by_id.return_value = sample_regular_user
-        
+
         # Mock database operations
         mock_db.commit = Mock()
-        
+
         with patch("app.api.v1.endpoints.users.UserService") as mock_service_class:
             mock_service_class.return_value = mock_user_service
-            
+
             # Act
-            response = client.delete("/api/v1/users/550e8400-e29b-41d4-a716-446655440002", headers={"host": "localhost"})
-            
+            response = client.delete(
+                "/api/v1/users/550e8400-e29b-41d4-a716-446655440002", headers={"host": "localhost"}
+            )
+
             # Assert
             assert response.status_code == 204
             assert sample_regular_user.is_active is False
             mock_db.commit.assert_called_once()
-        
+
         # Clean up
         client.app.dependency_overrides.clear()
 
     # Test professional endpoints
     @patch("app.api.v1.endpoints.professionals.get_db")
-    def test_toggle_professional_status_success(self, mock_get_db, client, mock_db, sample_admin_user, sample_professional):
+    def test_toggle_professional_status_success(
+        self, mock_get_db, client, mock_db, sample_admin_user, sample_professional
+    ):
         """Test toggling professional status with admin authentication."""
         # Arrange
         mock_get_db.return_value = mock_db
-        
+
         # Mock admin user for authentication
         from app.core.database import get_db
         from app.utils.auth import get_current_admin_user
-        
+
         client.app.dependency_overrides[get_db] = lambda: mock_db
         client.app.dependency_overrides[get_current_admin_user] = lambda: sample_admin_user
-        
+
         # Mock database operations
         mock_db.commit = Mock()
         mock_db.refresh = Mock()
-        
+
         # Mock the professional query
         mock_query = Mock()
         mock_query.filter.return_value.first.return_value = sample_professional
         mock_db.query.return_value = mock_query
-        
+
         with patch("app.api.v1.endpoints.professionals.parse_professional_data") as mock_parse:
             mock_parse.return_value = {
                 "id": str(sample_professional.id),
@@ -347,16 +351,16 @@ class TestAdminEndpoints:
                 "updated_at": sample_professional.updated_at,
                 "specialty_ids": [],
                 "modality_ids": [],
-                "therapeutic_approach_ids": []
+                "therapeutic_approach_ids": [],
             }
-            
+
             # Act
             response = client.patch(
                 "/api/v1/professionals/550e8400-e29b-41d4-a716-446655440003/status",
                 json={"is_active": False},
-                headers={"host": "localhost"}
+                headers={"host": "localhost"},
             )
-            
+
             # Assert
             assert response.status_code == 200
             data = response.json()
@@ -364,38 +368,42 @@ class TestAdminEndpoints:
             assert sample_professional.is_active is False
             mock_db.commit.assert_called_once()
             mock_db.refresh.assert_called_once()
-        
+
         # Clean up
         client.app.dependency_overrides.clear()
 
     @patch("app.api.v1.endpoints.professionals.get_db")
-    def test_delete_professional_admin_success(self, mock_get_db, client, mock_db, sample_admin_user, sample_professional):
+    def test_delete_professional_admin_success(
+        self, mock_get_db, client, mock_db, sample_admin_user, sample_professional
+    ):
         """Test deleting professional with admin authentication."""
         # Arrange
         mock_get_db.return_value = mock_db
-        
+
         # Mock admin user for authentication
         from app.core.database import get_db
         from app.utils.auth import get_current_admin_user
-        
+
         client.app.dependency_overrides[get_db] = lambda: mock_db
         client.app.dependency_overrides[get_current_admin_user] = lambda: sample_admin_user
-        
+
         # Mock database operations
         mock_db.commit = Mock()
-        
+
         # Mock the professional query
         mock_query = Mock()
         mock_query.filter.return_value.first.return_value = sample_professional
         mock_db.query.return_value = mock_query
-        
+
         # Act
-        response = client.delete("/api/v1/professionals/550e8400-e29b-41d4-a716-446655440003", headers={"host": "localhost"})
-        
+        response = client.delete(
+            "/api/v1/professionals/550e8400-e29b-41d4-a716-446655440003", headers={"host": "localhost"}
+        )
+
         # Assert
         assert response.status_code == 204
         assert sample_professional.is_active is False
         mock_db.commit.assert_called_once()
-        
+
         # Clean up
         client.app.dependency_overrides.clear()

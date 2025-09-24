@@ -38,7 +38,7 @@ class TestAuthServiceExtendedUnit:
             date_of_birth="1990-01-01",
             emergency_contact="Emergency Contact",
             emergency_phone="+1234567891",
-            role="user"
+            role="user",
         )
 
     @pytest.fixture
@@ -58,11 +58,11 @@ class TestAuthServiceExtendedUnit:
             bio="Test bio",
             certifications=[
                 {"name": "Cert1", "document_url": "http://example.com/cert1.pdf"},
-                {"name": "Cert2", "document_url": "http://example.com/cert2.pdf"}
+                {"name": "Cert2", "document_url": "http://example.com/cert2.pdf"},
             ],
             languages=["English", "Spanish"],
             therapy_approaches_ids=[str(uuid.uuid4())],
-            timezone="UTC"
+            timezone="UTC",
         )
 
     def test_authenticate_user_success(self, auth_service, mock_db):
@@ -70,19 +70,19 @@ class TestAuthServiceExtendedUnit:
         email = "test@example.com"
         password = "testpassword"
         hashed_password = "hashed_password"
-        
+
         mock_user = Mock(spec=User)
         mock_user.hashed_password = hashed_password
-        
+
         mock_query = Mock()
         mock_query.filter.return_value.first.return_value = mock_user
         mock_db.query.return_value = mock_query
-        
-        with patch('app.services.auth_service.verify_password') as mock_verify:
+
+        with patch("app.services.auth_service.verify_password") as mock_verify:
             mock_verify.return_value = True
-            
+
             result = auth_service.authenticate_user(email, password)
-            
+
             assert result == mock_user
             mock_db.query.assert_called_once_with(User)
             mock_verify.assert_called_once_with(password, hashed_password)
@@ -91,13 +91,13 @@ class TestAuthServiceExtendedUnit:
         """Test user authentication when user not found."""
         email = "nonexistent@example.com"
         password = "testpassword"
-        
+
         mock_query = Mock()
         mock_query.filter.return_value.first.return_value = None
         mock_db.query.return_value = mock_query
-        
+
         result = auth_service.authenticate_user(email, password)
-        
+
         assert result is None
         mock_db.query.assert_called_once_with(User)
 
@@ -106,19 +106,19 @@ class TestAuthServiceExtendedUnit:
         email = "test@example.com"
         password = "wrongpassword"
         hashed_password = "hashed_password"
-        
+
         mock_user = Mock(spec=User)
         mock_user.hashed_password = hashed_password
-        
+
         mock_query = Mock()
         mock_query.filter.return_value.first.return_value = mock_user
         mock_db.query.return_value = mock_query
-        
-        with patch('app.services.auth_service.verify_password') as mock_verify:
+
+        with patch("app.services.auth_service.verify_password") as mock_verify:
             mock_verify.return_value = False
-            
+
             result = auth_service.authenticate_user(email, password)
-            
+
             assert result is None
             mock_verify.assert_called_once_with(password, hashed_password)
 
@@ -127,19 +127,19 @@ class TestAuthServiceExtendedUnit:
         email = "professional@example.com"
         password = "testpassword"
         hashed_password = "hashed_password"
-        
+
         mock_professional = Mock(spec=Professional)
         mock_professional.hashed_password = hashed_password
-        
+
         mock_query = Mock()
         mock_query.filter.return_value.first.return_value = mock_professional
         mock_db.query.return_value = mock_query
-        
-        with patch('app.services.auth_service.verify_password') as mock_verify:
+
+        with patch("app.services.auth_service.verify_password") as mock_verify:
             mock_verify.return_value = True
-            
+
             result = auth_service.authenticate_professional(email, password)
-            
+
             assert result == mock_professional
             mock_db.query.assert_called_once_with(Professional)
             mock_verify.assert_called_once_with(password, hashed_password)
@@ -148,13 +148,13 @@ class TestAuthServiceExtendedUnit:
         """Test professional authentication when professional not found."""
         email = "nonexistent@example.com"
         password = "testpassword"
-        
+
         mock_query = Mock()
         mock_query.filter.return_value.first.return_value = None
         mock_db.query.return_value = mock_query
-        
+
         result = auth_service.authenticate_professional(email, password)
-        
+
         assert result is None
         mock_db.query.assert_called_once_with(Professional)
 
@@ -163,19 +163,19 @@ class TestAuthServiceExtendedUnit:
         email = "professional@example.com"
         password = "wrongpassword"
         hashed_password = "hashed_password"
-        
+
         mock_professional = Mock(spec=Professional)
         mock_professional.hashed_password = hashed_password
-        
+
         mock_query = Mock()
         mock_query.filter.return_value.first.return_value = mock_professional
         mock_db.query.return_value = mock_query
-        
-        with patch('app.services.auth_service.verify_password') as mock_verify:
+
+        with patch("app.services.auth_service.verify_password") as mock_verify:
             mock_verify.return_value = False
-            
+
             result = auth_service.authenticate_professional(email, password)
-            
+
             assert result is None
             mock_verify.assert_called_once_with(password, hashed_password)
 
@@ -183,19 +183,19 @@ class TestAuthServiceExtendedUnit:
         """Test successful user creation."""
         mock_user = Mock(spec=User)
         mock_user.id = uuid.uuid4()
-        
+
         mock_query = Mock()
         mock_query.filter.return_value.first.return_value = None  # No existing user
         mock_db.query.return_value = mock_query
-        
-        with patch('app.services.auth_service.get_password_hash') as mock_hash:
+
+        with patch("app.services.auth_service.get_password_hash") as mock_hash:
             mock_hash.return_value = "hashed_password"
-            
-            with patch('app.services.auth_service.User') as mock_user_class:
+
+            with patch("app.services.auth_service.User") as mock_user_class:
                 mock_user_class.return_value = mock_user
-                
+
                 result = auth_service.create_user(sample_user_data)
-                
+
                 assert result == mock_user
                 mock_db.add.assert_called_once_with(mock_user)
                 mock_db.commit.assert_called_once()
@@ -205,14 +205,14 @@ class TestAuthServiceExtendedUnit:
     def test_create_user_duplicate_email(self, auth_service, mock_db, sample_user_data):
         """Test user creation with duplicate email."""
         existing_user = Mock(spec=User)
-        
+
         mock_query = Mock()
         mock_query.filter.return_value.first.return_value = existing_user
         mock_db.query.return_value = mock_query
-        
+
         with pytest.raises(HTTPException) as exc_info:
             auth_service.create_user(sample_user_data)
-        
+
         assert exc_info.value.status_code == status.HTTP_400_BAD_REQUEST
         assert exc_info.value.detail == "Email already registered"
 
@@ -220,19 +220,19 @@ class TestAuthServiceExtendedUnit:
         """Test successful professional creation."""
         mock_professional = Mock(spec=Professional)
         mock_professional.id = uuid.uuid4()
-        
+
         mock_query = Mock()
         mock_query.filter.return_value.first.return_value = None  # No existing professional
         mock_db.query.return_value = mock_query
-        
-        with patch('app.services.auth_service.get_password_hash') as mock_hash:
+
+        with patch("app.services.auth_service.get_password_hash") as mock_hash:
             mock_hash.return_value = "hashed_password"
-            
-            with patch('app.services.auth_service.Professional') as mock_professional_class:
+
+            with patch("app.services.auth_service.Professional") as mock_professional_class:
                 mock_professional_class.return_value = mock_professional
-                
+
                 result = auth_service.create_professional(sample_professional_data)
-                
+
                 assert result == mock_professional
                 mock_db.add.assert_called_once_with(mock_professional)
                 mock_db.commit.assert_called_once()
@@ -242,14 +242,14 @@ class TestAuthServiceExtendedUnit:
     def test_create_professional_duplicate_email(self, auth_service, mock_db, sample_professional_data):
         """Test professional creation with duplicate email."""
         existing_professional = Mock(spec=Professional)
-        
+
         mock_query = Mock()
         mock_query.filter.return_value.first.return_value = existing_professional
         mock_db.query.return_value = mock_query
-        
+
         with pytest.raises(HTTPException) as exc_info:
             auth_service.create_professional(sample_professional_data)
-        
+
         assert exc_info.value.status_code == status.HTTP_400_BAD_REQUEST
         assert exc_info.value.detail == "Email already registered"
 
@@ -257,34 +257,34 @@ class TestAuthServiceExtendedUnit:
         """Test getting user by valid ID."""
         user_id = str(uuid.uuid4())
         mock_user = Mock(spec=User)
-        
+
         mock_query = Mock()
         mock_query.filter.return_value.first.return_value = mock_user
         mock_db.query.return_value = mock_query
-        
+
         result = auth_service.get_user_by_id(user_id)
-        
+
         assert result == mock_user
         mock_db.query.assert_called_once_with(User)
 
     def test_get_user_by_id_not_found(self, auth_service, mock_db):
         """Test getting user by ID when user not found."""
         user_id = str(uuid.uuid4())
-        
+
         mock_query = Mock()
         mock_query.filter.return_value.first.return_value = None
         mock_db.query.return_value = mock_query
-        
+
         result = auth_service.get_user_by_id(user_id)
-        
+
         assert result is None
 
     def test_get_user_by_id_invalid_uuid(self, auth_service, mock_db):
         """Test getting user by invalid UUID."""
         invalid_id = "invalid-uuid"
-        
+
         result = auth_service.get_user_by_id(invalid_id)
-        
+
         assert result is None
         mock_db.query.assert_not_called()
 
@@ -292,34 +292,34 @@ class TestAuthServiceExtendedUnit:
         """Test getting professional by valid ID."""
         professional_id = str(uuid.uuid4())
         mock_professional = Mock(spec=Professional)
-        
+
         mock_query = Mock()
         mock_query.filter.return_value.first.return_value = mock_professional
         mock_db.query.return_value = mock_query
-        
+
         result = auth_service.get_professional_by_id(professional_id)
-        
+
         assert result == mock_professional
         mock_db.query.assert_called_once_with(Professional)
 
     def test_get_professional_by_id_not_found(self, auth_service, mock_db):
         """Test getting professional by ID when professional not found."""
         professional_id = str(uuid.uuid4())
-        
+
         mock_query = Mock()
         mock_query.filter.return_value.first.return_value = None
         mock_db.query.return_value = mock_query
-        
+
         result = auth_service.get_professional_by_id(professional_id)
-        
+
         assert result is None
 
     def test_get_professional_by_id_invalid_uuid(self, auth_service, mock_db):
         """Test getting professional by invalid UUID."""
         invalid_id = "invalid-uuid"
-        
+
         result = auth_service.get_professional_by_id(invalid_id)
-        
+
         assert result is None
         mock_db.query.assert_not_called()
 
@@ -328,28 +328,28 @@ class TestAuthServiceExtendedUnit:
         token = "valid-token"
         user_id = str(uuid.uuid4())
         mock_user = Mock(spec=User)
-        
-        with patch('app.services.auth_service.verify_token') as mock_verify:
+
+        with patch("app.services.auth_service.verify_token") as mock_verify:
             mock_verify.return_value = user_id
-            
+
             mock_query = Mock()
             mock_query.filter.return_value.first.return_value = mock_user
             mock_db.query.return_value = mock_query
-            
+
             result = auth_service.get_current_user(token)
-            
+
             assert result == mock_user
             mock_verify.assert_called_once_with(token)
 
     def test_get_current_user_invalid_token(self, auth_service, mock_db):
         """Test getting current user with invalid token."""
         token = "invalid-token"
-        
-        with patch('app.services.auth_service.verify_token') as mock_verify:
+
+        with patch("app.services.auth_service.verify_token") as mock_verify:
             mock_verify.return_value = None
-            
+
             result = auth_service.get_current_user(token)
-            
+
             assert result is None
             mock_verify.assert_called_once_with(token)
             mock_db.query.assert_not_called()
@@ -358,16 +358,16 @@ class TestAuthServiceExtendedUnit:
         """Test getting current user when user not found."""
         token = "valid-token"
         user_id = str(uuid.uuid4())
-        
-        with patch('app.services.auth_service.verify_token') as mock_verify:
+
+        with patch("app.services.auth_service.verify_token") as mock_verify:
             mock_verify.return_value = user_id
-            
+
             mock_query = Mock()
             mock_query.filter.return_value.first.return_value = None
             mock_db.query.return_value = mock_query
-            
+
             result = auth_service.get_current_user(token)
-            
+
             assert result is None
 
     def test_get_current_professional_success(self, auth_service, mock_db):
@@ -375,28 +375,28 @@ class TestAuthServiceExtendedUnit:
         token = "valid-token"
         professional_id = str(uuid.uuid4())
         mock_professional = Mock(spec=Professional)
-        
-        with patch('app.services.auth_service.verify_token') as mock_verify:
+
+        with patch("app.services.auth_service.verify_token") as mock_verify:
             mock_verify.return_value = professional_id
-            
+
             mock_query = Mock()
             mock_query.filter.return_value.first.return_value = mock_professional
             mock_db.query.return_value = mock_query
-            
+
             result = auth_service.get_current_professional(token)
-            
+
             assert result == mock_professional
             mock_verify.assert_called_once_with(token)
 
     def test_get_current_professional_invalid_token(self, auth_service, mock_db):
         """Test getting current professional with invalid token."""
         token = "invalid-token"
-        
-        with patch('app.services.auth_service.verify_token') as mock_verify:
+
+        with patch("app.services.auth_service.verify_token") as mock_verify:
             mock_verify.return_value = None
-            
+
             result = auth_service.get_current_professional(token)
-            
+
             assert result is None
             mock_verify.assert_called_once_with(token)
             mock_db.query.assert_not_called()
@@ -405,16 +405,16 @@ class TestAuthServiceExtendedUnit:
         """Test getting current professional when professional not found."""
         token = "valid-token"
         professional_id = str(uuid.uuid4())
-        
-        with patch('app.services.auth_service.verify_token') as mock_verify:
+
+        with patch("app.services.auth_service.verify_token") as mock_verify:
             mock_verify.return_value = professional_id
-            
+
             mock_query = Mock()
             mock_query.filter.return_value.first.return_value = None
             mock_db.query.return_value = mock_query
-            
+
             result = auth_service.get_current_professional(token)
-            
+
             assert result is None
 
     def test_auth_service_initialization(self, mock_db):

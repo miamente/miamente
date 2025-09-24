@@ -40,61 +40,57 @@ class TestUserServiceExtendedUnit:
     @pytest.fixture
     def sample_user_update(self):
         """Sample user update data."""
-        return UserUpdate(
-            full_name="Updated Name",
-            phone="+9876543210",
-            emergency_contact="Updated Emergency Contact"
-        )
+        return UserUpdate(full_name="Updated Name", phone="+9876543210", emergency_contact="Updated Emergency Contact")
 
     def test_get_user_by_id_success(self, user_service, mock_db, sample_user):
         """Test getting user by ID successfully."""
         user_id = str(sample_user.id)
-        
+
         mock_query = Mock()
         mock_query.filter.return_value.first.return_value = sample_user
         mock_db.query.return_value = mock_query
-        
+
         result = user_service.get_user_by_id(user_id)
-        
+
         assert result == sample_user
         mock_db.query.assert_called_once_with(User)
 
     def test_get_user_by_id_not_found(self, user_service, mock_db):
         """Test getting user by ID when user not found."""
         user_id = str(uuid.uuid4())
-        
+
         mock_query = Mock()
         mock_query.filter.return_value.first.return_value = None
         mock_db.query.return_value = mock_query
-        
+
         result = user_service.get_user_by_id(user_id)
-        
+
         assert result is None
         mock_db.query.assert_called_once_with(User)
 
     def test_get_user_by_email_success(self, user_service, mock_db, sample_user):
         """Test getting user by email successfully."""
         email = sample_user.email
-        
+
         mock_query = Mock()
         mock_query.filter.return_value.first.return_value = sample_user
         mock_db.query.return_value = mock_query
-        
+
         result = user_service.get_user_by_email(email)
-        
+
         assert result == sample_user
         mock_db.query.assert_called_once_with(User)
 
     def test_get_user_by_email_not_found(self, user_service, mock_db):
         """Test getting user by email when user not found."""
         email = "nonexistent@example.com"
-        
+
         mock_query = Mock()
         mock_query.filter.return_value.first.return_value = None
         mock_db.query.return_value = mock_query
-        
+
         result = user_service.get_user_by_email(email)
-        
+
         assert result is None
         mock_db.query.assert_called_once_with(User)
 
@@ -103,13 +99,13 @@ class TestUserServiceExtendedUnit:
         users = [Mock(spec=User) for _ in range(3)]
         skip = 10
         limit = 5
-        
+
         mock_query = Mock()
         mock_query.offset.return_value.limit.return_value.all.return_value = users
         mock_db.query.return_value = mock_query
-        
+
         result = user_service.get_users(skip=skip, limit=limit)
-        
+
         assert result == users
         mock_db.query.assert_called_once_with(User)
         mock_query.offset.assert_called_once_with(skip)
@@ -118,13 +114,13 @@ class TestUserServiceExtendedUnit:
     def test_get_users_default_pagination(self, user_service, mock_db):
         """Test getting users with default pagination."""
         users = [Mock(spec=User) for _ in range(2)]
-        
+
         mock_query = Mock()
         mock_query.offset.return_value.limit.return_value.all.return_value = users
         mock_db.query.return_value = mock_query
-        
+
         result = user_service.get_users()
-        
+
         assert result == users
         mock_db.query.assert_called_once_with(User)
         mock_query.offset.assert_called_once_with(0)
@@ -135,24 +131,24 @@ class TestUserServiceExtendedUnit:
         mock_query = Mock()
         mock_query.offset.return_value.limit.return_value.all.return_value = []
         mock_db.query.return_value = mock_query
-        
+
         result = user_service.get_users()
-        
+
         assert result == []
         mock_db.query.assert_called_once_with(User)
 
     def test_update_user_success(self, user_service, mock_db, sample_user, sample_user_update):
         """Test updating user successfully."""
         user_id = str(sample_user.id)
-        
+
         # Mock get_user_by_id to return the user
-        with patch.object(user_service, 'get_user_by_id', return_value=sample_user):
+        with patch.object(user_service, "get_user_by_id", return_value=sample_user):
             result = user_service.update_user(user_id, sample_user_update)
-            
+
             assert result == sample_user
             mock_db.commit.assert_called_once()
             mock_db.refresh.assert_called_once_with(sample_user)
-            
+
             # Verify that user attributes were updated
             assert sample_user.full_name == "Updated Name"
             assert sample_user.phone == "+9876543210"
@@ -161,10 +157,10 @@ class TestUserServiceExtendedUnit:
     def test_update_user_not_found(self, user_service, mock_db, sample_user_update):
         """Test updating user when user not found."""
         user_id = str(uuid.uuid4())
-        
-        with patch.object(user_service, 'get_user_by_id', return_value=None):
+
+        with patch.object(user_service, "get_user_by_id", return_value=None):
             result = user_service.update_user(user_id, sample_user_update)
-            
+
             assert result is None
             mock_db.commit.assert_not_called()
             mock_db.refresh.assert_not_called()
@@ -173,10 +169,10 @@ class TestUserServiceExtendedUnit:
         """Test updating user with partial data."""
         user_id = str(sample_user.id)
         partial_update = UserUpdate(full_name="New Name Only")
-        
-        with patch.object(user_service, 'get_user_by_id', return_value=sample_user):
+
+        with patch.object(user_service, "get_user_by_id", return_value=sample_user):
             result = user_service.update_user(user_id, partial_update)
-            
+
             assert result == sample_user
             assert sample_user.full_name == "New Name Only"
             # Other fields should remain unchanged
@@ -185,13 +181,13 @@ class TestUserServiceExtendedUnit:
     def test_update_user_database_error(self, user_service, mock_db, sample_user, sample_user_update):
         """Test updating user when database error occurs."""
         user_id = str(sample_user.id)
-        
-        with patch.object(user_service, 'get_user_by_id', return_value=sample_user):
+
+        with patch.object(user_service, "get_user_by_id", return_value=sample_user):
             mock_db.commit.side_effect = SQLAlchemyError("Database error")
-            
+
             with pytest.raises(HTTPException) as exc_info:
                 user_service.update_user(user_id, sample_user_update)
-            
+
             assert exc_info.value.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
             assert exc_info.value.detail == "Failed to update user"
             mock_db.rollback.assert_called_once()
@@ -200,10 +196,10 @@ class TestUserServiceExtendedUnit:
         """Test updating user with empty update data."""
         user_id = str(sample_user.id)
         empty_update = UserUpdate()
-        
-        with patch.object(user_service, 'get_user_by_id', return_value=sample_user):
+
+        with patch.object(user_service, "get_user_by_id", return_value=sample_user):
             result = user_service.update_user(user_id, empty_update)
-            
+
             assert result == sample_user
             mock_db.commit.assert_called_once()
             mock_db.refresh.assert_called_once_with(sample_user)
@@ -211,10 +207,10 @@ class TestUserServiceExtendedUnit:
     def test_deactivate_user_success(self, user_service, mock_db, sample_user):
         """Test deactivating user successfully."""
         user_id = str(sample_user.id)
-        
-        with patch.object(user_service, 'get_user_by_id', return_value=sample_user):
+
+        with patch.object(user_service, "get_user_by_id", return_value=sample_user):
             result = user_service.deactivate_user(user_id)
-            
+
             assert result is True
             assert sample_user.is_active is False
             mock_db.commit.assert_called_once()
@@ -222,22 +218,22 @@ class TestUserServiceExtendedUnit:
     def test_deactivate_user_not_found(self, user_service, mock_db):
         """Test deactivating user when user not found."""
         user_id = str(uuid.uuid4())
-        
-        with patch.object(user_service, 'get_user_by_id', return_value=None):
+
+        with patch.object(user_service, "get_user_by_id", return_value=None):
             result = user_service.deactivate_user(user_id)
-            
+
             assert result is False
             mock_db.commit.assert_not_called()
 
     def test_deactivate_user_database_error(self, user_service, mock_db, sample_user):
         """Test deactivating user when database error occurs."""
         user_id = str(sample_user.id)
-        
-        with patch.object(user_service, 'get_user_by_id', return_value=sample_user):
+
+        with patch.object(user_service, "get_user_by_id", return_value=sample_user):
             mock_db.commit.side_effect = SQLAlchemyError("Database error")
-            
+
             result = user_service.deactivate_user(user_id)
-            
+
             assert result is False
             mock_db.rollback.assert_called_once()
 
@@ -245,10 +241,10 @@ class TestUserServiceExtendedUnit:
         """Test deactivating user that is already inactive."""
         user_id = str(sample_user.id)
         sample_user.is_active = False  # Already inactive
-        
-        with patch.object(user_service, 'get_user_by_id', return_value=sample_user):
+
+        with patch.object(user_service, "get_user_by_id", return_value=sample_user):
             result = user_service.deactivate_user(user_id)
-            
+
             assert result is True
             assert sample_user.is_active is False
             mock_db.commit.assert_called_once()
@@ -264,12 +260,12 @@ class TestUserServiceExtendedUnit:
         update_with_none = UserUpdate(
             full_name="New Name",
             phone=None,  # This should be excluded from update
-            emergency_contact="New Emergency Contact"
+            emergency_contact="New Emergency Contact",
         )
-        
-        with patch.object(user_service, 'get_user_by_id', return_value=sample_user):
+
+        with patch.object(user_service, "get_user_by_id", return_value=sample_user):
             result = user_service.update_user(user_id, update_with_none)
-            
+
             assert result == sample_user
             assert sample_user.full_name == "New Name"
             assert sample_user.emergency_contact == "New Emergency Contact"
@@ -281,13 +277,13 @@ class TestUserServiceExtendedUnit:
         """Test getting users with large limit."""
         users = [Mock(spec=User) for _ in range(50)]
         large_limit = 1000
-        
+
         mock_query = Mock()
         mock_query.offset.return_value.limit.return_value.all.return_value = users
         mock_db.query.return_value = mock_query
-        
+
         result = user_service.get_users(skip=0, limit=large_limit)
-        
+
         assert result == users
         mock_query.offset.assert_called_once_with(0)
         mock_query.offset.return_value.limit.assert_called_once_with(large_limit)
