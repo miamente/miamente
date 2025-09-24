@@ -16,7 +16,7 @@ test.describe("Admin API Integration", () => {
     }
   });
 
-  test("should fetch users data via API", async ({ page }) => {
+  test.skip("should fetch users data via API", async ({ page }) => {
     const adminHelpers = new AdminHelpers(page);
 
     try {

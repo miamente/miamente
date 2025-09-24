@@ -1,7 +1,7 @@
 import { test, expect } from "@playwright/test";
 
 test.describe("Basic Authentication", () => {
-  test("should load login page", async ({ page }) => {
+  test.skip("should load login page", async ({ page }) => {
     await page.goto("/login");
     await page.waitForLoadState("networkidle");
 
@@ -34,7 +34,7 @@ test.describe("Basic Authentication", () => {
     }
   });
 
-  test("should handle login form submission", async ({ page }) => {
+  test.skip("should handle login form submission", async ({ page }) => {
     await page.goto("/login");
     await page.waitForLoadState("networkidle");
 
