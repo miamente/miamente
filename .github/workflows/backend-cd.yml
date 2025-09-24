@@ -305,12 +305,23 @@ jobs:
           set -euo pipefail
 
           echo "🚀 Desplegando con params-staging.json…"
+
+          # Carga cada línea Key=Value en un array
+          mapfile -t PARAMS < <(jq -r '.[] | "\(.ParameterKey)=\(.ParameterValue)"' params-staging.json)
+
+          echo "🔎 Parámetros a enviar (keys únicamente):"
+          for p in "${PARAMS[@]}"; do
+            echo " - ${p%%=*}"
+          done
+
+          # Llama al deploy con el array, cada Key=Value queda atómico
           aws cloudformation deploy \
             --template-file template.yaml \
             --stack-name miamente-staging-stack \
-            --parameter-overrides $(jq -r '.[] | "\(.ParameterKey)=\(.ParameterValue)"' params-staging.json) \
+            --parameter-overrides "${PARAMS[@]}" \
             --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM \
             --no-fail-on-empty-changes
+
 
       - name: Get Staging Stack Outputs
         id: get_stack_outputs
