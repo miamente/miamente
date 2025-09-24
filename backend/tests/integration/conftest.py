@@ -1,17 +1,23 @@
 """
-Pytest configuration and fixtures for integration tests (real Postgres connection).
-Uses precise test data identification to avoid affecting production data.
+Pytest configuration and fixtures for integration / acceptance tests.
+
+Dual-mode:
+- REMOTE (AWS): if APP_BASE_URL is set, hit the deployed app via HTTP and DO NOT
+  spin up a local FastAPI app nor connect directly to DB.
+- LOCAL: if APP_BASE_URL is not set, behave as before (TestClient + DATABASE_URL).
+
+Only test data is cleaned in LOCAL mode. Remote cleanup should be done via
+dedicated admin endpoints or separate jobs if needed.
 """
 
+import os
 import pytest
-
-# import uuid  # Unused import
 from datetime import datetime
-from fastapi.testclient import TestClient
 from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 
+# Local-only imports (used in LOCAL mode)
 from app.api.v1.api import api_router
 from app.core.config import get_settings
 from app.core.database import Base, get_db
@@ -19,6 +25,12 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 pytestmark = pytest.mark.integration
+
+# -------------------------------------------------------------------
+# Mode detection
+# -------------------------------------------------------------------
+APP_BASE_URL = os.getenv("APP_BASE_URL", "").rstrip("/")
+IS_REMOTE = bool(APP_BASE_URL)
 
 # Test data identification
 TEST_DATA_PREFIX = "TEST_INTEGRATION_"
@@ -35,6 +47,9 @@ def generate_test_name(test_name: str = "User") -> str:
     return f"{TEST_DATA_PREFIX}{test_name}_{TEST_TIMESTAMP}"
 
 
+# -------------------------------------------------------------------
+# Local app constructor (LOCAL mode only)
+# -------------------------------------------------------------------
 def _build_app() -> FastAPI:
     settings = get_settings()
     app = FastAPI(
@@ -65,8 +80,16 @@ def _build_app() -> FastAPI:
     return app
 
 
+# -------------------------------------------------------------------
+# DB helpers (LOCAL mode only)
+# -------------------------------------------------------------------
 def _build_engine_and_session_factory():
-    # Use the same database as production but only clean test data
+    """
+    LOCAL mode: use DATABASE_URL.
+    REMOTE mode: disabled (we don't connect directly to RDS from tests).
+    """
+    if IS_REMOTE:
+        raise RuntimeError("Engine/session cannot be built in REMOTE mode (APP_BASE_URL set).")
     settings = get_settings()
     database_url = settings.DATABASE_URL
     engine = create_engine(database_url, poolclass=StaticPool)
@@ -75,17 +98,16 @@ def _build_engine_and_session_factory():
 
 
 def _cleanup_test_data(session_factory):
-    """Clean only test data with precise identification to avoid deleting production data."""
+    """Clean only test data with precise identification to avoid deleting production data (LOCAL mode)."""
     session = session_factory()
     try:
-        # Clean data with our specific test prefix and known test patterns
         test_patterns = [
-            f"email LIKE '{TEST_DATA_PREFIX}%'",  # Our specific test prefix
-            "email LIKE '%@example.com'",  # Standard test emails
-            "email LIKE '%@test.com'",  # Alternative test emails
-            "full_name LIKE 'Test %'",  # Test names
-            "full_name LIKE '% Test'",  # Test names
-            "email = 'test@example.com'",  # Specific test emails
+            f"email LIKE '{TEST_DATA_PREFIX}%'",
+            "email LIKE '%@example.com'",
+            "email LIKE '%@test.com'",
+            "full_name LIKE 'Test %'",
+            "full_name LIKE '% Test'",
+            "email = 'test@example.com'",
             "email = 'professional@example.com'",
             "email = 'nonexistent@example.com'",
             "full_name = 'Test User'",
@@ -94,133 +116,100 @@ def _cleanup_test_data(session_factory):
             "full_name = 'Test User 2'",
             "full_name = 'Updated Name'",
         ]
-
         where_clause = " OR ".join(test_patterns)
 
-        # Get test user IDs before deletion for related data cleanup
-        # test_user_ids = session.execute(
-        #     text(
-        #         f"""
-        #     SELECT id FROM users WHERE {where_clause}
-        # """
-        #     )
-        # ).fetchall()
-
-        # Get test professional IDs before deletion for related data cleanup
+        # Pre-capture professional IDs (for relation cleanup)
         test_professional_ids = session.execute(
-            text(
-                f"""
-            SELECT id FROM professionals WHERE {where_clause}
-        """
-            )
+            text(f"SELECT id FROM professionals WHERE {where_clause}")
         ).fetchall()
 
-        # Clean test users
-        result = session.execute(
-            text(
-                f"""
-            DELETE FROM users WHERE {where_clause}
-        """
-            )
-        )
+        # Users
+        result = session.execute(text(f"DELETE FROM users WHERE {where_clause}"))
         deleted_users = result.rowcount
 
-        # Clean test professionals
-        result = session.execute(
-            text(
-                f"""
-            DELETE FROM professionals WHERE {where_clause}
-        """
-            )
-        )
+        # Professionals
+        result = session.execute(text(f"DELETE FROM professionals WHERE {where_clause}"))
         deleted_professionals = result.rowcount
 
-        # Clean related data only for test professionals
+        # Relations for those professionals
         if test_professional_ids:
             professional_id_list = [str(row[0]) for row in test_professional_ids]
             professional_ids_str = "', '".join(professional_id_list)
 
-            # Clean professional-related tables
             session.execute(
                 text(
-                    f"""
-                DELETE FROM professional_specialties
-                WHERE professional_id IN ('{professional_ids_str}')
-            """
+                    f"DELETE FROM professional_specialties "
+                    f"WHERE professional_id IN ('{professional_ids_str}')"
+                )
+            )
+            session.execute(
+                text(
+                    f"DELETE FROM professional_modalities "
+                    f"WHERE professional_id IN ('{professional_ids_str}')"
+                )
+            )
+            session.execute(
+                text(
+                    f"DELETE FROM professional_therapeutic_approaches "
+                    f"WHERE professional_id IN ('{professional_ids_str}')"
                 )
             )
 
-            session.execute(
-                text(
-                    f"""
-                DELETE FROM professional_modalities
-                WHERE professional_id IN ('{professional_ids_str}')
-            """
-                )
-            )
-
-            session.execute(
-                text(
-                    f"""
-                DELETE FROM professional_therapeutic_approaches
-                WHERE professional_id IN ('{professional_ids_str}')
-            """
-                )
-            )
-
-        # Clean test data from reference tables (only test-specific data)
+        # Reference tables (only test-ish data)
         session.execute(
             text(
-                """
-            DELETE FROM specialties
-            WHERE name LIKE 'Test %'
-            OR name LIKE '% Test'
-            OR name = 'psychology'
-        """
+                "DELETE FROM specialties "
+                "WHERE name LIKE 'Test %' OR name LIKE '% Test' OR name = 'psychology'"
             )
         )
-
         session.execute(
             text(
-                """
-            DELETE FROM therapeutic_approaches
-            WHERE name LIKE 'Test %'
-            OR name LIKE '% Test'
-        """
+                "DELETE FROM therapeutic_approaches "
+                "WHERE name LIKE 'Test %' OR name LIKE '% Test'"
             )
         )
-
         session.execute(
-            text(
-                """
-            DELETE FROM modalities
-            WHERE name LIKE 'Test %'
-            OR name LIKE '% Test'
-        """
-            )
+            text("DELETE FROM modalities WHERE name LIKE 'Test %' OR name LIKE '% Test'")
         )
 
         session.commit()
-        print(f"✅ Test data cleanup completed: {deleted_users} users, {deleted_professionals} professionals removed")
-
+        print(
+            f"✅ Test data cleanup completed (LOCAL): {deleted_users} users, "
+            f"{deleted_professionals} professionals removed"
+        )
     except Exception as e:
         session.rollback()
-        print(f"⚠️ Warning: Could not clean test data: {e}")
-        # Don't fail the test if cleanup fails
+        print(f"⚠️ Warning: Could not clean test data (LOCAL): {e}")
     finally:
         session.close()
 
 
+# -------------------------------------------------------------------
+# Pytest fixtures
+# -------------------------------------------------------------------
 @pytest.fixture(scope="session")
 def engine_and_session_factory():
+    """
+    LOCAL mode: return engine and session factory.
+    REMOTE mode: skip (not used).
+    """
+    if IS_REMOTE:
+        yield None, None
+        return
     engine, session_factory = _build_engine_and_session_factory()
-    # Ensure tables exist lazily at session scope
     Base.metadata.create_all(bind=engine)
     yield engine, session_factory
 
 
 @pytest.fixture(scope="session", autouse=False)
 def setup_test_db(engine_and_session_factory):
+    """
+    LOCAL mode: clean test data before/after session.
+    REMOTE mode: no-op (cleanup must be done by endpoints or separate jobs).
+    """
+    if IS_REMOTE:
+        yield
+        return
     _, session_factory = engine_and_session_factory
     _cleanup_test_data(session_factory)
     yield
@@ -229,6 +218,12 @@ def setup_test_db(engine_and_session_factory):
 
 @pytest.fixture(scope="function")
 def db_session(engine_and_session_factory, setup_test_db):
+    """
+    LOCAL mode: provide SQLAlchemy session that cleans test data.
+    REMOTE mode: not applicable (raise helpful error if accidentally used).
+    """
+    if IS_REMOTE:
+        raise RuntimeError("db_session fixture is not available in REMOTE mode.")
     _, session_factory = engine_and_session_factory
     _cleanup_test_data(session_factory)
     session = session_factory()
@@ -241,6 +236,38 @@ def db_session(engine_and_session_factory, setup_test_db):
 
 @pytest.fixture
 def client(engine_and_session_factory):
+    """
+    Dual-mode client:
+    - REMOTE: simple wrapper over requests.Session hitting APP_BASE_URL.
+    - LOCAL: FastAPI TestClient with overridden DB dependency.
+    """
+    if IS_REMOTE:
+        import requests
+
+        session = requests.Session()
+        base = APP_BASE_URL  # already stripped of trailing slash
+
+        class RemoteClient:
+            def _url(self, path: str) -> str:
+                path = path or ""
+                return base + (path if path.startswith("/") else f"/{path}")
+
+            def get(self, path: str, **kw):
+                return session.get(self._url(path), **kw)
+
+            def post(self, path: str, **kw):
+                return session.post(self._url(path), **kw)
+
+            def put(self, path: str, **kw):
+                return session.put(self._url(path), **kw)
+
+            def delete(self, path: str, **kw):
+                return session.delete(self._url(path), **kw)
+
+        return RemoteClient()
+
+    # --- LOCAL ---
+    from fastapi.testclient import TestClient  # local-only import
     _, session_factory = engine_and_session_factory
     app = _build_app()
 
@@ -255,8 +282,14 @@ def client(engine_and_session_factory):
     return TestClient(app)
 
 
-@pytest.fixture(scope="function", autouse=True)
+@pytest.fixture(scope="function", autouse=not IS_REMOTE)
 def reset_db_before_each_test(engine_and_session_factory):
+    """
+    LOCAL mode: auto cleanup before each test.
+    REMOTE mode: disabled (no direct DB access).
+    """
+    if IS_REMOTE:
+        return
     _, session_factory = engine_and_session_factory
     _cleanup_test_data(session_factory)
 
