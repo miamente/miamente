@@ -121,25 +121,16 @@ Resources:
       VpcId: !Ref VpcId
       SecurityGroupIngress:
         - IpProtocol: tcp
-          FromPort: 8000 # Puerto del contenedor
+          FromPort: 8000
           ToPort: 8000
-          SourceSecurityGroupId: !Ref ALBSecurityGroup # Solo permite desde el ALB SG
+          SourceSecurityGroupId: !Ref ALBSecurityGroup
       SecurityGroupEgress:
-        - IpProtocol: tcp
-          FromPort: 5432
-          ToPort: 5432
-          DestinationSecurityGroupId: !Ref RDSSecurityGroup
-        - IpProtocol: tcp
-          FromPort: 443
-          ToPort: 443
-          CidrIp: 0.0.0.0/0 # Para llamadas HTTPS salientes
-        - IpProtocol: tcp
-          FromPort: 80
-          ToPort: 80
-          CidrIp: 0.0.0.0/0 # Para llamadas HTTP salientes
+        - IpProtocol: -1
+          CidrIp: 0.0.0.0/0
       Tags:
         - Key: Environment
           Value: !Ref EnvironmentName
+
 
   # Security Group para RDS PostgreSQL
   RDSSecurityGroup:
