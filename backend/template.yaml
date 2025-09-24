@@ -279,31 +279,31 @@ Resources:
             - Name: DATABASE_URL
               Value: !Sub "postgresql://${DBUsername}:${DBPassword}@${PostgreSQLDatabase.Endpoint.Address}:5432/miamente"
             - Name: PROJECT_NAME
-              Value: !Ref PROJECT_NAME
+              Value: !Ref PROJECTNAME
             - Name: VERSION
               Value: !Ref VERSION
             - Name: API_V1_STR
-              Value: !Ref API_V1_STR
+              Value: !Ref APIV1STR
             - Name: DEBUG
               Value: !Ref DEBUG
             - Name: ALGORITHM
               Value: !Ref ALGORITHM
             - Name: ACCESS_TOKEN_EXPIRE_MINUTES
-              Value: !Ref ACCESS_TOKEN_EXPIRE_MINUTES
+              Value: !Ref ACCESSTOKENEXPIREMINUTES
             - Name: REFRESH_TOKEN_EXPIRE_MINUTES
-              Value: !Ref REFRESH_TOKEN_EXPIRE_MINUTES
+              Value: !Ref REFRESHTOKENEXPIREMINUTES
             - Name: SERVER_NAME
-              Value: !Ref SERVER_NAME
+              Value: !Ref SERVERNAME
             - Name: SERVER_HOST
-              Value: !Ref SERVER_HOST
+              Value: !Ref SERVERHOST
             - Name: ALLOWED_HOSTS
-              Value: !Ref ALLOWED_HOSTS
+              Value: !Ref ALLOWEDHOSTS
             - Name: BACKEND_CORS_ORIGINS
-              Value: !Ref BACKEND_CORS_ORIGINS
+              Value: !Ref BACKENDCORSORIGINS
             - Name: TIMEZONE
               Value: !Ref TIMEZONE
             - Name: SECRET_KEY
-              Value: !Ref SECRET_KEY
+              Value: !Ref SECRETKEY
           LogConfiguration:
             LogDriver: awslogs
             Options:
