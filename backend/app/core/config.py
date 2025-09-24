@@ -6,7 +6,7 @@ import secrets
 from typing import List
 
 from functools import lru_cache
-from pydantic import AnyHttpUrl, ConfigDict, field_validator
+from pydantic import ConfigDict, field_validator
 from pydantic_settings import BaseSettings
 
 
@@ -22,7 +22,7 @@ class Settings(BaseSettings):
 
     # Server settings
     SERVER_NAME: str = "localhost"
-    SERVER_HOST: AnyHttpUrl = "http://localhost:8000"
+    SERVER_HOST: str = "http://localhost:8000"
 
     # CORS settings
     BACKEND_CORS_ORIGINS: List[str] = [
