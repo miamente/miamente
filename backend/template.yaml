@@ -35,6 +35,45 @@ Parameters:
     NoEcho: true
     MinLength: 8
     MaxLength: 128
+  PROJECT_NAME:
+    Type: String
+    Description: Nombre del proyecto
+  VERSION:
+    Type: String
+    Description: Version de la app
+  API_V1_STR:
+    Type: String
+    Description: Prefijo de la API
+  DEBUG:
+    Type: String
+    Description: Modo debug
+  ALGORITHM:
+    Type: String
+    Description: Algoritmo de JWT
+  ACCESS_TOKEN_EXPIRE_MINUTES:
+    Type: String
+    Description: Expiracion de access token
+  REFRESH_TOKEN_EXPIRE_MINUTES:
+    Type: String
+    Description: Expiracion de refresh token
+  SERVER_NAME:
+    Type: String
+    Description: Nombre del servidor
+  SERVER_HOST:
+    Type: String
+    Description: Host del servidor
+  ALLOWED_HOSTS:
+    Type: String
+    Description: Hosts permitidos
+  BACKEND_CORS_ORIGINS:
+    Type: String
+    Description: Origenes permitidos CORS
+  TIMEZONE:
+    Type: String
+    Description: Zona horaria
+  SECRET_KEY:
+    Type: String
+    Description: Llave secreta
 
 Resources:
   # --- Grupo de Logs para ECS ---
@@ -237,6 +276,34 @@ Resources:
               Value: !Ref DBPassword
             - Name: ENVIRONMENT
               Value: !Ref EnvironmentName
+            - Name: DATABASE_URL
+              Value: !Sub "postgresql://${DBUsername}:${DBPassword}@${PostgreSQLDatabase.Endpoint.Address}:5432/miamente"
+            - Name: PROJECT_NAME
+              Value: !Ref PROJECT_NAME
+            - Name: VERSION
+              Value: !Ref VERSION
+            - Name: API_V1_STR
+              Value: !Ref API_V1_STR
+            - Name: DEBUG
+              Value: !Ref DEBUG
+            - Name: ALGORITHM
+              Value: !Ref ALGORITHM
+            - Name: ACCESS_TOKEN_EXPIRE_MINUTES
+              Value: !Ref ACCESS_TOKEN_EXPIRE_MINUTES
+            - Name: REFRESH_TOKEN_EXPIRE_MINUTES
+              Value: !Ref REFRESH_TOKEN_EXPIRE_MINUTES
+            - Name: SERVER_NAME
+              Value: !Ref SERVER_NAME
+            - Name: SERVER_HOST
+              Value: !Ref SERVER_HOST
+            - Name: ALLOWED_HOSTS
+              Value: !Ref ALLOWED_HOSTS
+            - Name: BACKEND_CORS_ORIGINS
+              Value: !Ref BACKEND_CORS_ORIGINS
+            - Name: TIMEZONE
+              Value: !Ref TIMEZONE
+            - Name: SECRET_KEY
+              Value: !Ref SECRET_KEY
           LogConfiguration:
             LogDriver: awslogs
             Options:

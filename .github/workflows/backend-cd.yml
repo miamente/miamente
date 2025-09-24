@@ -215,6 +215,19 @@ jobs:
               DBSubnetIds="${{ secrets.DB_SUBNET_IDS }}" \
               DBUsername=${{ secrets.DB_USERNAME }} \
               DBPassword=${{ secrets.DB_PASSWORD }} \
+              PROJECT_NAME=${{ secrets.PROJECT_NAME }} \
+              VERSION=${{ secrets.VERSION }} \
+              API_V1_STR=${{ secrets.API_V1_STR }} \
+              DEBUG=${{ secrets.DEBUG }} \
+              ALGORITHM=${{ secrets.ALGORITHM }} \
+              ACCESS_TOKEN_EXPIRE_MINUTES=${{ secrets.ACCESS_TOKEN_EXPIRE_MINUTES }} \
+              REFRESH_TOKEN_EXPIRE_MINUTES=${{ secrets.REFRESH_TOKEN_EXPIRE_MINUTES }} \
+              SERVER_NAME=${{ secrets.SERVER_NAME }} \
+              SERVER_HOST=${{ secrets.SERVER_HOST }} \
+              ALLOWED_HOSTS="${{ secrets.ALLOWED_HOSTS }}" \
+              BACKEND_CORS_ORIGINS="${{ secrets.BACKEND_CORS_ORIGINS }}" \
+              TIMEZONE=${{ secrets.TIMEZONE }} \
+              SECRET_KEY=${{ secrets.SECRET_KEY }} \
             --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM \
             --no-fail-on-empty-changes
 
