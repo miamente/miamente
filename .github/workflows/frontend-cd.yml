@@ -154,7 +154,7 @@ jobs:
           fi
 
       - name: Run Playwright E2E
-        working-directory: .
+        working-directory: ..
         env:
           NEXT_PUBLIC_API_URL: ${{ env.NEXT_PUBLIC_API_URL }}
         run: |
@@ -172,7 +172,20 @@ jobs:
           # Run tests with verbose output
           npx playwright test --reporter=line
 
-      - name: Upload Playwright report
+      - name: Debug artifact paths
+        if: always()
+        working-directory: ..
+        run: |
+          echo "🔍 Debugging artifact paths..."
+          echo "Current directory: $(pwd)"
+          echo "Looking for playwright-report directory:"
+          ls -la playwright-report/ || echo "❌ playwright-report/ not found"
+          echo "Looking for test-results directory:"
+          ls -la test-results/ || echo "❌ test-results/ not found"
+          echo "All files in current directory:"
+          ls -la
+
+      - name: Upload Playwright report artifacts
         if: always()
         uses: actions/upload-artifact@v4
         with:
