@@ -114,7 +114,7 @@ jobs:
           aws-region: us-east-1
 
       - name: Build params JSON + Precheck (Staging)
-      
+
         run: |
           set -euo pipefail
 
@@ -215,7 +215,6 @@ jobs:
           echo "🔎 params-staging.json (enmascarado):"
           jq '[ .[] | {ParameterKey, ParameterValue:"***"} ]' params-staging.json
 
-          
       - name: Deploy CloudFormation Staging Stack (with params json)
         run: |
           set -euo pipefail
@@ -237,7 +236,6 @@ jobs:
             --parameter-overrides "${PARAMS[@]}" \
             --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM \
             --no-fail-on-empty-changes
-
 
       - name: Get Staging Stack Outputs
         id: get_stack_outputs
@@ -316,12 +314,12 @@ jobs:
         run: |
           echo "Testing database connection for staging environment..."
           echo "Database endpoint: ${{ needs.deploy-cfn-staging.outputs.database_endpoint_staging }}"
-          
+
           sleep 60
-          
+
           HEALTH_CHECK_URL="${{ needs.deploy-cfn-staging.outputs.alb_url_staging }}/health"
           echo "Checking health endpoint: $HEALTH_CHECK_URL"
-          
+
           for i in {1..5}; do
             if curl -f -s "$HEALTH_CHECK_URL"; then
               echo "Health check passed on attempt $i"
@@ -351,6 +349,10 @@ jobs:
         with:
           python-version: "3.13"
 
+      - name: Set DATABASE_URL env var for integration tests
+        run: |
+          echo "DATABASE_URL=postgresql://${{ secrets.DB_USERNAME }}:${{ secrets.DB_PASSWORD }}@${{ needs.deploy-cfn-staging.outputs.database_endpoint_staging }}:5432/miamente" >> $GITHUB_ENV
+
       - name: Run Integration Tests
         run: |
           pytest tests/integration \
@@ -367,7 +369,7 @@ jobs:
           path: |
             backend/integration_report.html
             backend/integration_coverage.xml
-  
+
   sonar:
     name: SonarCloud (aggregate coverage)
     runs-on: ubuntu-latest
@@ -511,12 +513,12 @@ jobs:
         run: |
           echo "Testing database connection for production environment..."
           echo "Database endpoint: ${{ needs.deploy-cfn-prod.outputs.database_endpoint_prod }}"
-          
+
           sleep 60
-          
+
           HEALTH_CHECK_URL="${{ needs.deploy-cfn-prod.outputs.alb_url_prod }}health"
           echo "Checking health endpoint: $HEALTH_CHECK_URL"
-          
+
           for i in {1..5}; do
             if curl -f -s "$HEALTH_CHECK_URL"; then
               echo "Health check passed on attempt $i"

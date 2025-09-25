@@ -1,4 +1,4 @@
-AWSTemplateFormatVersion: '2010-09-09'
+AWSTemplateFormatVersion: "2010-09-09"
 Description: >
   CloudFormation template para desplegar la aplicacion backend de Miamente
   con ALB y RDS PostgreSQL. Usa la VPC por defecto y el LabRole existente.
@@ -80,7 +80,7 @@ Resources:
   ECSLogGroup:
     Type: AWS::Logs::LogGroup
     Properties:
-      LogGroupName: !Sub '/ecs/miamente-backend-${EnvironmentName}-task'
+      LogGroupName: !Sub "/ecs/miamente-backend-${EnvironmentName}-task"
       RetentionInDays: 7 # Retener logs por 7 días (ajusta si es necesario)
       Tags:
         - Key: Environment
@@ -90,7 +90,7 @@ Resources:
   ECSCluster:
     Type: AWS::ECS::Cluster
     Properties:
-      ClusterName: !Sub 'miamente-backend-${EnvironmentName}-cluster'
+      ClusterName: !Sub "miamente-backend-${EnvironmentName}-cluster"
       Tags:
         - Key: Environment
           Value: !Ref EnvironmentName
@@ -100,7 +100,7 @@ Resources:
   ALBSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
-      GroupName: !Sub 'alb-sg-${EnvironmentName}'
+      GroupName: !Sub "alb-sg-${EnvironmentName}"
       GroupDescription: Permite trafico HTTP al ALB
       VpcId: !Ref VpcId
       SecurityGroupIngress:
@@ -116,7 +116,7 @@ Resources:
   ECSServiceSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
-      GroupName: !Sub 'ecs-service-sg-${EnvironmentName}'
+      GroupName: !Sub "ecs-service-sg-${EnvironmentName}"
       GroupDescription: Permite trafico desde el ALB al servicio ECS
       VpcId: !Ref VpcId
       SecurityGroupIngress:
@@ -131,12 +131,11 @@ Resources:
         - Key: Environment
           Value: !Ref EnvironmentName
 
-
   # Security Group para RDS PostgreSQL
   RDSSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
-      GroupName: !Sub 'rds-sg-${EnvironmentName}'
+      GroupName: !Sub "rds-sg-${EnvironmentName}"
       GroupDescription: Permite trafico PostgreSQL desde ECS
       VpcId: !Ref VpcId
       SecurityGroupIngress:
@@ -144,6 +143,10 @@ Resources:
           FromPort: 5432
           ToPort: 5432
           SourceSecurityGroupId: !Ref ECSServiceSecurityGroup
+        - IpProtocol: tcp
+          FromPort: 5432
+          ToPort: 5432
+          CidrIp: 0.0.0.0/0
       Tags:
         - Key: Environment
           Value: !Ref EnvironmentName
@@ -153,7 +156,7 @@ Resources:
   DBSubnetGroup:
     Type: AWS::RDS::DBSubnetGroup
     Properties:
-      DBSubnetGroupName: !Sub 'miamente-db-subnet-group-${EnvironmentName}'
+      DBSubnetGroupName: !Sub "miamente-db-subnet-group-${EnvironmentName}"
       DBSubnetGroupDescription: Subnet group para RDS PostgreSQL
       SubnetIds: !Ref DBSubnetIds
       Tags:
@@ -164,10 +167,10 @@ Resources:
   PostgreSQLDatabase:
     Type: AWS::RDS::DBInstance
     Properties:
-      DBInstanceIdentifier: !Sub 'miamente-postgres-${EnvironmentName}'
+      DBInstanceIdentifier: !Sub "miamente-postgres-${EnvironmentName}"
       DBName: miamente
       Engine: postgres
-      EngineVersion: '15.14' # Versión estable de PostgreSQL
+      EngineVersion: "15.14" # Versión estable de PostgreSQL
       DBInstanceClass: db.t3.micro # Instancia pequeña para desarrollo/staging
       AllocatedStorage: 20
       StorageType: gp2
@@ -179,7 +182,7 @@ Resources:
       DBSubnetGroupName: !Ref DBSubnetGroup
       BackupRetentionPeriod: 7
       MultiAZ: false # Para staging, usar true para production
-      PubliclyAccessible: false
+      PubliclyAccessible: true
       DeletionProtection: false # Para staging, usar true para production
       Tags:
         - Key: Environment
@@ -190,7 +193,7 @@ Resources:
   ApplicationLoadBalancer:
     Type: AWS::ElasticLoadBalancingV2::LoadBalancer
     Properties:
-      Name: !Sub 'miamente-backend-${EnvironmentName}-alb'
+      Name: !Sub "miamente-backend-${EnvironmentName}-alb"
       Subnets: !Ref SubnetIds # Debe estar en subredes publicas
       SecurityGroups:
         - !Ref ALBSecurityGroup
@@ -215,7 +218,7 @@ Resources:
   ECSTargetGroup:
     Type: AWS::ElasticLoadBalancingV2::TargetGroup
     Properties:
-      Name: !Sub 'tg-ecs-${EnvironmentName}'
+      Name: !Sub "tg-ecs-${EnvironmentName}"
       VpcId: !Ref VpcId
       Port: 8000 # Puerto del contenedor
       Protocol: HTTP
@@ -223,12 +226,12 @@ Resources:
       # --- Propiedades de Health Check (CORREGIDO) ---
       HealthCheckEnabled: true
       HealthCheckPath: /health # Endpoint de health check de la app
-      HealthCheckPort: '8000' # Puerto del contenedor
+      HealthCheckPort: "8000" # Puerto del contenedor
       HealthCheckProtocol: HTTP
       HealthyThresholdCount: 2
       UnhealthyThresholdCount: 2
       HealthCheckIntervalSeconds: 15 # Nombre corregido
-      HealthCheckTimeoutSeconds: 5  # Nombre corregido
+      HealthCheckTimeoutSeconds: 5 # Nombre corregido
       # --- Fin Propiedades de Health Check ---
       Tags:
         - Key: Environment
@@ -237,19 +240,19 @@ Resources:
   # --- Definicion de Tarea ECS ---
   ECSTaskDefinition:
     Type: AWS::ECS::TaskDefinition
-    DependsOn: 
+    DependsOn:
       - ECSLogGroup # Asegura que el Log Group exista primero
     Properties:
-      Family: !Sub 'miamente-backend-${EnvironmentName}-task'
+      Family: !Sub "miamente-backend-${EnvironmentName}-task"
       RequiresCompatibilities:
         - FARGATE
       NetworkMode: awsvpc
-      Cpu: '256' # 0.25 vCPU (minimo Fargate)
-      Memory: '512' # 0.5 GB (minimo Fargate)
+      Cpu: "256" # 0.25 vCPU (minimo Fargate)
+      Memory: "512" # 0.5 GB (minimo Fargate)
       TaskRoleArn: !Ref LabRoleArn # Rol para permisos DENTRO del contenedor (si necesita llamar a otros servicios AWS)
       ExecutionRoleArn: !Ref LabRoleArn # Rol para que ECS/Fargate pueda descargar imagen, enviar logs, etc.
       ContainerDefinitions:
-        - Name: !Sub 'miamente-backend-${EnvironmentName}-container'
+        - Name: !Sub "miamente-backend-${EnvironmentName}-container"
           Image: !Ref DockerImageUri # Imagen de Docker Hub
           PortMappings:
             - ContainerPort: 8000
@@ -309,7 +312,7 @@ Resources:
   ECSService:
     Type: AWS::ECS::Service
     Properties:
-      ServiceName: !Sub 'miamente-backend-${EnvironmentName}-service'
+      ServiceName: !Sub "miamente-backend-${EnvironmentName}-service"
       Cluster: !Ref ECSCluster
       TaskDefinition: !Ref ECSTaskDefinition
       DesiredCount: 1
@@ -317,11 +320,11 @@ Resources:
       NetworkConfiguration:
         AwsvpcConfiguration:
           AssignPublicIp: ENABLED
-          Subnets: !Ref SubnetIds 
+          Subnets: !Ref SubnetIds
           SecurityGroups:
             - !Ref ECSServiceSecurityGroup
       LoadBalancers:
-        - ContainerName: !Sub 'miamente-backend-${EnvironmentName}-container'
+        - ContainerName: !Sub "miamente-backend-${EnvironmentName}-container"
           ContainerPort: 8000
           TargetGroupArn: !Ref ECSTargetGroup
       DeploymentConfiguration:
@@ -338,24 +341,24 @@ Outputs:
     Description: DNS Name of the Application Load Balancer
     Value: !GetAtt ApplicationLoadBalancer.DNSName
     Export:
-      Name: !Sub '${AWS::StackName}-ALBDnsName'
+      Name: !Sub "${AWS::StackName}-ALBDnsName"
   ECSClusterName:
     Description: Name of the ECS Cluster
     Value: !Ref ECSCluster
     Export:
-      Name: !Sub '${AWS::StackName}-ECSClusterName'
+      Name: !Sub "${AWS::StackName}-ECSClusterName"
   ECSServiceName:
     Description: Name of the ECS Service
     Value: !GetAtt ECSService.Name
     Export:
-      Name: !Sub '${AWS::StackName}-ECSServiceName'
+      Name: !Sub "${AWS::StackName}-ECSServiceName"
   DatabaseEndpoint:
     Description: RDS PostgreSQL Database Endpoint
     Value: !GetAtt PostgreSQLDatabase.Endpoint.Address
     Export:
-      Name: !Sub '${AWS::StackName}-DatabaseEndpoint'
+      Name: !Sub "${AWS::StackName}-DatabaseEndpoint"
   DatabasePort:
     Description: RDS PostgreSQL Database Port
     Value: !GetAtt PostgreSQLDatabase.Endpoint.Port
     Export:
-      Name: !Sub '${AWS::StackName}-DatabasePort'
+      Name: !Sub "${AWS::StackName}-DatabasePort"
