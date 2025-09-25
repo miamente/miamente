@@ -1,13 +1,6 @@
 name: Backend CD
 
 on:
-  push:
-    branches: [main, staging]
-    paths:
-      - "backend/**"
-      - ".github/workflows/backend-cd.yml"
-      - ".github/actions/setup-backend/**"
-
   pull_request:
     branches: [main, staging]
     paths:
@@ -39,7 +32,7 @@ jobs:
   unit-tests:
     name: Unit Tests
     runs-on: ubuntu-latest
-    if: github.event_name == 'pull_request'
+    if: github.event_name == 'pull_request' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/staging')
     steps:
       - uses: actions/checkout@v4
 
@@ -67,88 +60,10 @@ jobs:
             backend/unit_report.html
             backend/unit_coverage.xml
 
-  integration-tests:
-    name: Integration Tests
-    runs-on: ubuntu-latest
-    needs: [unit-tests]
-    if: github.event_name == 'pull_request'
-    services:
-      postgres:
-        image: postgres:15
-        env:
-          POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
-          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
-          POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd="pg_isready -U user -d miamente"
-          --health-interval=5s
-          --health-timeout=5s
-          --health-retries=20
-          
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Setup Python & deps
-        uses: ./.github/actions/setup-backend
-        with:
-          python-version: "3.13"
-
-      - name: Run DB migrations
-        run: alembic upgrade head
-
-      - name: Run Integration Tests
-        run: |
-          uvicorn app.main:app --host 0.0.0.0 --port 8000 &
-          sleep 8
-          pytest tests/integration \
-            --cov=app \
-            --cov-report=xml:integration_coverage.xml \
-            --html=integration_report.html \
-            --self-contained-html
-
-      - name: Upload Test Reports Artifacts
-        uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: integration-test-reports
-          path: |
-            backend/integration_report.html
-            backend/integration_coverage.xml
-
-  sonar:
-    name: SonarCloud (aggregate coverage)
-    runs-on: ubuntu-latest
-    needs: [unit-tests, integration-tests]
-    if: github.event_name == 'pull_request'
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Download unit artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: unit-test-reports
-          path: artifacts-downloaded
-
-      - name: Download integration artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: integration-test-reports
-          path: artifacts-downloaded
-
-      - name: SonarCloud Scan (Backend)
-        uses: SonarSource/sonarqube-scan-action@v5.0.0
-        with:
-          projectBaseDir: backend
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-
   docker-build-push:
-    name: Build & Push Docker image (main only)
+    name: Build & Push Docker image
     runs-on: ubuntu-latest
-    if: github.event_name == 'push'
+    if: github.event_name == 'pull_request' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/staging')
     steps:
       - uses: actions/checkout@v4
 
@@ -179,7 +94,7 @@ jobs:
   deploy-cfn-staging:
     needs: docker-build-push
     runs-on: ubuntu-latest
-    if: github.event_name == 'push' && github.ref == 'refs/heads/staging'
+    if: github.event_name == 'pull_request' && github.ref == 'refs/heads/main'
     outputs:
       alb_url_staging: ${{ steps.get_stack_outputs.outputs.alb_url }}
       cluster_name_staging: "miamente-backend-staging-cluster"
@@ -187,54 +102,151 @@ jobs:
       database_endpoint_staging: ${{ steps.get_stack_outputs.outputs.database_endpoint }}
 
     steps:
-      # 1. Checkout del código (para acceder a template.yaml)
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # 2. Configurar credenciales de AWS (CON SESSION TOKEN)
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }} # <--- USO DEL SESSION TOKEN
+          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
           aws-region: us-east-1
 
-      # 3. Desplegar/Actualizar el stack CloudFormation de Staging
-      - name: Deploy CloudFormation Staging Stack
-        run: |
-          # Reconstruir la URI de la imagen usando el secreto y las salidas separadas
-          IMAGE_URI="${{ secrets.DOCKERHUB_USERNAME }}/${{ needs.build-test-publish.outputs.repo_name }}:${{ needs.build-test-publish.outputs.image_tag }}"
-          echo "Deploying Image URI: $IMAGE_URI" # Log para verificar (el username se ocultará aquí)
+      - name: Build params JSON + Precheck (Staging)
 
+        run: |
+          set -euo pipefail
+
+          # ---------- 1) Construcción de variables ----------
+          IMAGE_URI="${{ secrets.DOCKERHUB_USERNAME }}/${{ secrets.DOCKERHUB_BACKEND_REPOSITORY }}:${{ github.sha }}"
+          LAB_ROLE_ARN="${{ secrets.LAB_ROLE_ARN }}"
+          VPC_ID="${{ secrets.VPC_ID }}"
+          SUBNET_IDS="${{ secrets.SUBNET_IDS }}"            # ej: subnet-aaa,subnet-bbb (sin espacios)
+          DB_SUBNET_IDS="${{ secrets.DB_SUBNET_IDS }}"      # ej: subnet-xxx,subnet-yyy
+          DB_USERNAME="${{ secrets.DB_USERNAME }}"
+          DB_PASSWORD="${{ secrets.DB_PASSWORD }}"
+
+          PROJECTNAME="${{ secrets.PROJECT_NAME }}"
+          VERSION="${{ secrets.VERSION }}"
+          APIV1STR="${{ secrets.API_V1_STR }}"
+          DEBUG="${{ secrets.DEBUG }}"
+          ALGORITHM="${{ secrets.ALGORITHM }}"
+          ACCESSTOKENEXPIREMINUTES="${{ secrets.ACCESS_TOKEN_EXPIRE_MINUTES }}"
+          REFRESHTOKENEXPIREMINUTES="${{ secrets.REFRESH_TOKEN_EXPIRE_MINUTES }}"
+          SERVERNAME="${{ secrets.SERVER_NAME }}"
+          SERVERHOST="${{ secrets.SERVER_HOST }}"
+          ALLOWEDHOSTS="${{ secrets.ALLOWED_HOSTS }}"
+          BACKENDCORSORIGINS="${{ secrets.BACKEND_CORS_ORIGINS }}"
+          TIMEZONE="${{ secrets.TIME_ZONE }}"
+          SECRETKEY="${{ secrets.SECRET_KEY }}"
+
+          # ---------- 2) Pre-chequeo de vacíos ----------
+          missing=()
+          check_empty () { var_name="$1"; val="${!var_name:-}"; if [ -z "$val" ]; then missing+=("$var_name"); fi; }
+
+          for k in IMAGE_URI LAB_ROLE_ARN VPC_ID SUBNET_IDS DB_SUBNET_IDS DB_USERNAME DB_PASSWORD \
+                   PROJECTNAME VERSION APIV1STR DEBUG ALGORITHM ACCESSTOKENEXPIREMINUTES \
+                   REFRESHTOKENEXPIREMINUTES SERVERNAME SERVERHOST ALLOWEDHOSTS BACKENDCORSORIGINS \
+                   TIMEZONE SECRETKEY; do
+            check_empty "$k"
+          done
+
+          if [ ${#missing[@]} -gt 0 ]; then
+            echo "❌ Parámetros/secretos VACÍOS detectados:"
+            for m in "${missing[@]}"; do echo " - $m"; done
+            exit 1
+          else
+            echo "✅ Todos los parámetros tienen valor (no vacíos)."
+          fi
+
+          # ---------- 3) Generar params-staging.json con jq ----------
+          if ! command -v jq &> /dev/null; then
+            sudo apt-get update && sudo apt-get install -y jq
+          fi
+
+          jq -n \
+            --arg envName "staging" \
+            --arg imageUri "$IMAGE_URI" \
+            --arg labRoleArn "$LAB_ROLE_ARN" \
+            --arg vpcId "$VPC_ID" \
+            --arg subnetIds "$SUBNET_IDS" \
+            --arg dbSubnetIds "$DB_SUBNET_IDS" \
+            --arg dbUser "$DB_USERNAME" \
+            --arg dbPass "$DB_PASSWORD" \
+            --arg projectname "$PROJECTNAME" \
+            --arg version "$VERSION" \
+            --arg apiv1str "$APIV1STR" \
+            --arg debug "$DEBUG" \
+            --arg algorithm "$ALGORITHM" \
+            --arg accessmins "$ACCESSTOKENEXPIREMINUTES" \
+            --arg refreshmins "$REFRESHTOKENEXPIREMINUTES" \
+            --arg servername "$SERVERNAME" \
+            --arg serverhost "$SERVERHOST" \
+            --arg allowedhosts "$ALLOWEDHOSTS" \
+            --arg backendcors "$BACKENDCORSORIGINS" \
+            --arg timezone "$TIMEZONE" \
+            --arg secretkey "$SECRETKEY" \
+            '[
+              {"ParameterKey":"EnvironmentName","ParameterValue":$envName},
+              {"ParameterKey":"DockerImageUri","ParameterValue":$imageUri},
+              {"ParameterKey":"LabRoleArn","ParameterValue":$labRoleArn},
+              {"ParameterKey":"VpcId","ParameterValue":$vpcId},
+              {"ParameterKey":"SubnetIds","ParameterValue":$subnetIds},
+              {"ParameterKey":"DBSubnetIds","ParameterValue":$dbSubnetIds},
+              {"ParameterKey":"DBUsername","ParameterValue":$dbUser},
+              {"ParameterKey":"DBPassword","ParameterValue":$dbPass},
+              {"ParameterKey":"PROJECTNAME","ParameterValue":$projectname},
+              {"ParameterKey":"VERSION","ParameterValue":$version},
+              {"ParameterKey":"APIV1STR","ParameterValue":$apiv1str},
+              {"ParameterKey":"DEBUG","ParameterValue":$debug},
+              {"ParameterKey":"ALGORITHM","ParameterValue":$algorithm},
+              {"ParameterKey":"ACCESSTOKENEXPIREMINUTES","ParameterValue":$accessmins},
+              {"ParameterKey":"REFRESHTOKENEXPIREMINUTES","ParameterValue":$refreshmins},
+              {"ParameterKey":"SERVERNAME","ParameterValue":$servername},
+              {"ParameterKey":"SERVERHOST","ParameterValue":$serverhost},
+              {"ParameterKey":"ALLOWEDHOSTS","ParameterValue":$allowedhosts},
+              {"ParameterKey":"BACKENDCORSORIGINS","ParameterValue":$backendcors},
+              {"ParameterKey":"TIMEZONE","ParameterValue":$timezone},
+              {"ParameterKey":"SECRETKEY","ParameterValue":$secretkey}
+            ]' > params-staging.json
+
+          # ---------- 4) Imprimir versión enmascarada para depurar ----------
+          echo "🔎 params-staging.json (enmascarado):"
+          jq '[ .[] | {ParameterKey, ParameterValue:"***"} ]' params-staging.json
+
+      - name: Deploy CloudFormation Staging Stack (with params json)
+        run: |
+          set -euo pipefail
+
+          echo "🚀 Desplegando con params-staging.json…"
+
+          # Carga cada línea Key=Value en un array
+          mapfile -t PARAMS < <(jq -r '.[] | "\(.ParameterKey)=\(.ParameterValue)"' params-staging.json)
+
+          echo "🔎 Parámetros a enviar (keys únicamente):"
+          for p in "${PARAMS[@]}"; do
+            echo " - ${p%%=*}"
+          done
+
+          # Llama al deploy con el array, cada Key=Value queda atómico
           aws cloudformation deploy \
             --template-file template.yaml \
             --stack-name miamente-staging-stack \
-            --parameter-overrides \
-              EnvironmentName=staging \
-              DockerImageUri=$IMAGE_URI \
-              LabRoleArn=${{ secrets.LAB_ROLE_ARN }} \
-              VpcId=${{ secrets.VPC_ID }} \
-              SubnetIds="${{ secrets.SUBNET_IDS }}" \
-              DBSubnetIds="${{ secrets.DB_SUBNET_IDS }}" \
-              DBUsername=${{ secrets.DB_USERNAME }} \
-              DBPassword=${{ secrets.DB_PASSWORD }} \
+            --parameter-overrides "${PARAMS[@]}" \
             --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM \
-            --no-fail-on-empty-changes # No falla si no hay cambios en la plantilla
+            --no-fail-on-empty-changes
 
-      # 4. Obtener las salidas del Stack CloudFormation Staging
       - name: Get Staging Stack Outputs
         id: get_stack_outputs
         run: |
-          # Instalar jq si no está presente (común en ubuntu-latest, pero por si acaso)
           if ! command -v jq &> /dev/null; then
              sudo apt-get update && sudo apt-get install -y jq
           fi
 
           STACK_OUTPUTS=$(aws cloudformation describe-stacks --stack-name miamente-staging-stack --query "Stacks[0].Outputs" --region us-east-1 --output json)
-          echo "Raw Stack Outputs: $STACK_OUTPUTS" # Log para depuración
+          echo "Raw Stack Outputs: $STACK_OUTPUTS"
 
-          # Extraer la URL del ALB (ALBDnsName)
           ALB_URL=$(echo $STACK_OUTPUTS | jq -r '.[] | select(.OutputKey=="ALBDnsName") | .OutputValue')
           DATABASE_ENDPOINT=$(echo $STACK_OUTPUTS | jq -r '.[] | select(.OutputKey=="DatabaseEndpoint") | .OutputValue')
 
@@ -248,32 +260,28 @@ jobs:
             exit 1
           fi
 
-          # Añadir http:// al inicio ya que el DNSName no lo incluye
-          ALB_URL_HTTP="http://${ALB_URL}/"
+          ALB_URL_HTTP="http://${ALB_URL}"
           echo "ALB URL Staging: $ALB_URL_HTTP"
           echo "Database Endpoint Staging: $DATABASE_ENDPOINT"
           echo "alb_url=${ALB_URL_HTTP}" >> $GITHUB_OUTPUT
           echo "database_endpoint=${DATABASE_ENDPOINT}" >> $GITHUB_OUTPUT
 
-  # -------------------------------------
-  # Job de Actualización Servicio Staging (ECS - Forzar despliegue)
-  # -------------------------------------
   update-service-staging:
-    # Depende de que CFN haya actualizado la Task Definition
     needs: [docker-build-push, deploy-cfn-staging]
     runs-on: ubuntu-latest
-    if: github.event_name == 'push' && github.ref == 'refs/heads/staging'
+    if: github.event_name == 'pull_request' && github.ref == 'refs/heads/main'
+    defaults:
+      run:
+        working-directory: .
     steps:
-      # 1. Configurar credenciales de AWS (CON SESSION TOKEN)
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }} # <--- USO DEL SESSION TOKEN
+          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
           aws-region: us-east-1
 
-      # 2. Forzar un nuevo despliegue en el servicio ECS de Staging
       - name: Force New Deployment ECS Service Staging
         run: |
           echo "Forcing new deployment for Staging service..."
@@ -281,20 +289,19 @@ jobs:
                                 --service ${{ needs.deploy-cfn-staging.outputs.service_name_staging }} \
                                 --force-new-deployment \
                                 --region us-east-1
-          # Esperar a que el despliegue se estabilice
+
           echo "Waiting for Staging service deployment to stabilize..."
           aws ecs wait services-stable --cluster ${{ needs.deploy-cfn-staging.outputs.cluster_name_staging }} --services ${{ needs.deploy-cfn-staging.outputs.service_name_staging }} --region us-east-1
           echo "Staging service deployment stable."
 
-  # -------------------------------------
-  # Job de Verificación de Conectividad Base de Datos Staging
-  # -------------------------------------
   test-db-staging:
     needs: [update-service-staging, deploy-cfn-staging]
     runs-on: ubuntu-latest
-    if: github.event_name == 'push' && github.ref == 'refs/heads/staging'
+    if: github.event_name == 'pull_request' && github.ref == 'refs/heads/main'
+    defaults:
+      run:
+        working-directory: .
     steps:
-      # 1. Configurar credenciales de AWS
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
@@ -303,20 +310,16 @@ jobs:
           aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
           aws-region: us-east-1
 
-      # 2. Verificar conectividad de la base de datos desde la aplicación
       - name: Test Database Connection Staging
         run: |
           echo "Testing database connection for staging environment..."
           echo "Database endpoint: ${{ needs.deploy-cfn-staging.outputs.database_endpoint_staging }}"
-          
-          # Esperar un poco más para que la aplicación se conecte a la BD
+
           sleep 60
-          
-          # Verificar que la aplicación está respondiendo (incluye health check que debería verificar la BD)
-          HEALTH_CHECK_URL="${{ needs.deploy-cfn-staging.outputs.alb_url_staging }}health"
+
+          HEALTH_CHECK_URL="${{ needs.deploy-cfn-staging.outputs.alb_url_staging }}/health"
           echo "Checking health endpoint: $HEALTH_CHECK_URL"
-          
-          # Intentar conectar al health check varias veces
+
           for i in {1..5}; do
             if curl -f -s "$HEALTH_CHECK_URL"; then
               echo "Health check passed on attempt $i"
@@ -332,197 +335,69 @@ jobs:
             fi
           done
 
-  # -------------------------------------
-  # Job de Pruebas de Aceptación en Staging
-  # -------------------------------------
   test-staging:
-    needs: [update-service-staging, test-db-staging, deploy-cfn-staging] # Ahora depende también de la verificación de BD
+    needs: [test-db-staging, deploy-cfn-staging]
     runs-on: ubuntu-latest
-    if: github.event_name == 'push' && github.ref == 'refs/heads/staging'
+    if: github.event_name == 'pull_request' && github.ref == 'refs/heads/main'
+    env:
+      APP_BASE_URL: ${{ needs.deploy-cfn-staging.outputs.alb_url_staging }}
     steps:
-      # 4. Ejecutar pruebas de aceptación contra el entorno de Staging
-      - name: Run Acceptance Tests against Staging
+      - uses: actions/checkout@v4
+
+      - name: Setup Python & deps
+        uses: ./.github/actions/setup-backend
+        with:
+          python-version: "3.13"
+
+      - name: Set DATABASE_URL env var for integration tests
+        run: |
+          echo "DATABASE_URL=postgresql://${{ secrets.DB_USERNAME }}:${{ secrets.DB_PASSWORD }}@${{ needs.deploy-cfn-staging.outputs.database_endpoint_staging }}:5432/miamente_staging" >> $GITHUB_ENV
+
+      - name: Run Integration Tests
+        run: |
+          pytest tests/integration \
+            -m integration \
+            --cov=app \
+            --cov-report=xml:integration_coverage.xml \
+            --html=integration_report.html \
+            --self-contained-html
+
+      - name: Upload Test Reports Artifacts
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: integration-test-reports
+          path: |
+            backend/integration_report.html
+            backend/integration_coverage.xml
+
+  sonar:
+    name: SonarCloud (aggregate coverage)
+    runs-on: ubuntu-latest
+    needs: [unit-tests, test-staging]
+    if: github.event_name == 'pull_request' && (github.ref == 'refs/heads/staging' || github.ref == 'refs/heads/develop' || github.ref == 'refs/heads/main')
+    
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download unit artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: unit-test-reports
+          path: artifacts-downloaded
+
+      - name: Download integration artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: integration-test-reports
+          path: artifacts-downloaded
+
+      - name: SonarCloud Scan (Backend)
+        uses: SonarSource/sonarqube-scan-action@v5.0.0
+        with:
+          projectBaseDir: backend
         env:
-          APP_BASE_URL: ${{ needs.deploy-cfn-staging.outputs.alb_url_staging }} # URL del ALB de Staging desde salidas
-          DB_ENDPOINT: ${{ needs.deploy-cfn-staging.outputs.database_endpoint_staging }} # Endpoint de BD para pruebas si es necesario
-        run: |
-          echo "Running acceptance tests against: $APP_BASE_URL"
-          echo "Database endpoint available: $DB_ENDPOINT"
-          sleep 30 # Espera prudencial para el registro del target en el ALB
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
-  # -------------------------------------
-  # Job de Despliegue CloudFormation Producción
-  # -------------------------------------
-  deploy-cfn-prod:
-    needs: [docker-build-push, test-staging] 
-    runs-on: ubuntu-latest
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    outputs: # Definir salida para la URL del ALB de producción
-      alb_url_prod: ${{ steps.get_stack_outputs.outputs.alb_url }}
-      cluster_name_prod: "miamente-backend-production-cluster"
-      service_name_prod: "miamente-backend-production-service"
-      database_endpoint_prod: ${{ steps.get_stack_outputs.outputs.database_endpoint }}
-
-    steps:
-      # 1. Checkout del código
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      # 2. Configurar credenciales de AWS (CON SESSION TOKEN)
-      - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }} # <--- USO DEL SESSION TOKEN
-          aws-region: us-east-1
-
-      # 3. Desplegar/Actualizar el stack CloudFormation de Producción
-      - name: Deploy CloudFormation Production Stack
-        run: |
-          # Reconstruir la URI de la imagen usando el secreto y las salidas separadas
-          IMAGE_URI="${{ secrets.DOCKERHUB_USERNAME }}/${{ needs.build-test-publish.outputs.repo_name }}:${{ needs.build-test-publish.outputs.image_tag }}"
-          echo "Deploying Image URI: $IMAGE_URI" # Log para verificar
-
-          aws cloudformation deploy \
-            --template-file template.yaml \
-            --stack-name miamente-prod-stack \
-            --parameter-overrides \
-              EnvironmentName=production \
-              DockerImageUri=$IMAGE_URI \
-              LabRoleArn=${{ secrets.LAB_ROLE_ARN }} \
-              VpcId=${{ secrets.VPC_ID }} \
-              SubnetIds="${{ secrets.SUBNET_IDS }}" \
-              DBSubnetIds="${{ secrets.DB_SUBNET_IDS }}" \
-              DBUsername=${{ secrets.DB_USERNAME }} \
-              DBPassword=${{ secrets.DB_PASSWORD }} \
-            --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM \
-            --no-fail-on-empty-changes
-
-      # 4. Obtener las salidas del Stack CloudFormation Producción
-      - name: Get Production Stack Outputs
-        id: get_stack_outputs
-        run: |
-          # Instalar jq si no está presente
-          if ! command -v jq &> /dev/null; then
-             sudo apt-get update && sudo apt-get install -y jq
-          fi
-
-          STACK_OUTPUTS=$(aws cloudformation describe-stacks --stack-name miamente-prod-stack --query "Stacks[0].Outputs" --region us-east-1 --output json)
-          echo "Raw Stack Outputs: $STACK_OUTPUTS" # Log
-
-          # Extraer la URL del ALB (ALBDnsName)
-          ALB_URL=$(echo $STACK_OUTPUTS | jq -r '.[] | select(.OutputKey=="ALBDnsName") | .OutputValue')
-          DATABASE_ENDPOINT=$(echo $STACK_OUTPUTS | jq -r '.[] | select(.OutputKey=="DatabaseEndpoint") | .OutputValue')
-
-          if [ -z "$ALB_URL" ] || [ "$ALB_URL" == "null" ]; then
-            echo "Error: No se pudo obtener ALBDnsName del stack de Producción."
-            exit 1
-          fi
-
-          if [ -z "$DATABASE_ENDPOINT" ] || [ "$DATABASE_ENDPOINT" == "null" ]; then
-            echo "Error: No se pudo obtener DatabaseEndpoint del stack de Producción."
-            exit 1
-          fi
-
-          # Añadir http:// al inicio
-          ALB_URL_HTTP="http://${ALB_URL}/"
-          echo "ALB URL Production: $ALB_URL_HTTP"
-          echo "Database Endpoint Production: $DATABASE_ENDPOINT"
-          echo "alb_url=${ALB_URL_HTTP}" >> $GITHUB_OUTPUT
-          echo "database_endpoint=${DATABASE_ENDPOINT}" >> $GITHUB_OUTPUT
-
-  # -------------------------------------
-  # Job de Actualización Servicio Producción (ECS - Forzar despliegue)
-  # -------------------------------------
-  update-service-prod:
-    needs: [docker-build-push, deploy-cfn-prod] # Depende de que CFN haya actualizado la Task Def de Prod
-    runs-on: ubuntu-latest
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-
-    steps:
-      # 1. Configurar credenciales de AWS (CON SESSION TOKEN)
-      - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }} # <--- USO DEL SESSION TOKEN
-          aws-region: us-east-1
-
-      # 2. Forzar un nuevo despliegue en el servicio ECS de Producción
-      - name: Force New Deployment ECS Service Production
-        run: |
-          echo "Forcing new deployment for Production service..."
-          aws ecs update-service --cluster ${{ needs.deploy-cfn-prod.outputs.cluster_name_prod }} \
-                                --service ${{ needs.deploy-cfn-prod.outputs.service_name_prod }} \
-                                --force-new-deployment \
-                                --region us-east-1
-          # Esperar a que el despliegue se estabilice
-          echo "Waiting for Production service deployment to stabilize..."
-          aws ecs wait services-stable --cluster ${{ needs.deploy-cfn-prod.outputs.cluster_name_prod }} --services ${{ needs.deploy-cfn-prod.outputs.service_name_prod }} --region us-east-1
-          echo "Production service deployment stable."
-
-  # -------------------------------------
-  # Job de Verificación de Conectividad Base de Datos Producción
-  # -------------------------------------
-  test-db-prod:
-    needs: [update-service-prod, deploy-cfn-prod]
-    runs-on: ubuntu-latest
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-
-    steps:
-      # 1. Configurar credenciales de AWS
-      - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
-          aws-region: us-east-1
-
-      # 2. Verificar conectividad de la base de datos desde la aplicación
-      - name: Test Database Connection Production
-        run: |
-          echo "Testing database connection for production environment..."
-          echo "Database endpoint: ${{ needs.deploy-cfn-prod.outputs.database_endpoint_prod }}"
-          
-          # Esperar un poco más para que la aplicación se conecte a la BD
-          sleep 60
-          
-          # Verificar que la aplicación está respondiendo (incluye health check que debería verificar la BD)
-          HEALTH_CHECK_URL="${{ needs.deploy-cfn-prod.outputs.alb_url_prod }}health"
-          echo "Checking health endpoint: $HEALTH_CHECK_URL"
-          
-          # Intentar conectar al health check varias veces
-          for i in {1..5}; do
-            if curl -f -s "$HEALTH_CHECK_URL"; then
-              echo "Health check passed on attempt $i"
-              break
-            else
-              echo "Health check failed on attempt $i, retrying..."
-              sleep 30
-            fi
-            
-            if [ $i -eq 5 ]; then
-              echo "Health check failed after 5 attempts"
-              exit 1
-            fi
-          done
-
-  # -------------------------------------
-  # Job de Notificación Final
-  # -------------------------------------
-  notify-success:
-    needs: [test-db-prod]
-    runs-on: ubuntu-latest
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-
-    steps:
-      - name: Deployment Success Notification
-        run: |
-          echo "✅ Deployment completed successfully!"
-          echo "🚀 Staging URL: ${{ needs.deploy-cfn-staging.outputs.alb_url_staging }}"
-          echo "🗄️ Staging DB: ${{ needs.deploy-cfn-staging.outputs.database_endpoint_staging }}"
-          echo "🌟 Production URL: ${{ needs.deploy-cfn-prod.outputs.alb_url_prod }}"
-          echo "🗄️ Production DB: ${{ needs.deploy-cfn-prod.outputs.database_endpoint_prod }}"
+  

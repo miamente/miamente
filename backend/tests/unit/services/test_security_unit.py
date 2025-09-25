@@ -2,9 +2,8 @@
 Unit tests for security module.
 """
 
-import pytest
-from datetime import datetime, timedelta, timezone
-from unittest.mock import patch, MagicMock
+from datetime import timedelta
+from unittest.mock import patch
 import jwt
 
 from app.core.security import (
