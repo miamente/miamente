@@ -427,26 +427,26 @@ jobs:
           set -euo pipefail
 
           IMAGE_URI="${{ secrets.DOCKERHUB_USERNAME }}/${{ secrets.DOCKERHUB_BACKEND_REPOSITORY }}:${{ github.sha }}"
-          LAB_ROLE_ARN="${{ secrets.PROD_LAB_ROLE_ARN }}"
-          VPC_ID="${{ secrets.PROD_VPC_ID }}"
-          SUBNET_IDS="${{ secrets.PROD_SUBNET_IDS }}"
-          DB_SUBNET_IDS="${{ secrets.PROD_DB_SUBNET_IDS }}"
-          DB_USERNAME="${{ secrets.PROD_DB_USERNAME }}"
-          DB_PASSWORD="${{ secrets.PROD_DB_PASSWORD }}"
+          LAB_ROLE_ARN="${{ secrets.LAB_ROLE_ARN }}"
+          VPC_ID="${{ secrets.VPC_ID }}"
+          SUBNET_IDS="${{ secrets.SUBNET_IDS }}"
+          DB_SUBNET_IDS="${{ secrets.DB_SUBNET_IDS }}"
+          DB_USERNAME="${{ secrets.DB_USERNAME }}"
+          DB_PASSWORD="${{ secrets.DB_PASSWORD }}"
 
-          PROJECTNAME="${{ secrets.PROD_PROJECT_NAME }}"
-          VERSION="${{ secrets.PROD_VERSION }}"
-          APIV1STR="${{ secrets.PROD_API_V1_STR }}"
-          DEBUG="${{ secrets.PROD_DEBUG }}"
-          ALGORITHM="${{ secrets.PROD_ALGORITHM }}"
-          ACCESSTOKENEXPIREMINUTES="${{ secrets.PROD_ACCESS_TOKEN_EXPIRE_MINUTES }}"
-          REFRESHTOKENEXPIREMINUTES="${{ secrets.PROD_REFRESH_TOKEN_EXPIRE_MINUTES }}"
-          SERVERNAME="${{ secrets.PROD_SERVER_NAME }}"
-          SERVERHOST="${{ secrets.PROD_SERVER_HOST }}"
-          ALLOWEDHOSTS="${{ secrets.PROD_ALLOWED_HOSTS }}"
-          BACKENDCORSORIGINS="${{ secrets.PROD_BACKEND_CORS_ORIGINS }}"
-          TIMEZONE="${{ secrets.PROD_TIMEZONE }}"
-          SECRETKEY="${{ secrets.PROD_SECRET_KEY }}"
+          PROJECTNAME="${{ secrets.PROJECT_NAME }}"
+          VERSION="${{ secrets.VERSION }}"
+          APIV1STR="${{ secrets.API_V1_STR }}"
+          DEBUG="${{ secrets.DEBUG }}"
+          ALGORITHM="${{ secrets.ALGORITHM }}"
+          ACCESSTOKENEXPIREMINUTES="${{ secrets.ACCESS_TOKEN_EXPIRE_MINUTES }}"
+          REFRESHTOKENEXPIREMINUTES="${{ secrets.REFRESH_TOKEN_EXPIRE_MINUTES }}"
+          SERVERNAME="${{ secrets.SERVER_NAME }}"
+          SERVERHOST="${{ secrets.SERVER_HOST }}"
+          ALLOWEDHOSTS="${{ secrets.ALLOWED_HOSTS }}"
+          BACKENDCORSORIGINS="${{ secrets.BACKEND_CORS_ORIGINS }}"
+          TIMEZONE="${{ secrets.TIMEZONE }}"
+          SECRETKEY="${{ secrets.SECRET_KEY }}"
 
           missing=()
           check_empty () { var_name="$1"; val="${!var_name:-}"; if [ -z "$val" ]; then missing+=("$var_name"); fi; }
@@ -630,7 +630,7 @@ jobs:
 
       - name: Set DATABASE_URL env var for integration tests (production)
         run: |
-          echo "DATABASE_URL=postgresql://${{ secrets.PROD_DB_USERNAME }}:${{ secrets.PROD_DB_PASSWORD }}@${{ needs.deploy-cfn-production.outputs.database_endpoint_production }}:5432/miamente_production" >> $GITHUB_ENV
+          echo "DATABASE_URL=postgresql://${{ secrets.DB_USERNAME }}:${{ secrets.DB_PASSWORD }}@${{ needs.deploy-cfn-production.outputs.database_endpoint_production }}:5432/miamente_production" >> $GITHUB_ENV
 
       - name: Run Integration Tests (production)
         run: |
