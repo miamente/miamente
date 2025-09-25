@@ -94,7 +94,7 @@ jobs:
   deploy-cfn-staging:
     needs: docker-build-push
     runs-on: ubuntu-latest
-    if: github.event_name == 'pull_request' && github.ref == 'refs/heads/staging'
+    if: github.event_name == 'pull_request' && github.ref == 'refs/heads/main'
     outputs:
       alb_url_staging: ${{ steps.get_stack_outputs.outputs.alb_url }}
       cluster_name_staging: "miamente-backend-staging-cluster"
@@ -269,7 +269,7 @@ jobs:
   update-service-staging:
     needs: [docker-build-push, deploy-cfn-staging]
     runs-on: ubuntu-latest
-    if: github.event_name == 'pull_request' && github.ref == 'refs/heads/staging'
+    if: github.event_name == 'pull_request' && github.ref == 'refs/heads/main'
     defaults:
       run:
         working-directory: .
@@ -297,7 +297,7 @@ jobs:
   test-db-staging:
     needs: [update-service-staging, deploy-cfn-staging]
     runs-on: ubuntu-latest
-    if: github.event_name == 'pull_request' && github.ref == 'refs/heads/staging'
+    if: github.event_name == 'pull_request' && github.ref == 'refs/heads/main'
     defaults:
       run:
         working-directory: .
@@ -338,7 +338,7 @@ jobs:
   test-staging:
     needs: [test-db-staging, deploy-cfn-staging]
     runs-on: ubuntu-latest
-    if: github.event_name == 'pull_request' && github.ref == 'refs/heads/staging'
+    if: github.event_name == 'pull_request' && github.ref == 'refs/heads/main'
     env:
       APP_BASE_URL: ${{ needs.deploy-cfn-staging.outputs.alb_url_staging }}
     steps:
