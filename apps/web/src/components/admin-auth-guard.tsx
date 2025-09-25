@@ -6,7 +6,7 @@ import { useRole } from "@/hooks/useRole";
 import { UserRole } from "@/lib/types";
 
 interface AdminAuthGuardProps {
-  children: React.ReactNode;
+  readonly children: React.ReactNode;
 }
 
 export function AdminAuthGuard({ children }: AdminAuthGuardProps) {
@@ -32,7 +32,6 @@ export function AdminAuthGuard({ children }: AdminAuthGuardProps) {
     // If user exists but doesn't have admin role, redirect to admin login
     if (!hasAnyRole([UserRole.ADMIN])) {
       router.push("/admin/login");
-      return;
     }
   }, [user, userProfile, authLoading, roleLoading, hasAnyRole, router]);
 

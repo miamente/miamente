@@ -148,10 +148,16 @@ class ApiClient {
     if (isFormData) {
       headers.delete("Content-Type");
     }
+
+    let body: string | FormData | undefined;
+    if (data) {
+      body = isFormData ? (data as FormData) : JSON.stringify(data);
+    }
+
     const response = await fetch(`${this.baseURL}${API_VERSION}${endpoint}`, {
       method: "POST",
       headers,
-      body: data ? (isFormData ? (data as FormData) : JSON.stringify(data)) : undefined,
+      body,
       ...options,
     });
 
@@ -164,10 +170,16 @@ class ApiClient {
     if (isFormData) {
       headers.delete("Content-Type");
     }
+
+    let body: string | FormData | undefined;
+    if (data) {
+      body = isFormData ? (data as FormData) : JSON.stringify(data);
+    }
+
     const response = await fetch(`${this.baseURL}${API_VERSION}${endpoint}`, {
       method: "PUT",
       headers,
-      body: data ? (isFormData ? (data as FormData) : JSON.stringify(data)) : undefined,
+      body,
       ...options,
     });
 
@@ -180,10 +192,16 @@ class ApiClient {
     if (isFormData) {
       headers.delete("Content-Type");
     }
+
+    let body: string | FormData | undefined;
+    if (data) {
+      body = isFormData ? (data as FormData) : JSON.stringify(data);
+    }
+
     const response = await fetch(`${this.baseURL}${API_VERSION}${endpoint}`, {
       method: "PATCH",
       headers,
-      body: data ? (isFormData ? (data as FormData) : JSON.stringify(data)) : undefined,
+      body,
       ...options,
     });
 

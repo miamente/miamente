@@ -114,30 +114,24 @@ export default function AdminUsers() {
   };
 
   const getRoleIcon = (role: string) => {
-    switch (role) {
-      case "admin":
-        return <Shield className="h-4 w-4" />;
-      default:
-        return <UserCog className="h-4 w-4" />;
+    if (role === "admin") {
+      return <Shield className="h-4 w-4" />;
     }
+    return <UserCog className="h-4 w-4" />;
   };
 
   const getRoleBadgeVariant = (role: string) => {
-    switch (role) {
-      case "admin":
-        return "destructive";
-      default:
-        return "outline";
+    if (role === "admin") {
+      return "destructive";
     }
+    return "outline";
   };
 
   const getRoleLabel = (role: string) => {
-    switch (role) {
-      case "admin":
-        return "Administrador";
-      default:
-        return role.charAt(0).toUpperCase() + role.slice(1);
+    if (role === "admin") {
+      return "Administrador";
     }
+    return role.charAt(0).toUpperCase() + role.slice(1);
   };
 
   if (loading) {
