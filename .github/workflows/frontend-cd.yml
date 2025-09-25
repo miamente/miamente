@@ -154,7 +154,7 @@ jobs:
           fi
 
       - name: Run Playwright E2E
-        working-directory: ..
+        working-directory: .
         env:
           NEXT_PUBLIC_API_URL: ${{ env.NEXT_PUBLIC_API_URL }}
         run: |
