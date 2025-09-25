@@ -5,16 +5,15 @@ Simple unit tests to demonstrate mocking works - no database connection.
 # import pytest
 from unittest.mock import MagicMock, patch
 
+from app.core.security import get_password_hash, verify_password
+
 
 class TestSimpleUnit:
     """Simple unit tests with mocked dependencies."""
 
     def test_password_hashing_mocked(self):
         """Test password hashing with mocked function."""
-        with patch("app.core.security.get_password_hash", return_value="mocked_hash") as mock_hash:
-            # Import here to ensure the patch is applied
-            from app.core.security import get_password_hash
-
+        with patch("tests.unit.services.test_simple_unit.get_password_hash", return_value="mocked_hash") as mock_hash:
             result = get_password_hash("test_password")
 
             assert result == "mocked_hash"
@@ -22,10 +21,7 @@ class TestSimpleUnit:
 
     def test_password_verification_mocked(self):
         """Test password verification with mocked function."""
-        with patch("app.core.security.verify_password", return_value=True) as mock_verify:
-            # Import here to ensure the patch is applied
-            from app.core.security import verify_password
-
+        with patch("tests.unit.services.test_simple_unit.verify_password", return_value=True) as mock_verify:
             result = verify_password("plain_password", "hashed_password")
 
             assert result is True

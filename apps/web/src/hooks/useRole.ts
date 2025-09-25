@@ -40,7 +40,7 @@ export function useRole() {
         // Determine role: if userData has a role field, use it; otherwise use user type
         let userRole: UserRole;
         if (userData.role) {
-          userRole = userData.role as UserRole;
+          userRole = userData.role;
         } else {
           userRole = userType === "professional" ? UserRole.PROFESSIONAL : UserRole.USER;
         }

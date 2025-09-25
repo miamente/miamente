@@ -151,7 +151,7 @@ class ApiClient {
 
     let body: string | FormData | undefined;
     if (data) {
-      body = isFormData ? (data as FormData) : JSON.stringify(data);
+      body = isFormData ? data : JSON.stringify(data);
     }
 
     const response = await fetch(`${this.baseURL}${API_VERSION}${endpoint}`, {
@@ -173,7 +173,7 @@ class ApiClient {
 
     let body: string | FormData | undefined;
     if (data) {
-      body = isFormData ? (data as FormData) : JSON.stringify(data);
+      body = isFormData ? data : JSON.stringify(data);
     }
 
     const response = await fetch(`${this.baseURL}${API_VERSION}${endpoint}`, {
@@ -195,7 +195,7 @@ class ApiClient {
 
     let body: string | FormData | undefined;
     if (data) {
-      body = isFormData ? (data as FormData) : JSON.stringify(data);
+      body = isFormData ? data : JSON.stringify(data);
     }
 
     const response = await fetch(`${this.baseURL}${API_VERSION}${endpoint}`, {

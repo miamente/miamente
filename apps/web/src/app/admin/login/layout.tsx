@@ -1,7 +1,7 @@
 import { ReactNode } from "react";
 
 interface AdminLoginLayoutProps {
-  children: ReactNode;
+  readonly children: ReactNode;
 }
 
 export default function AdminLoginLayout({ children }: AdminLoginLayoutProps) {

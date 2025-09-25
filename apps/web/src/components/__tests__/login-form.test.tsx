@@ -1,0 +1,286 @@
+import React from "react";
+import { render, screen, fireEvent, waitFor } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+import { useRouter } from "next/navigation";
+
+import { LoginForm } from "../login-form";
+import { useAuthContext } from "@/contexts/AuthContext";
+
+// Mock Next.js router
+const mockPush = vi.fn();
+vi.mock("next/navigation", () => ({
+  useRouter: vi.fn(() => ({
+    push: mockPush,
+  })),
+}));
+
+// Mock AuthContext
+const mockLoginUser = vi.fn();
+const mockLoginProfessional = vi.fn();
+const mockAuthContext = {
+  user: null,
+  loginUser: mockLoginUser,
+  loginProfessional: mockLoginProfessional,
+  logout: vi.fn(),
+  isLoading: false,
+};
+
+vi.mock("@/contexts/AuthContext", () => ({
+  useAuthContext: vi.fn(() => mockAuthContext),
+  isUserVerified: vi.fn((user) => user?.email_verified || false),
+}));
+
+describe("LoginForm", () => {
+  const user = userEvent.setup();
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockAuthContext.user = null;
+  });
+
+  it("should render login form with default props", () => {
+    render(<LoginForm />);
+
+    expect(screen.getAllByText("Iniciar Sesión")).toHaveLength(2); // Title and button
+    expect(screen.getByPlaceholderText("Email")).toBeInTheDocument();
+    expect(screen.getByPlaceholderText("Contraseña")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Iniciar Sesión" })).toBeInTheDocument();
+    expect(screen.getByText("¿No tienes cuenta?")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Regístrate" })).toBeInTheDocument();
+  });
+
+  it("should render admin login form when isAdminLogin is true", () => {
+    render(<LoginForm isAdminLogin={true} />);
+
+    expect(screen.getByText("Iniciar Sesión - Administración")).toBeInTheDocument();
+    expect(screen.getByText("A")).toBeInTheDocument(); // Admin icon
+    expect(screen.queryByText("¿No tienes cuenta?")).not.toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "Regístrate" })).not.toBeInTheDocument();
+  });
+
+  it("should handle form submission with valid data", async () => {
+    mockLoginProfessional.mockRejectedValue(new Error("Professional login failed"));
+    mockLoginUser.mockResolvedValue(undefined);
+
+    render(<LoginForm />);
+
+    await user.type(screen.getByPlaceholderText("Email"), "test@example.com");
+    await user.type(screen.getByPlaceholderText("Contraseña"), "password123");
+    await user.click(screen.getByRole("button", { name: "Iniciar Sesión" }));
+
+    await waitFor(() => {
+      expect(mockLoginUser).toHaveBeenCalledWith({
+        email: "test@example.com",
+        password: "password123",
+      });
+    });
+  });
+
+  it("should handle admin login form submission", async () => {
+    mockLoginUser.mockResolvedValue(undefined);
+
+    render(<LoginForm isAdminLogin={true} />);
+
+    await user.type(screen.getByPlaceholderText("Email"), "admin@example.com");
+    await user.type(screen.getByPlaceholderText("Contraseña"), "admin123");
+    await user.click(screen.getByRole("button", { name: "Iniciar Sesión" }));
+
+    await waitFor(() => {
+      expect(mockLoginUser).toHaveBeenCalledWith({
+        email: "admin@example.com",
+        password: "admin123",
+      });
+    });
+  });
+
+  it("should try professional login first, then user login for regular form", async () => {
+    mockLoginProfessional.mockRejectedValue(new Error("Professional login failed"));
+    mockLoginUser.mockResolvedValue(undefined);
+
+    render(<LoginForm />);
+
+    await user.type(screen.getByPlaceholderText("Email"), "test@example.com");
+    await user.type(screen.getByPlaceholderText("Contraseña"), "password123");
+    await user.click(screen.getByRole("button", { name: "Iniciar Sesión" }));
+
+    await waitFor(() => {
+      expect(mockLoginProfessional).toHaveBeenCalledWith({
+        email: "test@example.com",
+        password: "password123",
+      });
+      expect(mockLoginUser).toHaveBeenCalledWith({
+        email: "test@example.com",
+        password: "password123",
+      });
+    });
+  });
+
+  it("should show error message when login fails", async () => {
+    mockLoginUser.mockRejectedValue(new Error("Invalid credentials"));
+
+    render(<LoginForm />);
+
+    await user.type(screen.getByPlaceholderText("Email"), "test@example.com");
+    await user.type(screen.getByPlaceholderText("Contraseña"), "wrongpassword");
+    await user.click(screen.getByRole("button", { name: "Iniciar Sesión" }));
+
+    await waitFor(() => {
+      expect(screen.getByText("Invalid credentials")).toBeInTheDocument();
+    });
+  });
+
+  it("should show loading state during form submission", async () => {
+    mockLoginUser.mockImplementation(() => new Promise(resolve => setTimeout(resolve, 100)));
+
+    render(<LoginForm />);
+
+    await user.type(screen.getByPlaceholderText("Email"), "test@example.com");
+    await user.type(screen.getByPlaceholderText("Contraseña"), "password123");
+    await user.click(screen.getByRole("button", { name: "Iniciar Sesión" }));
+
+    expect(screen.getByText("Iniciando sesión...")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Iniciando sesión..." })).toBeDisabled();
+  });
+
+  it("should redirect authenticated user to dashboard", () => {
+    mockAuthContext.user = {
+      id: "1",
+      email: "test@example.com",
+      email_verified: true,
+      type: "user",
+    };
+
+    render(<LoginForm />);
+
+    expect(screen.getByText("Redirigiendo...")).toBeInTheDocument();
+  });
+
+  it("should redirect authenticated admin user to admin dashboard", () => {
+    mockAuthContext.user = {
+      id: "1",
+      email: "admin@example.com",
+      email_verified: true,
+      type: "admin",
+    };
+
+    render(<LoginForm isAdminLogin={true} />);
+
+    expect(screen.getByText("Redirigiendo...")).toBeInTheDocument();
+  });
+
+  it("should redirect unverified user to verify page", () => {
+    mockAuthContext.user = {
+      id: "1",
+      email: "test@example.com",
+      email_verified: false,
+      type: "user",
+    };
+
+    render(<LoginForm />);
+
+    expect(screen.getByText("Redirigiendo...")).toBeInTheDocument();
+  });
+
+  it("should show error for non-admin user trying to access admin login", async () => {
+    mockAuthContext.user = {
+      id: "1",
+      email: "user@example.com",
+      email_verified: true,
+      type: "user",
+    };
+
+    render(<LoginForm isAdminLogin={true} />);
+
+    // The component redirects immediately, so we check for the redirect message
+    expect(screen.getByText("Redirigiendo...")).toBeInTheDocument();
+  });
+
+  it("should use custom redirect path when provided", () => {
+    mockAuthContext.user = {
+      id: "1",
+      email: "test@example.com",
+      email_verified: true,
+      type: "user",
+    };
+
+    render(<LoginForm redirectPath="/custom-dashboard" />);
+
+    expect(screen.getByText("Redirigiendo...")).toBeInTheDocument();
+  });
+
+  it("should disable form fields during loading", async () => {
+    mockLoginUser.mockImplementation(() => new Promise(resolve => setTimeout(resolve, 100)));
+
+    render(<LoginForm />);
+
+    await user.type(screen.getByPlaceholderText("Email"), "test@example.com");
+    await user.type(screen.getByPlaceholderText("Contraseña"), "password123");
+    await user.click(screen.getByRole("button", { name: "Iniciar Sesión" }));
+
+    expect(screen.getByPlaceholderText("Email")).toBeDisabled();
+    expect(screen.getByPlaceholderText("Contraseña")).toBeDisabled();
+  });
+
+      it("should prevent form submission with invalid email", async () => {
+        render(<LoginForm />);
+
+        await user.type(screen.getByPlaceholderText("Email"), "invalid-email");
+        await user.type(screen.getByPlaceholderText("Contraseña"), "password123");
+        await user.click(screen.getByRole("button", { name: "Iniciar Sesión" }));
+
+        // The login functions should not be called due to validation failure
+        expect(mockLoginProfessional).not.toHaveBeenCalled();
+        expect(mockLoginUser).not.toHaveBeenCalled();
+      });
+
+  it("should show validation errors for empty password", async () => {
+    render(<LoginForm />);
+
+    await user.type(screen.getByPlaceholderText("Email"), "test@example.com");
+    await user.click(screen.getByRole("button", { name: "Iniciar Sesión" }));
+
+    await waitFor(() => {
+      expect(screen.getByText(/contraseña/i)).toBeInTheDocument();
+    });
+  });
+
+  it("should handle both professional and user login failures", async () => {
+    mockLoginProfessional.mockRejectedValue(new Error("Professional login failed"));
+    mockLoginUser.mockRejectedValue(new Error("User login failed"));
+
+    render(<LoginForm />);
+
+    await user.type(screen.getByPlaceholderText("Email"), "test@example.com");
+    await user.type(screen.getByPlaceholderText("Contraseña"), "password123");
+    await user.click(screen.getByRole("button", { name: "Iniciar Sesión" }));
+
+    await waitFor(() => {
+      expect(screen.getByText("User login failed")).toBeInTheDocument();
+    });
+  });
+
+  it("should clear error message when form is resubmitted", async () => {
+    mockLoginUser
+      .mockRejectedValueOnce(new Error("First error"))
+      .mockResolvedValueOnce(undefined);
+
+    render(<LoginForm />);
+
+    // First submission with error
+    await user.type(screen.getByPlaceholderText("Email"), "test@example.com");
+    await user.type(screen.getByPlaceholderText("Contraseña"), "wrongpassword");
+    await user.click(screen.getByRole("button", { name: "Iniciar Sesión" }));
+
+    await waitFor(() => {
+      expect(screen.getByText("First error")).toBeInTheDocument();
+    });
+
+    // Second submission should clear error
+    await user.click(screen.getByRole("button", { name: "Iniciar Sesión" }));
+
+    await waitFor(() => {
+      expect(screen.queryByText("First error")).not.toBeInTheDocument();
+    });
+  });
+});

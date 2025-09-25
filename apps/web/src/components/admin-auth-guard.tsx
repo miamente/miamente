@@ -39,7 +39,7 @@ export function AdminAuthGuard({ children }: AdminAuthGuardProps) {
   if (authLoading || roleLoading) {
     return (
       <div className="flex h-screen items-center justify-center">
-        <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-red-600"></div>
+        <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-red-600" role="status" aria-label="Loading"></div>
       </div>
     );
   }
@@ -48,7 +48,7 @@ export function AdminAuthGuard({ children }: AdminAuthGuardProps) {
   if (!user) {
     return (
       <div className="flex h-screen items-center justify-center">
-        <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-red-600"></div>
+        <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-red-600" role="status" aria-label="Loading"></div>
       </div>
     );
   }
@@ -57,7 +57,7 @@ export function AdminAuthGuard({ children }: AdminAuthGuardProps) {
   if (!userProfile) {
     return (
       <div className="flex h-screen items-center justify-center">
-        <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-red-600"></div>
+        <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-red-600" role="status" aria-label="Loading"></div>
       </div>
     );
   }
@@ -66,7 +66,7 @@ export function AdminAuthGuard({ children }: AdminAuthGuardProps) {
   if (!hasAnyRole([UserRole.ADMIN])) {
     return (
       <div className="flex h-screen items-center justify-center">
-        <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-red-600"></div>
+        <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-red-600" role="status" aria-label="Loading"></div>
       </div>
     );
   }
