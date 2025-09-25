@@ -56,12 +56,14 @@ export class DataSeeder {
     entity: T,
     entityName: string,
     entityDisplayName: string,
-  ): Promise<void> {
+  ): Promise<boolean> {
     try {
       await this.request.post(endpoint, { data: entity });
       console.log(`✅ Created ${entityName}: ${entityDisplayName}`);
+      return true;
     } catch {
       console.log(`⚠️ ${entityName} ${entityDisplayName} might already exist`);
+      return false;
     }
   }
 
@@ -237,7 +239,39 @@ export class DataSeeder {
       role: "admin",
     };
 
-    await this.createEntity("/api/v1/auth/register/user", adminUser, "admin user", adminUser.email);
+    const adminResponse = await this.createEntity(
+      "/api/v1/auth/register/user",
+      adminUser,
+      "admin user",
+      adminUser.email,
+    );
+
+    // If admin user was created, verify them
+    if (adminResponse) {
+      try {
+        // First login to get token
+        const loginResponse = await this.request.post("/api/v1/auth/login", {
+          data: {
+            email: adminUser.email,
+            password: adminUser.password,
+          },
+        });
+
+        const loginData = await loginResponse.json();
+        const token = loginData.access_token;
+
+        // Use the simulate verification endpoint
+        await this.request.post("/api/v1/auth/simulate-verification", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        console.log(`✅ Verified admin user: ${adminUser.email}`);
+      } catch (error) {
+        console.log(`⚠️ Failed to verify admin user: ${error}`);
+      }
+    }
   }
 
   /**
