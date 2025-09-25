@@ -249,3 +249,99 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
+  deploy-cfn-staging:
+    needs: [docker-build-push]
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/develop'
+    outputs:
+      alb_url_staging: ${{ steps.get_stack_outputs.outputs.FrontendALBUrl }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
+          aws-region: us-east-1
+
+      - name: Deploy CloudFormation Staging Stack
+        run: |
+          IMAGE_URI="${{ secrets.DOCKERHUB_USERNAME }}/${{ secrets.DOCKERHUB_FRONTEND_REPOSITORY }}:${{ github.sha }}"
+          echo "Deploying Image URI: $IMAGE_URI"
+
+          aws cloudformation deploy \
+            --template-file apps/web/template.yaml \
+            --stack-name miamente-frontend-staging \
+            --parameter-overrides \
+              EnvironmentName=staging \
+              DockerImageUri=$IMAGE_URI \
+              LabRoleArn=${{ secrets.LAB_ROLE_ARN }} \
+              VpcId=${{ secrets.VPC_ID }} \
+              SubnetIds=${{ secrets.SUBNET_IDS }} \
+              BackendApiUrl=${{ secrets.BACKEND_API_URL_STAGING }} \
+              PROJECT_NAME=${{ secrets.PROJECT_NAME }} \
+              VERSION=${{ secrets.VERSION }} \
+            --capabilities CAPABILITY_NAMED_IAM \
+            --no-fail-on-empty-changeset
+
+      - name: Get Stack Outputs
+        id: get_stack_outputs
+        run: |
+          OUTPUTS=$(aws cloudformation describe-stacks \
+            --stack-name miamente-frontend-staging \
+            --query 'Stacks[0].Outputs')
+
+          echo "FrontendALBUrl=$(echo $OUTPUTS | jq -r '.[] | select(.OutputKey=="FrontendALBUrl") | .OutputValue')" >> $GITHUB_OUTPUT
+
+  deploy-cfn-prod:
+    needs: [docker-build-push]
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    outputs:
+      alb_url_prod: ${{ steps.get_stack_outputs.outputs.FrontendALBUrl }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
+          aws-region: us-east-1
+
+      - name: Deploy CloudFormation Production Stack
+        run: |
+          IMAGE_URI="${{ secrets.DOCKERHUB_USERNAME }}/${{ secrets.DOCKERHUB_FRONTEND_REPOSITORY }}:${{ github.sha }}"
+          echo "Deploying Image URI: $IMAGE_URI"
+
+          aws cloudformation deploy \
+            --template-file apps/web/template.yaml \
+            --stack-name miamente-frontend-production \
+            --parameter-overrides \
+              EnvironmentName=production \
+              DockerImageUri=$IMAGE_URI \
+              LabRoleArn=${{ secrets.LAB_ROLE_ARN }} \
+              VpcId=${{ secrets.VPC_ID }} \
+              SubnetIds=${{ secrets.SUBNET_IDS }} \
+              BackendApiUrl=${{ secrets.BACKEND_API_URL_PROD }} \
+              PROJECT_NAME=${{ secrets.PROJECT_NAME }} \
+              VERSION=${{ secrets.VERSION }} \
+            --capabilities CAPABILITY_NAMED_IAM \
+            --no-fail-on-empty-changeset
+
+      - name: Get Stack Outputs
+        id: get_stack_outputs
+        run: |
+          OUTPUTS=$(aws cloudformation describe-stacks \
+            --stack-name miamente-frontend-production \
+            --query 'Stacks[0].Outputs')
+
+          echo "FrontendALBUrl=$(echo $OUTPUTS | jq -r '.[] | select(.OutputKey=="FrontendALBUrl") | .OutputValue')" >> $GITHUB_OUTPUT
