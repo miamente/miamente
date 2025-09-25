@@ -150,7 +150,7 @@ jobs:
           path: apps/web/artifacts-downloaded
 
       - name: SonarCloud Scan (Frontend)
-        uses: SonarSource/sonarqube-scan-action@v5.0.0
+        uses: SonarSource/sonarqube-scan-action@v5.3.1
         with:
           projectBaseDir: apps/web
         env:

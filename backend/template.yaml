@@ -168,7 +168,7 @@ Resources:
     Type: AWS::RDS::DBInstance
     Properties:
       DBInstanceIdentifier: !Sub "miamente-postgres-${EnvironmentName}"
-      DBName: miamente
+      DBName: !Sub "miamente_${EnvironmentName}"
       Engine: postgres
       EngineVersion: "15.14" # Versión estable de PostgreSQL
       DBInstanceClass: db.t3.micro # Instancia pequeña para desarrollo/staging
@@ -271,7 +271,7 @@ Resources:
             - Name: ENVIRONMENT
               Value: !Ref EnvironmentName
             - Name: DATABASE_URL
-              Value: !Sub "postgresql://${DBUsername}:${DBPassword}@${PostgreSQLDatabase.Endpoint.Address}:5432/miamente"
+              Value: !Sub "postgresql://${DBUsername}:${DBPassword}@${PostgreSQLDatabase.Endpoint.Address}:5432/miamente_${EnvironmentName}"
             - Name: PROJECT_NAME
               Value: !Ref PROJECTNAME
             - Name: VERSION
