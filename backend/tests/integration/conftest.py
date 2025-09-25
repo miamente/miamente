@@ -1,13 +1,5 @@
 """
-Pytest configuration and fixtures for integration / acceptance tests.
-
-Dual-mode:
-- REMOTE (AWS): if APP_BASE_URL is set, hit the deployed app via HTTP and DO NOT
-  spin up a local FastAPI app nor connect directly to DB.
-- LOCAL: if APP_BASE_URL is not set, behave as before (TestClient + DATABASE_URL).
-
-Only test data is cleaned in LOCAL mode. Remote cleanup should be done via
-dedicated admin endpoints or separate jobs if needed.
+Pytest configuration for integration tests.
 """
 
 import os
@@ -23,6 +15,7 @@ from app.core.config import get_settings
 from app.core.database import Base, get_db
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+import requests
 
 pytestmark = pytest.mark.integration
 
@@ -30,7 +23,6 @@ pytestmark = pytest.mark.integration
 # Mode detection
 # -------------------------------------------------------------------
 APP_BASE_URL = os.getenv("APP_BASE_URL", "").rstrip("/")
-IS_REMOTE = bool(APP_BASE_URL)
 
 # Test data identification
 TEST_DATA_PREFIX = "TEST_INTEGRATION_"
@@ -85,11 +77,8 @@ def _build_app() -> FastAPI:
 # -------------------------------------------------------------------
 def _build_engine_and_session_factory():
     """
-    LOCAL mode: use DATABASE_URL.
-    REMOTE mode: disabled (we don't connect directly to RDS from tests).
+    Build SQLAlchemy engine and session factory for LOCAL mode.
     """
-    if IS_REMOTE:
-        raise RuntimeError("Engine/session cannot be built in REMOTE mode (APP_BASE_URL set).")
     settings = get_settings()
     database_url = settings.DATABASE_URL
     engine = create_engine(database_url, poolclass=StaticPool)
@@ -97,6 +86,7 @@ def _build_engine_and_session_factory():
     return engine, session_factory
 
 
+# ...existing code...
 def _cleanup_test_data(session_factory):
     """Clean only test data with precise identification to avoid deleting production data (LOCAL mode)."""
     session = session_factory()
@@ -122,29 +112,20 @@ def _cleanup_test_data(session_factory):
         test_professional_ids = session.execute(
             text(f"SELECT id FROM professionals WHERE {where_clause}")
         ).fetchall()
-
-        # Users
-        result = session.execute(text(f"DELETE FROM users WHERE {where_clause}"))
-        deleted_users = result.rowcount
-
-        # Professionals
-        result = session.execute(text(f"DELETE FROM professionals WHERE {where_clause}"))
-        deleted_professionals = result.rowcount
-
-        # Relations for those professionals
-        if test_professional_ids:
-            professional_id_list = [str(row[0]) for row in test_professional_ids]
+        professional_id_list = [str(row[0]) for row in test_professional_ids]
+        if professional_id_list:
             professional_ids_str = "', '".join(professional_id_list)
 
+            # Borra primero las relaciones hijas
             session.execute(
                 text(
-                    f"DELETE FROM professional_specialties "
+                    f"DELETE FROM professional_modalities "
                     f"WHERE professional_id IN ('{professional_ids_str}')"
                 )
             )
             session.execute(
                 text(
-                    f"DELETE FROM professional_modalities "
+                    f"DELETE FROM professional_specialties "
                     f"WHERE professional_id IN ('{professional_ids_str}')"
                 )
             )
@@ -155,7 +136,16 @@ def _cleanup_test_data(session_factory):
                 )
             )
 
-        # Reference tables (only test-ish data)
+        # Borra otras tablas hijas que tengan FK a users o professionals si existen
+
+        # Borra usuarios y profesionales después
+        result = session.execute(text(f"DELETE FROM users WHERE {where_clause}"))
+        deleted_users = result.rowcount
+
+        result = session.execute(text(f"DELETE FROM professionals WHERE {where_clause}"))
+        deleted_professionals = result.rowcount
+
+        # Borra datos de referencia
         session.execute(
             text(
                 "DELETE FROM specialties "
@@ -182,6 +172,7 @@ def _cleanup_test_data(session_factory):
         print(f"⚠️ Warning: Could not clean test data (LOCAL): {e}")
     finally:
         session.close()
+# ...existing code...
 
 
 # -------------------------------------------------------------------
@@ -190,12 +181,8 @@ def _cleanup_test_data(session_factory):
 @pytest.fixture(scope="session")
 def engine_and_session_factory():
     """
-    LOCAL mode: return engine and session factory.
-    REMOTE mode: skip (not used).
+    Construct engine and session factory once per test session (LOCAL mode only).
     """
-    if IS_REMOTE:
-        yield None, None
-        return
     engine, session_factory = _build_engine_and_session_factory()
     Base.metadata.create_all(bind=engine)
     yield engine, session_factory
@@ -204,12 +191,8 @@ def engine_and_session_factory():
 @pytest.fixture(scope="session", autouse=False)
 def setup_test_db(engine_and_session_factory):
     """
-    LOCAL mode: clean test data before/after session.
-    REMOTE mode: no-op (cleanup must be done by endpoints or separate jobs).
+    One-time setup/teardown of test DB schema.
     """
-    if IS_REMOTE:
-        yield
-        return
     _, session_factory = engine_and_session_factory
     _cleanup_test_data(session_factory)
     yield
@@ -219,11 +202,8 @@ def setup_test_db(engine_and_session_factory):
 @pytest.fixture(scope="function")
 def db_session(engine_and_session_factory, setup_test_db):
     """
-    LOCAL mode: provide SQLAlchemy session that cleans test data.
-    REMOTE mode: not applicable (raise helpful error if accidentally used).
+    Provide a new database session for a test.
     """
-    if IS_REMOTE:
-        raise RuntimeError("db_session fixture is not available in REMOTE mode.")
     _, session_factory = engine_and_session_factory
     _cleanup_test_data(session_factory)
     session = session_factory()
@@ -237,59 +217,53 @@ def db_session(engine_and_session_factory, setup_test_db):
 @pytest.fixture
 def client(engine_and_session_factory):
     """
-    Dual-mode client:
-    - REMOTE: simple wrapper over requests.Session hitting APP_BASE_URL.
-    - LOCAL: FastAPI TestClient with overridden DB dependency.
+    Provide a TestClient for LOCAL mode or a simple HTTP client for REMOTE mode.
     """
-    if IS_REMOTE:
-        import requests
-
-        session = requests.Session()
-        base = APP_BASE_URL  # already stripped of trailing slash
-
+    APP_BASE_URL = os.getenv("APP_BASE_URL", "").rstrip("/")
+    if APP_BASE_URL:
         class RemoteClient:
-            def _url(self, path: str) -> str:
-                path = path or ""
-                return base + (path if path.startswith("/") else f"/{path}")
+            def __init__(self, base_url):
+                self.base_url = base_url
+                self.session = requests.Session()
 
-            def get(self, path: str, **kw):
-                return session.get(self._url(path), **kw)
+            def request(self, method, url, **kwargs):
+                full_url = self.base_url + url
+                return self.session.request(method, full_url, **kwargs)
 
-            def post(self, path: str, **kw):
-                return session.post(self._url(path), **kw)
+            def get(self, url, **kwargs):
+                return self.request("GET", url, **kwargs)
 
-            def put(self, path: str, **kw):
-                return session.put(self._url(path), **kw)
+            def post(self, url, **kwargs):
+                return self.request("POST", url, **kwargs)
 
-            def delete(self, path: str, **kw):
-                return session.delete(self._url(path), **kw)
+            def put(self, url, **kwargs):
+                return self.request("PUT", url, **kwargs)
 
-        return RemoteClient()
+            def delete(self, url, **kwargs):
+                return self.request("DELETE", url, **kwargs)
 
-    # --- LOCAL ---
-    from fastapi.testclient import TestClient  # local-only import
-    _, session_factory = engine_and_session_factory
-    app = _build_app()
+        return RemoteClient(APP_BASE_URL)
+    else:
+        from fastapi.testclient import TestClient
+        _, session_factory = engine_and_session_factory
+        app = _build_app()
 
-    def override_get_db():
-        try:
-            db = session_factory()
-            yield db
-        finally:
-            db.close()
+        def override_get_db():
+            try:
+                db = session_factory()
+                yield db
+            finally:
+                db.close()
 
-    app.dependency_overrides[get_db] = override_get_db
-    return TestClient(app)
+        app.dependency_overrides[get_db] = override_get_db
+        return TestClient(app)
 
 
-@pytest.fixture(scope="function", autouse=not IS_REMOTE)
+@pytest.fixture(scope="function", autouse=True)
 def reset_db_before_each_test(engine_and_session_factory):
     """
-    LOCAL mode: auto cleanup before each test.
-    REMOTE mode: disabled (no direct DB access).
+    Ensure test data is cleaned before each test (LOCAL mode only).
     """
-    if IS_REMOTE:
-        return
     _, session_factory = engine_and_session_factory
     _cleanup_test_data(session_factory)
 
