@@ -353,7 +353,7 @@ jobs:
 
       - name: Set DATABASE_URL env var for integration tests
         run: |
-          echo "DATABASE_URL=postgresql://${{ secrets.DB_USERNAME }}:${{ secrets.DB_PASSWORD }}@${{ needs.deploy-cfn-staging.outputs.database_endpoint_staging }}:5432/miamente-postgres-staging" >> $GITHUB_ENV
+          echo "DATABASE_URL=postgresql://${{ secrets.DB_USERNAME }}:${{ secrets.DB_PASSWORD }}@${{ needs.deploy-cfn-staging.outputs.database_endpoint_staging }}:5432/miamente" >> $GITHUB_ENV
 
       - name: Run Integration Tests
         run: |
