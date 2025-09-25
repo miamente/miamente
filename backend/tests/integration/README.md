@@ -73,8 +73,7 @@ pytest -m integration
 ### Specific Test Files
 
 ```bash
-pytest tests/integration/auth/test_auth_endpoints.py
-pytest tests/integration/user/test_user_endpoints.py
+pytest tests/integration/models/test_models.py
 ```
 
 ### With Verbose Output
@@ -85,20 +84,11 @@ pytest -m integration -v
 
 ## 📊 Test Categories
 
-### Authentication Tests (12 tests)
+### Model Tests (3 tests)
 
-- User registration and validation
-- Professional registration and validation
-- Login functionality for both user types
-- Token validation and user retrieval
-- Error handling for invalid credentials
-
-### User Management Tests (7 tests)
-
-- User listing and retrieval
-- User updates and modifications
-- User deletion
-- Authorization checks
+- User model creation and validation
+- Database constraint testing (unique email)
+- Default value testing
 
 ## 🔧 Configuration
 
@@ -166,14 +156,13 @@ If test data appears in production, check:
 
 ## 📈 Coverage
 
-Current test coverage: **55%** (993/2190 statements)
+Current test coverage: **Model tests only**
 
 Key areas covered:
 
-- Authentication flows: 60%
-- User management: 73%
-- Security functions: 93%
-- Database models: 96%+
+- Database models: 100% (User model)
+- Database constraints: Unique email validation
+- Default values: User model defaults
 
 ## 🔄 Continuous Integration
 

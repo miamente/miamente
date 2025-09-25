@@ -1,1 +1,0 @@
-"""Professionals integration tests package."""
