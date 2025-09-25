@@ -445,7 +445,7 @@ jobs:
           SERVERHOST="${{ secrets.SERVER_HOST }}"
           ALLOWEDHOSTS="${{ secrets.ALLOWED_HOSTS }}"
           BACKENDCORSORIGINS="${{ secrets.BACKEND_CORS_ORIGINS }}"
-          TIMEZONE="${{ secrets.TIMEZONE }}"
+          TIMEZONE="${{ secrets.TIME_ZONE }}"
           SECRETKEY="${{ secrets.SECRET_KEY }}"
 
           missing=()
