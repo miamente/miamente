@@ -24,7 +24,11 @@ Parameters:
     Type: String
     Description: "Backend API URL (ALB URL from backend deployment)"
     Default: ""
-  PROJECT_NAME:
+  BackendInternalUrl:
+    Type: String
+    Description: "Backend URL for server-to-server calls from frontend (can be same as BackendApiUrl)"
+    Default: ""
+  PROJECTNAME:
     Type: String
     Description: "Project name"
     Default: "Miamente"
@@ -35,6 +39,7 @@ Parameters:
 
 Conditions:
   IsProduction: !Equals [!Ref EnvironmentName, "production"]
+  HasBackendInternal: !Not [!Equals [!Ref BackendInternalUrl, ""]]
 
 Resources:
   # ECS Cluster
@@ -65,12 +70,14 @@ Resources:
             - ContainerPort: 3000
               Protocol: tcp
           Environment:
-            - Name: NODE_ENV
-              Value: !If [IsProduction, "production", "development"]
+            - Name: NEXT_PUBLIC_APP_ENV
+              Value: !Ref EnvironmentName
             - Name: NEXT_PUBLIC_API_URL
               Value: !Ref BackendApiUrl
+            - Name: BACKEND_INTERNAL_URL
+              Value: !If [HasBackendInternal, !Ref BackendInternalUrl, !Ref BackendApiUrl]
             - Name: PROJECT_NAME
-              Value: !Ref PROJECT_NAME
+              Value: !Ref PROJECTNAME
             - Name: VERSION
               Value: !Ref VERSION
           LogConfiguration:
@@ -111,6 +118,9 @@ Resources:
           FromPort: 443
           ToPort: 443
           CidrIp: 0.0.0.0/0
+      SecurityGroupEgress:
+        - IpProtocol: -1
+          CidrIp: 0.0.0.0/0
       Tags:
         - Key: Name
           Value: !Sub "miamente-frontend-${EnvironmentName}-alb-sg"
@@ -127,6 +137,9 @@ Resources:
           FromPort: 3000
           ToPort: 3000
           SourceSecurityGroupId: !Ref FrontendALBSecurityGroup
+      SecurityGroupEgress:
+        - IpProtocol: -1
+          CidrIp: 0.0.0.0/0
       Tags:
         - Key: Name
           Value: !Sub "miamente-frontend-${EnvironmentName}-ecs-sg"

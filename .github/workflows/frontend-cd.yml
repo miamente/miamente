@@ -67,7 +67,7 @@ jobs:
           --health-retries=20
 
     env:
-      NEXT_PUBLIC_API_URL: http://localhost:8000
+      BACKEND_INTERNAL_URL: http://localhost:8000
       NODE_ENV: production
       E2E_BASE_URL: http://localhost:3000
       PROJECT_NAME: ${{ secrets.PROJECT_NAME }}
@@ -156,16 +156,16 @@ jobs:
       - name: Run Playwright E2E
         working-directory: .
         env:
-          NEXT_PUBLIC_API_URL: ${{ env.NEXT_PUBLIC_API_URL }}
+          BACKEND_INTERNAL_URL: ${{ env.BACKEND_INTERNAL_URL }}
         run: |
           echo "🔍 Running Playwright tests..."
-          echo "Backend URL: $NEXT_PUBLIC_API_URL"
+          echo "Backend URL: $BACKEND_INTERNAL_URL"
           echo "Frontend URL: $E2E_BASE_URL"
           echo "Current directory: $(pwd)"
 
           # Verify services are running
           echo "Checking backend health..."
-          curl -fsS "$NEXT_PUBLIC_API_URL/health" || echo "❌ Backend health check failed"
+          curl -fsS "$BACKEND_INTERNAL_URL/health" || echo "❌ Backend health check failed"
 
           echo "Checking frontend..."
           curl -fsS "$E2E_BASE_URL" || echo "❌ Frontend check failed"
@@ -297,7 +297,8 @@ jobs:
               VpcId=${{ secrets.VPC_ID }} \
               SubnetIds=${{ secrets.SUBNET_IDS }} \
               BackendApiUrl=${{ secrets.BACKEND_API_URL_STAGING }} \
-              PROJECT_NAME=${{ secrets.PROJECT_NAME }} \
+              BackendInternalUrl=${{ secrets.BACKEND_INTERNAL_URL_STAGING || secrets.BACKEND_API_URL_STAGING }} \
+              PROJECTNAME=${{ secrets.PROJECT_NAME }} \
               VERSION=${{ secrets.VERSION }} \
             --capabilities CAPABILITY_NAMED_IAM \
             --no-fail-on-empty-changeset
@@ -345,7 +346,8 @@ jobs:
               VpcId=${{ secrets.VPC_ID }} \
               SubnetIds=${{ secrets.SUBNET_IDS }} \
               BackendApiUrl=${{ secrets.BACKEND_API_URL_PROD }} \
-              PROJECT_NAME=${{ secrets.PROJECT_NAME }} \
+              BackendInternalUrl=${{ secrets.BACKEND_INTERNAL_URL_PROD || secrets.BACKEND_API_URL_PROD }} \
+              PROJECTNAME=${{ secrets.PROJECT_NAME }} \
               VERSION=${{ secrets.VERSION }} \
             --capabilities CAPABILITY_NAMED_IAM \
             --no-fail-on-empty-changeset
