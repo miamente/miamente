@@ -2,63 +2,94 @@
 Unit tests for app.main module.
 """
 
+import os
 from unittest.mock import patch, MagicMock
 from fastapi import FastAPI
+import pytest
 
-from app.main import app
+
+@pytest.fixture
+def mock_app():
+    """Fixture to provide a mocked FastAPI app for testing."""
+    with (
+        patch.dict(
+            os.environ,
+            {
+                "DATABASE_URL": "postgresql://user:pass@localhost/testdb",
+                "SECRET_KEY": "test-secret-key",
+                "PROJECT_NAME": "Miamente Backend",
+                "VERSION": "0.1.0",
+                "API_V1_STR": "/api/v1",
+                "BACKEND_CORS_ORIGINS": '["http://localhost:3000"]',
+                "ALLOWED_HOSTS": '["localhost"]',
+                "DEBUG": "True",
+            },
+        ),
+        patch("app.main.get_engine") as mock_get_engine,
+        patch("app.main.Base.metadata.create_all") as mock_create_all,
+    ):
+        # Configure mocks
+        mock_engine = MagicMock()
+        mock_get_engine.return_value = mock_engine
+        mock_create_all.return_value = None
+
+        # Import app after mocking
+        from app.main import app
+
+        yield app
 
 
 class TestMainApp:
     """Test the main FastAPI application."""
 
-    def test_app_is_fastapi_instance(self):
+    def test_app_is_fastapi_instance(self, mock_app):
         """Test that app is a FastAPI instance."""
-        assert isinstance(app, FastAPI)
+        assert isinstance(mock_app, FastAPI)
 
-    def test_app_title(self):
+    def test_app_title(self, mock_app):
         """Test that app has correct title."""
-        assert app.title == "Miamente Backend"
+        assert mock_app.title == "Miamente Backend"
 
-    def test_app_version(self):
+    def test_app_version(self, mock_app):
         """Test that app has correct version."""
-        assert app.version == "0.1.0"
+        assert mock_app.version == "0.1.0"
 
-    def test_app_description(self):
+    def test_app_description(self, mock_app):
         """Test that app has description."""
-        assert app.description is not None
-        assert len(app.description) > 0
+        assert mock_app.description is not None
+        assert len(mock_app.description) > 0
 
-    def test_app_has_openapi_url(self):
+    def test_app_has_openapi_url(self, mock_app):
         """Test that app has OpenAPI URL configured."""
-        assert app.openapi_url == "/api/v1/openapi.json"
+        assert mock_app.openapi_url == "/api/v1/openapi.json"
 
-    def test_app_has_docs_url(self):
+    def test_app_has_docs_url(self, mock_app):
         """Test that app has docs URL configured."""
-        assert app.docs_url == "/docs"
+        assert mock_app.docs_url == "/docs"
 
-    def test_app_has_redoc_url(self):
+    def test_app_has_redoc_url(self, mock_app):
         """Test that app has ReDoc URL configured."""
-        assert app.redoc_url == "/redoc"
+        assert mock_app.redoc_url == "/redoc"
 
-    def test_app_includes_api_router(self):
+    def test_app_includes_api_router(self, mock_app):
         """Test that app includes the API router."""
-        routes = [route.path for route in app.routes]
+        routes = [route.path for route in mock_app.routes]
         # Should have routes from the API router
         assert any("/api/v1" in route for route in routes)
 
-    def test_app_has_cors_middleware(self):
+    def test_app_has_cors_middleware(self, mock_app):
         """Test that app has CORS middleware configured."""
-        middleware_types = [middleware.cls.__name__ for middleware in app.user_middleware]
+        middleware_types = [middleware.cls.__name__ for middleware in mock_app.user_middleware]
         assert "CORSMiddleware" in middleware_types
 
-    def test_app_has_health_endpoint(self):
+    def test_app_has_health_endpoint(self, mock_app):
         """Test that app has health endpoint."""
-        routes = [route.path for route in app.routes]
+        routes = [route.path for route in mock_app.routes]
         assert "/health" in routes
 
-    def test_app_has_root_endpoint(self):
+    def test_app_has_root_endpoint(self, mock_app):
         """Test that app has root endpoint."""
-        routes = [route.path for route in app.routes]
+        routes = [route.path for route in mock_app.routes]
         assert "/" in routes
 
     @patch("app.main.configure_logging")
@@ -84,9 +115,9 @@ class TestMainApp:
         assert mock_settings.BACKEND_CORS_ORIGINS == ["http://localhost:3000"]
         assert mock_settings.ALLOWED_HOSTS == ["localhost"]
 
-    def test_app_middleware_order(self):
+    def test_app_middleware_order(self, mock_app):
         """Test that middleware is applied in correct order."""
-        middleware_types = [middleware.cls.__name__ for middleware in app.user_middleware]
+        middleware_types = [middleware.cls.__name__ for middleware in mock_app.user_middleware]
 
         # CORS should be one of the middlewares
         assert "CORSMiddleware" in middleware_types
@@ -94,9 +125,9 @@ class TestMainApp:
         # Middleware should be properly configured
         assert len(middleware_types) > 0
 
-    def test_app_route_methods(self):
+    def test_app_route_methods(self, mock_app):
         """Test that app routes have proper HTTP methods."""
-        routes = app.routes
+        routes = mock_app.routes
         for route in routes:
             if hasattr(route, "methods"):
                 # Should have at least one HTTP method
@@ -105,9 +136,9 @@ class TestMainApp:
                 valid_methods = {"GET", "POST", "PUT", "DELETE", "PATCH", "HEAD", "OPTIONS"}
                 assert all(method in valid_methods for method in route.methods)
 
-    def test_app_route_paths_are_valid(self):
+    def test_app_route_paths_are_valid(self, mock_app):
         """Test that all route paths are valid."""
-        routes = app.routes
+        routes = mock_app.routes
         for route in routes:
             if hasattr(route, "path_regex") and route.path_regex:
                 # Path should be a string or regex pattern
@@ -116,25 +147,25 @@ class TestMainApp:
                 # Path should be a string
                 assert isinstance(route.path, str)
 
-    def test_app_has_expected_route_count(self):
+    def test_app_has_expected_route_count(self, mock_app):
         """Test that app has expected number of routes."""
-        routes = app.routes
+        routes = mock_app.routes
         # Should have routes from API router plus health and root endpoints
         assert len(routes) > 0
 
-    def test_app_route_tags(self):
+    def test_app_route_tags(self, mock_app):
         """Test that routes have proper tags."""
-        routes = app.routes
+        routes = mock_app.routes
         for route in routes:
             if hasattr(route, "tags") and route.tags:
                 # Tags should be strings
                 assert all(isinstance(tag, str) for tag in route.tags)
 
-    def test_app_cors_configuration(self):
+    def test_app_cors_configuration(self, mock_app):
         """Test CORS configuration."""
         # Find CORS middleware
         cors_middleware = None
-        for middleware in app.user_middleware:
+        for middleware in mock_app.user_middleware:
             if middleware.cls.__name__ == "CORSMiddleware":
                 cors_middleware = middleware
                 break
@@ -154,30 +185,30 @@ class TestMainApp:
         result = mock_configure_logging()
         assert result == "DEBUG"
 
-    def test_app_startup_event_handlers(self):
+    def test_app_startup_event_handlers(self, mock_app):
         """Test that app has proper startup event handlers."""
         # The app should have event handlers configured
-        assert hasattr(app, "router")
-        assert hasattr(app, "middleware")
+        assert hasattr(mock_app, "router")
+        assert hasattr(mock_app, "middleware")
 
-    def test_app_shutdown_event_handlers(self):
+    def test_app_shutdown_event_handlers(self, mock_app):
         """Test that app has proper shutdown event handlers."""
         # The app should have proper cleanup mechanisms
-        assert hasattr(app, "router")
-        assert hasattr(app, "middleware")
+        assert hasattr(mock_app, "router")
+        assert hasattr(mock_app, "middleware")
 
-    def test_app_openapi_schema_generation(self):
+    def test_app_openapi_schema_generation(self, mock_app):
         """Test that app can generate OpenAPI schema."""
         # Should be able to generate OpenAPI schema without errors
-        openapi_schema = app.openapi()
+        openapi_schema = mock_app.openapi()
         assert openapi_schema is not None
         assert "openapi" in openapi_schema
         assert "info" in openapi_schema
         assert "paths" in openapi_schema
 
-    def test_app_openapi_info(self):
+    def test_app_openapi_info(self, mock_app):
         """Test OpenAPI info section."""
-        openapi_schema = app.openapi()
+        openapi_schema = mock_app.openapi()
         info = openapi_schema["info"]
 
         assert "title" in info
@@ -186,9 +217,9 @@ class TestMainApp:
         assert info["title"] == "Miamente Backend"
         assert info["version"] == "0.1.0"
 
-    def test_app_openapi_paths(self):
+    def test_app_openapi_paths(self, mock_app):
         """Test that OpenAPI schema includes expected paths."""
-        openapi_schema = app.openapi()
+        openapi_schema = mock_app.openapi()
         paths = openapi_schema["paths"]
 
         # Should have API paths
@@ -197,9 +228,9 @@ class TestMainApp:
         # Should have health endpoint
         assert "/health" in paths or "/api/v1/health" in paths
 
-    def test_app_components_schema(self):
+    def test_app_components_schema(self, mock_app):
         """Test that OpenAPI schema has components section."""
-        openapi_schema = app.openapi()
+        openapi_schema = mock_app.openapi()
 
         # Should have components section for schemas
         if "components" in openapi_schema:
@@ -208,9 +239,9 @@ class TestMainApp:
                 schemas = components["schemas"]
                 assert isinstance(schemas, dict)
 
-    def test_app_security_schemes(self):
+    def test_app_security_schemes(self, mock_app):
         """Test that OpenAPI schema has security schemes."""
-        openapi_schema = app.openapi()
+        openapi_schema = mock_app.openapi()
 
         # Should have security schemes if authentication is configured
         if "components" in openapi_schema:
@@ -219,31 +250,31 @@ class TestMainApp:
                 security_schemes = components["securitySchemes"]
                 assert isinstance(security_schemes, dict)
 
-    def test_app_route_dependencies(self):
+    def test_app_route_dependencies(self, mock_app):
         """Test that routes have proper dependencies."""
-        routes = app.routes
+        routes = mock_app.routes
         for route in routes:
             if hasattr(route, "dependant"):
                 # Dependencies should be properly configured
                 assert route.dependant is not None
 
-    def test_app_exception_handlers(self):
+    def test_app_exception_handlers(self, mock_app):
         """Test that app has proper exception handlers."""
         # Should have exception handlers configured
-        assert hasattr(app, "exception_handlers")
-        assert isinstance(app.exception_handlers, dict)
+        assert hasattr(mock_app, "exception_handlers")
+        assert isinstance(mock_app.exception_handlers, dict)
 
-    def test_app_response_models(self):
+    def test_app_response_models(self, mock_app):
         """Test that routes have proper response models."""
-        routes = app.routes
+        routes = mock_app.routes
         for route in routes:
             if hasattr(route, "response_model"):
                 # Response models should be properly configured
                 pass  # Response model can be None for some routes
 
-    def test_app_request_models(self):
+    def test_app_request_models(self, mock_app):
         """Test that routes have proper request models."""
-        routes = app.routes
+        routes = mock_app.routes
         for route in routes:
             if hasattr(route, "dependant"):
                 # Request models should be properly configured through dependant
