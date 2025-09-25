@@ -271,7 +271,7 @@ Resources:
             - Name: ENVIRONMENT
               Value: !Ref EnvironmentName
             - Name: DATABASE_URL
-              Value: !Sub "postgresql://${DBUsername}:${DBPassword}@${PostgreSQLDatabase.Endpoint.Address}:5432/miamente_staging"
+              Value: !Sub "postgresql://${DBUsername}:${DBPassword}@${PostgreSQLDatabase.Endpoint.Address}:5432/miamente_${EnvironmentName}"
             - Name: PROJECT_NAME
               Value: !Ref PROJECTNAME
             - Name: VERSION
