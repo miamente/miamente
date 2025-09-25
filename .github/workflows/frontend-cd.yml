@@ -174,6 +174,8 @@ jobs:
           echo "Running Playwright tests..."
           npx playwright test --reporter=line,html,json || echo "⚠️ Playwright tests completed with some issues"
 
+          echo "Test execution completed. Exit code: $?"
+
           # List files after test execution
           echo "Files after test execution:"
           ls -la
@@ -181,7 +183,19 @@ jobs:
           ls -la playwright-report/ || echo "❌ playwright-report/ not found"
           echo "Test results directory:"
           ls -la test-results/ || echo "❌ test-results/ not found"
+
+      - name: Prepare Playwright artifacts for upload
+        if: always()
+        run: |
           echo "Current directory: $(pwd)"
+          echo "Files in current directory:"
+          ls -la
+          echo "Copying Playwright artifacts to apps/web directory..."
+          cp -r ../playwright-report/ ./playwright-report/ 2>/dev/null || echo "No playwright-report to copy"
+          cp -r ../test-results/ ./test-results/ 2>/dev/null || echo "No test-results to copy"
+          echo "Files after copying:"
+          ls -la
+        working-directory: apps/web
 
       - name: Upload Playwright report artifacts
         if: always()
@@ -189,8 +203,8 @@ jobs:
         with:
           name: playwright-report
           path: |
-            playwright-report/
-            test-results/
+            apps/web/playwright-report/
+            apps/web/test-results/
 
   docker-build-push:
     name: Build & Push Docker image (main only)
