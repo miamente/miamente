@@ -184,19 +184,6 @@ jobs:
           echo "Test results directory:"
           ls -la test-results/ || echo "❌ test-results/ not found"
 
-      - name: Prepare Playwright artifacts for upload
-        if: always()
-        run: |
-          echo "Current directory: $(pwd)"
-          echo "Files in current directory:"
-          ls -la
-          echo "Copying Playwright artifacts to apps/web directory..."
-          cp -r ../playwright-report/ ./playwright-report/ 2>/dev/null || echo "No playwright-report to copy"
-          cp -r ../test-results/ ./test-results/ 2>/dev/null || echo "No test-results to copy"
-          echo "Files after copying:"
-          ls -la
-        working-directory: apps/web
-
       - name: Upload Playwright report artifacts
         if: always()
         uses: actions/upload-artifact@v4
