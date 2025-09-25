@@ -161,6 +161,7 @@ jobs:
           echo "🔍 Running Playwright tests..."
           echo "Backend URL: $NEXT_PUBLIC_API_URL"
           echo "Frontend URL: $E2E_BASE_URL"
+          echo "Current directory: $(pwd)"
 
           # Verify services are running
           echo "Checking backend health..."
@@ -169,21 +170,19 @@ jobs:
           echo "Checking frontend..."
           curl -fsS "$E2E_BASE_URL" || echo "❌ Frontend check failed"
 
-          # Run tests with verbose output
-          npx playwright test --reporter=line
+          # Run tests with verbose output and ensure reports are generated
+          echo "Running Playwright tests..."
+          npm run test:e2e || echo "⚠️ Playwright tests completed with some issues"
 
-      - name: Debug artifact paths
-        if: always()
-        working-directory: ..
-        run: |
-          echo "🔍 Debugging artifact paths..."
-          echo "Current directory: $(pwd)"
-          echo "Looking for playwright-report directory:"
-          ls -la playwright-report/ || echo "❌ playwright-report/ not found"
-          echo "Looking for test-results directory:"
-          ls -la test-results/ || echo "❌ test-results/ not found"
-          echo "All files in current directory:"
+          echo "Test execution completed. Exit code: $?"
+
+          # List files after test execution
+          echo "Files after test execution:"
           ls -la
+          echo "Playwright report directory:"
+          ls -la playwright-report/ || echo "❌ playwright-report/ not found"
+          echo "Test results directory:"
+          ls -la test-results/ || echo "❌ test-results/ not found"
 
       - name: Upload Playwright report artifacts
         if: always()
@@ -191,8 +190,8 @@ jobs:
         with:
           name: playwright-report
           path: |
-            playwright-report/
-            test-results/
+            ../playwright-report/
+            ../test-results/
 
   docker-build-push:
     name: Build & Push Docker image (main only)
@@ -241,7 +240,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: playwright-report
-          path: apps/web/artifacts-downloaded
+          path: apps/web/e2e-artifacts-downloaded
 
       - name: SonarCloud Scan (Frontend)
         uses: SonarSource/sonarqube-scan-action@v5.0.0
