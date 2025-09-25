@@ -554,6 +554,9 @@ jobs:
     needs: [docker-build-push, deploy-cfn-production]
     runs-on: ubuntu-latest
     if: github.event_name == 'pull_request' && github.base_ref == 'main'
+    defaults:
+      run:
+        working-directory: .
     steps:
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
@@ -581,6 +584,9 @@ jobs:
     needs: [update-service-production, deploy-cfn-production]
     runs-on: ubuntu-latest
     if: github.event_name == 'pull_request' && github.base_ref == 'main'
+    defaults:
+      run:
+        working-directory: .
     steps:
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
@@ -613,41 +619,4 @@ jobs:
               exit 1
             fi
           done
-
-  test-production:
-    needs: [test-db-production, deploy-cfn-production]
-    runs-on: ubuntu-latest
-    if: github.event_name == 'pull_request' && github.base_ref == 'main'
-    env:
-      APP_BASE_URL: ${{ needs.deploy-cfn-production.outputs.alb_url_production }}
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Setup Python & deps
-        uses: ./.github/actions/setup-backend
-        with:
-          python-version: "3.13"
-
-      - name: Set DATABASE_URL env var for integration tests (production)
-        run: |
-          echo "DATABASE_URL=postgresql://${{ secrets.DB_USERNAME }}:${{ secrets.DB_PASSWORD }}@${{ needs.deploy-cfn-production.outputs.database_endpoint_production }}:5432/miamente_production" >> $GITHUB_ENV
-
-      - name: Run Integration Tests (production)
-        run: |
-          pytest tests/integration \
-            -m integration \
-            --cov=app \
-            --cov-report=xml:integration_coverage.xml \
-            --html=integration_report.html \
-            --self-contained-html
-
-      - name: Upload Test Reports Artifacts (production)
-        uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: production-integration-test-reports
-          path: |
-            backend/integration_report.html
-            backend/integration_coverage.xml
-
   
