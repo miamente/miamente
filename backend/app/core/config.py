@@ -6,7 +6,7 @@ import logging
 import os
 import secrets
 from functools import lru_cache
-from typing import List, Union
+from typing import List
 
 from pydantic import ConfigDict, field_validator
 from pydantic_settings import BaseSettings
@@ -30,12 +30,13 @@ class Settings(BaseSettings):
     SERVER_HOST: str = "http://localhost:8000"
 
     # --- CORS ---
-    # Acepta: "*", CSV ("http://a,http://b") o lista desde código/tests.
-    BACKEND_CORS_ORIGINS: Union[str, List[str]] = "http://localhost:3000,http://localhost:3001,http://localhost:8000"
+    # Acepta: "*", CSV ("https://a,https://b") o lista desde código/tests.
+    # Se puede configurar via variable de entorno BACKEND_CORS_ORIGINS
+    BACKEND_CORS_ORIGINS: str | List[str] = "*"
 
     @field_validator("BACKEND_CORS_ORIGINS", mode="before")
     @classmethod
-    def assemble_cors_origins(cls, value: Union[str, List[str]]) -> List[str]:
+    def assemble_cors_origins(cls, value: str | List[str]) -> List[str]:
         """
         Acepta:
           - "*" como wildcard (devuelve ["*"])
@@ -54,11 +55,11 @@ class Settings(BaseSettings):
 
     # --- Allowed hosts ---
     # Igual lógica que CORS: "*", CSV o lista.
-    ALLOWED_HOSTS: Union[str, List[str]] = "localhost,127.0.0.1"
+    ALLOWED_HOSTS: str | List[str] = "*"
 
     @field_validator("ALLOWED_HOSTS", mode="before")
     @classmethod
-    def assemble_allowed_hosts(cls, value: Union[str, List[str]]) -> List[str]:
+    def assemble_allowed_hosts(cls, value: str | List[str]) -> List[str]:
         """
         Acepta:
           - "*"
