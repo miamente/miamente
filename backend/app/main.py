@@ -31,7 +31,7 @@ try:
         logger.info("DATABASE: Database tables created successfully")
     else:
         logger.error("DATABASE: Cannot create tables - database engine is None")
-except Exception as exc:
+except (SQLAlchemyError, ConnectionError, TimeoutError) as exc:
     logger.error("DATABASE: Failed to create database tables: %s", exc)
     logger.warning("APPLICATION: Starting without database tables - will retry on first request")
 
@@ -84,7 +84,7 @@ async def database_error_handler(request: Request, call_next):
                 "status_code": 503,
             },
         )
-    except Exception as exc:
+    except (ConnectionError, TimeoutError) as exc:
         logger.error("DATABASE_MIDDLEWARE: Unexpected error: %s", exc)
         logger.error("DATABASE_MIDDLEWARE: Error type: %s", type(exc).__name__)
 

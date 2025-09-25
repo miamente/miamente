@@ -54,7 +54,6 @@ def _apply_professional_filters(query, _specialty, min_rate_cents, max_rate_cent
     """Apply filtering parameters to the professionals query."""
     # Filter by specialty if provided - note: specialty_ids is an array field
     # For now, we'll skip specialty filtering as it requires more complex array operations
-    # TODO: Implement proper specialty filtering using array operations
     # if specialty:
     #     query = query.filter(Professional.specialty_ids.contains([specialty]))
 
