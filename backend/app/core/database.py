@@ -39,7 +39,7 @@ def get_engine() -> Optional[Engine]:
         logger.info("DATABASE: Database engine created successfully")
         return engine
 
-    except Exception as exc:
+    except (SQLAlchemyError, ConnectionError, TimeoutError) as exc:
         logger.error("DATABASE: Failed to create database engine: %s", exc)
         logger.error("DATABASE: Error type: %s", type(exc).__name__)
         return None
@@ -56,7 +56,7 @@ def get_session_factory() -> Optional[sessionmaker]:
 
         logger.info("DATABASE: Creating session factory")
         return sessionmaker(autocommit=False, autoflush=False, bind=engine)
-    except Exception as exc:
+    except (SQLAlchemyError, ConnectionError, TimeoutError) as exc:
         logger.error("DATABASE: Failed to create session factory: %s", exc)
         return None
 
@@ -75,12 +75,7 @@ def get_db() -> Generator[Optional[Session], None, None]:
         db = session_factory()
         logger.debug("DATABASE: Database session created successfully")
         yield db
-    except SQLAlchemyError as db_error:
-        logger.error("DATABASE: SQLAlchemy error in database session: %s", db_error)
-        if db:
-            db.rollback()
-        yield None
-    except Exception as exc:
+    except (SQLAlchemyError, ConnectionError, TimeoutError) as exc:
         logger.error("DATABASE: Unexpected error in database session: %s", exc)
         if db:
             db.rollback()
@@ -90,5 +85,5 @@ def get_db() -> Generator[Optional[Session], None, None]:
             try:
                 db.close()
                 logger.debug("DATABASE: Database session closed successfully")
-            except Exception as exc:
+            except (SQLAlchemyError, ConnectionError, TimeoutError) as exc:
                 logger.error("DATABASE: Error closing database session: %s", exc)

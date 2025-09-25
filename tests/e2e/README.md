@@ -100,7 +100,6 @@ Tests are designed to handle both populated and empty databases:
 #### 2. Professionals Tests (`professionals.spec.ts`)
 
 - Professional listing display
-- Filtering and search
 - Navigation to profiles
 - Responsive design
 - Empty state handling
