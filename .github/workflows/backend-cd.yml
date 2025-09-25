@@ -94,7 +94,7 @@ jobs:
   deploy-cfn-staging:
     needs: docker-build-push
     runs-on: ubuntu-latest
-    if: github.event_name == 'pull_request' && github.base_ref == 'main'
+    if: github.event_name == 'pull_request' && github.base_ref == 'staging'
     outputs:
       alb_url_staging: ${{ steps.get_stack_outputs.outputs.alb_url }}
       cluster_name_staging: "miamente-backend-staging-cluster"
@@ -297,7 +297,7 @@ jobs:
   test-db-staging:
     needs: [update-service-staging, deploy-cfn-staging]
     runs-on: ubuntu-latest
-    if: github.event_name == 'pull_request' && github.base_ref == 'main'
+    if: github.event_name == 'pull_request' && github.base_ref == 'staging'
     defaults:
       run:
         working-directory: .
@@ -338,7 +338,7 @@ jobs:
   test-staging:
     needs: [test-db-staging, deploy-cfn-staging]
     runs-on: ubuntu-latest
-    if: github.event_name == 'pull_request' && github.base_ref == 'main'
+    if: github.event_name == 'pull_request' && github.base_ref == 'staging'
     env:
       APP_BASE_URL: ${{ needs.deploy-cfn-staging.outputs.alb_url_staging }}
     steps:
@@ -375,7 +375,7 @@ jobs:
     name: SonarCloud (aggregate coverage)
     runs-on: ubuntu-latest
     needs: [unit-tests, test-staging]
-    if: github.event_name == 'pull_request' && (github.base_ref == 'staging' || github.base_ref == 'develop' || github.base_ref == 'main')
+    if: github.event_name == 'pull_request' && (github.base_ref == 'staging' || github.base_ref == 'main')
     
     steps:
       - uses: actions/checkout@v4
@@ -399,5 +399,255 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
+  deploy-cfn-production:
+    needs: docker-build-push
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request' && github.base_ref == 'main'
+    outputs:
+      alb_url_production: ${{ steps.get_stack_outputs.outputs.alb_url }}
+      cluster_name_production: "miamente-backend-production-cluster"
+      service_name_production: "miamente-backend-production-service"
+      database_endpoint_production: ${{ steps.get_stack_outputs.outputs.database_endpoint }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
+          aws-region: us-east-1
+
+      - name: Build params JSON + Precheck (Production)
+        run: |
+          set -euo pipefail
+
+          IMAGE_URI="${{ secrets.DOCKERHUB_USERNAME }}/${{ secrets.DOCKERHUB_BACKEND_REPOSITORY }}:${{ github.sha }}"
+          LAB_ROLE_ARN="${{ secrets.PROD_LAB_ROLE_ARN }}"
+          VPC_ID="${{ secrets.PROD_VPC_ID }}"
+          SUBNET_IDS="${{ secrets.PROD_SUBNET_IDS }}"
+          DB_SUBNET_IDS="${{ secrets.PROD_DB_SUBNET_IDS }}"
+          DB_USERNAME="${{ secrets.PROD_DB_USERNAME }}"
+          DB_PASSWORD="${{ secrets.PROD_DB_PASSWORD }}"
+
+          PROJECTNAME="${{ secrets.PROD_PROJECT_NAME }}"
+          VERSION="${{ secrets.PROD_VERSION }}"
+          APIV1STR="${{ secrets.PROD_API_V1_STR }}"
+          DEBUG="${{ secrets.PROD_DEBUG }}"
+          ALGORITHM="${{ secrets.PROD_ALGORITHM }}"
+          ACCESSTOKENEXPIREMINUTES="${{ secrets.PROD_ACCESS_TOKEN_EXPIRE_MINUTES }}"
+          REFRESHTOKENEXPIREMINUTES="${{ secrets.PROD_REFRESH_TOKEN_EXPIRE_MINUTES }}"
+          SERVERNAME="${{ secrets.PROD_SERVER_NAME }}"
+          SERVERHOST="${{ secrets.PROD_SERVER_HOST }}"
+          ALLOWEDHOSTS="${{ secrets.PROD_ALLOWED_HOSTS }}"
+          BACKENDCORSORIGINS="${{ secrets.PROD_BACKEND_CORS_ORIGINS }}"
+          TIMEZONE="${{ secrets.PROD_TIMEZONE }}"
+          SECRETKEY="${{ secrets.PROD_SECRET_KEY }}"
+
+          missing=()
+          check_empty () { var_name="$1"; val="${!var_name:-}"; if [ -z "$val" ]; then missing+=("$var_name"); fi; }
+          for k in IMAGE_URI LAB_ROLE_ARN VPC_ID SUBNET_IDS DB_SUBNET_IDS DB_USERNAME DB_PASSWORD \
+                   PROJECTNAME VERSION APIV1STR DEBUG ALGORITHM ACCESSTOKENEXPIREMINUTES \
+                   REFRESHTOKENEXPIREMINUTES SERVERNAME SERVERHOST ALLOWEDHOSTS BACKENDCORSORIGINS \
+                   TIMEZONE SECRETKEY; do
+            check_empty "$k"
+          done
+          if [ ${#missing[@]} -gt 0 ]; then
+            echo "❌ Parámetros/secretos VACÍOS (production):"; printf ' - %s\n' "${missing[@]}"; exit 1
+          fi
+
+          if ! command -v jq &> /dev/null; then
+            sudo apt-get update && sudo apt-get install -y jq
+          fi
+
+          jq -n \
+            --arg envName "production" \
+            --arg imageUri "$IMAGE_URI" \
+            --arg labRoleArn "$LAB_ROLE_ARN" \
+            --arg vpcId "$VPC_ID" \
+            --arg subnetIds "$SUBNET_IDS" \
+            --arg dbSubnetIds "$DB_SUBNET_IDS" \
+            --arg dbUser "$DB_USERNAME" \
+            --arg dbPass "$DB_PASSWORD" \
+            --arg projectname "$PROJECTNAME" \
+            --arg version "$VERSION" \
+            --arg apiv1str "$APIV1STR" \
+            --arg debug "$DEBUG" \
+            --arg algorithm "$ALGORITHM" \
+            --arg accessmins "$ACCESSTOKENEXPIREMINUTES" \
+            --arg refreshmins "$REFRESHTOKENEXPIREMINUTES" \
+            --arg servername "$SERVERNAME" \
+            --arg serverhost "$SERVERHOST" \
+            --arg allowedhosts "$ALLOWEDHOSTS" \
+            --arg backendcors "$BACKENDCORSORIGINS" \
+            --arg timezone "$TIMEZONE" \
+            --arg secretkey "$SECRETKEY" \
+            '[{"ParameterKey":"EnvironmentName","ParameterValue":$envName},
+              {"ParameterKey":"DockerImageUri","ParameterValue":$imageUri},
+              {"ParameterKey":"LabRoleArn","ParameterValue":$labRoleArn},
+              {"ParameterKey":"VpcId","ParameterValue":$vpcId},
+              {"ParameterKey":"SubnetIds","ParameterValue":$subnetIds},
+              {"ParameterKey":"DBSubnetIds","ParameterValue":$dbSubnetIds},
+              {"ParameterKey":"DBUsername","ParameterValue":$dbUser},
+              {"ParameterKey":"DBPassword","ParameterValue":$dbPass},
+              {"ParameterKey":"PROJECTNAME","ParameterValue":$projectname},
+              {"ParameterKey":"VERSION","ParameterValue":$version},
+              {"ParameterKey":"APIV1STR","ParameterValue":$apiv1str},
+              {"ParameterKey":"DEBUG","ParameterValue":$debug},
+              {"ParameterKey":"ALGORITHM","ParameterValue":$algorithm},
+              {"ParameterKey":"ACCESSTOKENEXPIREMINUTES","ParameterValue":$accessmins},
+              {"ParameterKey":"REFRESHTOKENEXPIREMINUTES","ParameterValue":$refreshmins},
+              {"ParameterKey":"SERVERNAME","ParameterValue":$servername},
+              {"ParameterKey":"SERVERHOST","ParameterValue":$serverhost},
+              {"ParameterKey":"ALLOWEDHOSTS","ParameterValue":$allowedhosts},
+              {"ParameterKey":"BACKENDCORSORIGINS","ParameterValue":$backendcors},
+              {"ParameterKey":"TIMEZONE","ParameterValue":$timezone},
+              {"ParameterKey":"SECRETKEY","ParameterValue":$secretkey}]' > params-production.json
+
+          echo "🔎 params-production.json (enmascarado):"
+          jq '[ .[] | {ParameterKey, ParameterValue:"***"} ]' params-production.json
+
+      - name: Deploy CloudFormation Production Stack (with params json)
+        run: |
+          set -euo pipefail
+          mapfile -t PARAMS < <(jq -r '.[] | "\(.ParameterKey)=\(.ParameterValue)"' params-production.json)
+          echo "🚀 Desplegando stack production…"
+          aws cloudformation deploy \
+            --template-file template.yaml \
+            --stack-name miamente-production-stack \
+            --parameter-overrides "${PARAMS[@]}" \
+            --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM \
+            --no-fail-on-empty-changes
+
+      - name: Get Production Stack Outputs
+        id: get_stack_outputs
+        run: |
+          if ! command -v jq &> /dev/null; then
+             sudo apt-get update && sudo apt-get install -y jq
+          fi
+          STACK_OUTPUTS=$(aws cloudformation describe-stacks --stack-name miamente-production-stack --query "Stacks[0].Outputs" --region us-east-1 --output json)
+          echo "Raw Stack Outputs: $STACK_OUTPUTS"
+
+          ALB_URL=$(echo $STACK_OUTPUTS | jq -r '.[] | select(.OutputKey=="ALBDnsName") | .OutputValue')
+          DATABASE_ENDPOINT=$(echo $STACK_OUTPUTS | jq -r '.[] | select(.OutputKey=="DatabaseEndpoint") | .OutputValue')
+
+          if [ -z "$ALB_URL" ] || [ "$ALB_URL" == "null" ]; then
+            echo "Error: No se pudo obtener ALBDnsName del stack de Production."
+            exit 1
+          fi
+          if [ -z "$DATABASE_ENDPOINT" ] || [ "$DATABASE_ENDPOINT" == "null" ]; then
+            echo "Error: No se pudo obtener DatabaseEndpoint del stack de Production."
+            exit 1
+          fi
+
+          ALB_URL_HTTP="http://${ALB_URL}"
+          echo "ALB URL Production: $ALB_URL_HTTP"
+          echo "Database Endpoint Production: $DATABASE_ENDPOINT"
+          echo "alb_url=${ALB_URL_HTTP}" >> $GITHUB_OUTPUT
+          echo "database_endpoint=${DATABASE_ENDPOINT}" >> $GITHUB_OUTPUT
+
+  update-service-production:
+    needs: [docker-build-push, deploy-cfn-production]
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request' && github.base_ref == 'main'
+    steps:
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
+          aws-region: us-east-1
+
+      - name: Force New Deployment ECS Service Production
+        run: |
+          aws ecs update-service \
+            --cluster ${{ needs.deploy-cfn-production.outputs.cluster_name_production }} \
+            --service ${{ needs.deploy-cfn-production.outputs.service_name_production }} \
+            --force-new-deployment \
+            --region us-east-1
+
+          aws ecs wait services-stable \
+            --cluster ${{ needs.deploy-cfn-production.outputs.cluster_name_production }} \
+            --services ${{ needs.deploy-cfn-production.outputs.service_name_production }} \
+            --region us-east-1
+          echo "Production service deployment stable."
+
+  test-db-production:
+    needs: [update-service-production, deploy-cfn-production]
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request' && github.base_ref == 'main'
+    steps:
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
+          aws-region: us-east-1
+
+      - name: Test Database Connection Production
+        run: |
+          echo "Testing database connection for production environment..."
+          echo "Database endpoint: ${{ needs.deploy-cfn-production.outputs.database_endpoint_production }}"
+
+          sleep 60
+
+          HEALTH_CHECK_URL="${{ needs.deploy-cfn-production.outputs.alb_url_production }}/health"
+          echo "Checking health endpoint: $HEALTH_CHECK_URL"
+
+          for i in {1..5}; do
+            if curl -f -s "$HEALTH_CHECK_URL"; then
+              echo "Health check passed on attempt $i"
+              break
+            else
+              echo "Health check failed on attempt $i, retrying..."
+              sleep 30
+            fi
+            if [ $i -eq 5 ]; then
+              echo "Health check failed after 5 attempts"
+              exit 1
+            fi
+          done
+
+  test-production:
+    needs: [test-db-production, deploy-cfn-production]
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request' && github.base_ref == 'main'
+    env:
+      APP_BASE_URL: ${{ needs.deploy-cfn-production.outputs.alb_url_production }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Python & deps
+        uses: ./.github/actions/setup-backend
+        with:
+          python-version: "3.13"
+
+      - name: Set DATABASE_URL env var for integration tests (production)
+        run: |
+          echo "DATABASE_URL=postgresql://${{ secrets.PROD_DB_USERNAME }}:${{ secrets.PROD_DB_PASSWORD }}@${{ needs.deploy-cfn-production.outputs.database_endpoint_production }}:5432/miamente_production" >> $GITHUB_ENV
+
+      - name: Run Integration Tests (production)
+        run: |
+          pytest tests/integration \
+            -m integration \
+            --cov=app \
+            --cov-report=xml:integration_coverage.xml \
+            --html=integration_report.html \
+            --self-contained-html
+
+      - name: Upload Test Reports Artifacts (production)
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: production-integration-test-reports
+          path: |
+            backend/integration_report.html
+            backend/integration_coverage.xml
 
   
