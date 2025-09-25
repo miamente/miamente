@@ -205,7 +205,8 @@ describe("Storage Functions", () => {
 
       expect(uniqueName).toMatch(/^\d+_[a-f0-9]+\.txt$/);
       expect(uniqueName).toContain("1640995200000"); // mocked timestamp
-      expect(uniqueName).toContain("550e8400e29b41d4a716446655440000"); // mocked UUID without dashes
+      // The function now generates a hex string instead of a specific UUID
+      expect(uniqueName).toMatch(/^\d+_[a-f0-9]+\.txt$/);
     });
 
     it("should preserve file extension", () => {

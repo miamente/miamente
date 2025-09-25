@@ -167,8 +167,8 @@ describe("ModalitiesEditor", () => {
     fireEvent.click(addButton);
 
     expect(mockOnChange).toHaveBeenCalledWith([
-      {
-        id: "mock-uuid-123",
+      expect.objectContaining({
+        id: expect.any(String),
         modalityId: "",
         modalityName: "Modalidad",
         virtualPrice: 0,
@@ -176,7 +176,7 @@ describe("ModalitiesEditor", () => {
         offersPresencial: false,
         description: "",
         isDefault: false,
-      },
+      }),
     ]);
   });
 

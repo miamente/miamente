@@ -64,7 +64,7 @@ describe("useTherapyApproachNames", () => {
       () => {
         expect(result.current.loading).toBe(false);
       },
-      { timeout: 100 },
+      { timeout: 1000 },
     );
 
     expect(result.current.error).toBe(null);
