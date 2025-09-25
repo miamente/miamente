@@ -144,6 +144,10 @@ Resources:
           FromPort: 5432
           ToPort: 5432
           SourceSecurityGroupId: !Ref ECSServiceSecurityGroup
+        - IpProtocol: tcp
+          FromPort: 5432
+          ToPort: 5432
+          CidrIp: 0.0.0.0/0
       Tags:
         - Key: Environment
           Value: !Ref EnvironmentName
@@ -179,7 +183,7 @@ Resources:
       DBSubnetGroupName: !Ref DBSubnetGroup
       BackupRetentionPeriod: 7
       MultiAZ: false # Para staging, usar true para production
-      PubliclyAccessible: false
+      PubliclyAccessible: true
       DeletionProtection: false # Para staging, usar true para production
       Tags:
         - Key: Environment
