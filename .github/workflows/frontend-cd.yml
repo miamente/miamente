@@ -170,9 +170,9 @@ jobs:
           echo "Checking frontend..."
           curl -fsS "$E2E_BASE_URL" || echo "❌ Frontend check failed"
 
-          # Run tests with verbose output and ensure reports are generated
+          # Run Playwright tests directly from the root directory
           echo "Running Playwright tests..."
-          npm run test:e2e || echo "⚠️ Playwright tests completed with some issues"
+          npx playwright test --reporter=line,html,json || echo "⚠️ Playwright tests completed with some issues"
 
           echo "Test execution completed. Exit code: $?"
 
