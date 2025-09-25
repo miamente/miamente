@@ -197,7 +197,7 @@ async def get_current_user_info(current_user_id: str = Depends(get_current_user_
     # Try to get as user first
     user = auth_service.get_user_by_id(current_user_id)
     if user:
-        return {"type": "user", "data": user}
+        return {"type": user.role.value, "data": user}
 
     # Try to get as professional
     professional = auth_service.get_professional_by_id(current_user_id)

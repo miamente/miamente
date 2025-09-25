@@ -101,6 +101,11 @@ def _cleanup_test_data(session_factory):
     """Clean only test data with precise identification to avoid deleting production data (LOCAL mode)."""
     session = session_factory()
     try:
+        # First, clean up any orphaned records that might cause foreign key issues
+        session.execute(text("DELETE FROM professional_specialties WHERE professional_id NOT IN (SELECT id FROM professionals)"))
+        session.execute(text("DELETE FROM professional_modalities WHERE professional_id NOT IN (SELECT id FROM professionals)"))
+        session.execute(text("DELETE FROM professional_therapeutic_approaches WHERE professional_id NOT IN (SELECT id FROM professionals)"))
+        
         test_patterns = [
             f"email LIKE '{TEST_DATA_PREFIX}%'",
             "email LIKE '%@example.com'",
@@ -123,15 +128,7 @@ def _cleanup_test_data(session_factory):
             text(f"SELECT id FROM professionals WHERE {where_clause}")
         ).fetchall()
 
-        # Users
-        result = session.execute(text(f"DELETE FROM users WHERE {where_clause}"))
-        deleted_users = result.rowcount
-
-        # Professionals
-        result = session.execute(text(f"DELETE FROM professionals WHERE {where_clause}"))
-        deleted_professionals = result.rowcount
-
-        # Relations for those professionals
+        # Delete relations first to avoid foreign key constraints
         if test_professional_ids:
             professional_id_list = [str(row[0]) for row in test_professional_ids]
             professional_ids_str = "', '".join(professional_id_list)
@@ -155,17 +152,47 @@ def _cleanup_test_data(session_factory):
                 )
             )
 
+        # Now delete the main entities
+        # Users
+        result = session.execute(text(f"DELETE FROM users WHERE {where_clause}"))
+        deleted_users = result.rowcount
+
+        # Professionals
+        result = session.execute(text(f"DELETE FROM professionals WHERE {where_clause}"))
+        deleted_professionals = result.rowcount
+
         # Reference tables (only test-ish data)
+        # Delete in correct order to avoid foreign key constraints
+        session.execute(
+            text(
+                "DELETE FROM professional_specialties "
+                "WHERE specialty_id IN (SELECT id FROM specialties WHERE name LIKE 'Test %' OR name LIKE '% Test' OR name = 'psychology')"
+            )
+        )
         session.execute(
             text(
                 "DELETE FROM specialties "
                 "WHERE name LIKE 'Test %' OR name LIKE '% Test' OR name = 'psychology'"
             )
         )
+        
+        session.execute(
+            text(
+                "DELETE FROM professional_therapeutic_approaches "
+                "WHERE therapeutic_approach_id IN (SELECT id FROM therapeutic_approaches WHERE name LIKE 'Test %' OR name LIKE '% Test')"
+            )
+        )
         session.execute(
             text(
                 "DELETE FROM therapeutic_approaches "
                 "WHERE name LIKE 'Test %' OR name LIKE '% Test'"
+            )
+        )
+        
+        session.execute(
+            text(
+                "DELETE FROM professional_modalities "
+                "WHERE modality_id IN (SELECT id FROM modalities WHERE name LIKE 'Test %' OR name LIKE '% Test')"
             )
         )
         session.execute(
