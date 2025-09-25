@@ -356,6 +356,7 @@ jobs:
       - name: Run Integration Tests
         run: |
           pytest tests/integration \
+            -m integration \
             --cov=app \
             --cov-report=xml:integration_coverage.xml \
             --html=integration_report.html \
