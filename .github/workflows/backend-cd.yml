@@ -2,7 +2,7 @@ name: Backend CD
 
 on:
   push:
-    branches: [main, staging, develop]
+    branches: [main, staging]
     paths:
       - "backend/**"
       - ".github/workflows/backend-cd.yml"
@@ -32,7 +32,7 @@ jobs:
   unit-tests:
     name: Unit Tests
     runs-on: ubuntu-latest
-    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/staging' || github.ref == 'refs/heads/develop')
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/staging')
     steps:
       - uses: actions/checkout@v4
 
@@ -94,7 +94,7 @@ jobs:
   deploy-cfn-staging:
     needs: docker-build-push
     runs-on: ubuntu-latest
-    if: github.event_name == 'push' && (github.ref == 'refs/heads/staging' || github.ref == 'refs/heads/develop')
+    if: github.event_name == 'push' && github.ref == 'refs/heads/staging'
     outputs:
       alb_url_staging: ${{ steps.get_stack_outputs.outputs.alb_url }}
       cluster_name_staging: "miamente-backend-staging-cluster"
@@ -265,11 +265,88 @@ jobs:
           echo "Database Endpoint Staging: $DATABASE_ENDPOINT"
           echo "alb_url=${ALB_URL_HTTP}" >> $GITHUB_OUTPUT
           echo "database_endpoint=${DATABASE_ENDPOINT}" >> $GITHUB_OUTPUT
+  
+  migrate-db-staging:
+    needs: [docker-build-push, deploy-cfn-staging]
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/staging'
+    steps:
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
+          aws-region: us-east-1
+
+      - name: Resolve Security Group ID (from CFN logical name)
+        id: sg
+        run: |
+          SG_ID=$(aws cloudformation describe-stack-resources \
+            --stack-name miamente-staging-stack \
+            --query "StackResources[?LogicalResourceId=='ECSServiceSecurityGroup'].PhysicalResourceId" \
+            --output text)
+          if [ -z "$SG_ID" ] || [ "$SG_ID" = "None" ]; then
+            echo "❌ No se encontró ECSServiceSecurityGroup en el stack."
+            exit 1
+          fi
+          echo "sg_id=$SG_ID" >> $GITHUB_OUTPUT
+
+      - name: Run Alembic migrations as one-off task
+        id: run_task
+        run: |
+          # Subnets separadas por coma desde secret, ej: subnet-aaa,subnet-bbb
+          SUBNETS='${{ secrets.DB_SUBNET_IDS }}'
+          CLUSTER='${{ needs.deploy-cfn-staging.outputs.cluster_name_staging }}'
+          TASK_DEF_FAMILY='miamente-backend-staging-task'
+          CONTAINER_NAME='miamente-backend-staging-container'
+
+          # Lanza el task con override de comando
+          TASK_ARN=$(aws ecs run-task \
+            --cluster "$CLUSTER" \
+            --launch-type FARGATE \
+            --task-definition "$TASK_DEF_FAMILY" \
+            --count 1 \
+            --network-configuration "awsvpcConfiguration={subnets=[${SUBNETS}],securityGroups=[${{ steps.sg.outputs.sg_id }}],assignPublicIp=ENABLED}" \
+            --overrides "$(jq -n --arg name "$CONTAINER_NAME" \
+                '{containerOverrides:[{name:$name,command:["sh","-lc","alembic upgrade head"]}]}' \
+              )" \
+            --query "tasks[0].taskArn" \
+            --output text)
+
+          if [ -z "$TASK_ARN" ] || [ "$TASK_ARN" = "None" ]; then
+            echo "❌ No se pudo lanzar el task de migraciones."
+            exit 1
+          fi
+          echo "task_arn=$TASK_ARN" >> $GITHUB_OUTPUT
+
+          echo "⏳ Esperando a que el task termine..."
+          # Espera a STOPPED y valida exitCode==0
+          for i in {1..60}; do
+            STATUS=$(aws ecs describe-tasks --cluster "$CLUSTER" --tasks "$TASK_ARN" --query "tasks[0].lastStatus" --output text)
+            if [ "$STATUS" = "STOPPED" ]; then
+              EXIT=$(aws ecs describe-tasks --cluster "$CLUSTER" --tasks "$TASK_ARN" --query "tasks[0].containers[0].exitCode" --output text)
+              REASON=$(aws ecs describe-tasks --cluster "$CLUSTER" --tasks "$TASK_ARN" --query "tasks[0].stoppedReason" --output text)
+              echo "Task stopped. exitCode=$EXIT reason=$REASON"
+              if [ "$EXIT" = "0" ]; then
+                echo "✅ Migraciones aplicadas correctamente."
+                exit 0
+              else
+                echo "❌ Migraciones fallaron."
+                # Trae logs de eventos del task para depurar rápido
+                aws ecs describe-tasks --cluster "$CLUSTER" --tasks "$TASK_ARN" --output json
+                exit 1
+              fi
+            fi
+            sleep 5
+          done
+          echo "❌ Timeout esperando resultado del task de migraciones."
+          exit 1
 
   update-service-staging:
     needs: [docker-build-push, deploy-cfn-staging]
     runs-on: ubuntu-latest
-    if: github.event_name == 'push' && (github.ref == 'refs/heads/staging' || github.ref == 'refs/heads/develop')
+    if: github.event_name == 'push' && github.ref == 'refs/heads/staging'
     defaults:
       run:
         working-directory: .
@@ -297,7 +374,7 @@ jobs:
   test-db-staging:
     needs: [update-service-staging, deploy-cfn-staging]
     runs-on: ubuntu-latest
-    if: github.event_name == 'push' && (github.ref == 'refs/heads/staging' || github.ref == 'refs/heads/develop')
+    if: github.event_name == 'push' && github.ref == 'refs/heads/staging'
     defaults:
       run:
         working-directory: .
@@ -338,7 +415,7 @@ jobs:
   test-staging:
     needs: [test-db-staging, deploy-cfn-staging]
     runs-on: ubuntu-latest
-    if: github.event_name == 'push' && (github.ref == 'refs/heads/staging' || github.ref == 'refs/heads/develop')
+    if: github.event_name == 'push' && github.ref == 'refs/heads/staging'
     env:
       APP_BASE_URL: ${{ needs.deploy-cfn-staging.outputs.alb_url_staging }}
     steps:
@@ -351,7 +428,7 @@ jobs:
 
       - name: Set DATABASE_URL env var for integration tests
         run: |
-          echo "DATABASE_URL=postgresql://${{ secrets.DB_USERNAME }}:${{ secrets.DB_PASSWORD }}@${{ needs.deploy-cfn-staging.outputs.database_endpoint_staging }}:5432/miamente" >> $GITHUB_ENV
+          echo "DATABASE_URL=postgresql://${{ secrets.DB_USERNAME }}:${{ secrets.DB_PASSWORD }}@${{ needs.deploy-cfn-staging.outputs.database_endpoint_staging }}:5432/miamente_staging" >> $GITHUB_ENV
 
       - name: Run Integration Tests
         run: |
@@ -399,152 +476,4 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
-  deploy-cfn-prod:
-    needs: [docker-build-push, test-staging]
-    runs-on: ubuntu-latest
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    outputs:
-      alb_url_prod: ${{ steps.get_stack_outputs.outputs.alb_url }}
-      cluster_name_prod: "miamente-backend-production-cluster"
-      service_name_prod: "miamente-backend-production-service"
-      database_endpoint_prod: ${{ steps.get_stack_outputs.outputs.database_endpoint }}
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
-          aws-region: us-east-1
-
-      - name: Deploy CloudFormation Production Stack
-        run: |
-          IMAGE_URI="${{ secrets.DOCKERHUB_USERNAME }}/${{ secrets.DOCKERHUB_BACKEND_REPOSITORY }}:${{ github.sha }}"
-          echo "Deploying Image URI: $IMAGE_URI"
-
-          aws cloudformation deploy \
-            --template-file template.yaml \
-            --stack-name miamente-prod-stack \
-            --parameter-overrides \
-              EnvironmentName=production \
-              DockerImageUri=$IMAGE_URI \
-              LabRoleArn=${{ secrets.LAB_ROLE_ARN }} \
-              VpcId=${{ secrets.VPC_ID }} \
-              SubnetIds="${{ secrets.SUBNET_IDS }}" \
-              DBSubnetIds="${{ secrets.DB_SUBNET_IDS }}" \
-              DBUsername=${{ secrets.DB_USERNAME }} \
-              DBPassword=${{ secrets.DB_PASSWORD }} \
-            --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM \
-            --no-fail-on-empty-changes
-
-      - name: Get Production Stack Outputs
-        id: get_stack_outputs
-        run: |
-          if ! command -v jq &> /dev/null; then
-             sudo apt-get update && sudo apt-get install -y jq
-          fi
-
-          STACK_OUTPUTS=$(aws cloudformation describe-stacks --stack-name miamente-prod-stack --query "Stacks[0].Outputs" --region us-east-1 --output json)
-          echo "Raw Stack Outputs: $STACK_OUTPUTS"
-
-          ALB_URL=$(echo $STACK_OUTPUTS | jq -r '.[] | select(.OutputKey=="ALBDnsName") | .OutputValue')
-          DATABASE_ENDPOINT=$(echo $STACK_OUTPUTS | jq -r '.[] | select(.OutputKey=="DatabaseEndpoint") | .OutputValue')
-
-          if [ -z "$ALB_URL" ] || [ "$ALB_URL" == "null" ]; then
-            echo "Error: No se pudo obtener ALBDnsName del stack de Producción."
-            exit 1
-          fi
-
-          if [ -z "$DATABASE_ENDPOINT" ] || [ "$DATABASE_ENDPOINT" == "null" ]; then
-            echo "Error: No se pudo obtener DatabaseEndpoint del stack de Producción."
-            exit 1
-          fi
-
-          ALB_URL_HTTP="http://${ALB_URL}"
-          echo "ALB URL Production: $ALB_URL_HTTP"
-          echo "Database Endpoint Production: $DATABASE_ENDPOINT"
-          echo "alb_url=${ALB_URL_HTTP}" >> $GITHUB_OUTPUT
-          echo "database_endpoint=${DATABASE_ENDPOINT}" >> $GITHUB_OUTPUT
-
-  update-service-prod:
-    needs: [docker-build-push, deploy-cfn-prod]
-    runs-on: ubuntu-latest
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-
-    steps:
-      - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
-          aws-region: us-east-1
-
-      - name: Force New Deployment ECS Service Production
-        run: |
-          echo "Forcing new deployment for Production service..."
-          aws ecs update-service --cluster ${{ needs.deploy-cfn-prod.outputs.cluster_name_prod }} \
-                                --service ${{ needs.deploy-cfn-prod.outputs.service_name_prod }} \
-                                --force-new-deployment \
-                                --region us-east-1
-
-          echo "Waiting for Production service deployment to stabilize..."
-          aws ecs wait services-stable --cluster ${{ needs.deploy-cfn-prod.outputs.cluster_name_prod }} --services ${{ needs.deploy-cfn-prod.outputs.service_name_prod }} --region us-east-1
-          echo "Production service deployment stable."
-
-  test-db-prod:
-    needs: [update-service-prod, deploy-cfn-prod]
-    runs-on: ubuntu-latest
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-
-    steps:
-      - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
-          aws-region: us-east-1
-
-      - name: Test Database Connection Production
-        run: |
-          echo "Testing database connection for production environment..."
-          echo "Database endpoint: ${{ needs.deploy-cfn-prod.outputs.database_endpoint_prod }}"
-
-          sleep 60
-
-          HEALTH_CHECK_URL="${{ needs.deploy-cfn-prod.outputs.alb_url_prod }}health"
-          echo "Checking health endpoint: $HEALTH_CHECK_URL"
-
-          for i in {1..5}; do
-            if curl -f -s "$HEALTH_CHECK_URL"; then
-              echo "Health check passed on attempt $i"
-              break
-            else
-              echo "Health check failed on attempt $i, retrying..."
-              sleep 30
-            fi
-            
-            if [ $i -eq 5 ]; then
-              echo "Health check failed after 5 attempts"
-              exit 1
-            fi
-          done
-
-  notify-success:
-    needs: [test-db-prod]
-    runs-on: ubuntu-latest
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-
-    steps:
-      - name: Deployment Success Notification
-        run: |
-          echo "Deployment completed successfully!"
-          echo "Staging URL: ${{ needs.deploy-cfn-staging.outputs.alb_url_staging }}"
-          echo "Staging DB: ${{ needs.deploy-cfn-staging.outputs.database_endpoint_staging }}"
-          echo "Production URL: ${{ needs.deploy-cfn-prod.outputs.alb_url_prod }}"
-          echo "Production DB: ${{ needs.deploy-cfn-prod.outputs.database_endpoint_prod }}"
+  
