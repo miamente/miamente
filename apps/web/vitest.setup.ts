@@ -1,7 +1,6 @@
 import "@testing-library/jest-dom/vitest";
 import { toHaveNoViolations } from "jest-axe";
 import { expect, vi } from "vitest";
-import React from "react";
 
 expect.extend(toHaveNoViolations);
 
