@@ -671,8 +671,8 @@ jobs:
       [test-db-production, deploy-cfn-production, update-service-production]
     runs-on: ubuntu-latest
     if: |
-      github.event_name == 'push' && github.base_ref == 'main' &&
-      always() && needs.test-db-production.result == 'failure'
+      github.event_name == 'push' && github.ref == 'refs/heads/main' &&
+      (always() && contains(needs.*.result, 'failure'))
     defaults:
       run:
         working-directory: .
