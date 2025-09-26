@@ -122,10 +122,9 @@ jobs:
         with:
           node-version: "22"
 
-      - name: Ensure devDependencies (Tailwind/PostCSS)
-        run: npm ci --include=dev
-        env:
-          NODE_ENV: development
+      - name: Install E2E test dependencies
+        working-directory: tests/e2e
+        run: npm ci
 
       - name: Install Playwright browsers & system deps
         working-directory: tests/e2e
@@ -229,6 +228,8 @@ jobs:
     needs:
       - docker-build-push
     steps:
+      - uses: actions/checkout@v4
+
       - name: Download unit test artifacts
         uses: actions/download-artifact@v4
         with:
