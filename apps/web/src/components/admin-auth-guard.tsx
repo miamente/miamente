@@ -39,7 +39,12 @@ export function AdminAuthGuard({ children }: AdminAuthGuardProps) {
   if (authLoading || roleLoading) {
     return (
       <div className="flex h-screen items-center justify-center">
-        <output className="h-8 w-8 animate-spin rounded-full border-b-2 border-red-600" aria-label="Loading">Loading...</output>
+        <output
+          className="h-8 w-8 animate-spin rounded-full border-b-2 border-red-600"
+          aria-label="Loading"
+        >
+          Loading...
+        </output>
       </div>
     );
   }
@@ -48,7 +53,12 @@ export function AdminAuthGuard({ children }: AdminAuthGuardProps) {
   if (!user) {
     return (
       <div className="flex h-screen items-center justify-center">
-        <output className="h-8 w-8 animate-spin rounded-full border-b-2 border-red-600" aria-label="Loading">Loading...</output>
+        <output
+          className="h-8 w-8 animate-spin rounded-full border-b-2 border-red-600"
+          aria-label="Loading"
+        >
+          Loading...
+        </output>
       </div>
     );
   }
@@ -57,7 +67,12 @@ export function AdminAuthGuard({ children }: AdminAuthGuardProps) {
   if (!userProfile) {
     return (
       <div className="flex h-screen items-center justify-center">
-        <output className="h-8 w-8 animate-spin rounded-full border-b-2 border-red-600" aria-label="Loading">Loading...</output>
+        <output
+          className="h-8 w-8 animate-spin rounded-full border-b-2 border-red-600"
+          aria-label="Loading"
+        >
+          Loading...
+        </output>
       </div>
     );
   }
@@ -66,7 +81,12 @@ export function AdminAuthGuard({ children }: AdminAuthGuardProps) {
   if (!hasAnyRole([UserRole.ADMIN])) {
     return (
       <div className="flex h-screen items-center justify-center">
-        <output className="h-8 w-8 animate-spin rounded-full border-b-2 border-red-600" aria-label="Loading">Loading...</output>
+        <output
+          className="h-8 w-8 animate-spin rounded-full border-b-2 border-red-600"
+          aria-label="Loading"
+        >
+          Loading...
+        </output>
       </div>
     );
   }

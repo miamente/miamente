@@ -1,28 +1,19 @@
-import React from 'react';
-import {
-  MoreVertical,
-  Edit,
-  Trash2,
-  UserX,
-  UserCheck,
-  Mail,
-  Phone,
-  Calendar,
-} from 'lucide-react';
+import React from "react";
+import { MoreVertical, Edit, Trash2, UserX, UserCheck, Mail, Phone, Calendar } from "lucide-react";
 
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { formatBogotaDate } from '@/lib/timezone';
+} from "@/components/ui/dropdown-menu";
+import { formatBogotaDate } from "@/lib/timezone";
 
 export interface Column<T> {
-  key: keyof T | 'actions';
+  key: keyof T | "actions";
   label: string;
   render?: (item: T) => React.ReactNode;
   className?: string;
@@ -57,17 +48,19 @@ export function AdminDataTable<T extends { id: string }>({
   onDelete,
   emptyMessage = "No hay datos disponibles",
 }: AdminDataTableProps<T>) {
-
   if (loading) {
     return (
       <div className="flex h-64 items-center justify-center">
-        <div data-testid="loading-spinner" className="h-8 w-8 animate-spin rounded-full border-b-2 border-red-600"></div>
+        <div
+          data-testid="loading-spinner"
+          className="h-8 w-8 animate-spin rounded-full border-b-2 border-red-600"
+        ></div>
       </div>
     );
   }
 
   const renderCell = (item: T, column: Column<T>) => {
-    if (column.key === 'actions') {
+    if (column.key === "actions") {
       return (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -98,10 +91,7 @@ export function AdminDataTable<T extends { id: string }>({
               </DropdownMenuItem>
             )}
             {onDelete && (
-              <DropdownMenuItem
-                onClick={() => onDelete(item)}
-                className="text-red-600"
-              >
+              <DropdownMenuItem onClick={() => onDelete(item)} className="text-red-600">
                 <Trash2 className="mr-2 h-4 w-4" />
                 Eliminar
               </DropdownMenuItem>
@@ -116,7 +106,7 @@ export function AdminDataTable<T extends { id: string }>({
     }
 
     // Handle the 'actions' key case
-    if (column.key === 'actions') {
+    if (column.key === "actions") {
       return null;
     }
 
@@ -129,16 +119,10 @@ export function AdminDataTable<T extends { id: string }>({
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-            {title}
-          </h1>
-          <p className="mt-2 text-gray-600 dark:text-gray-400">
-            {description}
-          </p>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">{title}</h1>
+          <p className="mt-2 text-gray-600 dark:text-gray-400">{description}</p>
         </div>
-        {addButtonText && onAdd && (
-          <Button onClick={onAdd}>{addButtonText}</Button>
-        )}
+        {addButtonText && onAdd && <Button onClick={onAdd}>{addButtonText}</Button>}
       </div>
 
       {error && (
@@ -156,9 +140,7 @@ export function AdminDataTable<T extends { id: string }>({
         </CardHeader>
         <CardContent>
           {data.length === 0 ? (
-            <div className="py-8 text-center text-gray-500">
-              {emptyMessage}
-            </div>
+            <div className="py-8 text-center text-gray-500">{emptyMessage}</div>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full">
@@ -167,7 +149,7 @@ export function AdminDataTable<T extends { id: string }>({
                     {columns.map((column) => (
                       <th
                         key={String(column.key)}
-                        className={`p-4 text-left font-medium ${column.className || ''}`}
+                        className={`p-4 text-left font-medium ${column.className || ""}`}
                       >
                         {column.label}
                       </th>
@@ -176,10 +158,7 @@ export function AdminDataTable<T extends { id: string }>({
                 </thead>
                 <tbody>
                   {data.map((item) => (
-                    <tr
-                      key={item.id}
-                      className="border-b hover:bg-gray-50 dark:hover:bg-gray-800"
-                    >
+                    <tr key={item.id} className="border-b hover:bg-gray-50 dark:hover:bg-gray-800">
                       {columns.map((column) => (
                         <td key={String(column.key)} className="p-4">
                           {renderCell(item, column)}
@@ -203,9 +182,7 @@ export const commonRenderers = {
     <div className="flex items-center space-x-2">
       <div>
         <div className="font-medium">{item.full_name}</div>
-        <div className="text-sm text-gray-500 dark:text-gray-400">
-          ID: {item.id.slice(0, 8)}...
-        </div>
+        <div className="text-sm text-gray-500 dark:text-gray-400">ID: {item.id.slice(0, 8)}...</div>
       </div>
     </div>
   ),

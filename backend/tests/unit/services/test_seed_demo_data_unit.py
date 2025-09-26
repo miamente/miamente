@@ -107,7 +107,7 @@ class TestSeedReferenceData:
 
             assert call_args[0].__name__ == "Specialty"
             assert call_args[1] is db_session
-            assert call_kwargs["defaults"] == {"category": "General"}
+            assert call_kwargs["defaults"] == {"category": "General", "is_active": True}
             assert call_kwargs["name"] == specialty_name
 
     @patch("app.services.seed_demo_data.get_or_create")
@@ -129,7 +129,7 @@ class TestSeedReferenceData:
 
             assert call_args[0].__name__ == "TherapeuticApproach"
             assert call_args[1] is db_session
-            assert call_kwargs["defaults"] == {"description": approach_name, "category": None}
+            assert call_kwargs["defaults"] == {"description": approach_name, "category": None, "is_active": True}
             assert call_kwargs["name"] == approach_name
 
     @patch("app.services.seed_demo_data.get_or_create")
@@ -180,6 +180,11 @@ class TestSeedUsers:
             "phone": "+573001234568",
             "is_active": True,
             "is_verified": True,
+            "role": "user",
+            "date_of_birth": None,
+            "emergency_contact": "Contacto de Emergencia",
+            "emergency_phone": "+573001234569",
+            "preferences": '{"theme": "light", "notifications": true}',
         }
         mock_get_password_hash.assert_called_once_with("test123456")
 
@@ -212,11 +217,27 @@ class TestSeedProfessional:
             "hashed_password": "hashed_password",
             "full_name": "Dr. Test Professional",
             "phone": "+573001234567",
+            "phone_country_code": "+57",
+            "phone_number": "3001234567",
             "years_experience": 8,
             "rate_cents": 50000,
+            "custom_rate_cents": None,
+            "currency": "COP",
             "is_active": True,
             "is_verified": True,
+            "profile_picture": None,
+            "license_number": "PSI-12345",
+            "bio": "Psicólogo clínico con 8 años de experiencia en terapia cognitivo-conductual.",
+            "academic_experience": '{"degree": "Psicología", "university": "Universidad Nacional", "year": 2015}',
+            "work_experience": '{"current": "Consultorio Privado", "previous": ["Hospital San Rafael", "Centro de Salud Mental"]}',
+            "certifications": '["Certificación en TCC", "Especialización en Terapia de Pareja"]',
+            "languages": ["Español", "Inglés"],
+            "therapy_approaches_ids": None,
             "specialty_ids": ["specialty_id_123"],
+            "timezone": "America/Bogota",
+            "working_hours": '{"monday": {"start": "09:00", "end": "17:00"}, "tuesday": {"start": "09:00", "end": "17:00"}}',
+            "emergency_contact": "Dr. Emergency Contact",
+            "emergency_phone": "+573001234570",
         }
         mock_get_password_hash.assert_called_once_with("test123456")
 
@@ -243,11 +264,27 @@ class TestSeedProfessional:
             "hashed_password": "hashed_password",
             "full_name": "Dr. Test Professional",
             "phone": "+573001234567",
+            "phone_country_code": "+57",
+            "phone_number": "3001234567",
             "years_experience": 8,
             "rate_cents": 50000,
+            "custom_rate_cents": None,
+            "currency": "COP",
             "is_active": True,
             "is_verified": True,
+            "profile_picture": None,
+            "license_number": "PSI-12345",
+            "bio": "Psicólogo clínico con 8 años de experiencia en terapia cognitivo-conductual.",
+            "academic_experience": '{"degree": "Psicología", "university": "Universidad Nacional", "year": 2015}',
+            "work_experience": '{"current": "Consultorio Privado", "previous": ["Hospital San Rafael", "Centro de Salud Mental"]}',
+            "certifications": '["Certificación en TCC", "Especialización en Terapia de Pareja"]',
+            "languages": ["Español", "Inglés"],
+            "therapy_approaches_ids": None,
             "specialty_ids": None,
+            "timezone": "America/Bogota",
+            "working_hours": '{"monday": {"start": "09:00", "end": "17:00"}, "tuesday": {"start": "09:00", "end": "17:00"}}',
+            "emergency_contact": "Dr. Emergency Contact",
+            "emergency_phone": "+573001234570",
         }
 
     @patch("app.services.seed_demo_data.get_password_hash")
@@ -267,7 +304,7 @@ class TestSeedProfessional:
         mock_get_or_create.assert_called_once()
         call_kwargs = mock_get_or_create.call_args[1]
 
-        assert call_kwargs["defaults"]["specialty_ids"] == [""]
+        assert call_kwargs["defaults"]["specialty_ids"] == None
 
 
 class TestRun:

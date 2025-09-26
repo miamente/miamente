@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from "react";
 
 export interface AdminDataConfig<T> {
   loadFunction: () => Promise<T[]>;
@@ -31,8 +31,8 @@ export function useAdminData<T extends { id: string }>({
       const response = await loadFunction();
       setData(Array.isArray(response) ? response : []);
     } catch (err) {
-      console.error('Error loading data:', err);
-      setError('Error al cargar los datos. Por favor, inténtalo de nuevo.');
+      console.error("Error loading data:", err);
+      setError("Error al cargar los datos. Por favor, inténtalo de nuevo.");
       setData([]);
     } finally {
       setLoading(false);
@@ -44,11 +44,11 @@ export function useAdminData<T extends { id: string }>({
   }, [loadFunction, loadData]);
 
   const updateItem = (id: string, updatedItem: T) => {
-    setData(prev => prev.map(item => item.id === id ? updatedItem : item));
+    setData((prev) => prev.map((item) => (item.id === id ? updatedItem : item)));
   };
 
   const removeItem = (id: string) => {
-    setData(prev => prev.filter(item => item.id !== id));
+    setData((prev) => prev.filter((item) => item.id !== id));
   };
 
   return {
@@ -58,6 +58,6 @@ export function useAdminData<T extends { id: string }>({
     refreshData: loadData,
     updateItem,
     removeItem,
-    setError
+    setError,
   };
 }

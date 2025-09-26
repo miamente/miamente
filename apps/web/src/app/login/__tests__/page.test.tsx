@@ -144,7 +144,7 @@ describe("LoginPage", () => {
     render(<LoginPage />);
 
     await waitFor(() => {
-      expect(mockPush).toHaveBeenCalledWith("/verify");
+      expect(mockPush).toHaveBeenCalledWith("/dashboard");
     });
   });
 

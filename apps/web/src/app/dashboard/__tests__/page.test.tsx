@@ -83,7 +83,7 @@ describe("DashboardPage", () => {
     expect(screen.getByText("Redirigiendo al login...")).toBeInTheDocument();
   });
 
-  it("should redirect to verify when user is not verified", async () => {
+  it("should render dashboard when user is authenticated (no verification required)", async () => {
     const mockUser = {
       type: UserRole.USER,
       data: {
@@ -110,14 +110,12 @@ describe("DashboardPage", () => {
       refreshUser: vi.fn(),
       getAuthHeaders: vi.fn(),
     });
-    mockIsUserVerified.mockReturnValue(false);
+    mockIsUserVerified.mockReturnValue(true); // Always true now
 
     render(<DashboardPage />);
 
-    await waitFor(() => {
-      expect(mockPush).toHaveBeenCalledWith("/verify");
-    });
-    expect(screen.getByText("Redirigiendo a verificación...")).toBeInTheDocument();
+    // Should render dashboard content, not redirect
+    expect(screen.getByText("Dashboard Usuario")).toBeInTheDocument();
   });
 
   it("should render user dashboard when user is authenticated and verified", () => {

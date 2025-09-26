@@ -243,7 +243,6 @@ describe("AdminUsers", () => {
     expect(screen.getByText("Moderator User")).toBeInTheDocument();
   });
 
-
   it("should display correct role badges", async () => {
     render(<AdminUsers />);
 
@@ -343,13 +342,10 @@ describe("AdminUsers", () => {
 
     await waitFor(() => {
       expect(
-        screen.getByText(
-          "Error al cargar los datos. Por favor, inténtalo de nuevo.",
-        ),
+        screen.getByText("Error al cargar los datos. Por favor, inténtalo de nuevo."),
       ).toBeInTheDocument();
     });
   });
-
 
   it("should show no users message when no admin users exist", async () => {
     const { apiClient } = await import("@/lib/api");
@@ -375,6 +371,4 @@ describe("AdminUsers", () => {
       expect(screen.getByText("Gestión de Usuarios Administrativos (2)")).toBeInTheDocument();
     });
   });
-
-
 });

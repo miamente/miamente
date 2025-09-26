@@ -11,8 +11,8 @@ const MockTherapeuticApproachesMultiSelect = vi.fn(({ value = [], onChange, disa
       <div>Component disabled</div>
     ) : (
       <div>
-        <select 
-          data-testid="approach-select" 
+        <select
+          data-testid="approach-select"
           onChange={(e) => onChange?.(e.target.value ? [...value, e.target.value] : value)}
         >
           <option value="">Seleccionar enfoque terapéutico...</option>
@@ -27,7 +27,7 @@ const MockTherapeuticApproachesMultiSelect = vi.fn(({ value = [], onChange, disa
         {value.map((id: string) => (
           <div key={id} data-testid={`approach-${id}`}>
             {id}
-            <button 
+            <button
               data-testid={`remove-${id}`}
               onClick={() => onChange?.(value.filter((v: string) => v !== id))}
             >
@@ -88,7 +88,9 @@ describe("TherapeuticApproachesMultiSelect", () => {
   it("should call onChange when approach is removed", async () => {
     const mockOnChange = vi.fn();
     const selectedApproaches = ["approach1", "approach2"];
-    render(<MockTherapeuticApproachesMultiSelect value={selectedApproaches} onChange={mockOnChange} />);
+    render(
+      <MockTherapeuticApproachesMultiSelect value={selectedApproaches} onChange={mockOnChange} />,
+    );
 
     const removeButton = screen.getByTestId("remove-approach1");
     await user.click(removeButton);

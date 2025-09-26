@@ -58,7 +58,15 @@ vi.mock("@/hooks/useAuth", () => ({
 
 // Mock child components
 vi.mock("../header/mobile-menu", () => ({
-  MobileMenu: ({ isOpen, onClose, navigationItems, userMenuOptions, userRole, userName, isAuthenticated }: Omit<MockMobileMenuProps, 'onUserMenuAction'>) => (
+  MobileMenu: ({
+    isOpen,
+    onClose,
+    navigationItems,
+    userMenuOptions,
+    userRole,
+    userName,
+    isAuthenticated,
+  }: Omit<MockMobileMenuProps, "onUserMenuAction">) => (
     <div data-testid="mobile-menu" data-open={isOpen}>
       <button onClick={onClose}>Close Mobile Menu</button>
       <div data-testid="mobile-nav-items">{navigationItems.length} items</div>
@@ -80,7 +88,14 @@ vi.mock("../header/navigation", () => ({
 }));
 
 vi.mock("../header/user-menu", () => ({
-  UserMenu: ({ userRole, userName, userEmail, userMenuOptions, onUserMenuAction, isAuthenticated }: MockUserMenuProps) => (
+  UserMenu: ({
+    userRole,
+    userName,
+    userEmail,
+    userMenuOptions,
+    onUserMenuAction,
+    isAuthenticated,
+  }: MockUserMenuProps) => (
     <div data-testid="user-menu">
       <div data-testid="user-role">{userRole}</div>
       <div data-testid="user-name">{userName}</div>
@@ -123,7 +138,7 @@ describe("UnifiedHeader", () => {
 
     // Should show the header with logo in loading state
     expect(screen.getByText("Miamente")).toBeInTheDocument();
-    
+
     // Should have a button (mobile menu button)
     const buttons = screen.getAllByRole("button");
     expect(buttons.length).toBeGreaterThan(0);
@@ -135,7 +150,7 @@ describe("UnifiedHeader", () => {
 
     // Look for disabled button when auth is loading
     const buttons = screen.getAllByRole("button");
-    const disabledButton = buttons.find(button => (button as HTMLButtonElement).disabled);
+    const disabledButton = buttons.find((button) => (button as HTMLButtonElement).disabled);
     expect(disabledButton).toBeDisabled();
   });
 
@@ -292,14 +307,22 @@ describe("UnifiedHeader", () => {
     render(<UnifiedHeader />);
 
     const header = screen.getByRole("banner");
-    expect(header).toHaveClass("bg-white/70", "backdrop-blur", "supports-[backdrop-filter]:bg-white/60");
+    expect(header).toHaveClass(
+      "bg-white/70",
+      "backdrop-blur",
+      "supports-[backdrop-filter]:bg-white/60",
+    );
   });
 
   it("should apply correct background class for admin variant", () => {
     render(<UnifiedHeader variant="admin" />);
 
     const header = screen.getByRole("banner");
-    expect(header).toHaveClass("bg-red-50/70", "backdrop-blur", "supports-[backdrop-filter]:bg-red-50/60");
+    expect(header).toHaveClass(
+      "bg-red-50/70",
+      "backdrop-blur",
+      "supports-[backdrop-filter]:bg-red-50/60",
+    );
   });
 
   it("should show Shield icon for admin variant", () => {
@@ -329,7 +352,7 @@ describe("UnifiedHeader", () => {
     await user.click(logoutButton);
 
     expect(consoleSpy).toHaveBeenCalledWith("Error signing out:", expect.any(Error));
-    
+
     consoleSpy.mockRestore();
   });
 

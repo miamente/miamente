@@ -23,10 +23,10 @@ export default function AdminUsers() {
     setError,
   } = useAdminData<AdminUser>({
     loadFunction: async () => {
-        const response = await apiClient.getUsers({ role: "user" });
-        console.log("Users API response:", response);
+      const response = await apiClient.getUsers({ role: "user" });
+      console.log("Users API response:", response);
 
-        if (Array.isArray(response)) {
+      if (Array.isArray(response)) {
         return response as AdminUser[];
       }
       return [];
@@ -62,48 +62,49 @@ export default function AdminUsers() {
 
   const columns: Column<AdminUser>[] = [
     {
-      key: 'full_name',
-      label: 'Usuario',
+      key: "full_name",
+      label: "Usuario",
       render: (user) => (
         <div className="flex items-center space-x-2">
           <User className="h-4 w-4" />
-            <div>
-                        <div className="font-medium">{user.full_name}</div>
-                        <div className="text-sm text-gray-500 dark:text-gray-400">
-                          ID: {user.id.slice(0, 8)}...
-                        </div>
-                        </div>
-                          </div>
+          <div>
+            <div className="font-medium">{user.full_name}</div>
+            <div className="text-sm text-gray-500 dark:text-gray-400">
+              ID: {user.id.slice(0, 8)}...
+            </div>
+          </div>
+        </div>
       ),
     },
     {
-      key: 'email',
-      label: 'Contacto',
+      key: "email",
+      label: "Contacto",
       render: commonRenderers.contact,
     },
     {
-      key: 'role',
-      label: 'Rol',
+      key: "role",
+      label: "Rol",
       render: () => <Badge variant="secondary">Usuario</Badge>,
     },
     {
-      key: 'is_active',
-      label: 'Estado',
+      key: "is_active",
+      label: "Estado",
       render: commonRenderers.status,
     },
     {
-      key: 'created_at',
-      label: 'Registro',
-      render: (user) => commonRenderers.date(user as unknown as Record<string, unknown>, 'created_at'),
+      key: "created_at",
+      label: "Registro",
+      render: (user) =>
+        commonRenderers.date(user as unknown as Record<string, unknown>, "created_at"),
     },
     {
-      key: 'last_login',
-      label: 'Último Acceso',
+      key: "last_login",
+      label: "Último Acceso",
       render: commonRenderers.lastLogin,
     },
     {
-      key: 'actions',
-      label: 'Acciones',
+      key: "actions",
+      label: "Acciones",
     },
   ];
 

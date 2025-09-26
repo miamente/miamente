@@ -1,21 +1,29 @@
-import React from 'react';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import AdminModalities from '../page';
+import React from "react";
+import { render, screen, fireEvent, waitFor } from "@testing-library/react";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+import AdminModalities from "../page";
 
 // Mock the UI components
-vi.mock('@/components/ui/card', () => ({
+vi.mock("@/components/ui/card", () => ({
   Card: ({ children, className }: { children: React.ReactNode; className?: string }) => (
-    <div data-testid="card" className={className}>{children}</div>
+    <div data-testid="card" className={className}>
+      {children}
+    </div>
   ),
   CardContent: ({ children, className }: { children: React.ReactNode; className?: string }) => (
-    <div data-testid="card-content" className={className}>{children}</div>
+    <div data-testid="card-content" className={className}>
+      {children}
+    </div>
   ),
   CardHeader: ({ children, className }: { children: React.ReactNode; className?: string }) => (
-    <div data-testid="card-header" className={className}>{children}</div>
+    <div data-testid="card-header" className={className}>
+      {children}
+    </div>
   ),
   CardTitle: ({ children, className }: { children: React.ReactNode; className?: string }) => (
-    <h3 data-testid="card-title" className={className}>{children}</h3>
+    <h3 data-testid="card-title" className={className}>
+      {children}
+    </h3>
   ),
 }));
 
@@ -27,11 +35,11 @@ interface MockButtonProps {
   variant?: string;
 }
 
-vi.mock('@/components/ui/button', () => ({
+vi.mock("@/components/ui/button", () => ({
   Button: ({ children, onClick, className, size, variant }: MockButtonProps) => (
-    <button 
-      data-testid="button" 
-      onClick={onClick} 
+    <button
+      data-testid="button"
+      onClick={onClick}
       className={className}
       data-size={size}
       data-variant={variant}
@@ -50,7 +58,7 @@ interface MockInputProps {
   id?: string;
 }
 
-vi.mock('@/components/ui/input', () => ({
+vi.mock("@/components/ui/input", () => ({
   Input: ({ placeholder, value, onChange, className, type, id }: MockInputProps) => (
     <input
       data-testid="input"
@@ -64,9 +72,11 @@ vi.mock('@/components/ui/input', () => ({
   ),
 }));
 
-vi.mock('@/components/ui/badge', () => ({
+vi.mock("@/components/ui/badge", () => ({
   Badge: ({ children, variant }: { children: React.ReactNode; variant?: string }) => (
-    <span data-testid="badge" data-variant={variant}>{children}</span>
+    <span data-testid="badge" data-variant={variant}>
+      {children}
+    </span>
   ),
 }));
 
@@ -76,14 +86,16 @@ interface MockDialogProps {
   onOpenChange?: (open: boolean) => void;
 }
 
-vi.mock('@/components/ui/dialog', () => ({
+vi.mock("@/components/ui/dialog", () => ({
   Dialog: ({ children, open, onOpenChange }: MockDialogProps) => (
     <div data-testid="dialog" data-open={open} data-on-open-change={onOpenChange}>
       {children}
     </div>
   ),
   DialogContent: ({ children, className }: { children: React.ReactNode; className?: string }) => (
-    <div data-testid="dialog-content" className={className}>{children}</div>
+    <div data-testid="dialog-content" className={className}>
+      {children}
+    </div>
   ),
   DialogHeader: ({ children }: { children: React.ReactNode }) => (
     <div data-testid="dialog-header">{children}</div>
@@ -93,9 +105,11 @@ vi.mock('@/components/ui/dialog', () => ({
   ),
 }));
 
-vi.mock('@/components/ui/label', () => ({
+vi.mock("@/components/ui/label", () => ({
   Label: ({ children, htmlFor }: { children: React.ReactNode; htmlFor?: string }) => (
-    <label data-testid="label" htmlFor={htmlFor}>{children}</label>
+    <label data-testid="label" htmlFor={htmlFor}>
+      {children}
+    </label>
   ),
 }));
 
@@ -107,7 +121,7 @@ interface MockTextareaProps {
   id?: string;
 }
 
-vi.mock('@/components/ui/textarea', () => ({
+vi.mock("@/components/ui/textarea", () => ({
   Textarea: ({ placeholder, value, onChange, rows, id }: MockTextareaProps) => (
     <textarea
       data-testid="textarea"
@@ -126,7 +140,7 @@ interface MockCheckboxProps {
   id?: string;
 }
 
-vi.mock('@/components/ui/checkbox', () => ({
+vi.mock("@/components/ui/checkbox", () => ({
   Checkbox: ({ checked, onCheckedChange, id }: MockCheckboxProps) => (
     <input
       data-testid="checkbox"
@@ -139,7 +153,7 @@ vi.mock('@/components/ui/checkbox', () => ({
 }));
 
 // Mock lucide-react icons
-vi.mock('lucide-react', () => ({
+vi.mock("lucide-react", () => ({
   Search: () => <div data-testid="search-icon">Search</div>,
   Plus: () => <div data-testid="plus-icon">Plus</div>,
   Edit: () => <div data-testid="edit-icon">Edit</div>,
@@ -151,124 +165,128 @@ vi.mock('lucide-react', () => ({
   Clock: () => <div data-testid="clock-icon">Clock</div>,
 }));
 
-describe('AdminModalities', () => {
+describe("AdminModalities", () => {
   beforeEach(() => {
     // Mock console methods to avoid noise in tests
-    vi.spyOn(console, 'log').mockImplementation(() => {});
-    vi.spyOn(console, 'error').mockImplementation(() => {});
-    vi.spyOn(window, 'confirm').mockImplementation(() => true);
+    vi.spyOn(console, "log").mockImplementation(() => {});
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    vi.spyOn(window, "confirm").mockImplementation(() => true);
   });
 
-  it('should render the page title and description', async () => {
+  it("should render the page title and description", async () => {
     render(<AdminModalities />);
 
     await waitFor(() => {
-      expect(screen.getByText('Gestión de Modalidades')).toBeInTheDocument();
-      expect(screen.getByText('Administrar modalidades de consulta y precios')).toBeInTheDocument();
+      expect(screen.getByText("Gestión de Modalidades")).toBeInTheDocument();
+      expect(screen.getByText("Administrar modalidades de consulta y precios")).toBeInTheDocument();
     });
   });
 
-  it('should render the add modality button', async () => {
+  it("should render the add modality button", async () => {
     render(<AdminModalities />);
 
     await waitFor(() => {
-      expect(screen.getAllByText('Agregar Modalidad').length).toBeGreaterThan(0);
+      expect(screen.getAllByText("Agregar Modalidad").length).toBeGreaterThan(0);
     });
   });
 
-  it('should load and display modalities', async () => {
+  it("should load and display modalities", async () => {
     render(<AdminModalities />);
 
     await waitFor(() => {
-      expect(screen.getByText('Consulta Individual')).toBeInTheDocument();
-      expect(screen.getByText('Terapia de Pareja')).toBeInTheDocument();
-      expect(screen.getByText('Grupo de Apoyo')).toBeInTheDocument();
+      expect(screen.getByText("Consulta Individual")).toBeInTheDocument();
+      expect(screen.getByText("Terapia de Pareja")).toBeInTheDocument();
+      expect(screen.getByText("Grupo de Apoyo")).toBeInTheDocument();
     });
   });
 
-  it('should display modality details correctly', async () => {
+  it("should display modality details correctly", async () => {
     render(<AdminModalities />);
 
     await waitFor(() => {
-      expect(screen.getByText('Sesión individual de terapia o consulta médica')).toBeInTheDocument();
-      expect(screen.getByText('Profesionales: 15')).toBeInTheDocument();
-      expect(screen.getByText('Profesionales: 8')).toBeInTheDocument();
+      expect(
+        screen.getByText("Sesión individual de terapia o consulta médica"),
+      ).toBeInTheDocument();
+      expect(screen.getByText("Profesionales: 15")).toBeInTheDocument();
+      expect(screen.getByText("Profesionales: 8")).toBeInTheDocument();
     });
   });
 
-  it('should filter modalities by search term', async () => {
+  it("should filter modalities by search term", async () => {
     render(<AdminModalities />);
 
     await waitFor(() => {
-      expect(screen.getByText('Consulta Individual')).toBeInTheDocument();
+      expect(screen.getByText("Consulta Individual")).toBeInTheDocument();
     });
 
-    const searchInput = screen.getByPlaceholderText('Buscar por nombre o descripción...');
-    fireEvent.change(searchInput, { target: { value: 'Individual' } });
+    const searchInput = screen.getByPlaceholderText("Buscar por nombre o descripción...");
+    fireEvent.change(searchInput, { target: { value: "Individual" } });
 
-    expect(screen.getByText('Consulta Individual')).toBeInTheDocument();
-    expect(screen.queryByText('Terapia de Pareja')).not.toBeInTheDocument();
+    expect(screen.getByText("Consulta Individual")).toBeInTheDocument();
+    expect(screen.queryByText("Terapia de Pareja")).not.toBeInTheDocument();
   });
 
-  it('should display correct status badges', async () => {
+  it("should display correct status badges", async () => {
     render(<AdminModalities />);
 
     await waitFor(() => {
-      const activeBadges = screen.getAllByText('Activa');
-      const inactiveBadges = screen.getAllByText('Inactiva');
-      
+      const activeBadges = screen.getAllByText("Activa");
+      const inactiveBadges = screen.getAllByText("Inactiva");
+
       expect(activeBadges.length).toBeGreaterThan(0);
       expect(inactiveBadges.length).toBeGreaterThan(0);
     });
   });
 
-  it('should handle create modality button click', async () => {
+  it("should handle create modality button click", async () => {
     render(<AdminModalities />);
 
     await waitFor(() => {
-      expect(screen.getAllByText('Agregar Modalidad').length).toBeGreaterThan(0);
+      expect(screen.getAllByText("Agregar Modalidad").length).toBeGreaterThan(0);
     });
 
-    const createButton = screen.getAllByText('Agregar Modalidad')[0]; // Get the first one (button)
+    const createButton = screen.getAllByText("Agregar Modalidad")[0]; // Get the first one (button)
     fireEvent.click(createButton);
 
     await waitFor(() => {
-      expect(screen.getAllByText('Agregar Modalidad').length).toBeGreaterThan(0);
+      expect(screen.getAllByText("Agregar Modalidad").length).toBeGreaterThan(0);
     });
   });
 
-  it('should show empty state when no modalities match search', async () => {
+  it("should show empty state when no modalities match search", async () => {
     render(<AdminModalities />);
 
     await waitFor(() => {
-      expect(screen.getByText('Consulta Individual')).toBeInTheDocument();
+      expect(screen.getByText("Consulta Individual")).toBeInTheDocument();
     });
 
-    const searchInput = screen.getByPlaceholderText('Buscar por nombre o descripción...');
-    fireEvent.change(searchInput, { target: { value: 'NonExistent' } });
+    const searchInput = screen.getByPlaceholderText("Buscar por nombre o descripción...");
+    fireEvent.change(searchInput, { target: { value: "NonExistent" } });
 
     await waitFor(() => {
-      expect(screen.getByText('No hay modalidades que coincidan con la búsqueda')).toBeInTheDocument();
-    });
-  });
-
-  it('should format prices correctly', async () => {
-    render(<AdminModalities />);
-
-    await waitFor(() => {
-      expect(screen.getByText('$ 80.000')).toBeInTheDocument();
-      expect(screen.getByText('$ 100.000')).toBeInTheDocument();
-      expect(screen.getByText('$ 120.000')).toBeInTheDocument();
+      expect(
+        screen.getByText("No hay modalidades que coincidan con la búsqueda"),
+      ).toBeInTheDocument();
     });
   });
 
-  it('should display professional counts', async () => {
+  it("should format prices correctly", async () => {
     render(<AdminModalities />);
 
     await waitFor(() => {
-      expect(screen.getByText('Profesionales: 15')).toBeInTheDocument();
-      expect(screen.getByText('Profesionales: 8')).toBeInTheDocument();
-      expect(screen.getByText('Profesionales: 3')).toBeInTheDocument();
+      expect(screen.getByText("$ 80.000")).toBeInTheDocument();
+      expect(screen.getByText("$ 100.000")).toBeInTheDocument();
+      expect(screen.getByText("$ 120.000")).toBeInTheDocument();
+    });
+  });
+
+  it("should display professional counts", async () => {
+    render(<AdminModalities />);
+
+    await waitFor(() => {
+      expect(screen.getByText("Profesionales: 15")).toBeInTheDocument();
+      expect(screen.getByText("Profesionales: 8")).toBeInTheDocument();
+      expect(screen.getByText("Profesionales: 3")).toBeInTheDocument();
     });
   });
 });

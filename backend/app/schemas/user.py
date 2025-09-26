@@ -40,6 +40,7 @@ class UserUpdate(BaseModel):
     """User update schema."""
 
     full_name: Optional[str] = None
+    email: Optional[str] = None
     phone: Optional[str] = None
     date_of_birth: Optional[datetime] = None
     emergency_contact: Optional[str] = None
