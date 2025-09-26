@@ -1,12 +1,6 @@
 name: Frontend CD
 
 on:
-  push:
-    branches: [staging, main]
-    paths:
-      - "apps/web/**"
-      - ".github/workflows/frontend-cd.yml"
-      - ".github/actions/setup-frontend/**"
   repository_dispatch:
     types: [frontend-deploy-staging, frontend-deploy-production]
   workflow_dispatch:
@@ -268,7 +262,7 @@ jobs:
   deploy-cfn-staging:
     needs: [docker-build-push]
     runs-on: ubuntu-latest
-    if: github.event_name == 'push' && github.ref == 'refs/heads/staging'
+    if: github.event_name == 'repository_dispatch' && github.event.action == 'frontend-deploy-staging'
     outputs:
       alb_url_staging: ${{ steps.get_stack_outputs.outputs.FrontendALBUrl }}
 
@@ -344,7 +338,7 @@ jobs:
   deploy-cfn-prod:
     needs: [docker-build-push]
     runs-on: ubuntu-latest
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    if: github.event_name == 'repository_dispatch' && github.event.action == 'frontend-deploy-production'
     outputs:
       alb_url_prod: ${{ steps.get_stack_outputs.outputs.FrontendALBUrl }}
 
