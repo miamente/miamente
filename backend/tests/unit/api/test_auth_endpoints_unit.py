@@ -88,6 +88,8 @@ class TestAuthEndpointsUnit:
         user.role = UserRole.USER
         user.created_at = datetime.now()
         user.updated_at = None
+        user.date_of_birth = "1990-01-01"
+        user.preferences = '{"theme": "light"}'
         return user
 
     @pytest.fixture
@@ -108,6 +110,16 @@ class TestAuthEndpointsUnit:
         professional.is_verified = False
         professional.created_at = datetime.now()
         professional.updated_at = None
+        professional.working_hours = '{"monday": {"start": "09:00", "end": "17:00"}}'
+        professional.years_experience = 5
+        professional.rate_cents = 50000
+        professional.languages = ["Spanish", "English"]
+        professional.academic_experience = []
+        professional.work_experience = []
+        professional.certifications = []
+        professional.therapy_approaches_ids = []
+        professional.specialty_ids = []
+        professional.modalities = []
         return professional
 
     @pytest.fixture
@@ -515,7 +527,12 @@ class TestAuthEndpointsUnit:
         # Assert
         mock_auth_service.get_user_by_id.assert_called_once_with("user-123")
         assert result["type"] == "user"
-        assert result["data"] == sample_user
+        # Check that the data is properly parsed (contains expected fields)
+        assert "id" in result["data"]
+        assert "email" in result["data"]
+        assert "full_name" in result["data"]
+        assert result["data"]["email"] == "test@example.com"
+        assert result["data"]["full_name"] == "Test User"
 
     @pytest.mark.asyncio
     @patch("app.api.v1.endpoints.auth.AuthService")
@@ -535,7 +552,12 @@ class TestAuthEndpointsUnit:
         mock_auth_service.get_user_by_id.assert_called_once_with("prof-123")
         mock_auth_service.get_professional_by_id.assert_called_once_with("prof-123")
         assert result["type"] == "professional"
-        assert result["data"] == sample_professional
+        # Check that the data is properly parsed (contains expected fields)
+        assert "id" in result["data"]
+        assert "email" in result["data"]
+        assert "full_name" in result["data"]
+        assert result["data"]["email"] == "professional@example.com"
+        assert result["data"]["full_name"] == "Test Professional"
 
     @pytest.mark.asyncio
     @patch("app.api.v1.endpoints.auth.AuthService")

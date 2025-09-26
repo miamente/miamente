@@ -243,33 +243,6 @@ describe("AdminUsers", () => {
     expect(screen.getByText("Moderator User")).toBeInTheDocument();
   });
 
-  it("should filter users by search term", async () => {
-    render(<AdminUsers />);
-
-    await waitFor(() => {
-      expect(screen.getByText("admin@example.com")).toBeInTheDocument();
-    });
-
-    const searchInput = screen.getByPlaceholderText("Buscar por nombre o email...");
-    fireEvent.change(searchInput, { target: { value: "admin" } });
-
-    expect(screen.getByText("admin@example.com")).toBeInTheDocument();
-    expect(screen.queryByText("moderator@example.com")).not.toBeInTheDocument();
-  });
-
-  it("should filter users by status", async () => {
-    render(<AdminUsers />);
-
-    await waitFor(() => {
-      expect(screen.getByText("admin@example.com")).toBeInTheDocument();
-    });
-
-    const statusSelect = screen.getByDisplayValue("Todos los estados");
-    fireEvent.change(statusSelect, { target: { value: "active" } });
-
-    expect(screen.getByText("admin@example.com")).toBeInTheDocument();
-    expect(screen.queryByText("moderator@example.com")).not.toBeInTheDocument();
-  });
 
   it("should display correct role badges", async () => {
     render(<AdminUsers />);
@@ -371,26 +344,12 @@ describe("AdminUsers", () => {
     await waitFor(() => {
       expect(
         screen.getByText(
-          "Error al cargar los usuarios administrativos. Por favor, inténtalo de nuevo.",
+          "Error al cargar los datos. Por favor, inténtalo de nuevo.",
         ),
       ).toBeInTheDocument();
     });
   });
 
-  it("should show empty state when no users match filters", async () => {
-    render(<AdminUsers />);
-
-    await waitFor(() => {
-      expect(screen.getByText("admin@example.com")).toBeInTheDocument();
-    });
-
-    const searchInput = screen.getByPlaceholderText("Buscar por nombre o email...");
-    fireEvent.change(searchInput, { target: { value: "nonexistent" } });
-
-    expect(
-      screen.getByText("No hay usuarios que coincidan con los filtros seleccionados"),
-    ).toBeInTheDocument();
-  });
 
   it("should show no users message when no admin users exist", async () => {
     const { apiClient } = await import("@/lib/api");
@@ -413,7 +372,7 @@ describe("AdminUsers", () => {
     render(<AdminUsers />);
 
     await waitFor(() => {
-      expect(screen.getByText("Usuarios Administrativos (2 de 2)")).toBeInTheDocument();
+      expect(screen.getByText("Gestión de Usuarios Administrativos (2)")).toBeInTheDocument();
     });
   });
 

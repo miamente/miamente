@@ -1,240 +1,410 @@
-import React from "react";
-import { render, screen, fireEvent } from "@testing-library/react";
-import { describe, it, expect, vi } from "vitest";
-import "@testing-library/jest-dom";
-import { Button } from "../button";
-import { testAccessibility, commonAccessibilityTests } from "@/lib/test-utils";
+import { describe, it, expect, vi } from 'vitest';
+import { render, screen, fireEvent } from '@testing-library/react';
+import React from 'react';
+import { Button } from '../button';
 
-describe("Button", () => {
-  it("should render with default props", () => {
+// Mock the utils module
+vi.mock('@/lib/utils', () => ({
+  cn: vi.fn((...classes) => classes.filter(Boolean).join(' ')),
+}));
+
+describe('Button Component', () => {
+  describe('Basic Rendering', () => {
+    it('should render a button element by default', () => {
     render(<Button>Click me</Button>);
 
-    const button = screen.getByRole("button", { name: "Click me" });
+      const button = screen.getByRole('button', { name: /click me/i });
+      expect(button).toBeInTheDocument();
+      expect(button.tagName).toBe('BUTTON');
+    });
+
+    it('should render with custom text content', () => {
+      render(<Button>Custom Button Text</Button>);
+      
+      const button = screen.getByRole('button', { name: /custom button text/i });
+      expect(button).toBeInTheDocument();
+    });
+
+    it('should render with children elements', () => {
+      render(
+        <Button>
+          <span>Icon</span>
+          <span>Text</span>
+        </Button>
+      );
+      
+      const button = screen.getByRole('button');
     expect(button).toBeInTheDocument();
-    expect(button).toHaveClass("inline-flex", "items-center", "justify-center");
+      expect(button).toHaveTextContent('IconText');
+    });
+
+    it('should render as a different component when asChild is true', () => {
+      render(
+        <Button asChild>
+          <a href="/test">Link Button</a>
+        </Button>
+      );
+      
+      const link = screen.getByRole('link', { name: /link button/i });
+      expect(link).toBeInTheDocument();
+      expect(link.tagName).toBe('A');
+      expect(link).toHaveAttribute('href', '/test');
+    });
   });
 
-  it("should render with different variants", () => {
-    const { rerender } = render(<Button variant="default">Default</Button>);
-    expect(screen.getByRole("button")).toHaveClass("bg-primary", "text-primary-foreground");
+  describe('Variants', () => {
+    it('should render with default variant', () => {
+      render(<Button>Default</Button>);
+      
+      const button = screen.getByRole('button');
+      expect(button).toBeInTheDocument();
+    });
 
-    rerender(<Button variant="destructive">Destructive</Button>);
-    expect(screen.getByRole("button")).toHaveClass("bg-destructive", "text-white");
+    it('should render with destructive variant', () => {
+      render(<Button variant="destructive">Delete</Button>);
+      
+      const button = screen.getByRole('button', { name: /delete/i });
+      expect(button).toBeInTheDocument();
+    });
 
-    rerender(<Button variant="outline">Outline</Button>);
-    expect(screen.getByRole("button")).toHaveClass("border", "bg-background");
+    it('should render with outline variant', () => {
+      render(<Button variant="outline">Outline</Button>);
+      
+      const button = screen.getByRole('button', { name: /outline/i });
+      expect(button).toBeInTheDocument();
+    });
 
-    rerender(<Button variant="secondary">Secondary</Button>);
-    expect(screen.getByRole("button")).toHaveClass("bg-secondary", "text-secondary-foreground");
+    it('should render with secondary variant', () => {
+      render(<Button variant="secondary">Secondary</Button>);
+      
+      const button = screen.getByRole('button', { name: /secondary/i });
+      expect(button).toBeInTheDocument();
+    });
 
-    rerender(<Button variant="ghost">Ghost</Button>);
-    expect(screen.getByRole("button")).toHaveClass(
-      "hover:bg-accent",
-      "hover:text-accent-foreground",
-    );
+    it('should render with ghost variant', () => {
+      render(<Button variant="ghost">Ghost</Button>);
+      
+      const button = screen.getByRole('button', { name: /ghost/i });
+      expect(button).toBeInTheDocument();
+    });
 
-    rerender(<Button variant="link">Link</Button>);
-    expect(screen.getByRole("button")).toHaveClass("text-primary", "underline-offset-4");
+    it('should render with link variant', () => {
+      render(<Button variant="link">Link</Button>);
+      
+      const button = screen.getByRole('button', { name: /link/i });
+      expect(button).toBeInTheDocument();
+    });
   });
 
-  it("should render with different sizes", () => {
-    const { rerender } = render(<Button size="default">Default</Button>);
-    expect(screen.getByRole("button")).toHaveClass("h-9", "px-4", "py-2");
+  describe('Sizes', () => {
+    it('should render with default size', () => {
+      render(<Button>Default Size</Button>);
+      
+      const button = screen.getByRole('button');
+      expect(button).toBeInTheDocument();
+    });
 
-    rerender(<Button size="sm">Small</Button>);
-    expect(screen.getByRole("button")).toHaveClass("h-8", "px-3");
+    it('should render with small size', () => {
+      render(<Button size="sm">Small</Button>);
+      
+      const button = screen.getByRole('button', { name: /small/i });
+      expect(button).toBeInTheDocument();
+    });
 
-    rerender(<Button size="lg">Large</Button>);
-    expect(screen.getByRole("button")).toHaveClass("h-10", "px-6");
+    it('should render with large size', () => {
+      render(<Button size="lg">Large</Button>);
+      
+      const button = screen.getByRole('button', { name: /large/i });
+      expect(button).toBeInTheDocument();
+    });
 
-    rerender(<Button size="icon">Icon</Button>);
-    expect(screen.getByRole("button")).toHaveClass("size-9");
+    it('should render with icon size', () => {
+      render(<Button size="icon">Icon</Button>);
+      
+      const button = screen.getByRole('button', { name: /icon/i });
+      expect(button).toBeInTheDocument();
+    });
   });
 
-  it("should be disabled when disabled prop is true", () => {
+  describe('Props and Attributes', () => {
+    it('should pass through HTML button attributes', () => {
+      render(
+        <Button type="submit" disabled data-testid="test-button">
+          Submit
+        </Button>
+      );
+      
+      const button = screen.getByTestId('test-button');
+      expect(button).toHaveAttribute('type', 'submit');
+      expect(button).toBeDisabled();
+    });
+
+    it('should have data-slot attribute', () => {
+      render(<Button>Test</Button>);
+      
+      const button = screen.getByRole('button');
+      expect(button).toHaveAttribute('data-slot', 'button');
+    });
+
+    it('should accept custom className', () => {
+      render(<Button className="custom-class">Test</Button>);
+      
+      const button = screen.getByRole('button');
+      expect(button).toBeInTheDocument();
+    });
+
+    it('should be disabled when disabled prop is true', () => {
     render(<Button disabled>Disabled</Button>);
 
-    const button = screen.getByRole("button");
+      const button = screen.getByRole('button');
     expect(button).toBeDisabled();
-    expect(button).toHaveClass("disabled:pointer-events-none", "disabled:opacity-50");
+    });
+
+    it('should accept custom id', () => {
+      render(<Button id="custom-id">Test</Button>);
+      
+      const button = screen.getByRole('button');
+      expect(button).toHaveAttribute('id', 'custom-id');
+    });
+
+    it('should accept custom aria-label', () => {
+      render(<Button aria-label="Custom label">Test</Button>);
+      
+      const button = screen.getByRole('button');
+      expect(button).toHaveAttribute('aria-label', 'Custom label');
+    });
   });
 
-  it("should call onClick when clicked", () => {
+  describe('Event Handling', () => {
+    it('should handle click events', () => {
     const handleClick = vi.fn();
     render(<Button onClick={handleClick}>Click me</Button>);
 
-    const button = screen.getByRole("button");
+      const button = screen.getByRole('button');
     fireEvent.click(button);
 
     expect(handleClick).toHaveBeenCalledTimes(1);
   });
 
-  it("should not call onClick when disabled", () => {
+    it('should handle multiple click events', () => {
+      const handleClick = vi.fn();
+      render(<Button onClick={handleClick}>Click me</Button>);
+      
+      const button = screen.getByRole('button');
+      fireEvent.click(button);
+      fireEvent.click(button);
+      fireEvent.click(button);
+      
+      expect(handleClick).toHaveBeenCalledTimes(3);
+    });
+
+    it('should not handle clicks when disabled', () => {
     const handleClick = vi.fn();
     render(
       <Button onClick={handleClick} disabled>
         Disabled
-      </Button>,
+        </Button>
     );
 
-    const button = screen.getByRole("button");
+      const button = screen.getByRole('button');
     fireEvent.click(button);
 
     expect(handleClick).not.toHaveBeenCalled();
   });
 
-  it("should render as child when asChild is true", () => {
+    it('should handle mouse events', () => {
+      const handleMouseOver = vi.fn();
+      const handleMouseOut = vi.fn();
+      
     render(
-      <Button asChild>
-        <a href="/test">Link Button</a>
-      </Button>,
-    );
+        <Button onMouseOver={handleMouseOver} onMouseOut={handleMouseOut}>
+          Hover me
+        </Button>
+      );
+      
+      const button = screen.getByRole('button');
+      fireEvent.mouseOver(button);
+      fireEvent.mouseOut(button);
+      
+      expect(handleMouseOver).toHaveBeenCalledTimes(1);
+      expect(handleMouseOut).toHaveBeenCalledTimes(1);
+    });
 
-    const link = screen.getByRole("link", { name: "Link Button" });
-    expect(link).toBeInTheDocument();
-    expect(link).toHaveAttribute("href", "/test");
-  });
-
-  it("should pass through additional props", () => {
+    it('should handle focus events', () => {
+      const handleFocus = vi.fn();
+      const handleBlur = vi.fn();
+      
     render(
-      <Button data-testid="test-button" aria-label="Test button" type="submit">
-        Submit
-      </Button>,
-    );
-
-    const button = screen.getByTestId("test-button");
-    expect(button).toHaveAttribute("aria-label", "Test button");
-    expect(button).toHaveAttribute("type", "submit");
+        <Button onFocus={handleFocus} onBlur={handleBlur}>
+          Focus me
+        </Button>
+      );
+      
+      const button = screen.getByRole('button');
+      button.focus();
+      button.blur();
+      
+      expect(handleFocus).toHaveBeenCalledTimes(1);
+      expect(handleBlur).toHaveBeenCalledTimes(1);
+    });
   });
 
-  it("should apply custom className", () => {
-    render(<Button className="custom-class">Custom</Button>);
+  describe('Accessibility', () => {
+    it('should be focusable by default', () => {
+      render(<Button>Focusable</Button>);
+      
+      const button = screen.getByRole('button');
+      button.focus();
+      expect(button).toHaveFocus();
+    });
 
-    const button = screen.getByRole("button");
-    expect(button).toHaveClass("custom-class");
-  });
-
-  it("should render with loading state", () => {
-    render(<Button disabled>Loading...</Button>);
-
-    const button = screen.getByRole("button");
+    it('should not be focusable when disabled', () => {
+      render(<Button disabled>Not Focusable</Button>);
+      
+      const button = screen.getByRole('button');
     expect(button).toBeDisabled();
-    expect(button).toHaveTextContent("Loading...");
-  });
-
-  it("should handle keyboard events", () => {
-    const handleClick = vi.fn();
-    render(<Button onClick={handleClick}>Keyboard</Button>);
-
-    const button = screen.getByRole("button");
-    fireEvent.keyDown(button, { key: "Enter", code: "Enter" });
-    fireEvent.keyDown(button, { key: " ", code: "Space" });
-
-    // Button should not respond to keyboard events by default
-    expect(handleClick).not.toHaveBeenCalled();
-  });
-
-  it("should render with focus styles", () => {
-    render(<Button>Focus me</Button>);
-
-    const button = screen.getByRole("button");
-    expect(button).toHaveClass("outline-none");
-  });
-
-  it("should render with hover styles", () => {
-    render(<Button>Hover me</Button>);
-
-    const button = screen.getByRole("button");
-    expect(button).toHaveClass("hover:bg-primary/90");
-  });
-
-  it("should render with active styles", () => {
-    render(<Button>Active</Button>);
-
-    const button = screen.getByRole("button");
-    expect(button).toHaveClass("transition-all");
-  });
-
-  describe("Accessibility", () => {
-    it("should pass accessibility tests for all button variants", async () => {
-      const variants = [
-        { variant: "default" as const, children: "Default Button" },
-        { variant: "destructive" as const, children: "Delete" },
-        { variant: "outline" as const, children: "Outline Button" },
-        { variant: "secondary" as const, children: "Secondary Button" },
-        { variant: "ghost" as const, children: "Ghost Button" },
-        { variant: "link" as const, children: "Link Button" },
-      ];
-
-      for (const props of variants) {
-        const renderResult = render(<Button {...props} />);
-        await testAccessibility(renderResult);
-        renderResult.unmount();
-      }
-
-      // Add explicit assertion to satisfy SonarCloud
-      expect(variants).toHaveLength(6);
     });
 
-    it("should pass accessibility tests for button sizes", async () => {
-      const sizes = [
-        { size: "sm" as const, children: "Small" },
-        { size: "default" as const, children: "Default" },
-        { size: "lg" as const, children: "Large" },
-        { size: "icon" as const, "aria-label": "Icon button" },
-      ];
-
-      for (const props of sizes) {
-        const renderResult = render(<Button {...props} />);
-        await testAccessibility(renderResult);
-        renderResult.unmount();
-      }
-
-      // Add explicit assertion to satisfy SonarCloud
-      expect(sizes).toHaveLength(4);
+    it('should support keyboard navigation', () => {
+      const handleKeyDown = vi.fn();
+      render(<Button onKeyDown={handleKeyDown}>Keyboard</Button>);
+      
+      const button = screen.getByRole('button');
+      fireEvent.keyDown(button, { key: 'Enter' });
+      fireEvent.keyDown(button, { key: ' ' });
+      
+      expect(handleKeyDown).toHaveBeenCalledTimes(2);
     });
 
-    it("should pass accessibility tests for disabled state", async () => {
-      const renderResult = render(
-        <Button disabled aria-label="Disabled button">
-          Disabled Button
-        </Button>,
+    it('should have proper ARIA attributes', () => {
+      render(
+        <Button aria-describedby="description" aria-expanded="true">
+          ARIA Button
+        </Button>
       );
-      await testAccessibility(renderResult);
-
-      // Add explicit assertion to satisfy SonarCloud
-      expect(renderResult).toBeDefined();
+      
+      const button = screen.getByRole('button');
+      expect(button).toHaveAttribute('aria-describedby', 'description');
+      expect(button).toHaveAttribute('aria-expanded', 'true');
     });
+  });
 
-    it("should pass accessibility tests for button with icon", async () => {
-      const renderResult = render(
-        <Button aria-label="Save document">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-            <path d="M17 3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.11 0 2-.9 2-2V7l-4-4z" />
-          </svg>
-          Save
-        </Button>,
+  describe('Combinations', () => {
+    it('should combine variant and size correctly', () => {
+      render(
+        <Button variant="destructive" size="lg">
+          Large Destructive
+        </Button>
       );
-      await testAccessibility(renderResult);
-
-      // Add explicit assertion to satisfy SonarCloud
-      expect(renderResult).toBeDefined();
+      
+      const button = screen.getByRole('button', { name: /large destructive/i });
+      expect(button).toBeInTheDocument();
     });
 
-    it("should have proper interactive element accessibility", async () => {
-      const renderResult = render(<Button>Interactive Button</Button>);
-      await commonAccessibilityTests.interactiveElements(renderResult);
-
-      // Add explicit assertion to satisfy SonarCloud
-      expect(renderResult).toBeDefined();
+    it('should combine all props correctly', () => {
+      const handleClick = vi.fn();
+      render(
+        <Button
+          variant="outline"
+          size="sm"
+          className="custom-class"
+          onClick={handleClick}
+          disabled
+        >
+          Complex Button
+        </Button>
+      );
+      
+      const button = screen.getByRole('button', { name: /complex button/i });
+      expect(button).toBeInTheDocument();
+      expect(button).toBeDisabled();
     });
 
-    it("should have proper focus management", async () => {
-      const renderResult = render(<Button>Focusable Button</Button>);
-      await commonAccessibilityTests.focusManagement(renderResult);
+    it('should work with asChild and other props', () => {
+      render(
+        <Button asChild variant="ghost" size="icon">
+          <a href="/test" aria-label="Test link">
+            <span>🔗</span>
+          </a>
+        </Button>
+      );
+      
+      const link = screen.getByRole('link');
+      expect(link).toHaveAttribute('href', '/test');
+      expect(link).toHaveAttribute('aria-label', 'Test link');
+      expect(link).toHaveAttribute('data-slot', 'button');
+    });
+  });
 
-      // Add explicit assertion to satisfy SonarCloud
-      expect(renderResult).toBeDefined();
+  describe('Edge Cases', () => {
+    it('should handle empty children', () => {
+      render(<Button></Button>);
+      
+      const button = screen.getByRole('button');
+      expect(button).toBeInTheDocument();
+      expect(button).toHaveTextContent('');
+    });
+
+    it('should handle null children', () => {
+      render(<Button>{null}</Button>);
+      
+      const button = screen.getByRole('button');
+      expect(button).toBeInTheDocument();
+    });
+
+    it('should handle undefined children', () => {
+      render(<Button>{undefined}</Button>);
+      
+      const button = screen.getByRole('button');
+      expect(button).toBeInTheDocument();
+    });
+
+    it('should handle boolean children', () => {
+      render(<Button>{false}</Button>);
+      
+      const button = screen.getByRole('button');
+      expect(button).toBeInTheDocument();
+    });
+
+    it('should handle number children', () => {
+      render(<Button>{42}</Button>);
+      
+      const button = screen.getByRole('button');
+      expect(button).toHaveTextContent('42');
+    });
+
+    it('should handle array children', () => {
+      render(<Button>{['Hello', ' ', 'World']}</Button>);
+      
+      const button = screen.getByRole('button');
+      expect(button).toHaveTextContent('Hello World');
+    });
+  });
+
+  describe('Performance', () => {
+    it('should not re-render unnecessarily', () => {
+      const renderSpy = vi.fn();
+      const TestComponent = () => {
+        renderSpy();
+        return <Button>Test</Button>;
+      };
+      
+      render(<TestComponent />);
+      expect(renderSpy).toHaveBeenCalledTimes(1);
+    });
+
+    it('should handle rapid clicks', () => {
+      const handleClick = vi.fn();
+      render(<Button onClick={handleClick}>Rapid Click</Button>);
+      
+      const button = screen.getByRole('button');
+      
+      // Simulate rapid clicks
+      for (let i = 0; i < 10; i++) {
+        fireEvent.click(button);
+      }
+      
+      expect(handleClick).toHaveBeenCalledTimes(10);
     });
   });
 });

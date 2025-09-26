@@ -5,6 +5,7 @@ Unit tests for security module.
 from datetime import timedelta
 from unittest.mock import patch
 import jwt
+from argon2.exceptions import VerificationError
 
 from app.core.security import (
     create_access_token,
@@ -166,8 +167,6 @@ class TestSecurityUnit:
         hashed_password = "hashed-password"
 
         with patch("app.core.security.ph") as mock_ph:
-            from argon2.exceptions import VerificationError
-
             mock_ph.verify.side_effect = VerificationError("Invalid password")
 
             result = verify_password(plain_password, hashed_password)

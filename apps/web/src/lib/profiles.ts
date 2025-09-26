@@ -188,9 +188,11 @@ export async function queryProfessionals(
   }
 }
 
-export async function getUserProfile(userId: string): Promise<Record<string, unknown> | null> {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export async function getUserProfile(_userId: string): Promise<Record<string, unknown> | null> {
   try {
-    const response = await apiClient.get(`/users/${userId}`);
+    // Use self endpoint; ignore provided userId to avoid admin-only path
+    const response = await apiClient.get(`/users/me`);
     return response as Record<string, unknown>;
   } catch (error) {
     console.error("Get user profile error:", error);
@@ -199,11 +201,12 @@ export async function getUserProfile(userId: string): Promise<Record<string, unk
 }
 
 export async function updateUserProfile(
-  userId: string,
+  _userId: string,
   data: Record<string, unknown>,
 ): Promise<Record<string, unknown>> {
   try {
-    const response = await apiClient.patch(`/users/${userId}`, data);
+    // Use self endpoint with PUT; ignore provided userId to avoid admin-only path
+    const response = await apiClient.put(`/users/me`, data);
     return response as Record<string, unknown>;
   } catch (error) {
     console.error("Update user profile error:", error);

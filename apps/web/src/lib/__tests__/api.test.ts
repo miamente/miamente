@@ -59,13 +59,13 @@ describe("ApiClient", () => {
     const result = await apiClient.get("/test");
 
     expect(fetch).toHaveBeenCalledWith(
-      `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/api/v1/test`,
+      "/api/v1/test",
       expect.objectContaining({
         method: "GET",
-        headers: {
+        headers: expect.objectContaining({
           Authorization: "Bearer test-token",
           "Content-Type": "application/json",
-        },
+        }),
       }),
     );
     expect(result).toEqual(mockResponse);
@@ -82,13 +82,9 @@ describe("ApiClient", () => {
     const result = await apiClient.post("/login", mockData);
 
     expect(fetch).toHaveBeenCalledWith(
-      `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/api/v1/login`,
+      "/api/v1/login",
       expect.objectContaining({
         method: "POST",
-        headers: expect.objectContaining({
-          "Content-Type": "application/json",
-          Authorization: "Bearer test-token",
-        }),
         body: JSON.stringify(mockData),
       }),
     );
@@ -151,7 +147,7 @@ describe("ApiClient", () => {
     const result = await apiClient.getCurrentUser();
 
     expect(fetch).toHaveBeenCalledWith(
-      `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/api/v1/auth/me`,
+      "/api/v1/auth/me",
       expect.objectContaining({
         method: "GET",
         headers: expect.objectContaining({

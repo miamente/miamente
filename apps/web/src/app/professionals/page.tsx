@@ -2,6 +2,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { generateUniqueId } from "@/lib/id";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -51,7 +52,7 @@ export default function ProfessionalsPage() {
 
   // Generate stable skeleton keys once
   const skeletonKeys = useMemo(
-    () => Array.from({ length: 6 }).map((_, index) => `skeleton-${crypto.randomUUID()}-${index}`),
+    () => Array.from({ length: 6 }).map((_, index) => `skeleton-${generateUniqueId()}-${index}`),
     [],
   );
 

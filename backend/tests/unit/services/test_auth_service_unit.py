@@ -8,6 +8,7 @@ from unittest.mock import MagicMock, patch
 from fastapi import HTTPException
 from app.schemas.user import UserCreate
 from app.models.user import User as UserModel
+from app.services.auth_service import AuthService
 
 
 class TestAuthServiceUnit:
@@ -16,7 +17,6 @@ class TestAuthServiceUnit:
     def test_authenticate_user_success(self, db_session):
         """Test successful user authentication."""
         # Arrange
-        from app.services.auth_service import AuthService
 
         auth_service = AuthService(db_session)
         mock_user = MagicMock()
@@ -36,7 +36,6 @@ class TestAuthServiceUnit:
     def test_authenticate_user_not_found(self, db_session):
         """Test authentication when user is not found."""
         # Arrange
-        from app.services.auth_service import AuthService
 
         auth_service = AuthService(db_session)
         db_session.query.return_value.filter.return_value.first.return_value = None
@@ -51,7 +50,6 @@ class TestAuthServiceUnit:
     def test_authenticate_user_wrong_password(self, db_session):
         """Test authentication with wrong password."""
         # Arrange
-        from app.services.auth_service import AuthService
 
         auth_service = AuthService(db_session)
         mock_user = MagicMock()
@@ -70,7 +68,6 @@ class TestAuthServiceUnit:
     def test_create_user_success(self, db_session, test_user_data):
         """Test successful user creation."""
         # Arrange
-        from app.services.auth_service import AuthService
 
         auth_service = AuthService(db_session)
         user_create = UserCreate(**test_user_data)
@@ -96,7 +93,6 @@ class TestAuthServiceUnit:
     def test_create_user_duplicate_email(self, db_session, test_user_data):
         """Test user creation with duplicate email."""
         # Arrange
-        from app.services.auth_service import AuthService
 
         auth_service = AuthService(db_session)
         user_create = UserCreate(**test_user_data)
@@ -114,7 +110,6 @@ class TestAuthServiceUnit:
     def test_get_user_by_id_found(self, db_session):
         """Test getting user by ID when user exists."""
         # Arrange
-        from app.services.auth_service import AuthService
 
         auth_service = AuthService(db_session)
         mock_user = MagicMock()
@@ -135,7 +130,6 @@ class TestAuthServiceUnit:
     def test_get_user_by_id_invalid_uuid(self, db_session):
         """Test getting user by ID with invalid UUID."""
         # Arrange
-        from app.services.auth_service import AuthService
 
         auth_service = AuthService(db_session)
 
@@ -150,7 +144,6 @@ class TestAuthServiceUnit:
     def test_get_current_user_valid_token(self, db_session):
         """Test getting current user with valid token."""
         # Arrange
-        from app.services.auth_service import AuthService
 
         auth_service = AuthService(db_session)
         mock_user = MagicMock()
@@ -174,7 +167,6 @@ class TestAuthServiceUnit:
     def test_get_current_user_invalid_token(self, db_session):
         """Test getting current user with invalid token."""
         # Arrange
-        from app.services.auth_service import AuthService
 
         auth_service = AuthService(db_session)
 
