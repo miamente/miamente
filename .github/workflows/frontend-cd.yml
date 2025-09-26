@@ -285,11 +285,12 @@ jobs:
           SUBNET_IDS="${{ secrets.SUBNET_IDS }}"
           PROJECTNAME="${{ secrets.PROJECT_NAME }}"
           VERSION="${{ secrets.VERSION }}"
+          TIMEZONE="${{ secrets.TIMEZONE }}"
           BACKEND_URL="${{ steps.get_backend_url.outputs.backend_alb_url }}"
 
           missing=()
           check_empty () { var_name="$1"; val="${!var_name:-}"; if [ -z "$val" ]; then missing+=("$var_name"); fi; }
-          for k in IMAGE_URI LAB_ROLE_ARN VPC_ID SUBNET_IDS PROJECTNAME VERSION BACKEND_URL; do
+          for k in IMAGE_URI LAB_ROLE_ARN VPC_ID SUBNET_IDS PROJECTNAME VERSION TIMEZONE BACKEND_URL; do
             check_empty "$k"
           done
           if [ ${#missing[@]} -gt 0 ]; then
@@ -313,6 +314,7 @@ jobs:
             --arg backendUrl "$BACKEND_URL" \
             --arg projectname "$PROJECTNAME" \
             --arg version "$VERSION" \
+            --arg timezone "$TIMEZONE" \
             '[
               {"ParameterKey":"EnvironmentName","ParameterValue":$envName},
               {"ParameterKey":"DockerImageUri","ParameterValue":$imageUri},
@@ -322,7 +324,8 @@ jobs:
               {"ParameterKey":"BackendApiUrl","ParameterValue":$backendUrl},
               {"ParameterKey":"BackendInternalUrl","ParameterValue":$backendUrl},
               {"ParameterKey":"PROJECTNAME","ParameterValue":$projectname},
-              {"ParameterKey":"VERSION","ParameterValue":$version}
+              {"ParameterKey":"VERSION","ParameterValue":$version},
+              {"ParameterKey":"TIMEZONE","ParameterValue":$timezone}
             ]' > params-staging.json
 
           echo "🔎 params-staging.json (enmascarado):"
@@ -414,11 +417,12 @@ jobs:
           SUBNET_IDS="${{ secrets.SUBNET_IDS }}"
           PROJECTNAME="${{ secrets.PROJECT_NAME }}"
           VERSION="${{ secrets.VERSION }}"
+          TIMEZONE="${{ secrets.TIMEZONE }}"
           BACKEND_URL="${{ steps.get_backend_url_prod.outputs.backend_alb_url }}"
 
           missing=()
           check_empty () { var_name="$1"; val="${!var_name:-}"; if [ -z "$val" ]; then missing+=("$var_name"); fi; }
-          for k in IMAGE_URI LAB_ROLE_ARN VPC_ID SUBNET_IDS PROJECTNAME VERSION BACKEND_URL; do
+          for k in IMAGE_URI LAB_ROLE_ARN VPC_ID SUBNET_IDS PROJECTNAME VERSION TIMEZONE BACKEND_URL; do
             check_empty "$k"
           done
           if [ ${#missing[@]} -gt 0 ]; then
@@ -442,6 +446,7 @@ jobs:
             --arg backendUrl "$BACKEND_URL" \
             --arg projectname "$PROJECTNAME" \
             --arg version "$VERSION" \
+            --arg timezone "$TIMEZONE" \
             '[
               {"ParameterKey":"EnvironmentName","ParameterValue":$envName},
               {"ParameterKey":"DockerImageUri","ParameterValue":$imageUri},
@@ -451,7 +456,8 @@ jobs:
               {"ParameterKey":"BackendApiUrl","ParameterValue":$backendUrl},
               {"ParameterKey":"BackendInternalUrl","ParameterValue":$backendUrl},
               {"ParameterKey":"PROJECTNAME","ParameterValue":$projectname},
-              {"ParameterKey":"VERSION","ParameterValue":$version}
+              {"ParameterKey":"VERSION","ParameterValue":$version},
+              {"ParameterKey":"TIMEZONE","ParameterValue":$timezone}
             ]' > params-production.json
 
           echo "🔎 params-production.json (enmascarado):"
