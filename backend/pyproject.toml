@@ -39,6 +39,8 @@ dev = [
     "mypy==1.13.0",
     "pre-commit==4.0.1",
     "requests==2.32.3",
+    "selenium==4.22.0",
+    "webdriver-manager==4.0.1",
 ]
 
 [tool.setuptools.packages.find]
@@ -177,6 +179,7 @@ addopts = [
     "--cov-report=term-missing",
     "--cov-report=html",
     "--cov-report=xml",
+    "--ignore=tests/smoke",
 ]
 markers = [
     "slow: marks tests as slow (deselect with '-m \"not slow\"')",

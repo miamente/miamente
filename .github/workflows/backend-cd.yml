@@ -24,7 +24,7 @@ env:
   SERVER_HOST: ${{ secrets.SERVER_HOST }}
   ALLOWED_HOSTS: ${{ secrets.ALLOWED_HOSTS }}
   BACKEND_CORS_ORIGINS: ${{ secrets.BACKEND_CORS_ORIGINS }}
-  TIMEZONE: ${{ secrets.TIMEZONE }}
+  TIMEZONE: ${{ secrets.TIME_ZONE }}
   SECRET_KEY: ${{ secrets.SECRET_KEY }}
   DATABASE_URL: ${{ secrets.DATABASE_URL }}
 
@@ -49,6 +49,7 @@ jobs:
         run: |
           pytest \
             --ignore=tests/integration \
+            --ignore=tests/smoke \
             --cov=app \
             --cov-report=xml:unit_coverage.xml \
             --cov-report=html \
@@ -142,7 +143,7 @@ jobs:
           SERVERHOST="${{ secrets.SERVER_HOST }}"
           ALLOWEDHOSTS="${{ secrets.ALLOWED_HOSTS }}"
           BACKENDCORSORIGINS="${{ secrets.BACKEND_CORS_ORIGINS }}"
-          TIMEZONE="${{ secrets.TIMEZONE }}"
+          TIMEZONE="${{ secrets.TIME_ZONE }}"
           SECRETKEY="${{ secrets.SECRET_KEY }}"
 
           # ---------- 2) Pre-chequeo de vacíos ----------
@@ -373,6 +374,7 @@ jobs:
         run: |
           pytest tests/integration \
             -m integration \
+            --ignore=tests/smoke \
             --cov=app \
             --cov-report=xml:integration_coverage.xml \
             --html=integration_report.html \
@@ -652,9 +654,6 @@ jobs:
           HEALTH_CHECK_URL="${{ needs.deploy-cfn-production.outputs.alb_url_production }}/health"
           echo "Checking health endpoint: $HEALTH_CHECK_URL"
 
-          echo "Forcing failure to test rollback mechanism..."
-          exit 1
-
           for i in {1..5}; do
             if curl -f -s "$HEALTH_CHECK_URL"; then
               echo "Health check passed on attempt $i"
@@ -798,3 +797,24 @@ jobs:
           else
             echo "Health check failed after rollback - manual intervention may be required"
           fi
+
+  backend-smoke-test-production:
+    needs: [test-db-production, deploy-cfn-production]
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    env:
+      APP_BASE_URL: ${{ needs.deploy-cfn-production.outputs.alb_url_production }}
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Python & deps
+        uses: ./.github/actions/setup-backend
+        with:
+          python-version: "3.13"
+
+      - name: Run Backend Smoke Test
+        run: |
+          pytest tests/smoke/test_backend_smoke.py --ignore=tests/integration
