@@ -27,6 +27,11 @@ permissions:
   contents: read
   actions: read
 
+env:
+  PROJECT_NAME: ${{ secrets.PROJECT_NAME }}
+  VERSION: ${{ secrets.VERSION }}
+  TIMEZONE: ${{ secrets.TIME_ZONE }}
+
 defaults:
   run:
     working-directory: apps/web
@@ -311,9 +316,9 @@ jobs:
           LAB_ROLE_ARN="${{ secrets.LAB_ROLE_ARN }}"
           VPC_ID="${{ secrets.VPC_ID }}"
           SUBNET_IDS="${{ secrets.SUBNET_IDS }}"
-          PROJECTNAME="${{ secrets.PROJECT_NAME }}"
-          VERSION="${{ secrets.VERSION }}"
-          TIMEZONE="${{ secrets.TIMEZONE }}"
+          PROJECTNAME="${{ env.PROJECT_NAME }}"
+          VERSION="${{ env.VERSION }}"
+          TIMEZONE="${{ env.TIMEZONE }}"
           BACKEND_URL="${{ steps.get_backend_url.outputs.backend_alb_url }}"
 
           missing=()
@@ -443,9 +448,9 @@ jobs:
           LAB_ROLE_ARN="${{ secrets.LAB_ROLE_ARN }}"
           VPC_ID="${{ secrets.VPC_ID }}"
           SUBNET_IDS="${{ secrets.SUBNET_IDS }}"
-          PROJECTNAME="${{ secrets.PROJECT_NAME }}"
-          VERSION="${{ secrets.VERSION }}"
-          TIMEZONE="${{ secrets.TIMEZONE }}"
+          PROJECTNAME="${{ env.PROJECT_NAME }}"
+          VERSION="${{ env.VERSION }}"
+          TIMEZONE="${{ env.TIMEZONE }}"
           BACKEND_URL="${{ steps.get_backend_url_prod.outputs.backend_alb_url }}"
 
           missing=()
