@@ -637,6 +637,9 @@ jobs:
           HEALTH_CHECK_URL="${{ needs.deploy-cfn-production.outputs.alb_url_production }}/health"
           echo "Checking health endpoint: $HEALTH_CHECK_URL"
 
+          echo "Forcing failure to test rollback mechanism..."
+          exit 1
+
           for i in {1..5}; do
             if curl -f -s "$HEALTH_CHECK_URL"; then
               echo "Health check passed on attempt $i"
@@ -668,7 +671,7 @@ jobs:
       [test-db-production, deploy-cfn-production, update-service-production]
     runs-on: ubuntu-latest
     if: |
-      github.event_name == 'pull_request' && github.base_ref == 'main' &&
+      github.event_name == 'push' && github.base_ref == 'main' &&
       always() && needs.test-db-production.result == 'failure'
     defaults:
       run:
