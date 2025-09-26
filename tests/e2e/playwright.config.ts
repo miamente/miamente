@@ -6,12 +6,12 @@ import { defineConfig, devices } from "@playwright/test";
  * This configuration supports both full testing and fast development modes.
  *
  * Usage:
- * - npm run test:e2e          # Full test suite (all browsers)
- * - npm run test:e2e:fast     # Fast mode (Chromium only, shorter timeouts)
- * - npm run test:e2e:chromium # Chromium only
- * - npm run test:e2e:firefox  # Firefox only
- * - npm run test:e2e:webkit   # Safari only
- * - npm run test:e2e:mobile   # Mobile browsers only
+ * - npm run test          # Full test suite (all browsers)
+ * - npm run test:fast     # Fast mode (Chromium only, shorter timeouts)
+ * - npm run test:chromium # Chromium only
+ * - npm run test:firefox  # Firefox only
+ * - npm run test:webkit   # Safari only
+ * - npm run test:mobile   # Mobile browsers only
  *
  * Note: Frontend must be started manually with `npm run dev`
  *       Backend must be started manually with `cd backend && source venv/bin/activate && python -m uvicorn app.main:app --host 0.0.0.0 --port 8000`
@@ -19,7 +19,7 @@ import { defineConfig, devices } from "@playwright/test";
  * @see https://playwright.dev/docs/test-configuration
  */
 export default defineConfig({
-  testDir: "./tests/e2e",
+  testDir: "./",
   /* Run tests in files in parallel */
   fullyParallel: true,
   /* Fail the build on CI if you accidentally left test.only in the source code. */
@@ -88,8 +88,8 @@ export default defineConfig({
   ],
 
   /* Global setup and teardown */
-  globalSetup: require.resolve("./tests/e2e/global-setup.ts"),
-  globalTeardown: require.resolve("./tests/e2e/global-teardown.ts"),
+  globalSetup: require.resolve("./global-setup.ts"),
+  globalTeardown: require.resolve("./global-teardown.ts"),
 
   /* Optimized timeouts for faster execution */
   timeout: 15 * 1000,
