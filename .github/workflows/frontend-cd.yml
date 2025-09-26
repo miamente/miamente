@@ -201,8 +201,11 @@ jobs:
   sonar:
     name: SonarCloud Frontend Analysis
     runs-on: ubuntu-latest
+    # Ensure Sonar runs only after E2E (Playwright) completes in staging dispatch
     needs:
-      - docker-build-push
+      - unit-tests
+      - e2e-tests-staging
+    if: github.event_name == 'repository_dispatch' && github.event.action == 'frontend-deploy-staging'
     steps:
       - uses: actions/checkout@v4
 
@@ -215,7 +218,7 @@ jobs:
       - name: Download E2E test artifacts
         uses: actions/download-artifact@v4
         with:
-          name: playwright-report
+          name: playwright-staging-report
           path: apps/web/e2e-artifacts-downloaded
 
       - name: SonarCloud Scan (Frontend)
