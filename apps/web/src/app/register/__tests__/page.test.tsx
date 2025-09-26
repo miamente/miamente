@@ -177,7 +177,7 @@ describe("RegisterPage", () => {
     expect(mockPush).toHaveBeenCalledWith("/dashboard");
   });
 
-  it("should handle successful registration", async () => {
+  it("should handle successful registration and redirect to dashboard", async () => {
     mockRegisterWithEmail.mockResolvedValue({
       id: "user-123",
       email: "test@example.com",
@@ -189,11 +189,13 @@ describe("RegisterPage", () => {
       updated_at: "2023-01-01T00:00:00Z",
     });
 
+    const mockLoginUser = vi.fn().mockResolvedValue(undefined);
+
     mockUseAuth.mockReturnValue({
       user: null,
       isLoading: false,
       isAuthenticated: false,
-      loginUser: vi.fn(),
+      loginUser: mockLoginUser,
       loginProfessional: vi.fn(),
       registerUser: vi.fn(),
       registerProfessional: vi.fn(),
@@ -221,104 +223,25 @@ describe("RegisterPage", () => {
     fireEvent.click(screen.getByRole("button", { name: "Crear Cuenta" }));
 
     await waitFor(() => {
-      expect(screen.getByText("¡Cuenta Creada!")).toBeInTheDocument();
+      expect(mockRegisterWithEmail).toHaveBeenCalledWith({
+        email: "test@example.com",
+        password: "password123",
+        full_name: "Test User",
+      });
     });
-
-    expect(mockRegisterWithEmail).toHaveBeenCalledWith({
-      email: "test@example.com",
-      password: "password123",
-      full_name: "Test User",
-    });
-  });
-
-  it("should show success page after registration", async () => {
-    const user = userEvent.setup();
-    mockRegisterWithEmail.mockResolvedValue({
-      id: "user-123",
-      email: "test@example.com",
-      full_name: "Test User",
-      is_verified: false,
-      is_active: true,
-      phone: "+1234567890",
-      created_at: "2023-01-01T00:00:00Z",
-      updated_at: "2023-01-01T00:00:00Z",
-    });
-
-    mockUseAuth.mockReturnValue({
-      user: null,
-      isLoading: false,
-      isAuthenticated: false,
-      loginUser: vi.fn(),
-      loginProfessional: vi.fn(),
-      registerUser: vi.fn(),
-      registerProfessional: vi.fn(),
-      logout: vi.fn(),
-      refreshUser: vi.fn(),
-      getAuthHeaders: vi.fn(),
-    });
-
-    render(<RegisterPage />);
-
-    // Fill out and submit the form
-    await user.type(screen.getByPlaceholderText("Nombre completo"), "Test User");
-    await user.type(screen.getByPlaceholderText("Email"), "test@example.com");
-    await user.type(screen.getByPlaceholderText("Contraseña"), "password123");
-    await user.type(screen.getByPlaceholderText("Confirmar Contraseña"), "password123");
-    await user.click(screen.getByRole("checkbox", { name: /acepto los términos/i }));
-    await user.click(screen.getByRole("button", { name: "Crear Cuenta" }));
 
     await waitFor(() => {
-      expect(screen.getByText("¡Cuenta Creada!")).toBeInTheDocument();
+      expect(mockLoginUser).toHaveBeenCalledWith({
+        email: "test@example.com",
+        password: "password123",
+      });
     });
 
-    expect(screen.getByText(/Tu cuenta ha sido creada exitosamente/)).toBeInTheDocument();
-    expect(screen.getByText("Ir al Dashboard")).toBeInTheDocument();
+    // loginUser already handles the redirect to dashboard
+    // so we don't need to check for router.push here
   });
 
-  it("should navigate to dashboard when clicking 'Ir al Dashboard'", async () => {
-    const user = userEvent.setup();
-    mockRegisterWithEmail.mockResolvedValue({
-      id: "user-123",
-      email: "test@example.com",
-      full_name: "Test User",
-      is_verified: false,
-      is_active: true,
-      phone: "+1234567890",
-      created_at: "2023-01-01T00:00:00Z",
-      updated_at: "2023-01-01T00:00:00Z",
-    });
 
-    mockUseAuth.mockReturnValue({
-      user: null,
-      isLoading: false,
-      isAuthenticated: false,
-      loginUser: vi.fn(),
-      loginProfessional: vi.fn(),
-      registerUser: vi.fn(),
-      registerProfessional: vi.fn(),
-      logout: vi.fn(),
-      refreshUser: vi.fn(),
-      getAuthHeaders: vi.fn(),
-    });
-
-    render(<RegisterPage />);
-
-    // Fill out and submit the form
-    await user.type(screen.getByPlaceholderText("Nombre completo"), "Test User");
-    await user.type(screen.getByPlaceholderText("Email"), "test@example.com");
-    await user.type(screen.getByPlaceholderText("Contraseña"), "password123");
-    await user.type(screen.getByPlaceholderText("Confirmar Contraseña"), "password123");
-    await user.click(screen.getByRole("checkbox", { name: /acepto los términos/i }));
-    await user.click(screen.getByRole("button", { name: "Crear Cuenta" }));
-
-    await waitFor(() => {
-      expect(screen.getByText("¡Cuenta Creada!")).toBeInTheDocument();
-    });
-
-    // Click the dashboard button
-    await user.click(screen.getByText("Ir al Dashboard"));
-    expect(mockPush).toHaveBeenCalledWith("/dashboard");
-  });
 
   it("should handle registration error", async () => {
     const user = userEvent.setup();
@@ -384,7 +307,7 @@ describe("RegisterPage", () => {
 
     // Check loading state
     await waitFor(() => {
-      expect(screen.getByText("Creando cuenta...")).toBeInTheDocument();
+      expect(screen.getByText("Creando cuenta e iniciando sesión...")).toBeInTheDocument();
     });
 
     // Check that form is disabled during loading
