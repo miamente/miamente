@@ -29,18 +29,18 @@ export interface Column<T> {
 }
 
 export interface AdminDataTableProps<T extends { id: string }> {
-  title: string;
-  description: string;
-  addButtonText?: string;
-  onAdd?: () => void;
-  data: T[];
-  loading: boolean;
-  error: string | null;
-  columns: Column<T>[];
-  onEdit?: (item: T) => void;
-  onToggleActive?: (item: T) => void;
-  onDelete?: (item: T) => void;
-  emptyMessage?: string;
+  readonly title: string;
+  readonly description: string;
+  readonly addButtonText?: string;
+  readonly onAdd?: () => void;
+  readonly data: readonly T[];
+  readonly loading: boolean;
+  readonly error: string | null;
+  readonly columns: readonly Column<T>[];
+  readonly onEdit?: (item: T) => void;
+  readonly onToggleActive?: (item: T) => void;
+  readonly onDelete?: (item: T) => void;
+  readonly emptyMessage?: string;
 }
 
 export function AdminDataTable<T extends { id: string }>({
@@ -115,7 +115,12 @@ export function AdminDataTable<T extends { id: string }>({
       return column.render(item);
     }
 
-    const value = item[column.key as keyof T];
+    // Handle the 'actions' key case
+    if (column.key === 'actions') {
+      return null;
+    }
+
+    const value = item[column.key];
     return <span>{String(value)}</span>;
   };
 

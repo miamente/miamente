@@ -4,11 +4,30 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 
 import AdminUsers from "../users/page";
 
-// Define proper types for mock components
+// Define proper types for test mocks
+interface MockColumn {
+  key: string;
+  label: string;
+  render?: (item: unknown) => React.ReactNode;
+}
+
+interface MockUser {
+  id: string;
+  full_name: string;
+  email: string;
+  phone?: string;
+  is_active: boolean;
+  is_verified: boolean;
+  created_at: string;
+  last_login?: string;
+  role: string;
+}
+
 interface MockComponentProps {
   children?: React.ReactNode;
   [key: string]: unknown;
 }
+
 
 interface MockButtonProps extends MockComponentProps {
   onClick?: () => void;
@@ -54,12 +73,12 @@ vi.mock("@/components/admin/AdminDataTable", () => ({
     description: string;
     addButtonText?: string;
     onAdd?: () => void;
-    data: unknown[];
+    data: MockUser[];
     loading: boolean;
     error: string | null;
-    columns: unknown[];
-    onToggleActive?: (item: unknown) => void;
-    onDelete?: (item: unknown) => void;
+    columns: MockColumn[];
+    onToggleActive?: (item: MockUser) => void;
+    onDelete?: (item: MockUser) => void;
     emptyMessage?: string;
   }) => {
     if (loading) {
@@ -106,7 +125,7 @@ vi.mock("@/components/admin/AdminDataTable", () => ({
                 <table className="w-full">
                   <thead>
                     <tr className="border-b">
-                      {columns.map((column: any) => (
+                      {columns.map((column: MockColumn) => (
                         <th
                           key={String(column.key)}
                           className="p-4 text-left font-medium"
@@ -117,14 +136,14 @@ vi.mock("@/components/admin/AdminDataTable", () => ({
                     </tr>
                   </thead>
                   <tbody>
-                    {data.map((item: any) => (
+                    {data.map((item: MockUser) => (
                       <tr
-                        key={(item as any).id}
+                        key={item.id}
                         className="border-b hover:bg-gray-50 dark:hover:bg-gray-800"
                       >
-                        {(columns as any[]).map((column: any) => (
+                        {columns.map((column: MockColumn) => (
                           <td key={String(column.key)} className="p-4">
-                            {column.render ? column.render(item) : (item as any)[column.key]}
+                            {column.render ? column.render(item) : String(item[column.key as keyof MockUser] || '')}
                           </td>
                         ))}
                         <td className="p-4">
@@ -178,43 +197,43 @@ vi.mock("@/components/admin/AdminDataTable", () => ({
     );
   },
   commonRenderers: {
-    contact: (item: any) => (
+    contact: (item: MockUser) => (
       <div>
         <div className="flex items-center space-x-2 text-sm">
           <div data-testid="mail-icon">Mail</div>
-          <span>{(item as any).email}</span>
+          <span>{item.email}</span>
         </div>
-        {(item as any).phone && (
+        {item.phone && (
           <div className="flex items-center space-x-2 text-sm text-gray-500">
             <div data-testid="phone-icon">Phone</div>
-            <span>{(item as any).phone}</span>
+            <span>{item.phone}</span>
           </div>
         )}
       </div>
     ),
-    status: (item: any) => (
+    status: (item: MockUser) => (
       <div className="space-y-1">
-        <span data-testid="badge" data-variant={(item as any).is_active ? "default" : "secondary"}>
-          {(item as any).is_active ? "Activo" : "Inactivo"}
+        <span data-testid="badge" data-variant={item.is_active ? "default" : "secondary"}>
+          {item.is_active ? "Activo" : "Inactivo"}
         </span>
         <br />
-        <span data-testid="badge" data-variant={(item as any).is_verified ? "default" : "outline"}>
-          {(item as any).is_verified ? "Verificado" : "No verificado"}
+        <span data-testid="badge" data-variant={item.is_verified ? "default" : "outline"}>
+          {item.is_verified ? "Verificado" : "No verificado"}
         </span>
       </div>
     ),
-    date: (item: any, field: string) => (
+    date: (item: MockUser, field: string) => (
       <div className="flex items-center space-x-2 text-sm text-gray-500">
         <div data-testid="calendar-icon">Calendar</div>
         <span>
-          {new Date((item as any)[field]).toISOString().split("T")[0]}
+          {new Date(item[field as keyof MockUser] as string).toISOString().split("T")[0]}
         </span>
       </div>
     ),
-    lastLogin: (item: any) => (
+    lastLogin: (item: MockUser) => (
       <div className="text-sm text-gray-500">
-        {(item as any).last_login
-          ? new Date((item as any).last_login).toISOString().split("T")[0]
+        {item.last_login
+          ? new Date(item.last_login).toISOString().split("T")[0]
           : "Nunca"}
       </div>
     ),
@@ -223,8 +242,8 @@ vi.mock("@/components/admin/AdminDataTable", () => ({
 
 // Mock the useAdminData hook
 vi.mock("@/hooks/useAdminData", () => ({
-  useAdminData: ({ loadFunction }: { loadFunction: () => Promise<unknown[]> }) => {
-    const [data, setData] = React.useState<unknown[]>([]);
+  useAdminData: ({ loadFunction }: { loadFunction: () => Promise<MockUser[]> }) => {
+    const [data, setData] = React.useState<MockUser[]>([]);
     const [loading, setLoading] = React.useState(true);
     const [error, setError] = React.useState<string | null>(null);
 
@@ -246,12 +265,12 @@ vi.mock("@/hooks/useAdminData", () => ({
       loadData();
     }, [loadFunction]);
 
-    const updateItem = (id: string, updatedItem: unknown) => {
-      setData((prev: unknown[]) => prev.map((item: any) => item.id === id ? updatedItem : item));
+    const updateItem = (id: string, updatedItem: MockUser) => {
+      setData((prev: MockUser[]) => prev.map((item: MockUser) => item.id === id ? updatedItem : item));
     };
 
     const removeItem = (id: string) => {
-      setData((prev: unknown[]) => prev.filter((item: any) => item.id !== id));
+      setData((prev: MockUser[]) => prev.filter((item: MockUser) => item.id !== id));
     };
 
     return {
