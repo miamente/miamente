@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 
 import RegisterPage from "../page";
 import { useAuth, isUserVerified } from "@/hooks/useAuth";
-import { registerWithEmail } from "@/lib/auth";
+import { registerWithEmail, loginWithEmail } from "@/lib/auth";
 import { UserRole } from "@/lib/types";
 
 // Mock the useAuth hook
@@ -18,6 +18,7 @@ vi.mock("@/hooks/useAuth", () => ({
 // Mock the auth utilities
 vi.mock("@/lib/auth", () => ({
   registerWithEmail: vi.fn(),
+  loginWithEmail: vi.fn(),
 }));
 
 // Mock next/navigation
@@ -28,6 +29,7 @@ vi.mock("next/navigation", () => ({
 const mockUseAuth = vi.mocked(useAuth);
 const mockIsUserVerified = vi.mocked(isUserVerified);
 const mockRegisterWithEmail = vi.mocked(registerWithEmail);
+const mockLoginWithEmail = vi.mocked(loginWithEmail);
 const mockUseRouter = vi.mocked(useRouter);
 
 describe("RegisterPage", () => {
@@ -177,7 +179,7 @@ describe("RegisterPage", () => {
     expect(mockPush).toHaveBeenCalledWith("/dashboard");
   });
 
-  it("should handle successful registration", async () => {
+  it("should handle successful registration and redirect to dashboard", async () => {
     mockRegisterWithEmail.mockResolvedValue({
       id: "user-123",
       email: "test@example.com",
@@ -187,6 +189,21 @@ describe("RegisterPage", () => {
       phone: "+1234567890",
       created_at: "2023-01-01T00:00:00Z",
       updated_at: "2023-01-01T00:00:00Z",
+    });
+
+    mockLoginWithEmail.mockResolvedValue({
+      access_token: "mock-token",
+      token_type: "bearer",
+      user: {
+        id: "user-123",
+        email: "test@example.com",
+        full_name: "Test User",
+        is_verified: false,
+        is_active: true,
+        phone: "+1234567890",
+        created_at: "2023-01-01T00:00:00Z",
+        updated_at: "2023-01-01T00:00:00Z",
+      },
     });
 
     mockUseAuth.mockReturnValue({
@@ -221,104 +238,23 @@ describe("RegisterPage", () => {
     fireEvent.click(screen.getByRole("button", { name: "Crear Cuenta" }));
 
     await waitFor(() => {
-      expect(screen.getByText("¡Cuenta Creada!")).toBeInTheDocument();
+      expect(mockRegisterWithEmail).toHaveBeenCalledWith({
+        email: "test@example.com",
+        password: "password123",
+        full_name: "Test User",
+      });
     });
-
-    expect(mockRegisterWithEmail).toHaveBeenCalledWith({
-      email: "test@example.com",
-      password: "password123",
-      full_name: "Test User",
-    });
-  });
-
-  it("should show success page after registration", async () => {
-    const user = userEvent.setup();
-    mockRegisterWithEmail.mockResolvedValue({
-      id: "user-123",
-      email: "test@example.com",
-      full_name: "Test User",
-      is_verified: false,
-      is_active: true,
-      phone: "+1234567890",
-      created_at: "2023-01-01T00:00:00Z",
-      updated_at: "2023-01-01T00:00:00Z",
-    });
-
-    mockUseAuth.mockReturnValue({
-      user: null,
-      isLoading: false,
-      isAuthenticated: false,
-      loginUser: vi.fn(),
-      loginProfessional: vi.fn(),
-      registerUser: vi.fn(),
-      registerProfessional: vi.fn(),
-      logout: vi.fn(),
-      refreshUser: vi.fn(),
-      getAuthHeaders: vi.fn(),
-    });
-
-    render(<RegisterPage />);
-
-    // Fill out and submit the form
-    await user.type(screen.getByPlaceholderText("Nombre completo"), "Test User");
-    await user.type(screen.getByPlaceholderText("Email"), "test@example.com");
-    await user.type(screen.getByPlaceholderText("Contraseña"), "password123");
-    await user.type(screen.getByPlaceholderText("Confirmar Contraseña"), "password123");
-    await user.click(screen.getByRole("checkbox", { name: /acepto los términos/i }));
-    await user.click(screen.getByRole("button", { name: "Crear Cuenta" }));
 
     await waitFor(() => {
-      expect(screen.getByText("¡Cuenta Creada!")).toBeInTheDocument();
+      expect(mockLoginWithEmail).toHaveBeenCalledWith("test@example.com", "password123");
     });
-
-    expect(screen.getByText(/Tu cuenta ha sido creada exitosamente/)).toBeInTheDocument();
-    expect(screen.getByText("Ir al Dashboard")).toBeInTheDocument();
-  });
-
-  it("should navigate to dashboard when clicking 'Ir al Dashboard'", async () => {
-    const user = userEvent.setup();
-    mockRegisterWithEmail.mockResolvedValue({
-      id: "user-123",
-      email: "test@example.com",
-      full_name: "Test User",
-      is_verified: false,
-      is_active: true,
-      phone: "+1234567890",
-      created_at: "2023-01-01T00:00:00Z",
-      updated_at: "2023-01-01T00:00:00Z",
-    });
-
-    mockUseAuth.mockReturnValue({
-      user: null,
-      isLoading: false,
-      isAuthenticated: false,
-      loginUser: vi.fn(),
-      loginProfessional: vi.fn(),
-      registerUser: vi.fn(),
-      registerProfessional: vi.fn(),
-      logout: vi.fn(),
-      refreshUser: vi.fn(),
-      getAuthHeaders: vi.fn(),
-    });
-
-    render(<RegisterPage />);
-
-    // Fill out and submit the form
-    await user.type(screen.getByPlaceholderText("Nombre completo"), "Test User");
-    await user.type(screen.getByPlaceholderText("Email"), "test@example.com");
-    await user.type(screen.getByPlaceholderText("Contraseña"), "password123");
-    await user.type(screen.getByPlaceholderText("Confirmar Contraseña"), "password123");
-    await user.click(screen.getByRole("checkbox", { name: /acepto los términos/i }));
-    await user.click(screen.getByRole("button", { name: "Crear Cuenta" }));
 
     await waitFor(() => {
-      expect(screen.getByText("¡Cuenta Creada!")).toBeInTheDocument();
+      expect(mockPush).toHaveBeenCalledWith("/dashboard");
     });
-
-    // Click the dashboard button
-    await user.click(screen.getByText("Ir al Dashboard"));
-    expect(mockPush).toHaveBeenCalledWith("/dashboard");
   });
+
+
 
   it("should handle registration error", async () => {
     const user = userEvent.setup();
@@ -384,7 +320,7 @@ describe("RegisterPage", () => {
 
     // Check loading state
     await waitFor(() => {
-      expect(screen.getByText("Creando cuenta...")).toBeInTheDocument();
+      expect(screen.getByText("Creando cuenta e iniciando sesión...")).toBeInTheDocument();
     });
 
     // Check that form is disabled during loading

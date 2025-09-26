@@ -9,13 +9,12 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/hooks/useAuth";
-import { registerWithEmail } from "@/lib/auth";
+import { loginWithEmail, registerWithEmail } from "@/lib/auth";
 import { registerSchema, type RegisterFormData } from "@/lib/validations";
 
 export default function RegisterPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState(false);
   const router = useRouter();
   const { user } = useAuth();
 
@@ -39,12 +38,18 @@ export default function RegisterPage() {
     setError(null);
 
     try {
+      // Register the user
       await registerWithEmail({
         email: data.email,
         password: data.password,
         full_name: data.fullName,
       });
-      setSuccess(true);
+
+      // Auto-login after successful registration
+      await loginWithEmail(data.email, data.password);
+      
+      // Redirect to dashboard
+      router.push("/dashboard");
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : "Error al crear la cuenta";
       setError(errorMessage);
@@ -57,25 +62,6 @@ export default function RegisterPage() {
     return <div className="flex min-h-[50vh] items-center justify-center">Redirigiendo...</div>;
   }
 
-  if (success) {
-    return (
-      <div className="flex min-h-[50vh] items-center justify-center">
-        <Card className="w-full max-w-md">
-          <CardHeader>
-            <CardTitle>¡Cuenta Creada!</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <p className="text-sm text-neutral-600 dark:text-neutral-400">
-              Tu cuenta ha sido creada exitosamente. Ya puedes acceder a tu dashboard.
-            </p>
-            <Button onClick={() => router.push("/dashboard")} className="w-full">
-              Ir al Dashboard
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
 
   return (
     <div className="flex min-h-[50vh] items-center justify-center">
@@ -170,7 +156,7 @@ export default function RegisterPage() {
             )}
 
             <Button type="submit" className="w-full" disabled={isLoading}>
-              {isLoading ? "Creando cuenta..." : "Crear Cuenta"}
+              {isLoading ? "Creando cuenta e iniciando sesión..." : "Crear Cuenta"}
             </Button>
           </form>
 
