@@ -24,7 +24,7 @@ env:
   SERVER_HOST: ${{ secrets.SERVER_HOST }}
   ALLOWED_HOSTS: ${{ secrets.ALLOWED_HOSTS }}
   BACKEND_CORS_ORIGINS: ${{ secrets.BACKEND_CORS_ORIGINS }}
-  TIMEZONE: ${{ secrets.TIMEZONE }}
+  TIMEZONE: ${{ secrets.TIME_ZONE }}
   SECRET_KEY: ${{ secrets.SECRET_KEY }}
   DATABASE_URL: ${{ secrets.DATABASE_URL }}
 
@@ -374,6 +374,7 @@ jobs:
         run: |
           pytest tests/integration \
             -m integration \
+            --ignore=tests/smoke \
             --cov=app \
             --cov-report=xml:integration_coverage.xml \
             --html=integration_report.html \
