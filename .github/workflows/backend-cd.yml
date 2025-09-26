@@ -776,7 +776,7 @@ jobs:
             --region us-east-1 \
             --output text)
 
-          EXPECTED_TASK_DEF="${{ needs.rollback-production.outputs.final_rolled_back_task_definition_arn }}"
+          EXPECTED_TASK_DEF="${{ steps.perform_rollback.outputs.final_task_def_arn }}"
 
           echo "Current Task Definition: $CURRENT_TASK_DEF"
           echo "Expected Task Definition: $EXPECTED_TASK_DEF"
