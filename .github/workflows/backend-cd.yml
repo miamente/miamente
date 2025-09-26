@@ -799,3 +799,28 @@ jobs:
           else
             echo "Health check failed after rollback - manual intervention may be required"
           fi
+
+  frontend-smoke-test-production:
+    needs: [test-db-production, deploy-cfn-production]
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    env:
+      APP_BASE_URL: ${{ needs.deploy-cfn-production.outputs.alb_url_production }}
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Python & deps
+        uses: ./.github/actions/setup-backend
+        with:
+          python-version: "3.13"
+
+      - name: Install Selenium and WebDriver Manager
+        run: |
+          pip install selenium webdriver-manager
+
+      - name: Run Frontend Smoke Test
+        run: |
+          pytest tests/smoke/test_smoke.py

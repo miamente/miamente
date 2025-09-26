@@ -56,6 +56,7 @@ jobs:
         run: |
           pytest \
             --ignore=tests/integration \
+            --ignore=tests/smoke \
             --cov=app \
             --cov-report=xml:unit_coverage.xml \
             --cov-report=html \
@@ -74,7 +75,7 @@ jobs:
   docker-build-validate:
     name: Docker build (validate, no push)
     runs-on: ubuntu-latest
-    needs: [lint,unit-tests]
+    needs: [lint, unit-tests]
     steps:
       - uses: actions/checkout@v4
 
