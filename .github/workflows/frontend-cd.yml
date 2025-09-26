@@ -1,12 +1,27 @@
 name: Frontend CD
 
 on:
-  pull_request:
-    branches: [main, staging]
+  push:
+    branches: [staging, main]
     paths:
       - "apps/web/**"
       - ".github/workflows/frontend-cd.yml"
       - ".github/actions/setup-frontend/**"
+  repository_dispatch:
+    types: [frontend-deploy-staging, frontend-deploy-production]
+  workflow_dispatch:
+    inputs:
+      backend_url:
+        description: 'Backend ALB URL from backend deployment'
+        required: true
+        type: string
+      environment:
+        description: 'Environment (staging or production)'
+        required: true
+        type: choice
+        options:
+          - staging
+          - production
 
 defaults:
   run:
@@ -252,7 +267,7 @@ jobs:
   deploy-cfn-staging:
     needs: [docker-build-push]
     runs-on: ubuntu-latest
-    if: github.event_name == 'push' && github.ref == 'refs/heads/develop'
+    if: github.event_name == 'push' && github.ref == 'refs/heads/staging'
     outputs:
       alb_url_staging: ${{ steps.get_stack_outputs.outputs.FrontendALBUrl }}
 
@@ -268,6 +283,33 @@ jobs:
           aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
           aws-region: us-east-1
 
+      - name: Get Backend URL from Repository Dispatch Payload
+        id: get_backend_url
+        run: |
+          if [ "${{ github.event_name }}" == "repository_dispatch" ]; then
+            # Use backend URL from repository dispatch payload
+            BACKEND_URL="${{ github.event.client_payload.backend_url }}"
+            echo "✅ Using backend URL from repository dispatch: $BACKEND_URL"
+            echo "backend_alb_url=$BACKEND_URL" >> $GITHUB_OUTPUT
+          else
+            # Fallback: Get from CloudFormation stack (for direct push triggers)
+            echo "Getting backend ALB URL from backend stack..."
+            BACKEND_ALB_URL=$(aws cloudformation describe-stacks \
+              --stack-name miamente-staging-stack \
+              --query 'Stacks[0].Outputs[?OutputKey==`ALBDnsName`].OutputValue' \
+              --output text 2>/dev/null || echo "")
+            
+            if [ -z "$BACKEND_ALB_URL" ] || [ "$BACKEND_ALB_URL" == "None" ]; then
+              echo "❌ Backend stack not found or ALB URL not available"
+              echo "Please ensure backend is deployed first"
+              exit 1
+            fi
+            
+            BACKEND_ALB_URL_HTTP="http://${BACKEND_ALB_URL}"
+            echo "✅ Backend ALB URL: $BACKEND_ALB_URL_HTTP"
+            echo "backend_alb_url=$BACKEND_ALB_URL_HTTP" >> $GITHUB_OUTPUT
+          fi
+
       - name: Deploy CloudFormation Staging Stack
         run: |
           IMAGE_URI="${{ secrets.DOCKERHUB_USERNAME }}/${{ secrets.DOCKERHUB_FRONTEND_REPOSITORY }}:${{ github.sha }}"
@@ -282,8 +324,8 @@ jobs:
               LabRoleArn=${{ secrets.LAB_ROLE_ARN }} \
               VpcId=${{ secrets.VPC_ID }} \
               SubnetIds=${{ secrets.SUBNET_IDS }} \
-              BackendApiUrl=${{ secrets.BACKEND_API_URL_STAGING }} \
-              BackendInternalUrl=${{ secrets.BACKEND_INTERNAL_URL_STAGING || secrets.BACKEND_API_URL_STAGING }} \
+              BackendApiUrl=${{ steps.get_backend_url.outputs.backend_alb_url }} \
+              BackendInternalUrl=${{ steps.get_backend_url.outputs.backend_alb_url }} \
               PROJECTNAME=${{ secrets.PROJECT_NAME }} \
               VERSION=${{ secrets.VERSION }} \
             --capabilities CAPABILITY_NAMED_IAM \
@@ -317,6 +359,33 @@ jobs:
           aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
           aws-region: us-east-1
 
+      - name: Get Backend URL from Repository Dispatch Payload
+        id: get_backend_url_prod
+        run: |
+          if [ "${{ github.event_name }}" == "repository_dispatch" ]; then
+            # Use backend URL from repository dispatch payload
+            BACKEND_URL="${{ github.event.client_payload.backend_url }}"
+            echo "✅ Using backend URL from repository dispatch: $BACKEND_URL"
+            echo "backend_alb_url=$BACKEND_URL" >> $GITHUB_OUTPUT
+          else
+            # Fallback: Get from CloudFormation stack (for direct push triggers)
+            echo "Getting backend ALB URL from backend production stack..."
+            BACKEND_ALB_URL=$(aws cloudformation describe-stacks \
+              --stack-name miamente-production-stack \
+              --query 'Stacks[0].Outputs[?OutputKey==`ALBDnsName`].OutputValue' \
+              --output text 2>/dev/null || echo "")
+            
+            if [ -z "$BACKEND_ALB_URL" ] || [ "$BACKEND_ALB_URL" == "None" ]; then
+              echo "❌ Backend production stack not found or ALB URL not available"
+              echo "Please ensure backend is deployed first"
+              exit 1
+            fi
+            
+            BACKEND_ALB_URL_HTTP="http://${BACKEND_ALB_URL}"
+            echo "✅ Backend ALB URL: $BACKEND_ALB_URL_HTTP"
+            echo "backend_alb_url=$BACKEND_ALB_URL_HTTP" >> $GITHUB_OUTPUT
+          fi
+
       - name: Deploy CloudFormation Production Stack
         run: |
           IMAGE_URI="${{ secrets.DOCKERHUB_USERNAME }}/${{ secrets.DOCKERHUB_FRONTEND_REPOSITORY }}:${{ github.sha }}"
@@ -331,8 +400,8 @@ jobs:
               LabRoleArn=${{ secrets.LAB_ROLE_ARN }} \
               VpcId=${{ secrets.VPC_ID }} \
               SubnetIds=${{ secrets.SUBNET_IDS }} \
-              BackendApiUrl=${{ secrets.BACKEND_API_URL_PROD }} \
-              BackendInternalUrl=${{ secrets.BACKEND_INTERNAL_URL_PROD || secrets.BACKEND_API_URL_PROD }} \
+              BackendApiUrl=${{ steps.get_backend_url_prod.outputs.backend_alb_url }} \
+              BackendInternalUrl=${{ steps.get_backend_url_prod.outputs.backend_alb_url }} \
               PROJECTNAME=${{ secrets.PROJECT_NAME }} \
               VERSION=${{ secrets.VERSION }} \
             --capabilities CAPABILITY_NAMED_IAM \
