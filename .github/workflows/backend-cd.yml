@@ -8,6 +8,10 @@ on:
       - ".github/workflows/backend-cd.yml"
       - ".github/actions/setup-backend/**"
 
+permissions:
+  contents: write
+  actions: write
+
 env:
   PROJECT_NAME: ${{ secrets.PROJECT_NAME }}
   VERSION: ${{ secrets.VERSION }}
