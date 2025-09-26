@@ -570,6 +570,8 @@ jobs:
     needs: [docker-build-push, deploy-cfn-production]
     runs-on: ubuntu-latest
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    outputs:
+      previous_task_definition_arn: ${{ steps.force_deploy_production.outputs.previous_task_definition_arn }}
     defaults:
       run:
         working-directory: .
@@ -586,7 +588,6 @@ jobs:
         id: force_deploy_production
         run: |
           echo "Getting current task definition before deployment..."
-          # CORREGIDO: Capturar el task definition ANTES del nuevo deployment
           PREVIOUS_TASK_DEF_ARN=$(aws ecs describe-services \
             --cluster ${{ needs.deploy-cfn-production.outputs.cluster_name_production }} \
             --services ${{ needs.deploy-cfn-production.outputs.service_name_production }} \
@@ -688,7 +689,7 @@ jobs:
       - name: Rollback Production Service
         run: |
           echo "Initiating rollback for Production service..."
-          PREVIOUS_TASK_DEF_ARN="${{ needs.update-service-production.outputs.current_task_definition_arn }}"
+          PREVIOUS_TASK_DEF_ARN="${{ needs.update-service-production.outputs.previous_task_definition_arn }}"
           echo "Rolling back to Task Definition ARN: $PREVIOUS_TASK_DEF_ARN"
 
           if [ -z "$PREVIOUS_TASK_DEF_ARN" ] || [ "$PREVIOUS_TASK_DEF_ARN" == "null" || [ "$PREVIOUS_TASK_DEF_ARN" == "None"]; then
