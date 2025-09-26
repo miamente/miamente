@@ -142,7 +142,7 @@ jobs:
           SERVERHOST="${{ secrets.SERVER_HOST }}"
           ALLOWEDHOSTS="${{ secrets.ALLOWED_HOSTS }}"
           BACKENDCORSORIGINS="${{ secrets.BACKEND_CORS_ORIGINS }}"
-          TIMEZONE="${{ secrets.TIME_ZONE }}"
+          TIMEZONE="${{ secrets.TIMEZONE }}"
           SECRETKEY="${{ secrets.SECRET_KEY }}"
 
           # ---------- 2) Pre-chequeo de vacíos ----------
@@ -611,6 +611,16 @@ jobs:
             --services ${{ needs.deploy-cfn-production.outputs.service_name_production }} \
             --region us-east-1
           echo "Production service deployment stable."
+
+          # Get and print the NEW current task definition ARN
+          NEW_TASK_DEF_ARN=$(aws ecs describe-services \
+            --cluster ${{ needs.deploy-cfn-production.outputs.cluster_name_production }} \
+            --services ${{ needs.deploy-cfn-production.outputs.service_name_production }} \
+            --query "services[0].taskDefinition" \
+            --region us-east-1 \
+            --output text)
+
+          echo "New Task Definition ARN after deployment: $NEW_TASK_DEF_ARN"
 
   test-db-production:
     needs: [update-service-production, deploy-cfn-production]
