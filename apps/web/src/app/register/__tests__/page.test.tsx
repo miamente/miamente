@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 
 import RegisterPage from "../page";
 import { useAuth, isUserVerified } from "@/hooks/useAuth";
-import { registerWithEmail, loginWithEmail } from "@/lib/auth";
+import { registerWithEmail } from "@/lib/auth";
 import { UserRole } from "@/lib/types";
 
 // Mock the useAuth hook
@@ -18,7 +18,6 @@ vi.mock("@/hooks/useAuth", () => ({
 // Mock the auth utilities
 vi.mock("@/lib/auth", () => ({
   registerWithEmail: vi.fn(),
-  loginWithEmail: vi.fn(),
 }));
 
 // Mock next/navigation
@@ -29,7 +28,6 @@ vi.mock("next/navigation", () => ({
 const mockUseAuth = vi.mocked(useAuth);
 const mockIsUserVerified = vi.mocked(isUserVerified);
 const mockRegisterWithEmail = vi.mocked(registerWithEmail);
-const mockLoginWithEmail = vi.mocked(loginWithEmail);
 const mockUseRouter = vi.mocked(useRouter);
 
 describe("RegisterPage", () => {
@@ -191,26 +189,13 @@ describe("RegisterPage", () => {
       updated_at: "2023-01-01T00:00:00Z",
     });
 
-    mockLoginWithEmail.mockResolvedValue({
-      access_token: "mock-token",
-      token_type: "bearer",
-      user: {
-        id: "user-123",
-        email: "test@example.com",
-        full_name: "Test User",
-        is_verified: false,
-        is_active: true,
-        phone: "+1234567890",
-        created_at: "2023-01-01T00:00:00Z",
-        updated_at: "2023-01-01T00:00:00Z",
-      },
-    });
+    const mockLoginUser = vi.fn().mockResolvedValue(undefined);
 
     mockUseAuth.mockReturnValue({
       user: null,
       isLoading: false,
       isAuthenticated: false,
-      loginUser: vi.fn(),
+      loginUser: mockLoginUser,
       loginProfessional: vi.fn(),
       registerUser: vi.fn(),
       registerProfessional: vi.fn(),
@@ -246,12 +231,14 @@ describe("RegisterPage", () => {
     });
 
     await waitFor(() => {
-      expect(mockLoginWithEmail).toHaveBeenCalledWith("test@example.com", "password123");
+      expect(mockLoginUser).toHaveBeenCalledWith({
+        email: "test@example.com",
+        password: "password123",
+      });
     });
 
-    await waitFor(() => {
-      expect(mockPush).toHaveBeenCalledWith("/dashboard");
-    });
+    // loginUser already handles the redirect to dashboard
+    // so we don't need to check for router.push here
   });
 
 
