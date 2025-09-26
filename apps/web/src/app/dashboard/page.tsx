@@ -1,6 +1,6 @@
 "use client";
 import React, { useEffect } from "react";
-import { useAuth, isUserVerified, getUserEmail, getUserFullName } from "@/hooks/useAuth";
+import { useAuth, getUserEmail, getUserFullName } from "@/hooks/useAuth";
 import { useRouter } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
@@ -18,13 +18,7 @@ export default function DashboardPage() {
         return;
       }
 
-      if (!isUserVerified(user)) {
-        // User not verified, redirect to verification
-        router.push("/verify");
-        return;
-      }
-
-      // User is authenticated and verified, show unified dashboard
+      // User is authenticated, show unified dashboard
     }
   }, [user, isLoading, router]);
 
@@ -49,15 +43,7 @@ export default function DashboardPage() {
     );
   }
 
-  if (!isUserVerified(user)) {
-    return (
-      <div className="flex min-h-screen items-center justify-center">
-        <div className="text-center">
-          <p className="text-gray-600">Redirigiendo a verificación...</p>
-        </div>
-      </div>
-    );
-  }
+  // Email verification is no longer required
 
   // Check user role
   const isProfessional = user.type === "professional";
@@ -91,7 +77,7 @@ export default function DashboardPage() {
                 <strong>Rol:</strong> {user.type === "professional" ? "Profesional" : "Usuario"}
               </p>
               <p>
-                <strong>Email Verificado:</strong> {isUserVerified(user) ? "Sí" : "No"}
+                <strong>Email Verificado:</strong> Sí
               </p>
               <p>
                 <strong>Nombre:</strong> {getUserFullName(user)}

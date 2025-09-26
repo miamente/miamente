@@ -340,6 +340,12 @@ jobs:
             fi
           done
 
+      - name: Seed Demo Data for Staging
+        run: |
+          echo "🌱 Seeding demo data for staging environment..."
+          cd backend
+          python scripts/seed_environment_data.py --env staging
+
       - name: Trigger Frontend CD for Staging
         uses: peter-evans/repository-dispatch@v3
         with:
@@ -667,6 +673,12 @@ jobs:
               exit 1
             fi
           done
+
+      - name: Seed Demo Data for Production
+        run: |
+          echo "🌱 Seeding demo data for production environment..."
+          cd backend
+          python scripts/seed_environment_data.py --env production
 
       - name: Trigger Frontend CD for Production
         uses: peter-evans/repository-dispatch@v3

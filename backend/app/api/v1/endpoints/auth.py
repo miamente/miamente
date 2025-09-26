@@ -149,31 +149,6 @@ async def login_unified(login_data: UnifiedLogin, db: Session = Depends(get_db))
     )
 
 
-@router.post("/simulate-verification")
-async def simulate_email_verification(user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)):
-    """Simulate email verification for development purposes."""
-    auth_service = AuthService(db)
-
-    # Try to update user first
-    user = auth_service.get_user_by_id(user_id)
-    if user:
-        user.is_verified = True
-        db.commit()
-        return {"message": "User email verification simulated", "user_type": "user"}
-
-    # Try to update professional
-    professional = auth_service.get_professional_by_id(user_id)
-    if professional:
-        professional.is_verified = True
-        db.commit()
-        return {
-            "message": "Professional email verification simulated",
-            "user_type": "professional",
-        }
-
-    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=USER_NOT_FOUND_MESSAGE)
-
-
 @router.post("/refresh", response_model=Token)
 async def refresh_token(refresh_data: RefreshToken, _db: Session = Depends(get_db)):
     """Refresh access token."""

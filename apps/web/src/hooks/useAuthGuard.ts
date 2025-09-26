@@ -2,13 +2,12 @@
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 
-import { useAuth, getUserEmail, isEmailVerified } from "./useAuth";
+import { useAuth } from "./useAuth";
 
 import type { UserRole } from "@/lib/auth";
 
 interface AuthGuardOptions {
   requiredRole?: UserRole;
-  requireEmailVerification?: boolean;
   redirectTo?: string;
 }
 
@@ -16,41 +15,14 @@ export function useAuthGuard(options: AuthGuardOptions = {}) {
   const { user, isLoading } = useAuth();
   const router = useRouter();
 
-  // In development mode (emulator), disable email verification requirement by default
-  const isDevelopment = typeof window !== "undefined" && window.location.hostname === "localhost";
-  const defaultEmailVerification = !isDevelopment;
-
-  const {
-    requiredRole,
-    requireEmailVerification = defaultEmailVerification,
-    redirectTo = "/login",
-  } = options;
+  const { requiredRole, redirectTo = "/login" } = options;
 
   useEffect(() => {
     if (isLoading) return;
 
-    // Debug logging in development
-    if (isDevelopment) {
-      console.log("useAuthGuard - Development mode:", {
-        user: getUserEmail(user),
-        emailVerified: isEmailVerified(user),
-        requireEmailVerification,
-        userType: user?.type,
-      });
-    }
-
     // Not logged in
     if (!user) {
       router.push(redirectTo);
-      return;
-    }
-
-    // Email verification required but not verified
-    if (requireEmailVerification && !isEmailVerified(user)) {
-      if (isDevelopment) {
-        console.log("useAuthGuard - Redirecting to /verify (email not verified)");
-      }
-      router.push("/verify");
       return;
     }
 
@@ -60,15 +32,11 @@ export function useAuthGuard(options: AuthGuardOptions = {}) {
       // This prevents infinite redirect loops
       return;
     }
-  }, [user, isLoading, requiredRole, requireEmailVerification, redirectTo, router, isDevelopment]);
+  }, [user, isLoading, requiredRole, redirectTo, router]);
 
   return {
     user,
     isLoading,
-    isAuthorized:
-      !isLoading &&
-      !!user &&
-      (!requireEmailVerification || isEmailVerified(user)) &&
-      (!requiredRole || user?.type === requiredRole),
+    isAuthorized: !isLoading && !!user && (!requiredRole || user?.type === requiredRole),
   };
 }

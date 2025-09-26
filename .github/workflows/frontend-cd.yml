@@ -355,7 +355,6 @@ jobs:
               {"ParameterKey":"VpcId","ParameterValue":$vpcId},
               {"ParameterKey":"SubnetIds","ParameterValue":$subnetIds},
               {"ParameterKey":"BackendApiUrl","ParameterValue":$backendUrl},
-              {"ParameterKey":"BackendInternalUrl","ParameterValue":$backendUrl},
               {"ParameterKey":"PROJECTNAME","ParameterValue":$projectname},
               {"ParameterKey":"VERSION","ParameterValue":$version},
               {"ParameterKey":"TIMEZONE","ParameterValue":$timezone}
@@ -487,7 +486,6 @@ jobs:
               {"ParameterKey":"VpcId","ParameterValue":$vpcId},
               {"ParameterKey":"SubnetIds","ParameterValue":$subnetIds},
               {"ParameterKey":"BackendApiUrl","ParameterValue":$backendUrl},
-              {"ParameterKey":"BackendInternalUrl","ParameterValue":$backendUrl},
               {"ParameterKey":"PROJECTNAME","ParameterValue":$projectname},
               {"ParameterKey":"VERSION","ParameterValue":$version},
               {"ParameterKey":"TIMEZONE","ParameterValue":$timezone}

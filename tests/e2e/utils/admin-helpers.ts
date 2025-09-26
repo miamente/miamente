@@ -39,6 +39,9 @@ export class AdminHelpers {
       throw error;
     }
 
+    // Wait for page to fully load (not just loading state)
+    await this.page.waitForLoadState("networkidle", { timeout: 10000 });
+
     // Verify we're actually logged in by checking for admin elements
     try {
       await this.page.waitForSelector("text=Dashboard de Administración", { timeout: 5000 });

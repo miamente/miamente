@@ -28,7 +28,6 @@ interface MockComponentProps {
   [key: string]: unknown;
 }
 
-
 interface MockButtonProps extends MockComponentProps {
   onClick?: () => void;
 }
@@ -68,7 +67,19 @@ vi.mock("@/lib/timezone", () => ({
 
 // Mock the AdminDataTable component
 vi.mock("@/components/admin/AdminDataTable", () => ({
-  AdminDataTable: ({ title, description, addButtonText, onAdd, data, loading, error, columns, onToggleActive, onDelete, emptyMessage }: {
+  AdminDataTable: ({
+    title,
+    description,
+    addButtonText,
+    onAdd,
+    data,
+    loading,
+    error,
+    columns,
+    onToggleActive,
+    onDelete,
+    emptyMessage,
+  }: {
     title: string;
     description: string;
     addButtonText?: string;
@@ -84,17 +95,13 @@ vi.mock("@/components/admin/AdminDataTable", () => ({
     if (loading) {
       return <div data-testid="loading-spinner">Loading...</div>;
     }
-    
+
     return (
       <div>
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-              {title}
-            </h1>
-            <p className="mt-2 text-gray-600 dark:text-gray-400">
-              {description}
-            </p>
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">{title}</h1>
+            <p className="mt-2 text-gray-600 dark:text-gray-400">{description}</p>
           </div>
           {addButtonText && onAdd && (
             <button data-testid="button" onClick={onAdd}>
@@ -117,19 +124,14 @@ vi.mock("@/components/admin/AdminDataTable", () => ({
           </div>
           <div data-testid="card-content">
             {data.length === 0 ? (
-              <div className="py-8 text-center text-gray-500">
-                {emptyMessage}
-              </div>
+              <div className="py-8 text-center text-gray-500">{emptyMessage}</div>
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full">
                   <thead>
                     <tr className="border-b">
                       {columns.map((column: MockColumn) => (
-                        <th
-                          key={String(column.key)}
-                          className="p-4 text-left font-medium"
-                        >
+                        <th key={String(column.key)} className="p-4 text-left font-medium">
                           {column.label}
                         </th>
                       ))}
@@ -143,7 +145,9 @@ vi.mock("@/components/admin/AdminDataTable", () => ({
                       >
                         {columns.map((column: MockColumn) => (
                           <td key={String(column.key)} className="p-4">
-                            {column.render ? column.render(item) : String(item[column.key as keyof MockUser] || '')}
+                            {column.render
+                              ? column.render(item)
+                              : String(item[column.key as keyof MockUser] || "")}
                           </td>
                         ))}
                         <td className="p-4">
@@ -158,8 +162,8 @@ vi.mock("@/components/admin/AdminDataTable", () => ({
                                 <div data-testid="edit-icon">Edit</div>
                                 Editar
                               </div>
-                              <div 
-                                data-testid="dropdown-item" 
+                              <div
+                                data-testid="dropdown-item"
                                 onClick={() => onToggleActive && onToggleActive(item)}
                               >
                                 {item.is_active ? (
@@ -174,8 +178,8 @@ vi.mock("@/components/admin/AdminDataTable", () => ({
                                   </>
                                 )}
                               </div>
-                              <div 
-                                data-testid="dropdown-item" 
+                              <div
+                                data-testid="dropdown-item"
                                 onClick={() => onDelete && onDelete(item)}
                                 className="text-red-600"
                               >
@@ -225,16 +229,12 @@ vi.mock("@/components/admin/AdminDataTable", () => ({
     date: (item: MockUser, field: string) => (
       <div className="flex items-center space-x-2 text-sm text-gray-500">
         <div data-testid="calendar-icon">Calendar</div>
-        <span>
-          {new Date(item[field as keyof MockUser] as string).toISOString().split("T")[0]}
-        </span>
+        <span>{new Date(item[field as keyof MockUser] as string).toISOString().split("T")[0]}</span>
       </div>
     ),
     lastLogin: (item: MockUser) => (
       <div className="text-sm text-gray-500">
-        {item.last_login
-          ? new Date(item.last_login).toISOString().split("T")[0]
-          : "Nunca"}
+        {item.last_login ? new Date(item.last_login).toISOString().split("T")[0] : "Nunca"}
       </div>
     ),
   },
@@ -266,7 +266,9 @@ vi.mock("@/hooks/useAdminData", () => ({
     }, [loadFunction]);
 
     const updateItem = (id: string, updatedItem: MockUser) => {
-      setData((prev: MockUser[]) => prev.map((item: MockUser) => item.id === id ? updatedItem : item));
+      setData((prev: MockUser[]) =>
+        prev.map((item: MockUser) => (item.id === id ? updatedItem : item)),
+      );
     };
 
     const removeItem = (id: string) => {
@@ -477,8 +479,6 @@ describe("AdminUsers (Regular Users)", () => {
     });
   });
 
-
-
   it("should display correct verification status", async () => {
     render(<AdminUsers />);
 
@@ -558,7 +558,6 @@ describe("AdminUsers (Regular Users)", () => {
     });
   });
 
-
   it("should show no users message when no regular users exist", async () => {
     const { apiClient } = await import("@/lib/api");
     (
@@ -572,9 +571,7 @@ describe("AdminUsers (Regular Users)", () => {
     render(<AdminUsers />);
 
     await waitFor(() => {
-      expect(
-        screen.getByText("No hay usuarios regulares en el sistema"),
-      ).toBeInTheDocument();
+      expect(screen.getByText("No hay usuarios regulares en el sistema")).toBeInTheDocument();
     });
   });
 

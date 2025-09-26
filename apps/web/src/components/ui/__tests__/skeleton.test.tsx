@@ -34,7 +34,7 @@ describe("Skeleton", () => {
     render(
       <Skeleton data-testid="skeleton">
         <div>Loading content</div>
-      </Skeleton>
+      </Skeleton>,
     );
 
     const skeleton = screen.getByTestId("skeleton");
@@ -42,7 +42,7 @@ describe("Skeleton", () => {
   });
 
   it("should merge classes correctly", () => {
-    render(<Skeleton className="w-4 h-4" data-testid="skeleton" />);
+    render(<Skeleton className="h-4 w-4" data-testid="skeleton" />);
 
     const skeleton = screen.getByTestId("skeleton");
     expect(skeleton).toHaveClass("bg-muted");
