@@ -73,7 +73,7 @@ jobs:
     name: E2E Tests (Playwright) - Staging Environment
     runs-on: ubuntu-latest
     needs: [deploy-cfn-staging]
-    if: (github.event_name == 'push' && github.ref == 'refs/heads/staging') || (github.event_name == 'repository_dispatch' && github.event.action == 'frontend-deploy-staging')
+    if: (github.event_name == 'push' && github.ref == 'refs/heads/staging') || (github.event_name == 'repository_dispatch' && github.event.type == 'frontend-deploy-staging')
 
     env:
       # Use deployed staging URLs instead of localhost
@@ -238,7 +238,7 @@ jobs:
     needs:
       - unit-tests
       - e2e-tests-staging
-    if: (github.event_name == 'push' && github.ref == 'refs/heads/staging') || (github.event_name == 'repository_dispatch' && github.event.action == 'frontend-deploy-staging')
+    if: (github.event_name == 'push' && github.ref == 'refs/heads/staging') || (github.event_name == 'repository_dispatch' && github.event.type == 'frontend-deploy-staging')
     steps:
       - uses: actions/checkout@v4
 
@@ -265,7 +265,7 @@ jobs:
   deploy-cfn-staging:
     needs: []
     runs-on: ubuntu-latest
-    if: (github.event_name == 'push' && github.ref == 'refs/heads/staging') || (github.event_name == 'repository_dispatch' && github.event.action == 'frontend-deploy-staging')
+    if: (github.event_name == 'push' && github.ref == 'refs/heads/staging') || (github.event_name == 'repository_dispatch' && github.event.type == 'frontend-deploy-staging')
     outputs:
       alb_url_staging: ${{ steps.get_stack_outputs.outputs.FrontendALBUrl }}
 
@@ -399,7 +399,7 @@ jobs:
   deploy-cfn-prod:
     needs: []
     runs-on: ubuntu-latest
-    if: (github.event_name == 'push' && github.ref == 'refs/heads/main') || (github.event_name == 'repository_dispatch' && github.event.action == 'frontend-deploy-production')
+    if: (github.event_name == 'push' && github.ref == 'refs/heads/main') || (github.event_name == 'repository_dispatch' && github.event.type == 'frontend-deploy-production')
     outputs:
       alb_url_prod: ${{ steps.get_stack_outputs.outputs.FrontendALBUrl }}
 
