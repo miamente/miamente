@@ -320,10 +320,11 @@ jobs:
           VERSION="${{ env.VERSION }}"
           TIMEZONE="${{ env.TIMEZONE }}"
           BACKEND_URL="${{ steps.get_backend_url.outputs.backend_alb_url }}"
+          BACKEND_INTERNAL_URL="${{ steps.get_backend_url.outputs.backend_alb_url }}"
 
           missing=()
           check_empty () { var_name="$1"; val="${!var_name:-}"; if [ -z "$val" ]; then missing+=("$var_name"); fi; }
-          for k in IMAGE_URI LAB_ROLE_ARN VPC_ID SUBNET_IDS PROJECTNAME VERSION TIMEZONE BACKEND_URL; do
+          for k in IMAGE_URI LAB_ROLE_ARN VPC_ID SUBNET_IDS PROJECTNAME VERSION TIMEZONE BACKEND_URL BACKEND_INTERNAL_URL; do
             check_empty "$k"
           done
           if [ ${#missing[@]} -gt 0 ]; then
@@ -345,6 +346,7 @@ jobs:
             --arg vpcId "$VPC_ID" \
             --arg subnetIds "$SUBNET_IDS" \
             --arg backendUrl "$BACKEND_URL" \
+            --arg backendInternalUrl "$BACKEND_INTERNAL_URL" \
             --arg projectname "$PROJECTNAME" \
             --arg version "$VERSION" \
             --arg timezone "$TIMEZONE" \
@@ -355,6 +357,7 @@ jobs:
               {"ParameterKey":"VpcId","ParameterValue":$vpcId},
               {"ParameterKey":"SubnetIds","ParameterValue":$subnetIds},
               {"ParameterKey":"BackendApiUrl","ParameterValue":$backendUrl},
+              {"ParameterKey":"BackendInternalUrl","ParameterValue":$backendInternalUrl},
               {"ParameterKey":"PROJECTNAME","ParameterValue":$projectname},
               {"ParameterKey":"VERSION","ParameterValue":$version},
               {"ParameterKey":"TIMEZONE","ParameterValue":$timezone}
@@ -451,10 +454,11 @@ jobs:
           VERSION="${{ env.VERSION }}"
           TIMEZONE="${{ env.TIMEZONE }}"
           BACKEND_URL="${{ steps.get_backend_url_prod.outputs.backend_alb_url }}"
+          BACKEND_INTERNAL_URL="${{ steps.get_backend_url_prod.outputs.backend_alb_url }}"
 
           missing=()
           check_empty () { var_name="$1"; val="${!var_name:-}"; if [ -z "$val" ]; then missing+=("$var_name"); fi; }
-          for k in IMAGE_URI LAB_ROLE_ARN VPC_ID SUBNET_IDS PROJECTNAME VERSION TIMEZONE BACKEND_URL; do
+          for k in IMAGE_URI LAB_ROLE_ARN VPC_ID SUBNET_IDS PROJECTNAME VERSION TIMEZONE BACKEND_URL BACKEND_INTERNAL_URL; do
             check_empty "$k"
           done
           if [ ${#missing[@]} -gt 0 ]; then
@@ -476,6 +480,7 @@ jobs:
             --arg vpcId "$VPC_ID" \
             --arg subnetIds "$SUBNET_IDS" \
             --arg backendUrl "$BACKEND_URL" \
+            --arg backendInternalUrl "$BACKEND_INTERNAL_URL" \
             --arg projectname "$PROJECTNAME" \
             --arg version "$VERSION" \
             --arg timezone "$TIMEZONE" \
@@ -486,6 +491,7 @@ jobs:
               {"ParameterKey":"VpcId","ParameterValue":$vpcId},
               {"ParameterKey":"SubnetIds","ParameterValue":$subnetIds},
               {"ParameterKey":"BackendApiUrl","ParameterValue":$backendUrl},
+              {"ParameterKey":"BackendInternalUrl","ParameterValue":$backendInternalUrl},
               {"ParameterKey":"PROJECTNAME","ParameterValue":$projectname},
               {"ParameterKey":"VERSION","ParameterValue":$version},
               {"ParameterKey":"TIMEZONE","ParameterValue":$timezone}
