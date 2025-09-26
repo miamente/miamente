@@ -372,7 +372,6 @@ jobs:
       - name: Run Integration Tests
         run: |
           pytest tests/integration \
-            --ignore=tests/smoke \
             -m integration \
             --cov=app \
             --cov-report=xml:integration_coverage.xml \
@@ -823,4 +822,4 @@ jobs:
 
       - name: Run Frontend Smoke Test
         run: |
-          pytest tests/smoke/test_smoke.py
+          pytest tests/smoke/test_smoke.py --ignore=tests/integration

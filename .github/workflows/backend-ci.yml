@@ -56,7 +56,6 @@ jobs:
         run: |
           pytest \
             --ignore=tests/integration \
-            --ignore=tests/smoke \
             --cov=app \
             --cov-report=xml:unit_coverage.xml \
             --cov-report=html \
