@@ -263,7 +263,7 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
   deploy-cfn-staging:
-    needs: [docker-build-push]
+    needs: []
     runs-on: ubuntu-latest
     if: (github.event_name == 'push' && github.ref == 'refs/heads/staging') || (github.event_name == 'repository_dispatch' && github.event.action == 'frontend-deploy-staging')
     outputs:
@@ -397,7 +397,7 @@ jobs:
           echo "FrontendALBUrl=$(echo $OUTPUTS | jq -r '.[] | select(.OutputKey=="FrontendALBUrl") | .OutputValue')" >> $GITHUB_OUTPUT
 
   deploy-cfn-prod:
-    needs: [docker-build-push]
+    needs: []
     runs-on: ubuntu-latest
     if: (github.event_name == 'push' && github.ref == 'refs/heads/main') || (github.event_name == 'repository_dispatch' && github.event.action == 'frontend-deploy-production')
     outputs:
