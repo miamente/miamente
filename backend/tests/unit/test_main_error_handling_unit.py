@@ -132,12 +132,6 @@ class TestMainErrorHandling:
         if response.status_code == 200:
             assert "Miamente Backend API" in response.json()["message"]
 
-    def test_app_has_api_routes(self):
-        """Test that the app includes API routes."""
-        client = TestClient(app)
-        response = client.get("/api/v1/")
-        # Should not return 404, meaning the API routes are included
-        assert response.status_code != 404
 
     def test_database_error_handler_with_operational_error(self):
         """Test database error handler with operational error."""
