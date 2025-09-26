@@ -1,6 +1,12 @@
 name: Frontend CD
 
 on:
+  push:
+    branches: [staging, main]
+    paths:
+      - "apps/web/**"
+      - ".github/workflows/frontend-cd.yml"
+      - ".github/actions/setup-frontend/**"
   repository_dispatch:
     types: [frontend-deploy-staging, frontend-deploy-production]
   workflow_dispatch:
@@ -29,6 +35,7 @@ jobs:
   unit-tests:
     name: Unit & Accessibility Tests
     runs-on: ubuntu-latest
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/staging')
     steps:
       - uses: actions/checkout@v4
 
@@ -61,7 +68,7 @@ jobs:
     name: E2E Tests (Playwright) - Staging Environment
     runs-on: ubuntu-latest
     needs: [deploy-cfn-staging]
-    if: github.event_name == 'repository_dispatch' && github.event.action == 'frontend-deploy-staging'
+    if: (github.event_name == 'push' && github.ref == 'refs/heads/staging') || (github.event_name == 'repository_dispatch' && github.event.action == 'frontend-deploy-staging')
 
     env:
       # Use deployed staging URLs instead of localhost
@@ -78,6 +85,26 @@ jobs:
         uses: ./.github/actions/setup-frontend
         with:
           node-version: "22"
+
+      - name: Get Backend URL for E2E Tests
+        id: get_backend_url_e2e
+        if: github.event_name == 'push'
+        run: |
+          echo "Getting backend ALB URL for E2E tests..."
+          BACKEND_ALB_URL=$(aws cloudformation describe-stacks \
+            --stack-name miamente-staging-stack \
+            --query 'Stacks[0].Outputs[?OutputKey==`ALBDnsName`].OutputValue' \
+            --output text 2>/dev/null || echo "")
+          
+          if [ -z "$BACKEND_ALB_URL" ] || [ "$BACKEND_ALB_URL" == "None" ]; then
+            echo "❌ Backend stack not found or ALB URL not available"
+            echo "Please ensure backend is deployed first"
+            exit 1
+          fi
+          
+          BACKEND_ALB_URL_HTTP="http://${BACKEND_ALB_URL}"
+          echo "✅ Backend ALB URL for E2E: $BACKEND_ALB_URL_HTTP"
+          echo "backend_alb_url=$BACKEND_ALB_URL_HTTP" >> $GITHUB_OUTPUT
 
       - name: Install E2E test dependencies
         working-directory: tests/e2e
@@ -132,7 +159,7 @@ jobs:
         env:
           # Override test URLs to use staging environment
           E2E_BASE_URL: ${{ env.FRONTEND_STAGING_URL }}
-          BACKEND_INTERNAL_URL: ${{ env.BACKEND_STAGING_URL }}
+          BACKEND_INTERNAL_URL: ${{ env.BACKEND_STAGING_URL || steps.get_backend_url_e2e.outputs.backend_alb_url }}
         run: |
           echo "🔍 Running Playwright tests against staging environment..."
           echo "Backend URL: $BACKEND_INTERNAL_URL"
@@ -168,9 +195,10 @@ jobs:
             tests/e2e/test-results/
 
   docker-build-push:
-    name: Build & Push Docker image (main only)
+    name: Build & Push Docker image
     runs-on: ubuntu-latest
     needs: [unit-tests]
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/staging')
     steps:
       - uses: actions/checkout@v4
 
@@ -205,7 +233,7 @@ jobs:
     needs:
       - unit-tests
       - e2e-tests-staging
-    if: github.event_name == 'repository_dispatch' && github.event.action == 'frontend-deploy-staging'
+    if: (github.event_name == 'push' && github.ref == 'refs/heads/staging') || (github.event_name == 'repository_dispatch' && github.event.action == 'frontend-deploy-staging')
     steps:
       - uses: actions/checkout@v4
 
@@ -232,7 +260,7 @@ jobs:
   deploy-cfn-staging:
     needs: [docker-build-push]
     runs-on: ubuntu-latest
-    if: github.event_name == 'repository_dispatch' && github.event.action == 'frontend-deploy-staging'
+    if: (github.event_name == 'push' && github.ref == 'refs/heads/staging') || (github.event_name == 'repository_dispatch' && github.event.action == 'frontend-deploy-staging')
     outputs:
       alb_url_staging: ${{ steps.get_stack_outputs.outputs.FrontendALBUrl }}
 
@@ -248,7 +276,7 @@ jobs:
           aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
           aws-region: us-east-1
 
-      - name: Get Backend URL from Repository Dispatch Payload
+      - name: Get Backend URL
         id: get_backend_url
         run: |
           if [ "${{ github.event_name }}" == "repository_dispatch" ]; then
@@ -257,7 +285,7 @@ jobs:
             echo "✅ Using backend URL from repository dispatch: $BACKEND_URL"
             echo "backend_alb_url=$BACKEND_URL" >> $GITHUB_OUTPUT
           else
-            # Fallback: Get from CloudFormation stack (for direct push triggers)
+            # Get from CloudFormation stack (for direct push triggers)
             echo "Getting backend ALB URL from backend stack..."
             BACKEND_ALB_URL=$(aws cloudformation describe-stacks \
               --stack-name miamente-staging-stack \
@@ -364,7 +392,7 @@ jobs:
   deploy-cfn-prod:
     needs: [docker-build-push]
     runs-on: ubuntu-latest
-    if: github.event_name == 'repository_dispatch' && github.event.action == 'frontend-deploy-production'
+    if: (github.event_name == 'push' && github.ref == 'refs/heads/main') || (github.event_name == 'repository_dispatch' && github.event.action == 'frontend-deploy-production')
     outputs:
       alb_url_prod: ${{ steps.get_stack_outputs.outputs.FrontendALBUrl }}
 
@@ -380,7 +408,7 @@ jobs:
           aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
           aws-region: us-east-1
 
-      - name: Get Backend URL from Repository Dispatch Payload
+      - name: Get Backend URL
         id: get_backend_url_prod
         run: |
           if [ "${{ github.event_name }}" == "repository_dispatch" ]; then
@@ -389,7 +417,7 @@ jobs:
             echo "✅ Using backend URL from repository dispatch: $BACKEND_URL"
             echo "backend_alb_url=$BACKEND_URL" >> $GITHUB_OUTPUT
           else
-            # Fallback: Get from CloudFormation stack (for direct push triggers)
+            # Get from CloudFormation stack (for direct push triggers)
             echo "Getting backend ALB URL from backend production stack..."
             BACKEND_ALB_URL=$(aws cloudformation describe-stacks \
               --stack-name miamente-production-stack \
