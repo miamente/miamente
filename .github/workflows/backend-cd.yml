@@ -654,9 +654,6 @@ jobs:
           HEALTH_CHECK_URL="${{ needs.deploy-cfn-production.outputs.alb_url_production }}/health"
           echo "Checking health endpoint: $HEALTH_CHECK_URL"
 
-          echo "Forcing failure to test rollback mechanism..."
-          exit 1
-
           for i in {1..5}; do
             if curl -f -s "$HEALTH_CHECK_URL"; then
               echo "Health check passed on attempt $i"
@@ -801,7 +798,7 @@ jobs:
             echo "Health check failed after rollback - manual intervention may be required"
           fi
 
-  frontend-smoke-test-production:
+  backend-smoke-test-production:
     needs: [test-db-production, deploy-cfn-production]
     runs-on: ubuntu-latest
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
@@ -818,10 +815,6 @@ jobs:
         with:
           python-version: "3.13"
 
-      - name: Install Selenium and WebDriver Manager
+      - name: Run Backend Smoke Test
         run: |
-          pip install selenium webdriver-manager
-
-      - name: Run Frontend Smoke Test
-        run: |
-          pytest tests/smoke/test_smoke.py --ignore=tests/integration
+          pytest tests/smoke/test_backend_smoke.py --ignore=tests/integration
