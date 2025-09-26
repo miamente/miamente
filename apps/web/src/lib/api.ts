@@ -30,7 +30,8 @@ import type {
 } from "./types";
 
 // API Configuration
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+// Prefer explicit backend URL when provided; otherwise, use frontend proxy route
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "";
 const API_VERSION = "/api/v1";
 
 // Re-export types for backward compatibility
@@ -75,6 +76,9 @@ export type TokenResponse = {
   refresh_token: string;
   token_type: string;
 };
+
+// Type alias for request body
+export type RequestBody = string | FormData | undefined;
 
 // API Client Class
 class ApiClient {
@@ -142,10 +146,21 @@ class ApiClient {
   }
 
   async post<T>(endpoint: string, data?: unknown, options?: RequestInit): Promise<T> {
+    const isFormData = typeof FormData !== "undefined" && data instanceof FormData;
+    const headers = new Headers(this.getHeaders());
+    if (isFormData) {
+      headers.delete("Content-Type");
+    }
+
+    let body: RequestBody;
+    if (data) {
+      body = isFormData ? data : JSON.stringify(data);
+    }
+
     const response = await fetch(`${this.baseURL}${API_VERSION}${endpoint}`, {
       method: "POST",
-      headers: this.getHeaders(),
-      body: data ? JSON.stringify(data) : undefined,
+      headers,
+      body,
       ...options,
     });
 
@@ -153,10 +168,21 @@ class ApiClient {
   }
 
   async put<T>(endpoint: string, data?: unknown, options?: RequestInit): Promise<T> {
+    const isFormData = typeof FormData !== "undefined" && data instanceof FormData;
+    const headers = new Headers(this.getHeaders());
+    if (isFormData) {
+      headers.delete("Content-Type");
+    }
+
+    let body: RequestBody;
+    if (data) {
+      body = isFormData ? data : JSON.stringify(data);
+    }
+
     const response = await fetch(`${this.baseURL}${API_VERSION}${endpoint}`, {
       method: "PUT",
-      headers: this.getHeaders(),
-      body: data ? JSON.stringify(data) : undefined,
+      headers,
+      body,
       ...options,
     });
 
@@ -164,10 +190,21 @@ class ApiClient {
   }
 
   async patch<T>(endpoint: string, data?: unknown, options?: RequestInit): Promise<T> {
+    const isFormData = typeof FormData !== "undefined" && data instanceof FormData;
+    const headers = new Headers(this.getHeaders());
+    if (isFormData) {
+      headers.delete("Content-Type");
+    }
+
+    let body: RequestBody;
+    if (data) {
+      body = isFormData ? data : JSON.stringify(data);
+    }
+
     const response = await fetch(`${this.baseURL}${API_VERSION}${endpoint}`, {
       method: "PATCH",
-      headers: this.getHeaders(),
-      body: data ? JSON.stringify(data) : undefined,
+      headers,
+      body,
       ...options,
     });
 

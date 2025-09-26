@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useCallback, useEffect, useRef, useState } from "react";
+import { generateUniqueId } from "@/lib/id";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Collapsible, CollapsibleContent } from "@/components/ui/collapsible";
@@ -63,7 +64,7 @@ export function ModalitiesEditor({
 
   const addModality = () => {
     const newModality: ProfessionalModality = {
-      id: crypto.randomUUID(),
+      id: generateUniqueId(),
       modalityId: "",
       modalityName: "Modalidad",
       virtualPrice: 0,

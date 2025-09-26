@@ -4,14 +4,6 @@ import {
   type BaseEntity,
   type User,
   type Professional,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  type Specialty,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  type TherapeuticApproach,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  type Modality,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  type ProfessionalModality,
   type AcademicExperience,
   type WorkExperience,
   type Certification,
@@ -20,29 +12,11 @@ import {
   type ApiResponse,
   type PaginatedResponse,
   type ErrorResponse,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  type ProfessionalSpecialty,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  type ProfessionalTherapeuticApproach,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  type UserProfileFormData,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  type ProfessionalProfileFormData,
   type LoginFormData,
   type RegisterFormData,
   type SelectOption,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  type NavigationItem,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  type EventLogEntry,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  type ProfessionalSummary,
   type Review,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  type CreateReviewRequest,
   type ReviewStats,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  type UploadResponse,
   type EventLogData,
   type EventStats,
 } from "../types";

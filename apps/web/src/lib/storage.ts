@@ -1,5 +1,6 @@
 // Simple file upload utility for the new backend
 import { apiClient } from "./api";
+import { generateUniqueIdHex } from "./id";
 
 export interface UploadResponse {
   url: string;
@@ -42,7 +43,7 @@ export function getStoragePath(filename: string): string {
 
 export function generateUniqueFilename(originalName: string): string {
   const timestamp = Date.now();
-  const random = crypto.randomUUID().replace(/-/g, "");
+  const random = generateUniqueIdHex(32);
   const extension = originalName.split(".").pop();
   return `${timestamp}_${random}.${extension}`;
 }

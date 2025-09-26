@@ -5,8 +5,6 @@ on:
     branches: [develop]
     paths:
       - "apps/web/**"
-      - "package.json"
-      - "package-lock.json"
       - ".github/workflows/frontend-ci.yml"
       - ".github/actions/setup-frontend/**"
 
@@ -150,7 +148,7 @@ jobs:
           path: apps/web/artifacts-downloaded
 
       - name: SonarCloud Scan (Frontend)
-        uses: SonarSource/sonarqube-scan-action@v5.0.0
+        uses: SonarSource/sonarqube-scan-action@v5.3.1
         with:
           projectBaseDir: apps/web
         env:
