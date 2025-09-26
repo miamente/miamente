@@ -77,6 +77,9 @@ export type TokenResponse = {
   token_type: string;
 };
 
+// Type alias for request body
+export type RequestBody = string | FormData | undefined;
+
 // API Client Class
 class ApiClient {
   private readonly baseURL: string;
@@ -149,7 +152,7 @@ class ApiClient {
       headers.delete("Content-Type");
     }
 
-    let body: string | FormData | undefined;
+    let body: RequestBody;
     if (data) {
       body = isFormData ? data : JSON.stringify(data);
     }
@@ -171,7 +174,7 @@ class ApiClient {
       headers.delete("Content-Type");
     }
 
-    let body: string | FormData | undefined;
+    let body: RequestBody;
     if (data) {
       body = isFormData ? data : JSON.stringify(data);
     }
@@ -193,7 +196,7 @@ class ApiClient {
       headers.delete("Content-Type");
     }
 
-    let body: string | FormData | undefined;
+    let body: RequestBody;
     if (data) {
       body = isFormData ? data : JSON.stringify(data);
     }
