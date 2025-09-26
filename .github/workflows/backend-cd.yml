@@ -688,6 +688,8 @@ jobs:
     if: |
       github.event_name == 'push' && github.ref == 'refs/heads/main' &&
       (always() && contains(needs.*.result, 'failure'))
+    outputs:
+      final_rolled_back_task_definition_arn: ${{ steps.perform_rollback.outputs.final_task_def_arn }}
     defaults:
       run:
         working-directory: .
@@ -701,6 +703,7 @@ jobs:
           aws-region: us-east-1
 
       - name: Rollback Production Service
+        id: perform_rollback
         run: |
           echo "Initiating rollback for Production service..."
           ORIGINAL_PREVIOUS_TASK_DEF_ARN="${{ needs.deploy-cfn-production.outputs.previous_task_definition_for_rollback }}"
@@ -753,6 +756,8 @@ jobs:
             --task-definition "$PREVIOUS_TASK_DEF_ARN" \
             --region us-east-1
 
+          echo "final_task_def_arn=$PREVIOUS_TASK_DEF_ARN" >> $GITHUB_OUTPUT
+
           echo "Waiting for Production service rollback to stabilize..."
           aws ecs wait services-stable \
             --cluster ${{ needs.deploy-cfn-production.outputs.cluster_name_production }} \
@@ -771,13 +776,14 @@ jobs:
             --region us-east-1 \
             --output text)
 
-          EXPECTED_TASK_DEF="${{ needs.update-service-production.outputs.previous_task_definition_arn }}"
+          EXPECTED_TASK_DEF="${{ needs.rollback-production.outputs.final_rolled_back_task_definition_arn }}"
 
           echo "Current Task Definition: $CURRENT_TASK_DEF"
           echo "Expected Task Definition: $EXPECTED_TASK_DEF"
 
           if [ "$CURRENT_TASK_DEF" = "$EXPECTED_TASK_DEF" ]; then
             echo "Rollback verification successful!"
+            # exit 0  # Éxito
           else
             echo "Rollback verification failed!"
             exit 1
