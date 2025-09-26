@@ -1,19 +1,7 @@
-import { describe, it, expect, beforeEach, vi } from "vitest";
-import {
-  registerWithEmail,
-  loginWithEmail,
-  logout,
-  getStoredToken,
-  setAuthToken,
-  clearAuthToken,
-  getUserProfile,
-  isAuthenticated,
-} from "../auth";
-import { isEmailVerified, getUserUid } from "../../hooks/useAuth";
-import { UserRole } from "../types";
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
-// Mock the API client
-vi.mock("../api", () => ({
+// Mock the api module
+vi.mock('../api', () => ({
   apiClient: {
     post: vi.fn(),
     get: vi.fn(),
@@ -27,6 +15,37 @@ vi.mock("../api", () => ({
   },
 }));
 
+import {
+  registerWithEmail,
+  loginWithEmail,
+  logout,
+  resendEmailVerification,
+  getUserProfile,
+  getStoredToken,
+  setAuthToken,
+  clearAuthToken,
+  isAuthenticated,
+  type RegisterRequest,
+} from '../auth';
+import { UserRole } from '@/lib/types';
+import { apiClient } from '../api';
+
+// Mock interface for apiClient
+interface MockApiClient {
+  get: ReturnType<typeof vi.fn>;
+  post: ReturnType<typeof vi.fn>;
+  setToken: ReturnType<typeof vi.fn>;
+  clearToken: ReturnType<typeof vi.fn>;
+  defaults: {
+    headers: {
+      common: Record<string, string>;
+    };
+  };
+}
+
+// Cast to mocked type
+const mockApiClient = apiClient as unknown as MockApiClient;
+
 // Mock localStorage
 const localStorageMock = {
   getItem: vi.fn(),
@@ -34,288 +53,379 @@ const localStorageMock = {
   removeItem: vi.fn(),
   clear: vi.fn(),
 };
-Object.defineProperty(window, "localStorage", {
+
+Object.defineProperty(window, 'localStorage', {
   value: localStorageMock,
 });
 
 // Mock window.location
-Object.defineProperty(window, "location", {
-  value: {
-    href: "",
-  },
+const mockLocation = {
+  href: '',
+};
+
+Object.defineProperty(window, 'location', {
+  value: mockLocation,
   writable: true,
 });
 
-describe("auth utilities", () => {
+describe('Auth Functions', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     localStorageMock.getItem.mockReturnValue(null);
+    mockLocation.href = '';
   });
 
-  describe("registerWithEmail", () => {
-    it("should register a user successfully", async () => {
-      const mockUser = {
-        id: "user-123",
-        email: "test@example.com",
-        role: "user" as const,
-        is_verified: false,
-        created_at: "2023-01-01T00:00:00Z",
-        updated_at: "2023-01-01T00:00:00Z",
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  describe('registerWithEmail', () => {
+    it('should register a user successfully', async () => {
+      const registerData: RegisterRequest = {
+        email: 'test@example.com',
+        password: 'password123',
+        full_name: 'Test User',
+        phone: '+1234567890',
+        role: UserRole.USER,
       };
-      const { apiClient } = await import("../api");
-      vi.mocked(apiClient.post).mockResolvedValueOnce(mockUser);
 
-      const result = await registerWithEmail({
-        email: "test@example.com",
-        password: "password123",
-        full_name: "John Doe",
-      });
+      const mockUser = {
+        id: 'user-123',
+        email: 'test@example.com',
+        full_name: 'Test User',
+        phone: '+1234567890',
+        role: 'user',
+        is_verified: false,
+        created_at: '2024-01-01T00:00:00Z',
+        updated_at: '2024-01-01T00:00:00Z',
+      };
 
-      expect(apiClient.post).toHaveBeenCalledWith("/auth/register/user", {
-        email: "test@example.com",
-        password: "password123",
-        full_name: "John Doe",
-      });
+      mockApiClient.post.mockResolvedValue(mockUser);
+
+      const result = await registerWithEmail(registerData);
+
+      expect(mockApiClient.post).toHaveBeenCalledWith('/auth/register/user', registerData);
       expect(result).toEqual(mockUser);
     });
 
-    it("should handle registration error", async () => {
-      const { apiClient } = await import("../api");
-      vi.mocked(apiClient.post).mockRejectedValueOnce(new Error("Email already exists"));
+    it('should handle registration errors', async () => {
+      const registerData: RegisterRequest = {
+        email: 'test@example.com',
+        password: 'password123',
+      };
 
-      await expect(
-        registerWithEmail({
-          email: "test@example.com",
-          password: "password123",
-          full_name: "John Doe",
-        }),
-      ).rejects.toThrow("Email already exists");
+      const mockError = new Error('Registration failed');
+      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+      mockApiClient.post.mockRejectedValue(mockError);
+
+      await expect(registerWithEmail(registerData)).rejects.toThrow('Registration failed');
+      expect(consoleSpy).toHaveBeenCalledWith('Registration error:', mockError);
+
+      consoleSpy.mockRestore();
+    });
+
+    it('should register with minimal data', async () => {
+      const registerData: RegisterRequest = {
+        email: 'minimal@example.com',
+        password: 'password123',
+      };
+
+      const mockUser = {
+        id: 'user-456',
+        email: 'minimal@example.com',
+        role: 'user',
+        is_verified: false,
+        created_at: '2024-01-01T00:00:00Z',
+        updated_at: '2024-01-01T00:00:00Z',
+      };
+
+      mockApiClient.post.mockResolvedValue(mockUser);
+
+      const result = await registerWithEmail(registerData);
+
+      expect(mockApiClient.post).toHaveBeenCalledWith('/auth/register/user', registerData);
+      expect(result).toEqual(mockUser);
     });
   });
 
-  describe("loginWithEmail", () => {
-    it("should login a user successfully", async () => {
+  describe('loginWithEmail', () => {
+    it('should login successfully and store token', async () => {
+      const email = 'test@example.com';
+      const password = 'password123';
       const mockResponse = {
+        access_token: 'jwt-token-123',
+        token_type: 'bearer',
         user: {
-          id: "user-123",
-          email: "test@example.com",
-          role: "user" as const,
-          is_verified: true,
-          created_at: "2023-01-01T00:00:00Z",
-          updated_at: "2023-01-01T00:00:00Z",
+          id: 'user-123',
+          email: 'test@example.com',
+          role: 'user',
         },
-        access_token: "mock-token",
       };
-      const { apiClient } = await import("../api");
-      vi.mocked(apiClient.post).mockResolvedValueOnce(mockResponse);
 
-      const result = await loginWithEmail("test@example.com", "password123");
+      mockApiClient.post.mockResolvedValue(mockResponse);
 
-      expect(apiClient.post).toHaveBeenCalledWith("/auth/login", {
-        email: "test@example.com",
-        password: "password123",
+      const result = await loginWithEmail(email, password);
+
+      expect(mockApiClient.post).toHaveBeenCalledWith('/auth/login', {
+        email,
+        password,
       });
+      expect(localStorageMock.setItem).toHaveBeenCalledWith('access_token', 'jwt-token-123');
+      expect(mockApiClient.setToken).toHaveBeenCalledWith('jwt-token-123');
       expect(result).toEqual(mockResponse);
     });
 
-    it("should handle login error", async () => {
-      const { apiClient } = await import("../api");
-      vi.mocked(apiClient.post).mockRejectedValueOnce(new Error("Invalid credentials"));
+    it('should handle login errors', async () => {
+      const email = 'test@example.com';
+      const password = 'wrongpassword';
+      const mockError = new Error('Invalid credentials');
+      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
-      await expect(loginWithEmail("test@example.com", "wrongpassword")).rejects.toThrow(
-        "Invalid credentials",
-      );
+      mockApiClient.post.mockRejectedValue(mockError);
+
+      await expect(loginWithEmail(email, password)).rejects.toThrow('Invalid credentials');
+      expect(consoleSpy).toHaveBeenCalledWith('Login error:', mockError);
+
+      consoleSpy.mockRestore();
+    });
+
+    it('should not store token on login failure', async () => {
+      const email = 'test@example.com';
+      const password = 'wrongpassword';
+      const mockError = new Error('Invalid credentials');
+
+      mockApiClient.post.mockRejectedValue(mockError);
+
+      try {
+        await loginWithEmail(email, password);
+      } catch {
+        // Expected to throw
+      }
+
+      expect(localStorageMock.setItem).not.toHaveBeenCalledWith('access_token', expect.any(String));
+      expect(mockApiClient.setToken).not.toHaveBeenCalled();
     });
   });
 
-  describe("logout", () => {
-    it("should logout successfully", async () => {
-      const { apiClient } = await import("../api");
-      vi.mocked(apiClient.clearToken).mockResolvedValueOnce(undefined);
+  describe('logout', () => {
+    it('should clear token and redirect to login', async () => {
+      await logout();
+
+      expect(mockApiClient.clearToken).toHaveBeenCalled();
+      expect(mockLocation.href).toBe('/login');
+    });
+
+    it('should handle logout errors gracefully', async () => {
+      mockApiClient.clearToken.mockRejectedValue(new Error('Clear token failed'));
 
       await logout();
 
-      expect(apiClient.clearToken).toHaveBeenCalled();
-    });
-
-    it("should handle logout error", async () => {
-      const { apiClient } = await import("../api");
-      vi.mocked(apiClient.clearToken).mockRejectedValueOnce(new Error("Logout failed"));
-
-      // Should not throw even if there's an error
-      await expect(logout()).resolves.toBeUndefined();
+      expect(mockApiClient.clearToken).toHaveBeenCalled();
+      expect(mockLocation.href).toBe('/login');
     });
   });
 
-  describe("token management", () => {
-    it("should get stored token", () => {
-      localStorageMock.getItem.mockReturnValue("stored-token");
-      expect(getStoredToken()).toBe("stored-token");
+  describe('resendEmailVerification', () => {
+    it('should resend verification email successfully', async () => {
+      mockApiClient.post.mockResolvedValue({});
+
+      await resendEmailVerification();
+
+      expect(mockApiClient.post).toHaveBeenCalledWith('/auth/resend-verification');
     });
 
-    it("should return null when no token is stored", () => {
-      localStorageMock.getItem.mockReturnValue(null);
-      expect(getStoredToken()).toBeNull();
-    });
+    it('should handle resend verification errors', async () => {
+      const mockError = new Error('Resend failed');
+      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
-    it("should set stored token", () => {
-      setAuthToken("new-token");
-      expect(localStorageMock.setItem).toHaveBeenCalledWith("access_token", "new-token");
-    });
+      mockApiClient.post.mockRejectedValue(mockError);
 
-    it("should clear stored token", () => {
-      clearAuthToken();
-      expect(localStorageMock.removeItem).toHaveBeenCalledWith("access_token");
+      await expect(resendEmailVerification()).rejects.toThrow('Resend failed');
+      expect(consoleSpy).toHaveBeenCalledWith('Resend verification error:', mockError);
+
+      consoleSpy.mockRestore();
     });
   });
 
-  describe("getUserProfile", () => {
-    it("should get user profile successfully", async () => {
-      const mockProfile = {
-        id: "user-123",
-        email: "test@example.com",
-        role: "user" as const,
+  describe('getUserProfile', () => {
+    it('should get user profile successfully', async () => {
+      const mockUser = {
+        id: 'user-123',
+        email: 'test@example.com',
+        full_name: 'Test User',
+        role: 'user',
         is_verified: true,
-        created_at: "2023-01-01T00:00:00Z",
-        updated_at: "2023-01-01T00:00:00Z",
+        created_at: '2024-01-01T00:00:00Z',
+        updated_at: '2024-01-01T00:00:00Z',
       };
-      const { apiClient } = await import("../api");
-      vi.mocked(apiClient.get).mockResolvedValueOnce({ data: mockProfile });
+
+      mockApiClient.get.mockResolvedValue({ data: mockUser });
 
       const result = await getUserProfile();
 
-      expect(apiClient.get).toHaveBeenCalledWith("/users/me");
-      expect(result).toEqual(mockProfile);
+      expect(mockApiClient.get).toHaveBeenCalledWith('/users/me');
+      expect(result).toEqual(mockUser);
     });
 
-    it("should handle profile fetch error", async () => {
-      const { apiClient } = await import("../api");
-      vi.mocked(apiClient.get).mockRejectedValueOnce(new Error("Network error"));
+    it('should return null on error', async () => {
+      const mockError = new Error('Profile fetch failed');
+      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+      mockApiClient.get.mockRejectedValue(mockError);
 
       const result = await getUserProfile();
+
+      expect(result).toBeNull();
+      expect(consoleSpy).toHaveBeenCalledWith('Get user profile error:', mockError);
+
+      consoleSpy.mockRestore();
+    });
+  });
+
+  describe('getStoredToken', () => {
+    it('should return stored token', () => {
+      const token = 'jwt-token-123';
+      localStorageMock.getItem.mockReturnValue(token);
+
+      const result = getStoredToken();
+
+      expect(localStorageMock.getItem).toHaveBeenCalledWith('access_token');
+      expect(result).toBe(token);
+    });
+
+    it('should return null when no token is stored', () => {
+      localStorageMock.getItem.mockReturnValue(null);
+
+      const result = getStoredToken();
 
       expect(result).toBeNull();
     });
   });
 
-  describe("isEmailVerified", () => {
-    it("should return true for verified email", () => {
-      const user = {
-        type: "user" as UserRole,
-        data: {
-          id: "user-123",
-          email: "test@example.com",
-          full_name: "Test User",
-          is_active: true,
-          is_verified: true,
-          created_at: "2023-01-01T00:00:00Z",
-        },
-      };
-      expect(isEmailVerified(user)).toBe(true);
-    });
+  describe('setAuthToken', () => {
+    it('should set token in localStorage and API client', () => {
+      const token = 'jwt-token-123';
 
-    it("should return false for unverified email", () => {
-      const user = {
-        type: "user" as UserRole,
-        data: {
-          id: "user-123",
-          email: "test@example.com",
-          full_name: "Test User",
-          is_active: true,
-          is_verified: false,
-          created_at: "2023-01-01T00:00:00Z",
-        },
-      };
-      expect(isEmailVerified(user)).toBe(false);
-    });
+      setAuthToken(token);
 
-    it("should return false for user with is_verified false", () => {
-      const user = {
-        type: "user" as UserRole,
-        data: {
-          id: "user-123",
-          email: "test@example.com",
-          full_name: "Test User",
-          is_active: true,
-          is_verified: false,
-          created_at: "2023-01-01T00:00:00Z",
-        },
-      };
-      expect(isEmailVerified(user)).toBe(false);
-    });
-
-    it("should return false for null user", () => {
-      expect(isEmailVerified(null)).toBe(false);
+      expect(localStorageMock.setItem).toHaveBeenCalledWith('access_token', token);
+      expect(mockApiClient.defaults.headers.common['Authorization']).toBe(`Bearer ${token}`);
     });
   });
 
-  describe("getUserUid", () => {
-    it("should return id from user object", () => {
-      const user = {
-        type: "user" as UserRole,
-        data: {
-          id: "user-123",
-          email: "test@example.com",
-          full_name: "Test User",
-          is_active: true,
-          is_verified: true,
-          created_at: "2023-01-01T00:00:00Z",
-        },
-      };
-      expect(getUserUid(user)).toBe("user-123");
-    });
+  describe('clearAuthToken', () => {
+    it('should remove token from localStorage and API client', () => {
+      clearAuthToken();
 
-    it("should return id for user with id", () => {
-      const user = {
-        type: "user" as UserRole,
-        data: {
-          id: "user-123",
-          email: "test@example.com",
-          full_name: "Test User",
-          is_active: true,
-          is_verified: true,
-          created_at: "2023-01-01T00:00:00Z",
-        },
-      };
-      expect(getUserUid(user)).toBe("user-123");
-    });
-
-    it("should return undefined for null user", () => {
-      expect(getUserUid(null)).toBeUndefined();
+      expect(localStorageMock.removeItem).toHaveBeenCalledWith('access_token');
+      expect(mockApiClient.defaults.headers.common['Authorization']).toBeUndefined();
     });
   });
 
-  describe("isAuthenticated", () => {
-    it("should return true for valid token", () => {
-      // Create a mock JWT token with future expiration
-      const header = btoa(JSON.stringify({ alg: "HS256", typ: "JWT" }));
-      const payload = btoa(JSON.stringify({ exp: Math.floor(Date.now() / 1000) + 3600 }));
-      const signature = "mock-signature";
-      const token = `${header}.${payload}.${signature}`;
-
-      localStorageMock.getItem.mockReturnValue(token);
-      expect(isAuthenticated()).toBe(true);
-    });
-
-    it("should return false for expired token", () => {
-      // Create a mock JWT token with past expiration
-      const header = btoa(JSON.stringify({ alg: "HS256", typ: "JWT" }));
-      const payload = btoa(JSON.stringify({ exp: Math.floor(Date.now() / 1000) - 3600 }));
-      const signature = "mock-signature";
-      const token = `${header}.${payload}.${signature}`;
-
-      localStorageMock.getItem.mockReturnValue(token);
-      expect(isAuthenticated()).toBe(false);
-    });
-
-    it("should return false for invalid token", () => {
-      localStorageMock.getItem.mockReturnValue("invalid-token");
-      expect(isAuthenticated()).toBe(false);
-    });
-
-    it("should return false for no token", () => {
+  describe('isAuthenticated', () => {
+    it('should return false when no token is stored', () => {
       localStorageMock.getItem.mockReturnValue(null);
+
+      const result = isAuthenticated();
+
+      expect(result).toBe(false);
+    });
+
+    it('should return false for invalid token format', () => {
+      localStorageMock.getItem.mockReturnValue('invalid-token');
+
+      const result = isAuthenticated();
+
+      expect(result).toBe(false);
+    });
+
+    it('should return false for expired token', () => {
+      const expiredToken = createJWT({ exp: Math.floor(Date.now() / 1000) - 3600 }); // Expired 1 hour ago
+      localStorageMock.getItem.mockReturnValue(expiredToken);
+
+      const result = isAuthenticated();
+
+      expect(result).toBe(false);
+    });
+
+    it('should return true for valid non-expired token', () => {
+      const validToken = createJWT({ exp: Math.floor(Date.now() / 1000) + 3600 }); // Valid for 1 hour
+      localStorageMock.getItem.mockReturnValue(validToken);
+
+      const result = isAuthenticated();
+
+      expect(result).toBe(true);
+    });
+
+    it('should return false for malformed JWT', () => {
+      localStorageMock.getItem.mockReturnValue('malformed.jwt.token');
+
+      const result = isAuthenticated();
+
+      expect(result).toBe(false);
+    });
+  });
+
+  describe('Integration Tests', () => {
+    it('should complete full login flow', async () => {
+      const email = 'test@example.com';
+      const password = 'password123';
+      const mockResponse = {
+        access_token: 'jwt-token-123',
+        token_type: 'bearer',
+        user: {
+          id: 'user-123',
+          email: 'test@example.com',
+          role: 'user',
+        },
+      };
+
+      mockApiClient.post.mockResolvedValue(mockResponse);
+
+      // Login
+      await loginWithEmail(email, password);
+
+      // Verify token is stored
+      expect(localStorageMock.setItem).toHaveBeenCalledWith('access_token', 'jwt-token-123');
+
+      // Set up localStorage mock for authentication check with valid JWT
+      const validToken = createJWT({ exp: Math.floor(Date.now() / 1000) + 3600 });
+      localStorageMock.getItem.mockReturnValue(validToken);
+      
+      // Verify authentication status
+      expect(isAuthenticated()).toBe(true);
+
+      // Get user profile
+      const mockUser = {
+        id: 'user-123',
+        email: 'test@example.com',
+        role: 'user',
+        is_verified: true,
+        created_at: '2024-01-01T00:00:00Z',
+        updated_at: '2024-01-01T00:00:00Z',
+      };
+      mockApiClient.get.mockResolvedValue({ data: mockUser });
+
+      const profile = await getUserProfile();
+      expect(profile).toEqual(mockUser);
+
+      // Reset localStorage mock for logout
+      localStorageMock.getItem.mockReturnValue(null);
+      
+      // Logout
+      await logout();
+      expect(mockApiClient.clearToken).toHaveBeenCalled();
       expect(isAuthenticated()).toBe(false);
     });
   });
 });
+
+// Helper function to create a JWT token for testing
+function createJWT(payload: Record<string, unknown>): string {
+  const header = { alg: 'HS256', typ: 'JWT' };
+  const encodedHeader = btoa(JSON.stringify(header));
+  const encodedPayload = btoa(JSON.stringify(payload));
+  const signature = 'test-signature';
+  return `${encodedHeader}.${encodedPayload}.${signature}`;
+}

@@ -16,12 +16,24 @@ vi.mock("next/link", () => ({
   )),
 }));
 
-// Mock crypto.randomUUID
+// Mock crypto.randomUUID and getRandomValues
 Object.defineProperty(global, "crypto", {
   value: {
     randomUUID: vi.fn(() => "mock-uuid-123"),
+    getRandomValues: vi.fn((array: Uint8Array) => {
+      for (let i = 0; i < array.length; i++) {
+        array[i] = Math.floor(Math.random() * 256);
+      }
+      return array;
+    }),
   },
 });
+
+// Mock generateUniqueId function
+vi.mock("@/lib/id", () => ({
+  generateUniqueId: vi.fn(() => "mock-unique-id-123"),
+  generateUniqueIdHex: vi.fn(() => "mock-hex-id-123"),
+}));
 
 const mockUseModalities = vi.mocked(useModalities);
 

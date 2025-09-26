@@ -1,17 +1,16 @@
 import React from "react";
-import { render, screen, fireEvent, waitFor } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
 import { TherapeuticApproachesSelector } from "../professional-info/TherapeuticApproachesSelector";
-import { useTherapeuticApproaches } from "@/hooks/useTherapeuticApproaches";
-import { TherapeuticApproach } from "@/lib/types";
+import { type TherapeuticApproach } from "@/lib/types";
 
 // Mock the hook
 const mockUseTherapeuticApproaches = {
-  approaches: [],
+  approaches: [] as TherapeuticApproach[],
   loading: false,
-  error: null,
+  error: null as string | null,
 };
 
 vi.mock("@/hooks/useTherapeuticApproaches", () => ({
@@ -24,9 +23,9 @@ describe("TherapeuticApproachesSelector", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockUseTherapeuticApproaches.approaches = [
-      { id: "approach1", name: "Cognitive Behavioral Therapy" },
-      { id: "approach2", name: "Psychodynamic Therapy" },
-      { id: "approach3", name: "Humanistic Therapy" },
+      { id: "approach1", name: "Cognitive Behavioral Therapy", created_at: "2024-01-01T00:00:00Z" },
+      { id: "approach2", name: "Psychodynamic Therapy", created_at: "2024-01-01T00:00:00Z" },
+      { id: "approach3", name: "Humanistic Therapy", created_at: "2024-01-01T00:00:00Z" },
     ];
     mockUseTherapeuticApproaches.loading = false;
     mockUseTherapeuticApproaches.error = null;

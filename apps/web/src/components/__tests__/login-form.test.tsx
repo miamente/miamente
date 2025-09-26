@@ -1,11 +1,10 @@
 import React from "react";
-import { render, screen, fireEvent, waitFor } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { useRouter } from "next/navigation";
 
 import { LoginForm } from "../login-form";
-import { useAuthContext } from "@/contexts/AuthContext";
+import { type AuthUser, UserRole } from "@/lib/types";
 
 // Mock Next.js router
 const mockPush = vi.fn();
@@ -19,7 +18,7 @@ vi.mock("next/navigation", () => ({
 const mockLoginUser = vi.fn();
 const mockLoginProfessional = vi.fn();
 const mockAuthContext = {
-  user: null,
+  user: null as AuthUser | null,
   loginUser: mockLoginUser,
   loginProfessional: mockLoginProfessional,
   logout: vi.fn(),
@@ -145,10 +144,17 @@ describe("LoginForm", () => {
 
   it("should redirect authenticated user to dashboard", () => {
     mockAuthContext.user = {
-      id: "1",
-      email: "test@example.com",
-      email_verified: true,
-      type: "user",
+      type: UserRole.USER,
+      data: {
+        id: "1",
+        email: "test@example.com",
+        full_name: "Test User",
+        phone: "+1234567890",
+        is_active: true,
+        is_verified: true,
+        created_at: "2024-01-01T00:00:00Z",
+        updated_at: "2024-01-01T00:00:00Z",
+      },
     };
 
     render(<LoginForm />);
@@ -158,10 +164,17 @@ describe("LoginForm", () => {
 
   it("should redirect authenticated admin user to admin dashboard", () => {
     mockAuthContext.user = {
-      id: "1",
-      email: "admin@example.com",
-      email_verified: true,
-      type: "admin",
+      type: UserRole.ADMIN,
+      data: {
+        id: "1",
+        email: "admin@example.com",
+        full_name: "Admin User",
+        phone: "+1234567890",
+        is_active: true,
+        is_verified: true,
+        created_at: "2024-01-01T00:00:00Z",
+        updated_at: "2024-01-01T00:00:00Z",
+      },
     };
 
     render(<LoginForm isAdminLogin={true} />);
@@ -171,10 +184,17 @@ describe("LoginForm", () => {
 
   it("should redirect unverified user to verify page", () => {
     mockAuthContext.user = {
-      id: "1",
-      email: "test@example.com",
-      email_verified: false,
-      type: "user",
+      type: UserRole.USER,
+      data: {
+        id: "1",
+        email: "test@example.com",
+        full_name: "Test User",
+        phone: "+1234567890",
+        is_active: true,
+        is_verified: false,
+        created_at: "2024-01-01T00:00:00Z",
+        updated_at: "2024-01-01T00:00:00Z",
+      },
     };
 
     render(<LoginForm />);
@@ -184,10 +204,17 @@ describe("LoginForm", () => {
 
   it("should show error for non-admin user trying to access admin login", async () => {
     mockAuthContext.user = {
-      id: "1",
-      email: "user@example.com",
-      email_verified: true,
-      type: "user",
+      type: UserRole.USER,
+      data: {
+        id: "1",
+        email: "user@example.com",
+        full_name: "User Name",
+        phone: "+1234567890",
+        is_active: true,
+        is_verified: true,
+        created_at: "2024-01-01T00:00:00Z",
+        updated_at: "2024-01-01T00:00:00Z",
+      },
     };
 
     render(<LoginForm isAdminLogin={true} />);
@@ -198,10 +225,17 @@ describe("LoginForm", () => {
 
   it("should use custom redirect path when provided", () => {
     mockAuthContext.user = {
-      id: "1",
-      email: "test@example.com",
-      email_verified: true,
-      type: "user",
+      type: UserRole.USER,
+      data: {
+        id: "1",
+        email: "test@example.com",
+        full_name: "Test User",
+        phone: "+1234567890",
+        is_active: true,
+        is_verified: true,
+        created_at: "2024-01-01T00:00:00Z",
+        updated_at: "2024-01-01T00:00:00Z",
+      },
     };
 
     render(<LoginForm redirectPath="/custom-dashboard" />);
