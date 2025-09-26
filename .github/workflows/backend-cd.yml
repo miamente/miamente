@@ -703,7 +703,8 @@ jobs:
       - name: Rollback Production Service
         run: |
           echo "Initiating rollback for Production service..."
-          PREVIOUS_TASK_DEF_ARN="${{ needs.update-service-production.outputs.previous_task_definition_arn }}"
+          ORIGINAL_PREVIOUS_TASK_DEF_ARN="${{ needs.deploy-cfn-production.outputs.previous_task_definition_for_rollback }}"
+          PREVIOUS_TASK_DEF_ARN="$ORIGINAL_PREVIOUS_TASK_DEF_ARN"
           echo "Rolling back to Task Definition ARN: $PREVIOUS_TASK_DEF_ARN"
 
           if [[ -z "$PREVIOUS_TASK_DEF_ARN" || "$PREVIOUS_TASK_DEF_ARN" == "null" || "$PREVIOUS_TASK_DEF_ARN" == "None" ]]; then
@@ -734,11 +735,15 @@ jobs:
             CLEANED_TASK_DEF_JSON=$(echo "$TASK_DEF_JSON" | jq 'del(.status, .revision, .taskDefinitionArn, .compatibilities, .registeredAt, .deregisteredAt, .registeredBy, .requiresAttributes)')
 
             # Re-register the task definition
-            aws ecs register-task-definition \
+            REGISTERED_TASK_DEF=$(aws ecs register-task-definition \
               --cli-input-json "$CLEANED_TASK_DEF_JSON" \
-              --region us-east-1
+              --region us-east-1)
 
-            echo "Previous Task Definition re-registered and activated."
+            NEWLY_REGISTERED_ARN=$(echo "$REGISTERED_TASK_DEF" | jq -r '.taskDefinition.taskDefinitionArn')
+            # Update PREVIOUS_TASK_DEF_ARN to the newly activated ARN for the update-service command
+            PREVIOUS_TASK_DEF_ARN="$NEWLY_REGISTERED_ARN"
+
+            echo "Previous Task Definition re-registered and activated with ARN: $NEWLY_REGISTERED_ARN"
           fi
 
           echo "Executing rollback..."
