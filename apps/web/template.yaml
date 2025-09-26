@@ -36,6 +36,9 @@ Parameters:
     Type: String
     Description: "Application version"
     Default: "1.0.0"
+  TIMEZONE:
+    Type: String
+    Description: "Timezone for the application"
 
 Conditions:
   IsProduction: !Equals [!Ref EnvironmentName, "production"]
@@ -80,6 +83,8 @@ Resources:
               Value: !Ref PROJECTNAME
             - Name: VERSION
               Value: !Ref VERSION
+            - Name: TIMEZONE
+              Value: !Ref TIMEZONE
           LogConfiguration:
             LogDriver: awslogs
             Options:
