@@ -425,6 +425,7 @@ jobs:
       cluster_name_production: "miamente-backend-production-cluster"
       service_name_production: "miamente-backend-production-service"
       database_endpoint_production: ${{ steps.get_stack_outputs.outputs.database_endpoint }}
+      previous_task_definition_for_rollback: ${{ steps.get_current_task_def.outputs.task_definition_arn }}
 
     steps:
       - name: Checkout code
@@ -437,6 +438,20 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
           aws-region: us-east-1
+
+      - name: Get Current Production Task Definition ARN before deployment
+        id: get_current_task_def
+        run: |
+          echo "Fetching current task definition ARN for production service..."
+          CURRENT_TASK_DEF_ARN=$(aws ecs describe-services \
+            --cluster miamente-backend-production-cluster \
+            --services miamente-backend-production-service \
+            --query "services[0].taskDefinition" \
+            --region us-east-1 \
+            --output text || echo "none") # Handle case where service might not exist yet
+
+          echo "Current Task Definition ARN: $CURRENT_TASK_DEF_ARN"
+          echo "task_definition_arn=$CURRENT_TASK_DEF_ARN" >> $GITHUB_OUTPUT
 
       - name: Build params JSON + Precheck (Production)
         run: |
@@ -571,7 +586,7 @@ jobs:
     runs-on: ubuntu-latest
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     outputs:
-      previous_task_definition_arn: ${{ steps.force_deploy_production.outputs.previous_task_definition_arn }}
+      previous_task_definition_arn: ${{ needs.deploy-cfn-production.outputs.previous_task_definition_for_rollback }}
     defaults:
       run:
         working-directory: .
@@ -587,17 +602,6 @@ jobs:
       - name: Force New Deployment ECS Service Production
         id: force_deploy_production
         run: |
-          echo "Getting current task definition before deployment..."
-          PREVIOUS_TASK_DEF_ARN=$(aws ecs describe-services \
-            --cluster ${{ needs.deploy-cfn-production.outputs.cluster_name_production }} \
-            --services ${{ needs.deploy-cfn-production.outputs.service_name_production }} \
-            --query "services[0].taskDefinition" \
-            --region us-east-1 \
-            --output text)
-
-          echo "Previous Task Definition ARN (for rollback): $PREVIOUS_TASK_DEF_ARN"
-          echo "previous_task_definition_arn=$PREVIOUS_TASK_DEF_ARN" >> $GITHUB_OUTPUT
-
           echo "Forcing new deployment for Production service..."
           aws ecs update-service \
             --cluster ${{ needs.deploy-cfn-production.outputs.cluster_name_production }} \
