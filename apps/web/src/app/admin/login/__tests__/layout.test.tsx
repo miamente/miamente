@@ -29,7 +29,9 @@ describe('AdminLoginLayout', () => {
   });
 
   it('should render without children', () => {
-    render(<AdminLoginLayout>{null}</AdminLoginLayout>);
-    // Should not throw any errors
+    const { container } = render(<AdminLoginLayout>{null}</AdminLoginLayout>);
+    // Should not throw any errors and container should be rendered
+    expect(container).toBeInTheDocument();
+    expect(container.firstChild).toBeNull();
   });
 });

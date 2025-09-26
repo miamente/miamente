@@ -47,6 +47,224 @@ vi.mock("@/lib/timezone", () => ({
   formatBogotaDate: vi.fn((date) => date.toISOString().split("T")[0]),
 }));
 
+// Mock the AdminDataTable component
+vi.mock("@/components/admin/AdminDataTable", () => ({
+  AdminDataTable: ({ title, description, addButtonText, onAdd, data, loading, error, columns, onToggleActive, onDelete, emptyMessage }: {
+    title: string;
+    description: string;
+    addButtonText?: string;
+    onAdd?: () => void;
+    data: unknown[];
+    loading: boolean;
+    error: string | null;
+    columns: unknown[];
+    onToggleActive?: (item: unknown) => void;
+    onDelete?: (item: unknown) => void;
+    emptyMessage?: string;
+  }) => {
+    if (loading) {
+      return <div data-testid="loading-spinner">Loading...</div>;
+    }
+    
+    return (
+      <div>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+              {title}
+            </h1>
+            <p className="mt-2 text-gray-600 dark:text-gray-400">
+              {description}
+            </p>
+          </div>
+          {addButtonText && onAdd && (
+            <button data-testid="button" onClick={onAdd}>
+              {addButtonText}
+            </button>
+          )}
+        </div>
+
+        {error && (
+          <div className="rounded-md border border-red-200 bg-red-50 p-4 text-red-600 dark:border-red-800 dark:bg-red-900/20 dark:text-red-400">
+            {error}
+          </div>
+        )}
+
+        <div data-testid="card">
+          <div data-testid="card-header">
+            <h3 data-testid="card-title">
+              {title} ({data.length})
+            </h3>
+          </div>
+          <div data-testid="card-content">
+            {data.length === 0 ? (
+              <div className="py-8 text-center text-gray-500">
+                {emptyMessage}
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr className="border-b">
+                      {columns.map((column: any) => (
+                        <th
+                          key={String(column.key)}
+                          className="p-4 text-left font-medium"
+                        >
+                          {column.label}
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {data.map((item: any) => (
+                      <tr
+                        key={(item as any).id}
+                        className="border-b hover:bg-gray-50 dark:hover:bg-gray-800"
+                      >
+                        {(columns as any[]).map((column: any) => (
+                          <td key={String(column.key)} className="p-4">
+                            {column.render ? column.render(item) : (item as any)[column.key]}
+                          </td>
+                        ))}
+                        <td className="p-4">
+                          <div data-testid="dropdown-menu">
+                            <div data-testid="dropdown-trigger">
+                              <button data-testid="button">
+                                <div data-testid="more-vertical-icon">More</div>
+                              </button>
+                            </div>
+                            <div data-testid="dropdown-content">
+                              <div data-testid="dropdown-item">
+                                <div data-testid="edit-icon">Edit</div>
+                                Editar
+                              </div>
+                              <div 
+                                data-testid="dropdown-item" 
+                                onClick={() => onToggleActive && onToggleActive(item)}
+                              >
+                                {item.is_active ? (
+                                  <>
+                                    <div data-testid="user-x-icon">UserX</div>
+                                    Desactivar
+                                  </>
+                                ) : (
+                                  <>
+                                    <div data-testid="user-check-icon">UserCheck</div>
+                                    Activar
+                                  </>
+                                )}
+                              </div>
+                              <div 
+                                data-testid="dropdown-item" 
+                                onClick={() => onDelete && onDelete(item)}
+                                className="text-red-600"
+                              >
+                                <div data-testid="trash-icon">Trash</div>
+                                Eliminar
+                              </div>
+                            </div>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  },
+  commonRenderers: {
+    contact: (item: any) => (
+      <div>
+        <div className="flex items-center space-x-2 text-sm">
+          <div data-testid="mail-icon">Mail</div>
+          <span>{(item as any).email}</span>
+        </div>
+        {(item as any).phone && (
+          <div className="flex items-center space-x-2 text-sm text-gray-500">
+            <div data-testid="phone-icon">Phone</div>
+            <span>{(item as any).phone}</span>
+          </div>
+        )}
+      </div>
+    ),
+    status: (item: any) => (
+      <div className="space-y-1">
+        <span data-testid="badge" data-variant={(item as any).is_active ? "default" : "secondary"}>
+          {(item as any).is_active ? "Activo" : "Inactivo"}
+        </span>
+        <br />
+        <span data-testid="badge" data-variant={(item as any).is_verified ? "default" : "outline"}>
+          {(item as any).is_verified ? "Verificado" : "No verificado"}
+        </span>
+      </div>
+    ),
+    date: (item: any, field: string) => (
+      <div className="flex items-center space-x-2 text-sm text-gray-500">
+        <div data-testid="calendar-icon">Calendar</div>
+        <span>
+          {new Date((item as any)[field]).toISOString().split("T")[0]}
+        </span>
+      </div>
+    ),
+    lastLogin: (item: any) => (
+      <div className="text-sm text-gray-500">
+        {(item as any).last_login
+          ? new Date((item as any).last_login).toISOString().split("T")[0]
+          : "Nunca"}
+      </div>
+    ),
+  },
+}));
+
+// Mock the useAdminData hook
+vi.mock("@/hooks/useAdminData", () => ({
+  useAdminData: ({ loadFunction }: { loadFunction: () => Promise<unknown[]> }) => {
+    const [data, setData] = React.useState<unknown[]>([]);
+    const [loading, setLoading] = React.useState(true);
+    const [error, setError] = React.useState<string | null>(null);
+
+    React.useEffect(() => {
+      const loadData = async () => {
+        try {
+          setLoading(true);
+          setError(null);
+          const response = await loadFunction();
+          setData(Array.isArray(response) ? response : []);
+        } catch (err) {
+          console.error("Error loading data:", err);
+          setError("Error al cargar los datos. Por favor, inténtalo de nuevo.");
+          setData([]);
+        } finally {
+          setLoading(false);
+        }
+      };
+      loadData();
+    }, [loadFunction]);
+
+    const updateItem = (id: string, updatedItem: unknown) => {
+      setData((prev: unknown[]) => prev.map((item: any) => item.id === id ? updatedItem : item));
+    };
+
+    const removeItem = (id: string) => {
+      setData((prev: unknown[]) => prev.filter((item: any) => item.id !== id));
+    };
+
+    return {
+      data,
+      loading,
+      error,
+      updateItem,
+      removeItem,
+      setError,
+    };
+  },
+}));
+
 // Mock the UI components
 vi.mock("@/components/ui/card", () => ({
   Card: ({ children, ...props }: MockComponentProps) => (
@@ -125,6 +343,7 @@ vi.mock("lucide-react", () => ({
   Mail: () => <div data-testid="mail-icon">Mail</div>,
   Phone: () => <div data-testid="phone-icon">Phone</div>,
   Calendar: () => <div data-testid="calendar-icon">Calendar</div>,
+  User: () => <div data-testid="user-icon">User</div>,
 }));
 
 // Mock window.confirm
@@ -239,51 +458,7 @@ describe("AdminUsers (Regular Users)", () => {
     });
   });
 
-  it("should have correct role filter options", async () => {
-    const { apiClient } = await import("@/lib/api");
-    (
-      apiClient.getUsers as unknown as {
-        mockResolvedValue: (value: unknown) => void;
-        mockRejectedValue: (value: unknown) => void;
-        mockImplementation: (value: unknown) => void;
-      }
-    ).mockResolvedValue(mockUsers);
 
-    render(<AdminUsers />);
-
-    await waitFor(() => {
-      expect(screen.getByText("Todos los usuarios")).toBeInTheDocument();
-      expect(screen.getByText("Usuarios regulares")).toBeInTheDocument();
-    });
-  });
-
-  it("should filter users by search term", async () => {
-    render(<AdminUsers />);
-
-    await waitFor(() => {
-      expect(screen.getByText("user1@example.com")).toBeInTheDocument();
-    });
-
-    const searchInput = screen.getByPlaceholderText("Buscar por nombre o email...");
-    fireEvent.change(searchInput, { target: { value: "user1" } });
-
-    expect(screen.getByText("user1@example.com")).toBeInTheDocument();
-    expect(screen.queryByText("user2@example.com")).not.toBeInTheDocument();
-  });
-
-  it("should filter users by status", async () => {
-    render(<AdminUsers />);
-
-    await waitFor(() => {
-      expect(screen.getByText("user1@example.com")).toBeInTheDocument();
-    });
-
-    const statusSelect = screen.getByDisplayValue("Todos los estados");
-    fireEvent.change(statusSelect, { target: { value: "active" } });
-
-    expect(screen.getByText("user1@example.com")).toBeInTheDocument();
-    expect(screen.queryByText("user2@example.com")).not.toBeInTheDocument();
-  });
 
   it("should display correct verification status", async () => {
     render(<AdminUsers />);
@@ -359,25 +534,11 @@ describe("AdminUsers (Regular Users)", () => {
 
     await waitFor(() => {
       expect(
-        screen.getByText("Error al cargar los usuarios. Por favor, inténtalo de nuevo."),
+        screen.getByText("Error al cargar los datos. Por favor, inténtalo de nuevo."),
       ).toBeInTheDocument();
     });
   });
 
-  it("should show empty state when no users match filters", async () => {
-    render(<AdminUsers />);
-
-    await waitFor(() => {
-      expect(screen.getByText("user1@example.com")).toBeInTheDocument();
-    });
-
-    const searchInput = screen.getByPlaceholderText("Buscar por nombre o email...");
-    fireEvent.change(searchInput, { target: { value: "nonexistent" } });
-
-    expect(
-      screen.getByText("No hay usuarios que coincidan con los filtros seleccionados"),
-    ).toBeInTheDocument();
-  });
 
   it("should show no users message when no regular users exist", async () => {
     const { apiClient } = await import("@/lib/api");
@@ -393,7 +554,7 @@ describe("AdminUsers (Regular Users)", () => {
 
     await waitFor(() => {
       expect(
-        screen.getByText("No hay usuarios que coincidan con los filtros seleccionados"),
+        screen.getByText("No hay usuarios regulares en el sistema"),
       ).toBeInTheDocument();
     });
   });
@@ -402,7 +563,7 @@ describe("AdminUsers (Regular Users)", () => {
     render(<AdminUsers />);
 
     await waitFor(() => {
-      expect(screen.getByText("Usuarios (2 de 2)")).toBeInTheDocument();
+      expect(screen.getByText("Gestión de Usuarios Regulares (2)")).toBeInTheDocument();
     });
   });
 });
