@@ -23,14 +23,14 @@ export default function AdminUsers() {
     setError,
   } = useAdminData<AdminUser>({
     loadFunction: async () => {
-        const response = await apiClient.getUsers();
-        console.log("All Users API response:", response);
+      const response = await apiClient.getUsers();
+      console.log("All Users API response:", response);
 
-        if (Array.isArray(response)) {
-          // Filter to show only admin users and other non-user/non-professional roles
+      if (Array.isArray(response)) {
+        // Filter to show only admin users and other non-user/non-professional roles
         return (response as AdminUser[]).filter(
-            (user) => user.role !== "user" && user.role !== "professional",
-          );
+          (user) => user.role !== "user" && user.role !== "professional",
+        );
       }
       return [];
     },
@@ -67,57 +67,65 @@ export default function AdminUsers() {
 
   const getRoleBadge = (user: AdminUser) => {
     const variant = user.role === "admin" ? "destructive" : "outline";
-    const label = user.role === "admin" ? "Administrador" : user.role.charAt(0).toUpperCase() + user.role.slice(1);
+    const label =
+      user.role === "admin"
+        ? "Administrador"
+        : user.role.charAt(0).toUpperCase() + user.role.slice(1);
     return { variant, label };
   };
 
   const columns: Column<AdminUser>[] = [
     {
-      key: 'full_name',
-      label: 'Usuario',
+      key: "full_name",
+      label: "Usuario",
       render: (user) => (
-                        <div className="flex items-center space-x-2">
-                          {getRoleIcon(user.role)}
-                          <div>
-                            <div className="font-medium">{user.full_name}</div>
-                            <div className="text-sm text-gray-500 dark:text-gray-400">
-                              ID: {user.id.slice(0, 8)}...
-                            </div>
-                          </div>
-                        </div>
+        <div className="flex items-center space-x-2">
+          {getRoleIcon(user.role)}
+          <div>
+            <div className="font-medium">{user.full_name}</div>
+            <div className="text-sm text-gray-500 dark:text-gray-400">
+              ID: {user.id.slice(0, 8)}...
+            </div>
+          </div>
+        </div>
       ),
     },
     {
-      key: 'email',
-      label: 'Contacto',
+      key: "email",
+      label: "Contacto",
       render: commonRenderers.contact,
     },
     {
-      key: 'role',
-      label: 'Rol',
+      key: "role",
+      label: "Rol",
       render: (user) => {
         const { variant, label } = getRoleBadge(user);
-            return <Badge variant={variant as "default" | "destructive" | "outline" | "secondary"}>{label}</Badge>;
+        return (
+          <Badge variant={variant as "default" | "destructive" | "outline" | "secondary"}>
+            {label}
+          </Badge>
+        );
       },
     },
     {
-      key: 'is_active',
-      label: 'Estado',
+      key: "is_active",
+      label: "Estado",
       render: commonRenderers.status,
     },
     {
-      key: 'created_at',
-      label: 'Registro',
-      render: (user) => commonRenderers.date(user as unknown as Record<string, unknown>, 'created_at'),
+      key: "created_at",
+      label: "Registro",
+      render: (user) =>
+        commonRenderers.date(user as unknown as Record<string, unknown>, "created_at"),
     },
     {
-      key: 'last_login',
-      label: 'Último Acceso',
+      key: "last_login",
+      label: "Último Acceso",
       render: commonRenderers.lastLogin,
     },
     {
-      key: 'actions',
-      label: 'Acciones',
+      key: "actions",
+      label: "Acciones",
     },
   ];
 

@@ -34,14 +34,13 @@ describe("TherapeuticApproachesSelector", () => {
   it("should render with default props", () => {
     const mockOnChange = vi.fn();
     render(
-      <TherapeuticApproachesSelector
-        selectedApproaches={[]}
-        onApproachesChange={mockOnChange}
-      />
+      <TherapeuticApproachesSelector selectedApproaches={[]} onApproachesChange={mockOnChange} />,
     );
 
     expect(screen.getByText("Enfoques Terapéuticos")).toBeInTheDocument();
-    expect(screen.getByText(/Selecciona uno o más enfoques terapéuticos que manejas/)).toBeInTheDocument();
+    expect(
+      screen.getByText(/Selecciona uno o más enfoques terapéuticos que manejas/),
+    ).toBeInTheDocument();
     expect(screen.getByText("Cognitive Behavioral Therapy")).toBeInTheDocument();
     expect(screen.getByText("Psychodynamic Therapy")).toBeInTheDocument();
     expect(screen.getByText("Humanistic Therapy")).toBeInTheDocument();
@@ -52,10 +51,7 @@ describe("TherapeuticApproachesSelector", () => {
     const mockOnChange = vi.fn();
 
     render(
-      <TherapeuticApproachesSelector
-        selectedApproaches={[]}
-        onApproachesChange={mockOnChange}
-      />
+      <TherapeuticApproachesSelector selectedApproaches={[]} onApproachesChange={mockOnChange} />,
     );
 
     expect(screen.getByText("Cargando enfoques terapéuticos...")).toBeInTheDocument();
@@ -67,10 +63,7 @@ describe("TherapeuticApproachesSelector", () => {
     const mockOnChange = vi.fn();
 
     render(
-      <TherapeuticApproachesSelector
-        selectedApproaches={[]}
-        onApproachesChange={mockOnChange}
-      />
+      <TherapeuticApproachesSelector selectedApproaches={[]} onApproachesChange={mockOnChange} />,
     );
 
     expect(screen.getByText("Error: Failed to load approaches")).toBeInTheDocument();
@@ -80,10 +73,7 @@ describe("TherapeuticApproachesSelector", () => {
   it("should call onApproachesChange when checkbox is checked", async () => {
     const mockOnChange = vi.fn();
     render(
-      <TherapeuticApproachesSelector
-        selectedApproaches={[]}
-        onApproachesChange={mockOnChange}
-      />
+      <TherapeuticApproachesSelector selectedApproaches={[]} onApproachesChange={mockOnChange} />,
     );
 
     const checkbox = screen.getByLabelText("Cognitive Behavioral Therapy");
@@ -98,7 +88,7 @@ describe("TherapeuticApproachesSelector", () => {
       <TherapeuticApproachesSelector
         selectedApproaches={["approach1"]}
         onApproachesChange={mockOnChange}
-      />
+      />,
     );
 
     const checkbox = screen.getByLabelText("Cognitive Behavioral Therapy");
@@ -113,20 +103,19 @@ describe("TherapeuticApproachesSelector", () => {
       <TherapeuticApproachesSelector
         selectedApproaches={["approach1", "approach2"]}
         onApproachesChange={mockOnChange}
-      />
+      />,
     );
 
     expect(screen.getByText("Enfoques seleccionados (2):")).toBeInTheDocument();
-    expect(screen.getByText("Cognitive Behavioral Therapy, Psychodynamic Therapy")).toBeInTheDocument();
+    expect(
+      screen.getByText("Cognitive Behavioral Therapy, Psychodynamic Therapy"),
+    ).toBeInTheDocument();
   });
 
   it("should not show summary when no approaches are selected", () => {
     const mockOnChange = vi.fn();
     render(
-      <TherapeuticApproachesSelector
-        selectedApproaches={[]}
-        onApproachesChange={mockOnChange}
-      />
+      <TherapeuticApproachesSelector selectedApproaches={[]} onApproachesChange={mockOnChange} />,
     );
 
     expect(screen.queryByText("Enfoques seleccionados")).not.toBeInTheDocument();
@@ -139,11 +128,11 @@ describe("TherapeuticApproachesSelector", () => {
         selectedApproaches={[]}
         onApproachesChange={mockOnChange}
         disabled={true}
-      />
+      />,
     );
 
     const checkboxes = screen.getAllByRole("checkbox");
-    checkboxes.forEach(checkbox => {
+    checkboxes.forEach((checkbox) => {
       expect(checkbox).toBeDisabled();
     });
   });
@@ -155,7 +144,7 @@ describe("TherapeuticApproachesSelector", () => {
         selectedApproaches={[]}
         onApproachesChange={mockOnChange}
         disabled={true}
-      />
+      />,
     );
 
     const checkbox = screen.getByLabelText("Cognitive Behavioral Therapy");
@@ -167,24 +156,20 @@ describe("TherapeuticApproachesSelector", () => {
   it("should render with correct card structure", () => {
     const mockOnChange = vi.fn();
     render(
-      <TherapeuticApproachesSelector
-        selectedApproaches={[]}
-        onApproachesChange={mockOnChange}
-      />
+      <TherapeuticApproachesSelector selectedApproaches={[]} onApproachesChange={mockOnChange} />,
     );
 
     // Check for card elements
     expect(screen.getByText("Enfoques Terapéuticos")).toBeInTheDocument();
-    expect(screen.getByText(/Selecciona uno o más enfoques terapéuticos que manejas/)).toBeInTheDocument();
+    expect(
+      screen.getByText(/Selecciona uno o más enfoques terapéuticos que manejas/),
+    ).toBeInTheDocument();
   });
 
   it("should render Brain icon in card header", () => {
     const mockOnChange = vi.fn();
     render(
-      <TherapeuticApproachesSelector
-        selectedApproaches={[]}
-        onApproachesChange={mockOnChange}
-      />
+      <TherapeuticApproachesSelector selectedApproaches={[]} onApproachesChange={mockOnChange} />,
     );
 
     // The Brain icon should be present (lucide-react icon)
@@ -198,7 +183,7 @@ describe("TherapeuticApproachesSelector", () => {
       <TherapeuticApproachesSelector
         selectedApproaches={["approach1"]}
         onApproachesChange={mockOnChange}
-      />
+      />,
     );
 
     // Select second approach
@@ -214,7 +199,7 @@ describe("TherapeuticApproachesSelector", () => {
       <TherapeuticApproachesSelector
         selectedApproaches={["approach1", "approach2"]}
         onApproachesChange={mockOnChange}
-      />
+      />,
     );
 
     // Deselect first approach
@@ -227,10 +212,7 @@ describe("TherapeuticApproachesSelector", () => {
   it("should render approaches in grid layout", () => {
     const mockOnChange = vi.fn();
     render(
-      <TherapeuticApproachesSelector
-        selectedApproaches={[]}
-        onApproachesChange={mockOnChange}
-      />
+      <TherapeuticApproachesSelector selectedApproaches={[]} onApproachesChange={mockOnChange} />,
     );
 
     // Check that all approaches are rendered
@@ -245,7 +227,7 @@ describe("TherapeuticApproachesSelector", () => {
       <TherapeuticApproachesSelector
         selectedApproaches={["approach1", "approach2", "approach3"]}
         onApproachesChange={mockOnChange}
-      />
+      />,
     );
 
     expect(screen.getByText("Enfoques seleccionados (3):")).toBeInTheDocument();
@@ -256,10 +238,7 @@ describe("TherapeuticApproachesSelector", () => {
     const mockOnChange = vi.fn();
 
     render(
-      <TherapeuticApproachesSelector
-        selectedApproaches={[]}
-        onApproachesChange={mockOnChange}
-      />
+      <TherapeuticApproachesSelector selectedApproaches={[]} onApproachesChange={mockOnChange} />,
     );
 
     expect(screen.getByText("Enfoques Terapéuticos")).toBeInTheDocument();
@@ -272,7 +251,7 @@ describe("TherapeuticApproachesSelector", () => {
       <TherapeuticApproachesSelector
         selectedApproaches={["approach1", "approach3"]}
         onApproachesChange={mockOnChange}
-      />
+      />,
     );
 
     const cbtCheckbox = screen.getByLabelText("Cognitive Behavioral Therapy");
@@ -290,7 +269,7 @@ describe("TherapeuticApproachesSelector", () => {
       <TherapeuticApproachesSelector
         selectedApproaches={["approach1"]}
         onApproachesChange={mockOnChange}
-      />
+      />,
     );
 
     // Toggle the selected approach (should deselect)
@@ -303,19 +282,16 @@ describe("TherapeuticApproachesSelector", () => {
   it("should render with proper accessibility attributes", () => {
     const mockOnChange = vi.fn();
     render(
-      <TherapeuticApproachesSelector
-        selectedApproaches={[]}
-        onApproachesChange={mockOnChange}
-      />
+      <TherapeuticApproachesSelector selectedApproaches={[]} onApproachesChange={mockOnChange} />,
     );
 
     const checkboxes = screen.getAllByRole("checkbox");
-    checkboxes.forEach(checkbox => {
+    checkboxes.forEach((checkbox) => {
       expect(checkbox).toBeInTheDocument();
     });
 
     const labels = screen.getAllByText(/Therapy/);
-    labels.forEach(label => {
+    labels.forEach((label) => {
       expect(label).toBeInTheDocument();
     });
   });
@@ -326,7 +302,7 @@ describe("TherapeuticApproachesSelector", () => {
       <TherapeuticApproachesSelector
         selectedApproaches={["approach1"]}
         onApproachesChange={mockOnChange}
-      />
+      />,
     );
 
     expect(screen.getByText("Enfoques seleccionados (1):")).toBeInTheDocument();

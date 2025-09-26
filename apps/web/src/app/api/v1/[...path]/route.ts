@@ -2,8 +2,9 @@ import { NextRequest } from "next/server";
 
 const backendBaseUrl = process.env.BACKEND_INTERNAL_URL || "http://localhost:8000";
 
-async function proxy(request: NextRequest, context: { params?: { path?: string | string[] } }) {
-  const raw = context?.params?.path;
+async function proxy(request: NextRequest, context: { params?: Promise<{ path?: string | string[] }> }) {
+  const params = await context?.params;
+  const raw = params?.path;
   const pathSuffix = Array.isArray(raw) ? raw.join("/") : (raw ?? "");
   const targetUrl = `${backendBaseUrl}/api/v1/${pathSuffix}${request.nextUrl.search}`;
 

@@ -130,7 +130,7 @@ describe("LoginForm", () => {
   });
 
   it("should show loading state during form submission", async () => {
-    mockLoginUser.mockImplementation(() => new Promise(resolve => setTimeout(resolve, 100)));
+    mockLoginUser.mockImplementation(() => new Promise((resolve) => setTimeout(resolve, 100)));
 
     render(<LoginForm />);
 
@@ -244,7 +244,7 @@ describe("LoginForm", () => {
   });
 
   it("should disable form fields during loading", async () => {
-    mockLoginUser.mockImplementation(() => new Promise(resolve => setTimeout(resolve, 100)));
+    mockLoginUser.mockImplementation(() => new Promise((resolve) => setTimeout(resolve, 100)));
 
     render(<LoginForm />);
 
@@ -256,17 +256,17 @@ describe("LoginForm", () => {
     expect(screen.getByPlaceholderText("Contraseña")).toBeDisabled();
   });
 
-      it("should prevent form submission with invalid email", async () => {
-        render(<LoginForm />);
+  it("should prevent form submission with invalid email", async () => {
+    render(<LoginForm />);
 
-        await user.type(screen.getByPlaceholderText("Email"), "invalid-email");
-        await user.type(screen.getByPlaceholderText("Contraseña"), "password123");
-        await user.click(screen.getByRole("button", { name: "Iniciar Sesión" }));
+    await user.type(screen.getByPlaceholderText("Email"), "invalid-email");
+    await user.type(screen.getByPlaceholderText("Contraseña"), "password123");
+    await user.click(screen.getByRole("button", { name: "Iniciar Sesión" }));
 
-        // The login functions should not be called due to validation failure
-        expect(mockLoginProfessional).not.toHaveBeenCalled();
-        expect(mockLoginUser).not.toHaveBeenCalled();
-      });
+    // The login functions should not be called due to validation failure
+    expect(mockLoginProfessional).not.toHaveBeenCalled();
+    expect(mockLoginUser).not.toHaveBeenCalled();
+  });
 
   it("should show validation errors for empty password", async () => {
     render(<LoginForm />);
@@ -295,9 +295,7 @@ describe("LoginForm", () => {
   });
 
   it("should clear error message when form is resubmitted", async () => {
-    mockLoginUser
-      .mockRejectedValueOnce(new Error("First error"))
-      .mockResolvedValueOnce(undefined);
+    mockLoginUser.mockRejectedValueOnce(new Error("First error")).mockResolvedValueOnce(undefined);
 
     render(<LoginForm />);
 

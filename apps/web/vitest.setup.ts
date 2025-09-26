@@ -55,7 +55,7 @@ Object.defineProperty(HTMLAnchorElement.prototype, "click", {
 });
 
 // Mock crypto.getRandomValues for testing environment
-Object.defineProperty(global, 'crypto', {
+Object.defineProperty(global, "crypto", {
   value: {
     getRandomValues: vi.fn((array: Uint8Array) => {
       for (let i = 0; i < array.length; i++) {
@@ -68,13 +68,13 @@ Object.defineProperty(global, 'crypto', {
 });
 
 // Mock window.confirm globally
-Object.defineProperty(window, 'confirm', {
+Object.defineProperty(window, "confirm", {
   value: vi.fn(() => true),
   writable: true,
 });
 
 // Mock window.alert globally
-Object.defineProperty(window, 'alert', {
+Object.defineProperty(window, "alert", {
   value: vi.fn(),
   writable: true,
 });

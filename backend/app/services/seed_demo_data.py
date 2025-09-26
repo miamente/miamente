@@ -98,14 +98,14 @@ def seed_reference_data(db: Session) -> None:
         get_or_create(
             Specialty,
             db,
-            defaults={"category": "General"},
+            defaults={"category": "General", "is_active": True},
             name=name,
         )
     for name in APPROACHES:
         get_or_create(
             TherapeuticApproach,
             db,
-            defaults={"description": name, "category": None},
+            defaults={"description": name, "category": None, "is_active": True},
             name=name,
         )
     for name in MODALITIES:
@@ -128,7 +128,12 @@ def seed_users(db: Session) -> None:
             "full_name": "Usuario Test",
             "phone": "+573001234568",
             "is_active": True,
-            "is_verified": True,
+            "is_verified": True,  # Always verified - no email verification required
+            "role": "user",  # Default role
+            "date_of_birth": None,
+            "emergency_contact": "Contacto de Emergencia",
+            "emergency_phone": "+573001234569",
+            "preferences": '{"theme": "light", "notifications": true}',
         },
     )
 
@@ -144,12 +149,31 @@ def seed_professional(db: Session) -> None:
             "hashed_password": get_password_hash("test123456"),
             "full_name": "Dr. Test Professional",
             "phone": "+573001234567",
+            "phone_country_code": "+57",
+            "phone_number": "3001234567",
             "years_experience": 8,
             "rate_cents": 50000,
+            "custom_rate_cents": None,
+            "currency": "COP",
             "is_active": True,
-            "is_verified": True,
-            # Optional arrays can be linked later via M2M tables; keep it simple here
-            "specialty_ids": [str(getattr(specialty, "id", ""))] if specialty else None,
+            "is_verified": True,  # Always verified - no email verification required
+            "profile_picture": None,
+            "license_number": "PSI-12345",
+            "bio": "Psicólogo clínico con 8 años de experiencia en terapia cognitivo-conductual.",
+            "academic_experience": '{"degree": "Psicología", "university": "Universidad Nacional", "year": 2015}',
+            "work_experience": (
+                '{"current": "Consultorio Privado", "previous": ["Hospital San Rafael", "Centro de Salud Mental"]}'
+            ),
+            "certifications": '["Certificación en TCC", "Especialización en Terapia de Pareja"]',
+            "languages": ["Español", "Inglés"],
+            "therapy_approaches_ids": None,  # Will be linked via M2M tables
+            "specialty_ids": [str(specialty.id)] if specialty and hasattr(specialty, "id") else None,
+            "timezone": "America/Bogota",
+            "working_hours": (
+                '{"monday": {"start": "09:00", "end": "17:00"}, "tuesday": {"start": "09:00", "end": "17:00"}}'
+            ),
+            "emergency_contact": "Dr. Emergency Contact",
+            "emergency_phone": "+573001234570",
         },
     )
 

@@ -10,16 +10,16 @@ Parameters:
     AllowedValues: [staging, production]
   DockerImageUri:
     Type: String
-    Description: "Complete URI of the Docker image to deploy (e.g., user/repo:tag)."
+    Description: "Complete URI of the Docker image to deploy (e.g., account.dkr.ecr.region.amazonaws.com/repo:tag)."
   LabRoleArn:
     Type: String
     Description: "Complete ARN of the existing 'LabRole' IAM role in the account."
   VpcId:
     Type: AWS::EC2::VPC::Id
-    Description: "ID of the default VPC where to deploy."
+    Description: "ID of the VPC where to deploy."
   SubnetIds:
     Type: List<AWS::EC2::Subnet::Id>
-    Description: "List of at least TWO IDs of PUBLIC subnets of the default VPC in different AZs."
+    Description: "List of at least TWO IDs of PUBLIC subnets of the VPC in different AZs."
   BackendApiUrl:
     Type: String
     Description: "Backend API URL (ALB URL from backend deployment)"
@@ -39,6 +39,7 @@ Parameters:
   TIMEZONE:
     Type: String
     Description: "Timezone for the application"
+    Default: "America/Bogota"
 
 Conditions:
   IsProduction: !Equals [!Ref EnvironmentName, "production"]
@@ -53,52 +54,6 @@ Resources:
       ClusterSettings:
         - Name: containerInsights
           Value: enabled
-
-  # Task Definition
-  FrontendTaskDefinition:
-    Type: AWS::ECS::TaskDefinition
-    Properties:
-      Family: !Sub "miamente-frontend-${EnvironmentName}-task"
-      NetworkMode: awsvpc
-      RequiresCompatibilities:
-        - FARGATE
-      Cpu: !If [IsProduction, "1024", "512"]
-      Memory: !If [IsProduction, "2048", "1024"]
-      ExecutionRoleArn: !Ref LabRoleArn
-      TaskRoleArn: !Ref LabRoleArn
-      ContainerDefinitions:
-        - Name: frontend
-          Image: !Ref DockerImageUri
-          PortMappings:
-            - ContainerPort: 3000
-              Protocol: tcp
-          Environment:
-            - Name: NEXT_PUBLIC_APP_ENV
-              Value: !Ref EnvironmentName
-            - Name: NEXT_PUBLIC_API_URL
-              Value: !Ref BackendApiUrl
-            - Name: BACKEND_INTERNAL_URL
-              Value: !If [HasBackendInternal, !Ref BackendInternalUrl, !Ref BackendApiUrl]
-            - Name: PROJECT_NAME
-              Value: !Ref PROJECTNAME
-            - Name: VERSION
-              Value: !Ref VERSION
-            - Name: TIMEZONE
-              Value: !Ref TIMEZONE
-          LogConfiguration:
-            LogDriver: awslogs
-            Options:
-              awslogs-group: !Ref FrontendLogGroup
-              awslogs-region: !Ref AWS::Region
-              awslogs-stream-prefix: frontend
-          HealthCheck:
-            Command:
-              - CMD-SHELL
-              - "curl -f http://localhost:3000/health || exit 1"
-            Interval: 30
-            Timeout: 5
-            Retries: 3
-            StartPeriod: 60
 
   # CloudWatch Log Group
   FrontendLogGroup:
@@ -172,17 +127,19 @@ Resources:
       Protocol: HTTP
       VpcId: !Ref VpcId
       TargetType: ip
-      HealthCheckPath: /health
+      HealthCheckPath: /api/health
       HealthCheckProtocol: HTTP
       HealthCheckIntervalSeconds: 30
       HealthCheckTimeoutSeconds: 5
       HealthyThresholdCount: 2
       UnhealthyThresholdCount: 3
+      Matcher:
+        HttpCode: "200-399"
       Tags:
         - Key: Name
           Value: !Sub "miamente-frontend-${EnvironmentName}-tg"
 
-  # ALB Listener
+  # ALB Listener (HTTP 80 → TG)
   FrontendALBListener:
     Type: AWS::ElasticLoadBalancingV2::Listener
     Properties:
@@ -192,6 +149,48 @@ Resources:
       LoadBalancerArn: !Ref FrontendALB
       Port: 80
       Protocol: HTTP
+
+  # Task Definition
+  FrontendTaskDefinition:
+    Type: AWS::ECS::TaskDefinition
+    Properties:
+      Family: !Sub "miamente-frontend-${EnvironmentName}-task"
+      NetworkMode: awsvpc
+      RequiresCompatibilities:
+        - FARGATE
+      Cpu: !If [IsProduction, "1024", "512"]
+      Memory: !If [IsProduction, "2048", "1024"]
+      ExecutionRoleArn: !Ref LabRoleArn
+      TaskRoleArn: !Ref LabRoleArn
+      ContainerDefinitions:
+        - Name: frontend
+          Image: !Ref DockerImageUri
+          PortMappings:
+            - ContainerPort: 3000
+              Protocol: tcp
+          Environment:
+            - Name: NEXT_PUBLIC_APP_ENV
+              Value: !Ref EnvironmentName
+            - Name: NEXT_PUBLIC_API_URL
+              Value: !Ref BackendApiUrl
+            - Name: BACKEND_INTERNAL_URL
+              Value: !If [HasBackendInternal, !Ref BackendInternalUrl, !Ref BackendApiUrl]
+            - Name: PROJECT_NAME
+              Value: !Ref PROJECTNAME
+            - Name: VERSION
+              Value: !Ref VERSION
+            - Name: TIMEZONE
+              Value: !Ref TIMEZONE
+            - Name: NODE_ENV
+              Value: production
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-group: !Ref FrontendLogGroup
+              awslogs-region: !Ref AWS::Region
+              awslogs-stream-prefix: frontend
+          # Health check is handled by ALB target group health checks
+          # ECS health check removed to avoid dependency on curl/wget/node commands
 
   # ECS Service
   FrontendService:
@@ -203,6 +202,7 @@ Resources:
       TaskDefinition: !Ref FrontendTaskDefinition
       DesiredCount: !If [IsProduction, 2, 1]
       LaunchType: FARGATE
+      HealthCheckGracePeriodSeconds: 120
       NetworkConfiguration:
         AwsvpcConfiguration:
           SecurityGroups:

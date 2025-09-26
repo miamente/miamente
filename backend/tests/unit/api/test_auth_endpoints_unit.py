@@ -16,7 +16,6 @@ from app.api.v1.endpoints.auth import (
     login_user,
     login_professional,
     login_unified,
-    simulate_email_verification,
     refresh_token,
     get_current_user_info,
 )
@@ -416,62 +415,6 @@ class TestAuthEndpointsUnit:
         assert exc_info.value.status_code == status.HTTP_401_UNAUTHORIZED
         assert exc_info.value.detail == "Incorrect email or password"
 
-    @pytest.mark.asyncio
-    @patch("app.api.v1.endpoints.auth.AuthService")
-    async def test_simulate_email_verification_user(self, mock_auth_service_class, mock_db_session, sample_user):
-        """Test email verification simulation for user."""
-        # Arrange
-        mock_auth_service = mock_auth_service_class.return_value
-        mock_auth_service.get_user_by_id.return_value = sample_user
-        mock_auth_service.get_professional_by_id.return_value = None
-
-        # Act
-        result = await simulate_email_verification("user-123", mock_db_session)
-
-        # Assert
-        mock_auth_service.get_user_by_id.assert_called_once_with("user-123")
-        mock_db_session.commit.assert_called_once()
-        assert sample_user.is_verified is True
-        assert result["message"] == "User email verification simulated"
-        assert result["user_type"] == "user"
-
-    @pytest.mark.asyncio
-    @patch("app.api.v1.endpoints.auth.AuthService")
-    async def test_simulate_email_verification_professional(
-        self, mock_auth_service_class, mock_db_session, sample_professional
-    ):
-        """Test email verification simulation for professional."""
-        # Arrange
-        mock_auth_service = mock_auth_service_class.return_value
-        mock_auth_service.get_user_by_id.return_value = None
-        mock_auth_service.get_professional_by_id.return_value = sample_professional
-
-        # Act
-        result = await simulate_email_verification("prof-123", mock_db_session)
-
-        # Assert
-        mock_auth_service.get_user_by_id.assert_called_once_with("prof-123")
-        mock_auth_service.get_professional_by_id.assert_called_once_with("prof-123")
-        mock_db_session.commit.assert_called_once()
-        assert sample_professional.is_verified is True
-        assert result["message"] == "Professional email verification simulated"
-        assert result["user_type"] == "professional"
-
-    @pytest.mark.asyncio
-    @patch("app.api.v1.endpoints.auth.AuthService")
-    async def test_simulate_email_verification_not_found(self, mock_auth_service_class, mock_db_session):
-        """Test email verification simulation for non-existent user."""
-        # Arrange
-        mock_auth_service = mock_auth_service_class.return_value
-        mock_auth_service.get_user_by_id.return_value = None
-        mock_auth_service.get_professional_by_id.return_value = None
-
-        # Act & Assert
-        with pytest.raises(HTTPException) as exc_info:
-            await simulate_email_verification("nonexistent-123", mock_db_session)
-
-        assert exc_info.value.status_code == status.HTTP_404_NOT_FOUND
-        assert exc_info.value.detail == "User not found"
 
     @pytest.mark.asyncio
     @patch("app.api.v1.endpoints.auth.create_token_response")

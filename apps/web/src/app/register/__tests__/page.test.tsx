@@ -174,7 +174,7 @@ describe("RegisterPage", () => {
 
     render(<RegisterPage />);
 
-    expect(mockPush).toHaveBeenCalledWith("/verify");
+    expect(mockPush).toHaveBeenCalledWith("/dashboard");
   });
 
   it("should handle successful registration", async () => {
@@ -271,11 +271,11 @@ describe("RegisterPage", () => {
       expect(screen.getByText("¡Cuenta Creada!")).toBeInTheDocument();
     });
 
-    expect(screen.getByText(/Te hemos enviado un email de verificación/)).toBeInTheDocument();
-    expect(screen.getByText("Ir a Verificación")).toBeInTheDocument();
+    expect(screen.getByText(/Tu cuenta ha sido creada exitosamente/)).toBeInTheDocument();
+    expect(screen.getByText("Ir al Dashboard")).toBeInTheDocument();
   });
 
-  it("should navigate to verify page when clicking 'Ir a Verificación'", async () => {
+  it("should navigate to dashboard when clicking 'Ir al Dashboard'", async () => {
     const user = userEvent.setup();
     mockRegisterWithEmail.mockResolvedValue({
       id: "user-123",
@@ -315,9 +315,9 @@ describe("RegisterPage", () => {
       expect(screen.getByText("¡Cuenta Creada!")).toBeInTheDocument();
     });
 
-    // Click the verification button
-    await user.click(screen.getByText("Ir a Verificación"));
-    expect(mockPush).toHaveBeenCalledWith("/verify");
+    // Click the dashboard button
+    await user.click(screen.getByText("Ir al Dashboard"));
+    expect(mockPush).toHaveBeenCalledWith("/dashboard");
   });
 
   it("should handle registration error", async () => {
