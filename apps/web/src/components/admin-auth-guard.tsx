@@ -6,7 +6,7 @@ import { useRole } from "@/hooks/useRole";
 import { UserRole } from "@/lib/types";
 
 interface AdminAuthGuardProps {
-  children: React.ReactNode;
+  readonly children: React.ReactNode;
 }
 
 export function AdminAuthGuard({ children }: AdminAuthGuardProps) {
@@ -32,7 +32,6 @@ export function AdminAuthGuard({ children }: AdminAuthGuardProps) {
     // If user exists but doesn't have admin role, redirect to admin login
     if (!hasAnyRole([UserRole.ADMIN])) {
       router.push("/admin/login");
-      return;
     }
   }, [user, userProfile, authLoading, roleLoading, hasAnyRole, router]);
 
@@ -40,7 +39,7 @@ export function AdminAuthGuard({ children }: AdminAuthGuardProps) {
   if (authLoading || roleLoading) {
     return (
       <div className="flex h-screen items-center justify-center">
-        <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-red-600"></div>
+        <output className="h-8 w-8 animate-spin rounded-full border-b-2 border-red-600" aria-label="Loading">Loading...</output>
       </div>
     );
   }
@@ -49,7 +48,7 @@ export function AdminAuthGuard({ children }: AdminAuthGuardProps) {
   if (!user) {
     return (
       <div className="flex h-screen items-center justify-center">
-        <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-red-600"></div>
+        <output className="h-8 w-8 animate-spin rounded-full border-b-2 border-red-600" aria-label="Loading">Loading...</output>
       </div>
     );
   }
@@ -58,7 +57,7 @@ export function AdminAuthGuard({ children }: AdminAuthGuardProps) {
   if (!userProfile) {
     return (
       <div className="flex h-screen items-center justify-center">
-        <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-red-600"></div>
+        <output className="h-8 w-8 animate-spin rounded-full border-b-2 border-red-600" aria-label="Loading">Loading...</output>
       </div>
     );
   }
@@ -67,7 +66,7 @@ export function AdminAuthGuard({ children }: AdminAuthGuardProps) {
   if (!hasAnyRole([UserRole.ADMIN])) {
     return (
       <div className="flex h-screen items-center justify-center">
-        <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-red-600"></div>
+        <output className="h-8 w-8 animate-spin rounded-full border-b-2 border-red-600" aria-label="Loading">Loading...</output>
       </div>
     );
   }

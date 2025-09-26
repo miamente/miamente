@@ -12,8 +12,8 @@ import { useAuthContext, isUserVerified } from "@/contexts/AuthContext";
 import { loginSchema, type LoginFormData } from "@/lib/validations";
 
 interface LoginFormProps {
-  isAdminLogin?: boolean;
-  redirectPath?: string;
+  readonly isAdminLogin?: boolean;
+  readonly redirectPath?: string;
 }
 
 export function LoginForm({ isAdminLogin = false, redirectPath }: LoginFormProps) {

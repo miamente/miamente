@@ -5,6 +5,7 @@ Unit tests for ProfessionalService.
 import pytest
 from unittest.mock import Mock
 from sqlalchemy.orm import Session
+from sqlalchemy.exc import SQLAlchemyError
 from fastapi import HTTPException
 
 from app.services.professional_service import ProfessionalService
@@ -280,7 +281,6 @@ class TestProfessionalServiceUnit:
         update_data = ProfessionalUpdate(full_name="Updated Name", specialty_ids=["specialty-3"])
 
         # Mock the specialty service to raise an exception
-        from sqlalchemy.exc import SQLAlchemyError
 
         mock_specialty_service = Mock()
         professional_service.specialty_service = mock_specialty_service
@@ -337,7 +337,6 @@ class TestProfessionalServiceUnit:
 
         # Mock get_professional_by_id to return our sample professional
         professional_service.get_professional_by_id = Mock(return_value=sample_professional)
-        from sqlalchemy.exc import SQLAlchemyError
 
         mock_db.commit = Mock(side_effect=SQLAlchemyError("Database error"))
         mock_db.rollback = Mock()

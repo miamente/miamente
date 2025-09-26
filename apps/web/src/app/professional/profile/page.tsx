@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import React, { useState } from "react";
 import { ProfessionalInfoForm } from "@/components/professional-info/ProfessionalInfoForm";
 import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import { UserCheck } from "lucide-react";

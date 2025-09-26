@@ -1,0 +1,46 @@
+# VCS and editor
+.git
+.github
+.vscode
+.idea
+.DS_Store
+**/*.log
+
+# Node modules (host)
+node_modules/
+apps/*/node_modules/
+
+# Next.js and build outputs
+**/.next/
+**/out/
+**/*.tsbuildinfo
+
+# Tests and reports
+**/coverage/
+**/htmlcov/
+**/playwright-report/
+**/test-results/
+**/__tests__/
+**/*.test.*
+**/*.spec.*
+**/vitest.*
+
+# Python and backend
+backend/
+**/__pycache__/
+**/.pytest_cache/
+
+# Local env files
+**/.env*
+!.env.example
+
+# Documentation and config files
+README.md
+*.md
+.eslintcache
+coverage-final.json
+eslint-report.json
+
+# Docker files
+Dockerfile*
+.dockerignore

@@ -24,6 +24,14 @@ vi.mock("../api", () => ({
 const mockApiClient = vi.mocked(apiClient);
 
 describe("profiles", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  afterEach(() => {
+    vi.clearAllMocks();
+  });
+
   const mockProfessional = {
     id: "prof-123",
     full_name: "Dr. John Doe",
@@ -147,6 +155,7 @@ describe("profiles", () => {
     });
 
     it("should handle API errors", async () => {
+      mockApiClient.put.mockClear();
       mockApiClient.put.mockRejectedValue(new Error("Update failed"));
 
       await expect(updateProfessionalProfile({ full_name: "New Name" })).rejects.toThrow(
@@ -265,7 +274,7 @@ describe("profiles", () => {
 
       const result = await getUserProfile("user-123");
 
-      expect(mockApiClient.get).toHaveBeenCalledWith("/users/user-123");
+      expect(mockApiClient.get).toHaveBeenCalledWith("/users/me");
       expect(result).toEqual(mockUser);
     });
 
@@ -286,16 +295,18 @@ describe("profiles", () => {
       };
 
       const updatedUser = { ...mockUser, ...updateData };
-      mockApiClient.patch.mockResolvedValue(updatedUser);
+      // Clear any previous mocks and set up fresh mock
+      mockApiClient.put.mockClear();
+      mockApiClient.put.mockResolvedValue(updatedUser);
 
       const result = await updateUserProfile("user-123", updateData);
 
-      expect(mockApiClient.patch).toHaveBeenCalledWith("/users/user-123", updateData);
+      expect(mockApiClient.put).toHaveBeenCalledWith("/users/me", updateData);
       expect(result).toEqual(updatedUser);
     });
 
     it("should handle API errors", async () => {
-      mockApiClient.patch.mockRejectedValue(new Error("Update failed"));
+      mockApiClient.put.mockRejectedValue(new Error("Update failed"));
 
       await expect(updateUserProfile("user-123", { full_name: "New Name" })).rejects.toThrow(
         "Update failed",

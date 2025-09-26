@@ -33,7 +33,7 @@ class Settings(BaseSettings):
         """Parse CORS origins from string or list format."""
         if isinstance(v, str):
             return [i.strip() for i in v.split(",")]
-        elif isinstance(v, list):
+        if isinstance(v, list):
             return v
         raise ValueError(v)
 
@@ -46,7 +46,7 @@ class Settings(BaseSettings):
         """Parse allowed hosts from string or list format."""
         if isinstance(v, str):
             return [i.strip() for i in v.split(",")]
-        elif isinstance(v, list):
+        if isinstance(v, list):
             return v
         raise ValueError(v)
 
@@ -106,12 +106,13 @@ class Settings(BaseSettings):
 
 
 # Test settings will be created when needed to ensure proper validation
-test_settings = None
+_test_settings = None
 
 
 def get_test_settings() -> Settings:
     """Get test settings, creating them if they don't exist."""
-    global test_settings
-    if test_settings is None:
-        test_settings = Settings()
-    return test_settings
+    # pylint: disable=global-statement
+    global _test_settings
+    if _test_settings is None:
+        _test_settings = Settings()
+    return _test_settings

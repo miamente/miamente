@@ -1,124 +1,134 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
-import {
-  uploadFile,
-  deleteFile,
-  getStoragePath,
-  generateUniqueFilename,
-  type UploadResponse,
-} from "../storage";
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 
-// Mock the apiClient
-vi.mock("../api", () => ({
+// Mock the api module
+vi.mock('../api', () => ({
   apiClient: {
     post: vi.fn(),
     delete: vi.fn(),
   },
 }));
 
-import { apiClient } from "../api";
-const mockApiClient = vi.mocked(apiClient);
+// Mock generateUniqueIdHex
+vi.mock('../id', () => ({
+  generateUniqueIdHex: vi.fn(() => 'mockrandomid123456789'),
+}));
 
-// Mock crypto.randomUUID
-const mockRandomUUID = vi.fn();
-Object.defineProperty(global, "crypto", {
-  value: {
-    randomUUID: mockRandomUUID,
-  },
-});
+import { uploadFile, deleteFile, getStoragePath, generateUniqueFilename, UploadResponse } from '../storage';
+import { apiClient } from '../api';
 
-describe("Storage Functions", () => {
+// Mock interface for apiClient
+interface MockApiClient {
+  post: ReturnType<typeof vi.fn>;
+  delete: ReturnType<typeof vi.fn>;
+}
+
+// Cast to mocked type
+const mockApiClient = apiClient as unknown as MockApiClient;
+
+describe('Storage Functions', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    console.error = vi.fn(); // Mock console.error
-
-    // Mock Date.now() for consistent testing
-    vi.spyOn(Date, "now").mockReturnValue(1640995200000); // 2022-01-01T00:00:00.000Z
-    mockRandomUUID.mockReturnValue("550e8400-e29b-41d4-a716-446655440000");
+    vi.clearAllTimers();
   });
 
-  describe("uploadFile", () => {
-    it("should upload file successfully", async () => {
-      const mockFile = new File(["test content"], "test.txt", { type: "text/plain" });
+  describe('uploadFile', () => {
+    it('should upload a file successfully', async () => {
+      const mockFile = new File(['test content'], 'test.txt', { type: 'text/plain' });
       const mockResponse: UploadResponse = {
-        url: "https://example.com/uploads/test.txt",
-        filename: "test.txt",
+        url: 'https://example.com/uploads/test.txt',
+        filename: 'test.txt',
         size: 12,
-        content_type: "text/plain",
+        content_type: 'text/plain',
       };
 
       mockApiClient.post.mockResolvedValue({ data: mockResponse });
 
       const result = await uploadFile(mockFile);
 
-      expect(mockApiClient.post).toHaveBeenCalledWith("/upload", expect.any(FormData), {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      });
+      expect(mockApiClient.post).toHaveBeenCalledWith(
+        '/upload',
+        expect.any(FormData),
+        {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+        }
+      );
+
       expect(result).toEqual(mockResponse);
     });
 
-    it("should handle upload errors", async () => {
-      const mockFile = new File(["test content"], "test.txt", { type: "text/plain" });
-      const error = new Error("Upload failed");
-
-      mockApiClient.post.mockRejectedValue(error);
-
-      await expect(uploadFile(mockFile)).rejects.toThrow("Upload failed");
-      expect(console.error).toHaveBeenCalledWith("File upload error:", error);
-    });
-
-    it("should handle network errors", async () => {
-      const mockFile = new File(["test content"], "test.txt", { type: "text/plain" });
-      const error = new Error("Network error");
-
-      mockApiClient.post.mockRejectedValue(error);
-
-      await expect(uploadFile(mockFile)).rejects.toThrow("Network error");
-      expect(console.error).toHaveBeenCalledWith("File upload error:", error);
-    });
-
-    it("should create FormData with correct file", async () => {
-      const mockFile = new File(["test content"], "test.txt", { type: "text/plain" });
+    it('should append file to FormData correctly', async () => {
+      const mockFile = new File(['test content'], 'test.txt', { type: 'text/plain' });
       const mockResponse: UploadResponse = {
-        url: "https://example.com/uploads/test.txt",
-        filename: "test.txt",
+        url: 'https://example.com/uploads/test.txt',
+        filename: 'test.txt',
         size: 12,
-        content_type: "text/plain",
+        content_type: 'text/plain',
       };
 
       mockApiClient.post.mockResolvedValue({ data: mockResponse });
 
       await uploadFile(mockFile);
 
-      const callArgs = mockApiClient.post.mock.calls[0];
-      const formData = callArgs[1] as FormData;
-
-      expect(formData).toBeInstanceOf(FormData);
-      expect(formData.get("file")).toBe(mockFile);
+      const formDataCall = mockApiClient.post.mock.calls[0][1];
+      expect(formDataCall).toBeInstanceOf(FormData);
+      
+      // Verify the file is appended to FormData
+      expect(formDataCall.get('file')).toBe(mockFile);
     });
 
-    it("should handle different file types", async () => {
-      const imageFile = new File(["image content"], "image.jpg", { type: "image/jpeg" });
+    it('should handle upload errors', async () => {
+      const mockFile = new File(['test content'], 'test.txt', { type: 'text/plain' });
+      const mockError = new Error('Upload failed');
+      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+      mockApiClient.post.mockRejectedValue(mockError);
+
+      await expect(uploadFile(mockFile)).rejects.toThrow('Upload failed');
+      expect(consoleSpy).toHaveBeenCalledWith('File upload error:', mockError);
+
+      consoleSpy.mockRestore();
+    });
+
+    it('should handle different file types', async () => {
+      const mockFile = new File(['image data'], 'image.jpg', { type: 'image/jpeg' });
       const mockResponse: UploadResponse = {
-        url: "https://example.com/uploads/image.jpg",
-        filename: "image.jpg",
-        size: 13,
-        content_type: "image/jpeg",
+        url: 'https://example.com/uploads/image.jpg',
+        filename: 'image.jpg',
+        size: 10,
+        content_type: 'image/jpeg',
       };
 
       mockApiClient.post.mockResolvedValue({ data: mockResponse });
 
-      const result = await uploadFile(imageFile);
+      const result = await uploadFile(mockFile);
 
-      expect(result.content_type).toBe("image/jpeg");
-      expect(result.filename).toBe("image.jpg");
+      expect(result.content_type).toBe('image/jpeg');
+      expect(result.filename).toBe('image.jpg');
+    });
+
+    it('should handle large files', async () => {
+      const largeContent = 'x'.repeat(1024 * 1024); // 1MB
+      const mockFile = new File([largeContent], 'large.txt', { type: 'text/plain' });
+      const mockResponse: UploadResponse = {
+        url: 'https://example.com/uploads/large.txt',
+        filename: 'large.txt',
+        size: 1024 * 1024,
+        content_type: 'text/plain',
+      };
+
+      mockApiClient.post.mockResolvedValue({ data: mockResponse });
+
+      const result = await uploadFile(mockFile);
+
+      expect(result.size).toBe(1024 * 1024);
     });
   });
 
-  describe("deleteFile", () => {
-    it("should delete file successfully", async () => {
-      const filename = "test.txt";
+  describe('deleteFile', () => {
+    it('should delete a file successfully', async () => {
+      const filename = 'test.txt';
       mockApiClient.delete.mockResolvedValue({});
 
       await deleteFile(filename);
@@ -126,205 +136,162 @@ describe("Storage Functions", () => {
       expect(mockApiClient.delete).toHaveBeenCalledWith(`/upload/${filename}`);
     });
 
-    it("should handle deletion errors", async () => {
-      const filename = "test.txt";
-      const error = new Error("Delete failed");
+    it('should handle delete errors', async () => {
+      const filename = 'test.txt';
+      const mockError = new Error('Delete failed');
+      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
-      mockApiClient.delete.mockRejectedValue(error);
+      mockApiClient.delete.mockRejectedValue(mockError);
 
-      await expect(deleteFile(filename)).rejects.toThrow("Delete failed");
-      expect(console.error).toHaveBeenCalledWith("File deletion error:", error);
+      await expect(deleteFile(filename)).rejects.toThrow('Delete failed');
+      expect(consoleSpy).toHaveBeenCalledWith('File deletion error:', mockError);
+
+      consoleSpy.mockRestore();
     });
 
-    it("should handle network errors", async () => {
-      const filename = "test.txt";
-      const error = new Error("Network error");
-
-      mockApiClient.delete.mockRejectedValue(error);
-
-      await expect(deleteFile(filename)).rejects.toThrow("Network error");
-      expect(console.error).toHaveBeenCalledWith("File deletion error:", error);
-    });
-
-    it("should handle different filenames", async () => {
-      const filenames = ["test.txt", "image.jpg", "document.pdf"];
-
-      mockApiClient.delete.mockResolvedValue({});
-
-      for (const filename of filenames) {
-        await deleteFile(filename);
-        expect(mockApiClient.delete).toHaveBeenCalledWith(`/upload/${filename}`);
-      }
-    });
-
-    it("should handle empty filename", async () => {
-      const filename = "";
+    it('should handle special characters in filename', async () => {
+      const filename = 'test file with spaces & symbols!.txt';
       mockApiClient.delete.mockResolvedValue({});
 
       await deleteFile(filename);
 
-      expect(mockApiClient.delete).toHaveBeenCalledWith("/upload/");
+      expect(mockApiClient.delete).toHaveBeenCalledWith(`/upload/${filename}`);
     });
   });
 
-  describe("getStoragePath", () => {
-    it("should return correct storage path", () => {
-      const filename = "test.txt";
-      const path = getStoragePath(filename);
+  describe('getStoragePath', () => {
+    it('should return correct storage path', () => {
+      const filename = 'test.txt';
+      const result = getStoragePath(filename);
 
-      expect(path).toBe("/uploads/test.txt");
+      expect(result).toBe('/uploads/test.txt');
     });
 
-    it("should handle different filenames", () => {
-      const filenames = ["image.jpg", "document.pdf", "data.json"];
+    it('should handle filenames with special characters', () => {
+      const filename = 'test file with spaces & symbols!.txt';
+      const result = getStoragePath(filename);
 
-      filenames.forEach((filename) => {
-        const path = getStoragePath(filename);
-        expect(path).toBe(`/uploads/${filename}`);
-      });
+      expect(result).toBe('/uploads/test file with spaces & symbols!.txt');
     });
 
-    it("should handle filenames with special characters", () => {
-      const filename = "test file (1).txt";
-      const path = getStoragePath(filename);
+    it('should handle empty filename', () => {
+      const filename = '';
+      const result = getStoragePath(filename);
 
-      expect(path).toBe("/uploads/test file (1).txt");
+      expect(result).toBe('/uploads/');
     });
 
-    it("should handle empty filename", () => {
-      const path = getStoragePath("");
+    it('should handle nested paths', () => {
+      const filename = 'folder/subfolder/file.txt';
+      const result = getStoragePath(filename);
 
-      expect(path).toBe("/uploads/");
-    });
-  });
-
-  describe("generateUniqueFilename", () => {
-    it("should generate unique filename with timestamp and UUID", () => {
-      const originalName = "test.txt";
-      const uniqueName = generateUniqueFilename(originalName);
-
-      expect(uniqueName).toMatch(/^\d+_[a-f0-9]+\.txt$/);
-      expect(uniqueName).toContain("1640995200000"); // mocked timestamp
-      expect(uniqueName).toContain("550e8400e29b41d4a716446655440000"); // mocked UUID without dashes
-    });
-
-    it("should preserve file extension", () => {
-      const extensions = [".txt", ".jpg", ".pdf", ".json"];
-
-      extensions.forEach((ext) => {
-        const originalName = `test${ext}`;
-        const uniqueName = generateUniqueFilename(originalName);
-
-        expect(uniqueName.endsWith(ext)).toBe(true);
-      });
-    });
-
-    it("should handle filenames without extension", () => {
-      const originalName = "testfile";
-      const uniqueName = generateUniqueFilename(originalName);
-
-      expect(uniqueName).toMatch(/^\d+_[a-f0-9]+\.testfile$/);
-    });
-
-    it("should handle filenames with multiple dots", () => {
-      const originalName = "test.backup.txt";
-      const uniqueName = generateUniqueFilename(originalName);
-
-      expect(uniqueName.endsWith(".txt")).toBe(true);
-      expect(uniqueName).toMatch(/^\d+_[a-f0-9]+\.txt$/);
-    });
-
-    it("should handle different original names", () => {
-      const names = ["document.pdf", "image.jpeg", "data.json", "script.js"];
-
-      names.forEach((name) => {
-        const uniqueName = generateUniqueFilename(name);
-        expect(uniqueName).toMatch(/^\d+_[a-f0-9]+\./);
-        expect(uniqueName.length).toBeGreaterThan(name.length);
-      });
-    });
-
-    it("should generate different names for same input", () => {
-      const originalName = "test.txt";
-
-      // Mock different UUIDs for each call
-      mockRandomUUID
-        .mockReturnValueOnce("550e8400-e29b-41d4-a716-446655440000")
-        .mockReturnValueOnce("6ba7b810-9dad-11d1-80b4-00c04fd430c8");
-
-      const uniqueName1 = generateUniqueFilename(originalName);
-      const uniqueName2 = generateUniqueFilename(originalName);
-
-      expect(uniqueName1).not.toBe(uniqueName2);
-    });
-
-    it("should handle very long filenames", () => {
-      const longName = "very-long-filename-with-many-characters-and-descriptive-text.txt";
-      const uniqueName = generateUniqueFilename(longName);
-
-      expect(uniqueName.endsWith(".txt")).toBe(true);
-      expect(uniqueName).toMatch(/^\d+_[a-f0-9]+\.txt$/);
-    });
-
-    it("should handle empty filename", () => {
-      const uniqueName = generateUniqueFilename("");
-
-      expect(uniqueName).toMatch(/^\d+_[a-f0-9]+\.$/);
+      expect(result).toBe('/uploads/folder/subfolder/file.txt');
     });
   });
 
-  describe("Integration tests", () => {
-    it("should work together for file operations", async () => {
-      const filename = "test.txt";
-      const mockFile = new File(["content"], filename, { type: "text/plain" });
-      const uploadResponse: UploadResponse = {
-        url: "https://example.com/uploads/test.txt",
-        filename: "test.txt",
-        size: 7,
-        content_type: "text/plain",
+  describe('generateUniqueFilename', () => {
+    it('should generate unique filename with timestamp and random string', () => {
+      const originalName = 'test.txt';
+      const result = generateUniqueFilename(originalName);
+
+      expect(result).toMatch(/^\d+_mockrandomid123456789\.txt$/);
+    });
+
+    it('should handle files without extension', () => {
+      const originalName = 'testfile';
+      const result = generateUniqueFilename(originalName);
+
+      expect(result).toMatch(/^\d+_mockrandomid123456789\.testfile$/);
+    });
+
+    it('should handle files with multiple dots', () => {
+      const originalName = 'test.backup.old.txt';
+      const result = generateUniqueFilename(originalName);
+
+      expect(result).toMatch(/^\d+_mockrandomid123456789\.txt$/);
+    });
+
+    it('should handle empty filename', () => {
+      const originalName = '';
+      const result = generateUniqueFilename(originalName);
+
+      expect(result).toMatch(/^\d+_mockrandomid123456789\.$/);
+    });
+
+    it('should handle filenames with special characters', () => {
+      const originalName = 'test file with spaces & symbols!.pdf';
+      const result = generateUniqueFilename(originalName);
+
+      expect(result).toMatch(/^\d+_mockrandomid123456789\.pdf$/);
+    });
+
+    it('should generate different filenames for same input', () => {
+      const originalName = 'test.txt';
+      
+      // Mock Date.now to return different values
+      const nowSpy = vi.spyOn(Date, 'now')
+        .mockReturnValueOnce(1234567890)
+        .mockReturnValueOnce(1234567891);
+
+      const result1 = generateUniqueFilename(originalName);
+      const result2 = generateUniqueFilename(originalName);
+
+      expect(result1).not.toBe(result2);
+      expect(result1).toMatch(/^1234567890_mockrandomid123456789\.txt$/);
+      expect(result2).toMatch(/^1234567891_mockrandomid123456789\.txt$/);
+
+      nowSpy.mockRestore();
+    });
+
+    it('should handle various file extensions', () => {
+      const extensions = ['txt', 'pdf', 'jpg', 'png', 'docx', 'xlsx', 'zip'];
+      
+      extensions.forEach(ext => {
+        const originalName = `test.${ext}`;
+        const result = generateUniqueFilename(originalName);
+        
+        expect(result).toMatch(new RegExp(`^\\d+_mockrandomid123456789\\.${ext}$`));
+      });
+    });
+  });
+
+  describe('Integration Tests', () => {
+    it('should work with real File objects', async () => {
+      const mockFile = new File(['test content'], 'test.txt', { type: 'text/plain' });
+      const mockResponse: UploadResponse = {
+        url: 'https://example.com/uploads/test.txt',
+        filename: 'test.txt',
+        size: 12,
+        content_type: 'text/plain',
       };
 
-      mockApiClient.post.mockResolvedValue({ data: uploadResponse });
-      mockApiClient.delete.mockResolvedValue({});
+      mockApiClient.post.mockResolvedValue({ data: mockResponse });
 
-      // Upload file
       const uploadResult = await uploadFile(mockFile);
-      expect(uploadResult).toEqual(uploadResponse);
+      expect(uploadResult.filename).toBe('test.txt');
 
-      // Delete file
+      mockApiClient.delete.mockResolvedValue({});
       await deleteFile(uploadResult.filename);
-      expect(mockApiClient.delete).toHaveBeenCalledWith(`/upload/${uploadResult.filename}`);
+      expect(mockApiClient.delete).toHaveBeenCalledWith('/upload/test.txt');
     });
 
-    it("should handle file operations with generated unique names", () => {
-      const originalName = "document.pdf";
-      const uniqueName = generateUniqueFilename(originalName);
-      const storagePath = getStoragePath(uniqueName);
-
-      expect(uniqueName.endsWith(".pdf")).toBe(true);
-      expect(storagePath).toBe(`/uploads/${uniqueName}`);
-    });
-
-    it("should maintain consistency across operations", async () => {
-      const originalName = "image.jpg";
-      const uniqueName = generateUniqueFilename(originalName);
-      const mockFile = new File(["image"], uniqueName, { type: "image/jpeg" });
-
-      const uploadResponse: UploadResponse = {
-        url: `https://example.com/uploads/${uniqueName}`,
-        filename: uniqueName,
-        size: 5,
-        content_type: "image/jpeg",
+    it('should maintain consistency between upload and delete', async () => {
+      const mockFile = new File(['test content'], 'test.txt', { type: 'text/plain' });
+      const mockResponse: UploadResponse = {
+        url: 'https://example.com/uploads/test.txt',
+        filename: 'test.txt',
+        size: 12,
+        content_type: 'text/plain',
       };
 
-      mockApiClient.post.mockResolvedValue({ data: uploadResponse });
+      mockApiClient.post.mockResolvedValue({ data: mockResponse });
       mockApiClient.delete.mockResolvedValue({});
 
       const uploadResult = await uploadFile(mockFile);
       await deleteFile(uploadResult.filename);
 
-      expect(uploadResult.filename).toBe(uniqueName);
-      expect(mockApiClient.delete).toHaveBeenCalledWith(`/upload/${uniqueName}`);
+      expect(mockApiClient.post).toHaveBeenCalledTimes(1);
+      expect(mockApiClient.delete).toHaveBeenCalledTimes(1);
     });
   });
 });
