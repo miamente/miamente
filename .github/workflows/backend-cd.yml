@@ -706,9 +706,39 @@ jobs:
           PREVIOUS_TASK_DEF_ARN="${{ needs.update-service-production.outputs.previous_task_definition_arn }}"
           echo "Rolling back to Task Definition ARN: $PREVIOUS_TASK_DEF_ARN"
 
-          if [ -z "$PREVIOUS_TASK_DEF_ARN" ] || [ "$PREVIOUS_TASK_DEF_ARN" == "null" || [ "$PREVIOUS_TASK_DEF_ARN" == "None"]; then
+          if [[ -z "$PREVIOUS_TASK_DEF_ARN" || "$PREVIOUS_TASK_DEF_ARN" == "null" || "$PREVIOUS_TASK_DEF_ARN" == "None" ]]; then
             echo "Error: No previous task definition ARN found for rollback."
             exit 1
+          fi
+
+          # Check status of the previous task definition
+          TASK_DEF_STATUS=$(aws ecs describe-task-definition \
+            --task-definition "$PREVIOUS_TASK_DEF_ARN" \
+            --query "taskDefinition.status" \
+            --region us-east-1 \
+            --output text)
+
+          echo "Previous Task Definition Status: $TASK_DEF_STATUS"
+
+          if [ "$TASK_DEF_STATUS" == "INACTIVE" ]; then
+            echo "Previous Task Definition is INACTIVE. Attempting to re-register it..."
+
+            # Get the full task definition JSON
+            TASK_DEF_JSON=$(aws ecs describe-task-definition \
+              --task-definition "$PREVIOUS_TASK_DEF_ARN" \
+              --query "taskDefinition" \
+              --region us-east-1 \
+              --output json)
+
+            # Remove read-only properties for re-registration
+            CLEANED_TASK_DEF_JSON=$(echo "$TASK_DEF_JSON" | jq 'del(.status, .revision, .taskDefinitionArn, .compatibilities, .registeredAt, .deregisteredAt, .registeredBy)')
+
+            # Re-register the task definition
+            aws ecs register-task-definition \
+              --cli-input-json "$CLEANED_TASK_DEF_JSON" \
+              --region us-east-1
+
+            echo "Previous Task Definition re-registered and activated."
           fi
 
           echo "Executing rollback..."
