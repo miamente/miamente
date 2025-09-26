@@ -278,7 +278,7 @@ jobs:
           echo "Deploying Image URI: $IMAGE_URI"
 
           aws cloudformation deploy \
-            --template-file apps/web/template.yaml \
+            --template-file template.yaml \
             --stack-name miamente-frontend-staging \
             --parameter-overrides \
               EnvironmentName=staging \
@@ -354,7 +354,7 @@ jobs:
           echo "Deploying Image URI: $IMAGE_URI"
 
           aws cloudformation deploy \
-            --template-file apps/web/template.yaml \
+            --template-file template.yaml \
             --stack-name miamente-frontend-production \
             --parameter-overrides \
               EnvironmentName=production \
