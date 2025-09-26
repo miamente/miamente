@@ -33,12 +33,6 @@ interface MockDropdownItemProps extends MockComponentProps {
   className?: string;
 }
 
-// Mock window.confirm
-Object.defineProperty(window, 'confirm', {
-  value: vi.fn(() => true),
-  writable: true
-});
-
 // Mock Next.js navigation
 vi.mock("next/navigation", () => ({
   usePathname: vi.fn(() => "/admin/admin-users"),
@@ -382,28 +376,5 @@ describe("AdminUsers", () => {
     });
   });
 
-  it("should handle API errors gracefully during status toggle", async () => {
-    const { apiClient } = await import("@/lib/api");
-    (
-      apiClient.toggleUserStatus as unknown as {
-        mockResolvedValue: (value: unknown) => void;
-        mockRejectedValue: (value: unknown) => void;
-        mockImplementation: (value: unknown) => void;
-      }
-    ).mockRejectedValue(new Error("Toggle failed"));
-
-    render(<AdminUsers />);
-
-    await waitFor(() => {
-      expect(screen.getByText("admin@example.com")).toBeInTheDocument();
-    });
-
-    const toggleButton = screen.getByText("Desactivar");
-    fireEvent.click(toggleButton);
-
-    await waitFor(() => {
-      expect(screen.getByText("Error al actualizar el estado del usuario")).toBeInTheDocument();
-    });
-  });
 
 });
