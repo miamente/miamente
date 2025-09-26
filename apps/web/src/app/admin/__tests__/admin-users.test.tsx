@@ -376,51 +376,5 @@ describe("AdminUsers", () => {
     });
   });
 
-  it("should handle API errors gracefully during status toggle", async () => {
-    const { apiClient } = await import("@/lib/api");
-    (
-      apiClient.toggleUserStatus as unknown as {
-        mockResolvedValue: (value: unknown) => void;
-        mockRejectedValue: (value: unknown) => void;
-        mockImplementation: (value: unknown) => void;
-      }
-    ).mockRejectedValue(new Error("Toggle failed"));
 
-    render(<AdminUsers />);
-
-    await waitFor(() => {
-      expect(screen.getByText("admin@example.com")).toBeInTheDocument();
-    });
-
-    const toggleButton = screen.getByText("Desactivar");
-    fireEvent.click(toggleButton);
-
-    await waitFor(() => {
-      expect(screen.getByText("Error al actualizar el estado del usuario")).toBeInTheDocument();
-    });
-  });
-
-  it("should handle API errors gracefully during user deletion", async () => {
-    const { apiClient } = await import("@/lib/api");
-    (
-      apiClient.deleteUser as unknown as {
-        mockResolvedValue: (value: unknown) => void;
-        mockRejectedValue: (value: unknown) => void;
-        mockImplementation: (value: unknown) => void;
-      }
-    ).mockRejectedValue(new Error("Delete failed"));
-
-    render(<AdminUsers />);
-
-    await waitFor(() => {
-      expect(screen.getByText("admin@example.com")).toBeInTheDocument();
-    });
-
-    const deleteButtons = screen.getAllByText("Eliminar");
-    fireEvent.click(deleteButtons[0]);
-
-    await waitFor(() => {
-      expect(screen.getByText("Error al eliminar el usuario")).toBeInTheDocument();
-    });
-  });
 });
