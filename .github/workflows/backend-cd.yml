@@ -340,7 +340,7 @@ jobs:
           done
 
       - name: Trigger Frontend CD for Staging
-        uses: peter-evans/repository-dispatch@v3
+        uses: peter-evans/repository-dispatch@v2
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           repository: ${{ github.repository }}
@@ -637,7 +637,7 @@ jobs:
           done
 
       - name: Trigger Frontend CD for Production
-        uses: peter-evans/repository-dispatch@v3
+        uses: peter-evans/repository-dispatch@v2
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           repository: ${{ github.repository }}
