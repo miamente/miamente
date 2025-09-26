@@ -191,17 +191,21 @@ async def refresh_token(refresh_data: RefreshToken, _db: Session = Depends(get_d
 
 @router.get("/me")
 async def get_current_user_info(current_user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)):
-    """Get current user information."""
+    """Get current user information (sanitized)."""
     auth_service = AuthService(db)
 
     # Try to get as user first
     user = auth_service.get_user_by_id(current_user_id)
     if user:
-        return {"type": user.role.value, "data": user}
+        # Return sanitized user data
+        user_data = parse_user_data(user)
+        return {"type": user.role.value, "data": user_data}
 
     # Try to get as professional
     professional = auth_service.get_professional_by_id(current_user_id)
     if professional:
-        return {"type": "professional", "data": professional}
+        # Return sanitized professional data
+        professional_data = parse_professional_data(professional)
+        return {"type": "professional", "data": professional_data}
 
     raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=USER_NOT_FOUND_MESSAGE)

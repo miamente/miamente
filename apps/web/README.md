@@ -33,8 +33,8 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
 
 You can deploy your Next.js app on various platforms:
 
-- **AWS**: S3 + CloudFront for static sites, ECS/Fargate for server-side rendering
-- **Netlify**: Automatic deployments from Git
-- **Static hosting**: Any static hosting provider for static export
+- **AWS**: S3 + CloudFront for static sites, ECS/Fargate for server-side rendering.
+- **Netlify**: Automatic deployments from Git.
+- **Static hosting**: Any static hosting provider for static export.
 
 Check out the [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.

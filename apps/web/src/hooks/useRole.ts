@@ -31,16 +31,16 @@ export function useRole() {
         setLoading(true);
         setError(null);
 
-        const response = await apiClient.get(`/auth/me`);
+        const response = await apiClient.get<{ type: string; data: UserProfile }>(`/auth/me`);
 
         // The response has structure: {type: "user"|"professional", data: {...}}
-        const userData = (response as { data: UserProfile }).data;
-        const userType = (response as { type: string }).type;
+        const userData = response.data;
+        const userType = response.type;
 
         // Determine role: if userData has a role field, use it; otherwise use user type
         let userRole: UserRole;
         if (userData.role) {
-          userRole = userData.role as UserRole;
+          userRole = userData.role;
         } else {
           userRole = userType === "professional" ? UserRole.PROFESSIONAL : UserRole.USER;
         }

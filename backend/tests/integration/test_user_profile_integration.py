@@ -107,9 +107,7 @@ class TestUserProfileIntegration:
     def test_user_profile_authentication(self, client: TestClient, test_data_factory):
         """Test authentication and authorization for user profile endpoints."""
         # Step 1: Create and login as user
-        _, _, access_token = self._create_and_login_user(
-            client, test_data_factory, "auth_test_user"
-        )
+        _, _, access_token = self._create_and_login_user(client, test_data_factory, "auth_test_user")
 
         headers = {"Authorization": f"Bearer {access_token}"}
 
@@ -138,9 +136,7 @@ class TestUserProfileIntegration:
     def test_user_profile_update_validation(self, client: TestClient, test_data_factory):
         """Test user profile update validation and error handling."""
         # Step 1: Create and login as user
-        user_data, _, access_token = self._create_and_login_user(
-            client, test_data_factory, "validation_test_user"
-        )
+        user_data, _, access_token = self._create_and_login_user(client, test_data_factory, "validation_test_user")
 
         headers = {"Authorization": f"Bearer {access_token}"}
 

@@ -18,8 +18,8 @@ export interface CreateReviewRequest {
  * Create a review for a professional
  */
 export async function createReview(
-  userId: string,
-  proId: string,
+  _userId: string,
+  _proId: string,
   reviewData: CreateReviewRequest,
 ): Promise<{ success: boolean; reviewId?: string; error?: string }> {
   try {

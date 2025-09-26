@@ -15,6 +15,7 @@ from app.core.config import get_settings
 from app.core.database import Base, get_db
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.testclient import TestClient
 import requests
 
 pytestmark = pytest.mark.integration
@@ -92,10 +93,19 @@ def _cleanup_test_data(session_factory):
     session = session_factory()
     try:
         # First, clean up any orphaned records that might cause foreign key issues
-        session.execute(text("DELETE FROM professional_specialties WHERE professional_id NOT IN (SELECT id FROM professionals)"))
-        session.execute(text("DELETE FROM professional_modalities WHERE professional_id NOT IN (SELECT id FROM professionals)"))
-        session.execute(text("DELETE FROM professional_therapeutic_approaches WHERE professional_id NOT IN (SELECT id FROM professionals)"))
-        
+        session.execute(
+            text("DELETE FROM professional_specialties WHERE professional_id NOT IN (SELECT id FROM professionals)")
+        )
+        session.execute(
+            text("DELETE FROM professional_modalities WHERE professional_id NOT IN (SELECT id FROM professionals)")
+        )
+        session.execute(
+            text(
+                "DELETE FROM professional_therapeutic_approaches WHERE "
+                "professional_id NOT IN (SELECT id FROM professionals)"
+            )
+        )
+
         test_patterns = [
             f"email LIKE '{TEST_DATA_PREFIX}%'",
             "email LIKE '%@example.com'",
@@ -114,9 +124,7 @@ def _cleanup_test_data(session_factory):
         where_clause = " OR ".join(test_patterns)
 
         # Pre-capture professional IDs (for relation cleanup)
-        test_professional_ids = session.execute(
-            text(f"SELECT id FROM professionals WHERE {where_clause}")
-        ).fetchall()
+        test_professional_ids = session.execute(text(f"SELECT id FROM professionals WHERE {where_clause}")).fetchall()
 
         # Delete relations first to avoid foreign key constraints
         if test_professional_ids:
@@ -125,16 +133,10 @@ def _cleanup_test_data(session_factory):
 
             # Borra primero las relaciones hijas
             session.execute(
-                text(
-                    f"DELETE FROM professional_modalities "
-                    f"WHERE professional_id IN ('{professional_ids_str}')"
-                )
+                text(f"DELETE FROM professional_modalities " f"WHERE professional_id IN ('{professional_ids_str}')")
             )
             session.execute(
-                text(
-                    f"DELETE FROM professional_specialties "
-                    f"WHERE professional_id IN ('{professional_ids_str}')"
-                )
+                text(f"DELETE FROM professional_specialties " f"WHERE professional_id IN ('{professional_ids_str}')")
             )
             session.execute(
                 text(
@@ -157,49 +159,43 @@ def _cleanup_test_data(session_factory):
         session.execute(
             text(
                 "DELETE FROM professional_specialties "
-                "WHERE specialty_id IN (SELECT id FROM specialties WHERE name LIKE 'Test %' OR name LIKE '% Test' OR name = 'psychology')"
+                "WHERE specialty_id IN (SELECT id FROM specialties WHERE "
+                "name LIKE 'Test %' OR name LIKE '% Test' OR name = 'psychology')"
             )
         )
         session.execute(
-            text(
-                "DELETE FROM specialties "
-                "WHERE name LIKE 'Test %' OR name LIKE '% Test' OR name = 'psychology'"
-            )
+            text("DELETE FROM specialties WHERE name LIKE 'Test %' OR name LIKE '% Test' OR name = 'psychology'")
         )
-        
+
         session.execute(
             text(
                 "DELETE FROM professional_therapeutic_approaches "
-                "WHERE therapeutic_approach_id IN (SELECT id FROM therapeutic_approaches WHERE name LIKE 'Test %' OR name LIKE '% Test')"
+                "WHERE therapeutic_approach_id IN (SELECT id FROM therapeutic_approaches WHERE "
+                "name LIKE 'Test %' OR name LIKE '% Test')"
             )
         )
-        session.execute(
-            text(
-                "DELETE FROM therapeutic_approaches "
-                "WHERE name LIKE 'Test %' OR name LIKE '% Test'"
-            )
-        )
-        
+        session.execute(text("DELETE FROM therapeutic_approaches WHERE name LIKE 'Test %' OR name LIKE '% Test'"))
+
         session.execute(
             text(
                 "DELETE FROM professional_modalities "
                 "WHERE modality_id IN (SELECT id FROM modalities WHERE name LIKE 'Test %' OR name LIKE '% Test')"
             )
         )
-        session.execute(
-            text("DELETE FROM modalities WHERE name LIKE 'Test %' OR name LIKE '% Test'")
-        )
+        session.execute(text("DELETE FROM modalities WHERE name LIKE 'Test %' OR name LIKE '% Test'"))
 
         session.commit()
         print(
             f"✅ Test data cleanup completed (LOCAL): {deleted_users} users, "
             f"{deleted_professionals} professionals removed"
         )
-    except Exception as e:
+    except Exception as e:  # pylint: disable=broad-exception-caught
         session.rollback()
         print(f"⚠️ Warning: Could not clean test data (LOCAL): {e}")
     finally:
         session.close()
+
+
 # ...existing code...
 
 
@@ -217,7 +213,7 @@ def engine_and_session_factory():
 
 
 @pytest.fixture(scope="session", autouse=False)
-def setup_test_db(engine_and_session_factory):
+def setup_test_db(engine_and_session_factory):  # pylint: disable=redefined-outer-name
     """
     One-time setup/teardown of test DB schema.
     """
@@ -228,7 +224,7 @@ def setup_test_db(engine_and_session_factory):
 
 
 @pytest.fixture(scope="function")
-def db_session(engine_and_session_factory, setup_test_db):
+def db_session(engine_and_session_factory, setup_test_db):  # pylint: disable=redefined-outer-name
     """
     Provide a new database session for a test.
     """
@@ -243,13 +239,16 @@ def db_session(engine_and_session_factory, setup_test_db):
 
 
 @pytest.fixture
-def client(engine_and_session_factory):
+def client(engine_and_session_factory):  # pylint: disable=redefined-outer-name
     """
     Provide a TestClient for LOCAL mode or a simple HTTP client for REMOTE mode.
     """
-    APP_BASE_URL = os.getenv("APP_BASE_URL", "").rstrip("/")
-    if APP_BASE_URL:
+    app_base_url = os.getenv("APP_BASE_URL", "").rstrip("/")  # pylint: disable=redefined-outer-name
+    if app_base_url:
+
         class RemoteClient:
+            """HTTP client for remote testing."""
+
             def __init__(self, base_url):
                 self.base_url = base_url
                 self.session = requests.Session()
@@ -273,25 +272,24 @@ def client(engine_and_session_factory):
             def delete(self, url, **kwargs):
                 return self.request("DELETE", url, **kwargs)
 
-        return RemoteClient(APP_BASE_URL)
-    else:
-        from fastapi.testclient import TestClient
-        _, session_factory = engine_and_session_factory
-        app = _build_app()
+        return RemoteClient(app_base_url)
 
-        def override_get_db():
-            try:
-                db = session_factory()
-                yield db
-            finally:
-                db.close()
+    _, session_factory = engine_and_session_factory
+    app = _build_app()
 
-        app.dependency_overrides[get_db] = override_get_db
-        return TestClient(app)
+    def override_get_db():
+        try:
+            db = session_factory()
+            yield db
+        finally:
+            db.close()
+
+    app.dependency_overrides[get_db] = override_get_db
+    return TestClient(app)
 
 
 @pytest.fixture(scope="function", autouse=True)
-def reset_db_before_each_test(engine_and_session_factory):
+def reset_db_before_each_test(engine_and_session_factory):  # pylint: disable=redefined-outer-name
     """
     Ensure test data is cleaned before each test (LOCAL mode only).
     """

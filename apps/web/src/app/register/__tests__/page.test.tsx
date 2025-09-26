@@ -1,5 +1,5 @@
 import React from "react";
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor, fireEvent } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { useRouter } from "next/navigation";
@@ -178,7 +178,6 @@ describe("RegisterPage", () => {
   });
 
   it("should handle successful registration", async () => {
-    const user = userEvent.setup();
     mockRegisterWithEmail.mockResolvedValue({
       id: "user-123",
       email: "test@example.com",
@@ -205,15 +204,21 @@ describe("RegisterPage", () => {
 
     render(<RegisterPage />);
 
-    // Fill out the form
-    await user.type(screen.getByPlaceholderText("Nombre completo"), "Test User");
-    await user.type(screen.getByPlaceholderText("Email"), "test@example.com");
-    await user.type(screen.getByPlaceholderText("Contraseña"), "password123");
-    await user.type(screen.getByPlaceholderText("Confirmar Contraseña"), "password123");
-    await user.click(screen.getByRole("checkbox", { name: /acepto los términos/i }));
+    // Fill out the form - use fireEvent for better performance
+    const nameInput = screen.getByPlaceholderText("Nombre completo");
+    const emailInput = screen.getByPlaceholderText("Email");
+    const passwordInput = screen.getByPlaceholderText("Contraseña");
+    const confirmPasswordInput = screen.getByPlaceholderText("Confirmar Contraseña");
+    const checkbox = screen.getByRole("checkbox", { name: /acepto los términos/i });
+
+    fireEvent.change(nameInput, { target: { value: "Test User" } });
+    fireEvent.change(emailInput, { target: { value: "test@example.com" } });
+    fireEvent.change(passwordInput, { target: { value: "password123" } });
+    fireEvent.change(confirmPasswordInput, { target: { value: "password123" } });
+    fireEvent.click(checkbox);
 
     // Submit the form
-    await user.click(screen.getByRole("button", { name: "Crear Cuenta" }));
+    fireEvent.click(screen.getByRole("button", { name: "Crear Cuenta" }));
 
     await waitFor(() => {
       expect(screen.getByText("¡Cuenta Creada!")).toBeInTheDocument();

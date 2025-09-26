@@ -5,6 +5,7 @@ Comprehensive unit tests for UserService.
 import pytest
 from unittest.mock import Mock
 from sqlalchemy.orm import Session
+from sqlalchemy.exc import SQLAlchemyError
 from fastapi import HTTPException
 
 from app.services.user_service import UserService
@@ -222,7 +223,6 @@ class TestUserServiceComprehensiveUnit:
 
         # Mock get_user_by_id to return our sample user
         user_service.get_user_by_id = Mock(return_value=sample_user)
-        from sqlalchemy.exc import SQLAlchemyError
 
         mock_db.commit = Mock(side_effect=SQLAlchemyError("Database error"))
         mock_db.rollback = Mock()
@@ -274,7 +274,6 @@ class TestUserServiceComprehensiveUnit:
 
         # Mock get_user_by_id to return our sample user
         user_service.get_user_by_id = Mock(return_value=sample_user)
-        from sqlalchemy.exc import SQLAlchemyError
 
         mock_db.commit = Mock(side_effect=SQLAlchemyError("Database error"))
         mock_db.rollback = Mock()
