@@ -24,7 +24,7 @@ env:
   SERVER_HOST: ${{ secrets.SERVER_HOST }}
   ALLOWED_HOSTS: ${{ secrets.ALLOWED_HOSTS }}
   BACKEND_CORS_ORIGINS: ${{ secrets.BACKEND_CORS_ORIGINS }}
-  TIMEZONE: ${{ secrets.TIMEZONE }}
+  TIMEZONE: ${{ secrets.TIME_ZONE }}
   SECRET_KEY: ${{ secrets.SECRET_KEY }}
   DATABASE_URL: ${{ secrets.DATABASE_URL }}
 
@@ -142,7 +142,7 @@ jobs:
           SERVERHOST="${{ secrets.SERVER_HOST }}"
           ALLOWEDHOSTS="${{ secrets.ALLOWED_HOSTS }}"
           BACKENDCORSORIGINS="${{ secrets.BACKEND_CORS_ORIGINS }}"
-          TIMEZONE="${{ secrets.TIMEZONE }}"
+          TIMEZONE="${{ secrets.TIME_ZONE }}"
           SECRETKEY="${{ secrets.SECRET_KEY }}"
 
           # ---------- 2) Pre-chequeo de vacíos ----------
