@@ -220,7 +220,7 @@ Resources:
     Properties:
       MaxCapacity: !If [IsProduction, 10, 3]
       MinCapacity: !If [IsProduction, 2, 1]
-      ResourceId: !Sub "service/${FrontendCluster}/${FrontendService}"
+      ResourceId: !Sub "service/${FrontendCluster}/miamente-frontend-${EnvironmentName}-service"
       RoleARN: !Sub "arn:aws:iam::${AWS::AccountId}:role/aws-service-role/ecs.application-autoscaling.amazonaws.com/AWSServiceRoleForApplicationAutoScaling_ECSService"
       ScalableDimension: ecs:service:DesiredCount
       ServiceNamespace: ecs
