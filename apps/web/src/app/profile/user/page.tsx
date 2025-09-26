@@ -15,14 +15,14 @@ import type { UserProfile } from "@/lib/types";
 import { userProfileSchema, type UserProfileFormData } from "@/lib/validations";
 
 export default function UserProfilePage() {
-  const [isLoading, setIsLoading] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [currentPhotoUrl] = useState<string | null>(null);
 
-  const { user } = useAuth();
+  const { user, isLoading } = useAuth();
   const router = useRouter();
 
   const {
@@ -43,12 +43,13 @@ export default function UserProfilePage() {
       const userProfile = await getUserProfile(userUid);
       if (userProfile) {
         setProfile(userProfile as unknown as UserProfile);
-        setValue("fullName", (userProfile as { fullName?: string }).fullName || "");
+        setValue("fullName", (userProfile as { full_name?: string }).full_name || "");
         setValue(
           "phoneCountryCode",
           (userProfile as { phone_country_code?: string }).phone_country_code || "",
         );
         setValue("phoneNumber", (userProfile as { phone_number?: string }).phone_number || "");
+        setValue("email", (userProfile as { email?: string }).email || getUserEmail(user) || "");
       }
     } catch (err) {
       console.error("Error loading profile:", err);
@@ -56,18 +57,21 @@ export default function UserProfilePage() {
   }, [user, setValue]);
 
   useEffect(() => {
+    if (isLoading) return; // Wait for auth to finish loading
+
     if (!user) {
       router.push("/login");
       return;
     }
 
     loadProfile();
-  }, [user, router, loadProfile]);
+  }, [user, isLoading, router, loadProfile]);
 
   const onSubmit = async (data: UserProfileFormData) => {
+    console.log("onSubmit called with data:", data);
     if (!user) return;
 
-    setIsLoading(true);
+    setIsSubmitting(true);
     setError(null);
     setSuccess(false);
 
@@ -81,10 +85,11 @@ export default function UserProfilePage() {
       const userUid = getUserUid(user);
       if (!userUid) return;
       await updateUserProfile(userUid, {
-        fullName: data.fullName,
+        full_name: data.fullName,
+        email: data.email,
         phone_country_code: data.phoneCountryCode,
         phone_number: data.phoneNumber,
-        updatedAt: new Date(),
+        updated_at: new Date(),
       });
 
       setSuccess(true);
@@ -94,12 +99,29 @@ export default function UserProfilePage() {
       const errorMessage = err instanceof Error ? err.message : "Error al actualizar el perfil";
       setError(errorMessage);
     } finally {
-      setIsLoading(false);
+      setIsSubmitting(false);
     }
   };
 
+  if (isLoading) {
+    return (
+      <div className="flex min-h-[50vh] items-center justify-center">
+        <div className="text-center">
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-600 border-t-transparent"></div>
+          <p className="mt-4 text-gray-600">Cargando...</p>
+        </div>
+      </div>
+    );
+  }
+
   if (!user) {
-    return <div className="flex min-h-[50vh] items-center justify-center">Cargando...</div>;
+    return (
+      <div className="flex min-h-[50vh] items-center justify-center">
+        <div className="text-center">
+          <p className="text-gray-600">Redirigiendo al login...</p>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -115,7 +137,9 @@ export default function UserProfilePage() {
             <CardTitle>Información Personal</CardTitle>
           </CardHeader>
           <CardContent>
-            <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+            <form onSubmit={handleSubmit(onSubmit, (errors) => {
+              console.log("Form validation errors:", errors);
+            })} className="space-y-4">
               {error && (
                 <div className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-600 dark:border-red-800 dark:bg-red-900/20 dark:text-red-400">
                   {error}
@@ -132,7 +156,7 @@ export default function UserProfilePage() {
                 <Input
                   {...register("fullName")}
                   placeholder="Nombre completo"
-                  disabled={isLoading}
+                  disabled={isSubmitting}
                 />
                 {errors.fullName && (
                   <p className="mt-1 text-sm text-red-600 dark:text-red-400">
@@ -143,9 +167,23 @@ export default function UserProfilePage() {
 
               <div>
                 <Input
+                  {...register("email")}
+                  placeholder="Email"
+                  type="email"
+                  disabled={isSubmitting}
+                />
+                {errors.email && (
+                  <p className="mt-1 text-sm text-red-600 dark:text-red-400">
+                    {errors.email.message}
+                  </p>
+                )}
+              </div>
+
+              <div>
+                <Input
                   {...register("phoneCountryCode")}
                   placeholder="Teléfono (opcional)"
-                  disabled={isLoading}
+                  disabled={isSubmitting}
                 />
                 {errors.phoneCountryCode && (
                   <p className="mt-1 text-sm text-red-600 dark:text-red-400">
@@ -154,8 +192,8 @@ export default function UserProfilePage() {
                 )}
               </div>
 
-              <Button type="submit" className="w-full" disabled={isLoading}>
-                {isLoading ? "Actualizando..." : "Actualizar Perfil"}
+              <Button type="submit" className="w-full" disabled={isSubmitting}>
+                {isSubmitting ? "Actualizando..." : "Actualizar Perfil"}
               </Button>
             </form>
           </CardContent>
@@ -171,7 +209,7 @@ export default function UserProfilePage() {
               accept="image/*"
               maxSize={2 * 1024 * 1024} // 2MB
               label="Foto de perfil"
-              disabled={isLoading}
+              disabled={isSubmitting}
               currentFile={currentPhotoUrl || undefined}
             />
             {photoFile && (
@@ -191,10 +229,10 @@ export default function UserProfilePage() {
           <CardContent>
             <div className="space-y-2">
               <p>
-                <strong>Email:</strong> {getUserEmail(user)}
+                <strong>Email:</strong> {getUserEmail(user) || (profile as { email?: string }).email || "No disponible"}
               </p>
               <p>
-                <strong>Nombre:</strong> {(profile as { fullName?: string }).fullName}
+                <strong>Nombre:</strong> {(profile as { full_name?: string }).full_name}
               </p>
               <p>
                 <strong>Teléfono:</strong> {profile.phone || "No especificado"}

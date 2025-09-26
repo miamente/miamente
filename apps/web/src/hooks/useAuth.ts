@@ -36,12 +36,12 @@ export function getUserFullName(user: AuthUser | null): string | undefined {
   return user.data.full_name;
 }
 
-export function isUserVerified(_user: AuthUser | null): boolean {
+export function isUserVerified(): boolean {
   // Always return true - no email verification required
   return true;
 }
 
-export function isEmailVerified(_user: AuthUser | null): boolean {
+export function isEmailVerified(): boolean {
   // Always return true - no email verification required
   return true;
 }

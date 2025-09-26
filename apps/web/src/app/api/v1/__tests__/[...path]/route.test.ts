@@ -32,7 +32,7 @@ describe("API Proxy Route", () => {
       vi.mocked(fetch).mockResolvedValueOnce(mockResponse);
 
       const request = new NextRequest("http://localhost:3000/api/v1/users");
-      const context = { params: { path: ["users"] } };
+      const context = { params: Promise.resolve({ path: ["users"] }) };
 
       const response = await GET(request, context);
 
@@ -53,7 +53,7 @@ describe("API Proxy Route", () => {
         method: "POST",
         body: JSON.stringify({ name: "Test" }),
       });
-      const context = { params: { path: ["users"] } };
+      const context = { params: Promise.resolve({ path: ["users"] }) };
 
       const response = await POST(request, context);
 
@@ -70,7 +70,7 @@ describe("API Proxy Route", () => {
       vi.mocked(fetch).mockResolvedValueOnce(mockResponse);
 
       const request = new NextRequest("http://localhost:3000/api/v1/admin/users/123");
-      const context = { params: { path: ["admin", "users", "123"] } };
+      const context = { params: Promise.resolve({ path: ["admin", "users", "123"] }) };
 
       await GET(request, context);
 
@@ -88,7 +88,7 @@ describe("API Proxy Route", () => {
       vi.mocked(fetch).mockResolvedValueOnce(mockResponse);
 
       const request = new NextRequest("http://localhost:3000/api/v1/users?page=1&limit=10");
-      const context = { params: { path: ["users"] } };
+      const context = { params: Promise.resolve({ path: ["users"] }) };
 
       await GET(request, context);
 
@@ -111,7 +111,7 @@ describe("API Proxy Route", () => {
         method: "PUT",
         body: JSON.stringify({ name: "Updated User" }),
       });
-      const context = { params: { path: ["users", "123"] } };
+      const context = { params: Promise.resolve({ path: ["users", "123"] }) };
 
       const response = await PUT(request, context);
 
@@ -131,7 +131,7 @@ describe("API Proxy Route", () => {
         method: "PATCH",
         body: JSON.stringify({ name: "Patched User" }),
       });
-      const context = { params: { path: ["users", "123"] } };
+      const context = { params: Promise.resolve({ path: ["users", "123"] }) };
 
       const response = await PATCH(request, context);
 
@@ -150,7 +150,7 @@ describe("API Proxy Route", () => {
       const request = new NextRequest("http://localhost:3000/api/v1/users/123", {
         method: "DELETE",
       });
-      const context = { params: { path: ["users", "123"] } };
+      const context = { params: Promise.resolve({ path: ["users", "123"] }) };
 
       const response = await DELETE(request, context);
 
@@ -169,7 +169,7 @@ describe("API Proxy Route", () => {
       const request = new NextRequest("http://localhost:3000/api/v1/users", {
         method: "OPTIONS",
       });
-      const context = { params: { path: ["users"] } };
+      const context = { params: Promise.resolve({ path: ["users"] }) };
 
       const response = await OPTIONS(request, context);
 
@@ -189,7 +189,7 @@ describe("API Proxy Route", () => {
       vi.mocked(fetch).mockResolvedValueOnce(mockResponse);
 
       const request = new NextRequest("http://localhost:3000/api/v1/nonexistent");
-      const context = { params: { path: ["nonexistent"] } };
+      const context = { params: Promise.resolve({ path: ["nonexistent"] }) };
 
       const response = await GET(request, context);
 
@@ -201,7 +201,7 @@ describe("API Proxy Route", () => {
       vi.mocked(fetch).mockRejectedValueOnce(new Error("Network error"));
 
       const request = new NextRequest("http://localhost:3000/api/v1/test");
-      const context = { params: { path: ["test"] } };
+      const context = { params: Promise.resolve({ path: ["test"] }) };
 
       await expect(GET(request, context)).rejects.toThrow("Network error");
     });
@@ -219,7 +219,7 @@ describe("API Proxy Route", () => {
       vi.mocked(fetch).mockResolvedValueOnce(mockResponse);
 
       const request = new NextRequest("http://localhost:3000/api/v1/test");
-      const context = { params: { path: ["test"] } };
+      const context = { params: Promise.resolve({ path: ["test"] }) };
 
       await GET(request, context);
 
@@ -237,7 +237,7 @@ describe("API Proxy Route", () => {
       vi.mocked(fetch).mockResolvedValueOnce(mockResponse);
 
       const request = new NextRequest("http://localhost:3000/api/v1/test");
-      const context = { params: { path: ["test"] } };
+      const context = { params: Promise.resolve({ path: ["test"] }) };
 
       await GET(request, context);
 
@@ -257,7 +257,7 @@ describe("API Proxy Route", () => {
       vi.mocked(fetch).mockResolvedValueOnce(mockResponse);
 
       const request = new NextRequest("http://localhost:3000/api/v1/");
-      const context = { params: { path: [] } };
+      const context = { params: Promise.resolve({ path: [] }) };
 
       await GET(request, context);
 
@@ -293,7 +293,7 @@ describe("API Proxy Route", () => {
       vi.mocked(fetch).mockResolvedValueOnce(mockResponse);
 
       const request = new NextRequest("http://localhost:3000/api/v1/single");
-      const context = { params: { path: "single" } };
+      const context = { params: Promise.resolve({ path: "single" }) };
 
       await GET(request, context);
 
@@ -319,7 +319,7 @@ describe("API Proxy Route", () => {
       vi.mocked(fetch).mockResolvedValueOnce(mockResponse);
 
       const request = new NextRequest("http://localhost:3000/api/v1/test");
-      const context = { params: { path: ["test"] } };
+      const context = { params: Promise.resolve({ path: ["test"] }) };
 
       const response = await GET(request, context);
 

@@ -33,7 +33,7 @@ export function LoginForm({ isAdminLogin = false, redirectPath }: LoginFormProps
   // Redirect if already logged in
   React.useEffect(() => {
     if (user) {
-      if (isUserVerified(user)) {
+      if (isUserVerified()) {
         // Redirect based on login type
         if (isAdminLogin) {
           // Check if user has admin role

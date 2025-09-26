@@ -135,10 +135,10 @@ describe("UserProfilePage", () => {
     });
   });
 
-  it("should render loading state when no user", () => {
+  it("should render loading state when auth is loading", () => {
     mockUseAuth.mockReturnValue({
       user: null,
-      isLoading: false,
+      isLoading: true,
       loginUser: vi.fn(),
       loginProfessional: vi.fn(),
       registerUser: vi.fn(),

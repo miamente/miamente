@@ -149,8 +149,6 @@ async def login_unified(login_data: UnifiedLogin, db: Session = Depends(get_db))
     )
 
 
-
-
 @router.post("/refresh", response_model=Token)
 async def refresh_token(refresh_data: RefreshToken, _db: Session = Depends(get_db)):
     """Refresh access token."""

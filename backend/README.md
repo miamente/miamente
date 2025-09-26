@@ -155,7 +155,7 @@ alembic stamp head
 alembic upgrade head
 
 # Seed demo data
-python -m app.services.seed_demo_data
+python scripts/seed_environment_data.py --env staging
 ```
 
 7. Start the development server:
@@ -224,6 +224,60 @@ isort .
 ```bash
 mypy .
 ```
+
+## Data Seeding
+
+The application includes demo data seeding for development, staging, and production environments.
+
+### Local Development
+
+```bash
+# Seed demo data for local development
+python scripts/seed_environment_data.py --env staging
+
+# Force re-seeding (if data already exists)
+python scripts/seed_environment_data.py --env staging --force
+```
+
+### Staging/Production
+
+Demo data is automatically seeded during deployment to staging and production environments. The seeding process creates:
+
+- **Reference Data**: Specialties, therapeutic approaches, and modalities
+- **Demo Users**: Test accounts for user functionality
+- **Demo Professionals**: Test accounts for professional functionality
+
+#### Demo Accounts
+
+After seeding, the following demo accounts are available:
+
+**Users:**
+- `demo@miamente.com` / `test123456`
+- `test@miamente.com` / `test123456`
+
+**Professionals:**
+- `profesional@miamente.com` / `test123456`
+- `demo.profesional@miamente.com` / `test123456`
+
+### Manual Seeding
+
+You can manually seed data for any environment:
+
+```bash
+# Staging environment
+python scripts/seed_environment_data.py --env staging
+
+# Production environment  
+python scripts/seed_environment_data.py --env production
+
+# Force re-seeding (overwrites existing data)
+python scripts/seed_environment_data.py --env staging --force
+```
+
+### Available Environments
+
+- `staging`: For testing and development
+- `production`: For production demonstrations
 
 ## Deployment
 
