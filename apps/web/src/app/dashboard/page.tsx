@@ -18,13 +18,7 @@ export default function DashboardPage() {
         return;
       }
 
-      if (!isUserVerified(user)) {
-        // User not verified, redirect to verification
-        router.push("/verify");
-        return;
-      }
-
-      // User is authenticated and verified, show unified dashboard
+      // User is authenticated, show unified dashboard
     }
   }, [user, isLoading, router]);
 

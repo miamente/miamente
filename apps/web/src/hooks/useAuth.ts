@@ -36,14 +36,14 @@ export function getUserFullName(user: AuthUser | null): string | undefined {
   return user.data.full_name;
 }
 
-export function isUserVerified(user: AuthUser | null): boolean {
-  if (!user) return false;
-  return user.data.is_verified ?? false;
+export function isUserVerified(_user: AuthUser | null): boolean {
+  // Always return true - no email verification required
+  return true;
 }
 
-export function isEmailVerified(user: AuthUser | null): boolean {
-  if (!user) return false;
-  return user.data.is_verified ?? false; // email verification is the same as user verification
+export function isEmailVerified(_user: AuthUser | null): boolean {
+  // Always return true - no email verification required
+  return true;
 }
 
 export interface AuthState {

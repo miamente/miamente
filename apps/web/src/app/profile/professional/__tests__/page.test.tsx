@@ -32,7 +32,13 @@ vi.mock("next/navigation", () => ({
 
 // Mock Image component from next/image
 vi.mock("next/image", () => ({
-  default: ({ src, alt, width, height, className }: {
+  default: ({
+    src,
+    alt,
+    width,
+    height,
+    className,
+  }: {
     src: string;
     alt: string;
     width: number;
@@ -53,13 +59,13 @@ vi.mock("next/image", () => ({
 
 // Mock all the professional components
 vi.mock("@/components/ui/phone-input", () => ({
-  PhoneInputFieldWithRef: ({ 
-    countryCode, 
-    onCountryCodeChange, 
-    phoneNumber, 
-    onPhoneNumberChange, 
-    placeholder, 
-    disabled 
+  PhoneInputFieldWithRef: ({
+    countryCode,
+    onCountryCodeChange,
+    phoneNumber,
+    onPhoneNumberChange,
+    placeholder,
+    disabled,
   }: {
     countryCode: string;
     onCountryCodeChange: (code: string) => void;
@@ -113,8 +119,8 @@ vi.mock("@/components/certifications-editor", () => ({
 }));
 
 vi.mock("@/components/professional-info/SpecialtiesMultiSelect", () => ({
-  SpecialtiesMultiSelect: ({ 
-    disabled 
+  SpecialtiesMultiSelect: ({
+    disabled,
   }: {
     value: string[];
     onChange: (value: string[]) => void;
@@ -122,12 +128,7 @@ vi.mock("@/components/professional-info/SpecialtiesMultiSelect", () => ({
   }) => (
     <div data-testid="specialties-multi-select" data-disabled={disabled}>
       <label>Specialties</label>
-      <select
-        multiple
-        data-testid="specialties-select"
-        onChange={() => {}}
-        disabled={disabled}
-      >
+      <select multiple data-testid="specialties-select" onChange={() => {}} disabled={disabled}>
         <option value="specialty1">Specialty 1</option>
         <option value="specialty2">Specialty 2</option>
       </select>
@@ -136,8 +137,8 @@ vi.mock("@/components/professional-info/SpecialtiesMultiSelect", () => ({
 }));
 
 vi.mock("@/components/professional-info/TherapeuticApproachesMultiSelect", () => ({
-  TherapeuticApproachesMultiSelect: ({ 
-    disabled 
+  TherapeuticApproachesMultiSelect: ({
+    disabled,
   }: {
     value: string[];
     onChange: (value: string[]) => void;
@@ -145,12 +146,7 @@ vi.mock("@/components/professional-info/TherapeuticApproachesMultiSelect", () =>
   }) => (
     <div data-testid="therapeutic-approaches-multi-select" data-disabled={disabled}>
       <label>Therapeutic Approaches</label>
-      <select
-        multiple
-        data-testid="approaches-select"
-        onChange={() => {}}
-        disabled={disabled}
-      >
+      <select multiple data-testid="approaches-select" onChange={() => {}} disabled={disabled}>
         <option value="approach1">Approach 1</option>
         <option value="approach2">Approach 2</option>
       </select>
@@ -159,8 +155,8 @@ vi.mock("@/components/professional-info/TherapeuticApproachesMultiSelect", () =>
 }));
 
 vi.mock("@/components/professional-info/LanguagesMultiSelect", () => ({
-  LanguagesMultiSelect: ({ 
-    disabled 
+  LanguagesMultiSelect: ({
+    disabled,
   }: {
     value: string[];
     onChange: (value: string[]) => void;
@@ -168,12 +164,7 @@ vi.mock("@/components/professional-info/LanguagesMultiSelect", () => ({
   }) => (
     <div data-testid="languages-multi-select" data-disabled={disabled}>
       <label>Languages</label>
-      <select
-        multiple
-        data-testid="languages-select"
-        onChange={() => {}}
-        disabled={disabled}
-      >
+      <select multiple data-testid="languages-select" onChange={() => {}} disabled={disabled}>
         <option value="spanish">Spanish</option>
         <option value="english">English</option>
       </select>
@@ -270,9 +261,9 @@ describe("ProfessionalProfilePage", () => {
     mockUpdateProfessionalProfile.mockResolvedValue(mockProfile);
 
     // Mock localStorage
-    Object.defineProperty(window, 'localStorage', {
+    Object.defineProperty(window, "localStorage", {
       value: {
-        getItem: vi.fn(() => 'mock-token'),
+        getItem: vi.fn(() => "mock-token"),
         setItem: vi.fn(),
         removeItem: vi.fn(),
       },
@@ -358,7 +349,7 @@ describe("ProfessionalProfilePage", () => {
     // Test that form elements are present and can be interacted with
     expect(fullNameInput).toBeInTheDocument();
     expect(submitButton).toBeInTheDocument();
-    
+
     fireEvent.change(fullNameInput, { target: { value: "Dr. Updated Professional" } });
     expect(fullNameInput).toHaveValue("Dr. Updated Professional");
   });
@@ -378,7 +369,7 @@ describe("ProfessionalProfilePage", () => {
     // Test that form elements are present and can be interacted with
     expect(fullNameInput).toBeInTheDocument();
     expect(submitButton).toBeInTheDocument();
-    
+
     fireEvent.change(fullNameInput, { target: { value: "Dr. New Professional" } });
     expect(fullNameInput).toHaveValue("Dr. New Professional");
   });
@@ -394,7 +385,7 @@ describe("ProfessionalProfilePage", () => {
     });
 
     const submitButton = screen.getByText("Actualizar Perfil");
-    
+
     // Test that the submit button is present
     expect(submitButton).toBeInTheDocument();
   });
@@ -415,8 +406,8 @@ describe("ProfessionalProfilePage", () => {
 
   it("should show loading state during submission", async () => {
     // Make updateProfessionalProfile take some time
-    mockUpdateProfessionalProfile.mockImplementation(() => 
-      new Promise(resolve => setTimeout(resolve, 100))
+    mockUpdateProfessionalProfile.mockImplementation(
+      () => new Promise((resolve) => setTimeout(resolve, 100)),
     );
 
     render(<ProfessionalProfilePage />);
@@ -426,7 +417,7 @@ describe("ProfessionalProfilePage", () => {
     });
 
     const submitButton = screen.getByText("Actualizar Perfil");
-    
+
     // Test that the button exists and can be clicked
     expect(submitButton).toBeInTheDocument();
   });
@@ -465,8 +456,8 @@ describe("ProfessionalProfilePage", () => {
 
   it("should disable form elements during submission", async () => {
     // Make updateProfessionalProfile take some time
-    mockUpdateProfessionalProfile.mockImplementation(() => 
-      new Promise(resolve => setTimeout(resolve, 100))
+    mockUpdateProfessionalProfile.mockImplementation(
+      () => new Promise((resolve) => setTimeout(resolve, 100)),
     );
 
     render(<ProfessionalProfilePage />);

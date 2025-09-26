@@ -48,7 +48,8 @@ export function LoginForm({ isAdminLogin = false, redirectPath }: LoginFormProps
           router.push(redirectPath || "/dashboard");
         }
       } else {
-        router.push("/verify");
+        // User is authenticated, redirect to dashboard
+        router.push(redirectPath || "/dashboard");
       }
     }
   }, [user, router, isAdminLogin, redirectPath]);

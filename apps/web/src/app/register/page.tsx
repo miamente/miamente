@@ -8,7 +8,7 @@ import { useForm } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { useAuth, isUserVerified } from "@/hooks/useAuth";
+import { useAuth } from "@/hooks/useAuth";
 import { registerWithEmail } from "@/lib/auth";
 import { registerSchema, type RegisterFormData } from "@/lib/validations";
 
@@ -30,11 +30,7 @@ export default function RegisterPage() {
   // Redirect if already logged in
   React.useEffect(() => {
     if (user) {
-      if (isUserVerified(user)) {
-        router.push("/dashboard");
-      } else {
-        router.push("/verify");
-      }
+      router.push("/dashboard");
     }
   }, [user, router]);
 
@@ -70,11 +66,10 @@ export default function RegisterPage() {
           </CardHeader>
           <CardContent className="space-y-4">
             <p className="text-sm text-neutral-600 dark:text-neutral-400">
-              Te hemos enviado un email de verificación. Por favor revisa tu bandeja de entrada y
-              haz clic en el enlace para verificar tu cuenta.
+              Tu cuenta ha sido creada exitosamente. Ya puedes acceder a tu dashboard.
             </p>
-            <Button onClick={() => router.push("/verify")} className="w-full">
-              Ir a Verificación
+            <Button onClick={() => router.push("/dashboard")} className="w-full">
+              Ir al Dashboard
             </Button>
           </CardContent>
         </Card>

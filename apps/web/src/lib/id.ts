@@ -13,7 +13,7 @@ function getSecureRandomBytes(length: number): Uint8Array {
  * Converts random bytes to base36 string
  */
 function bytesToBase36(bytes: Uint8Array): string {
-  return Array.from(bytes, byte => byte.toString(36)).join('');
+  return Array.from(bytes, (byte) => byte.toString(36)).join("");
 }
 
 export function generateUniqueId(): string {
@@ -29,7 +29,7 @@ export function generateUniqueId(): string {
  * Converts random bytes to hex string
  */
 function bytesToHex(bytes: Uint8Array): string {
-  return Array.from(bytes, byte => byte.toString(16).padStart(2, '0')).join('');
+  return Array.from(bytes, (byte) => byte.toString(16).padStart(2, "0")).join("");
 }
 
 export function generateUniqueIdHex(length: number = 32): string {

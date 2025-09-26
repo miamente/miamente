@@ -66,7 +66,7 @@ describe("AdminAuthGuard", () => {
     render(
       <AdminAuthGuard>
         <div data-testid="admin-content">Admin Content</div>
-      </AdminAuthGuard>
+      </AdminAuthGuard>,
     );
 
     expect(screen.getByTestId("admin-content")).toBeInTheDocument();
@@ -78,7 +78,7 @@ describe("AdminAuthGuard", () => {
     render(
       <AdminAuthGuard>
         <div data-testid="admin-content">Admin Content</div>
-      </AdminAuthGuard>
+      </AdminAuthGuard>,
     );
 
     expect(screen.getByRole("status", { hidden: true })).toBeInTheDocument();
@@ -91,7 +91,7 @@ describe("AdminAuthGuard", () => {
     render(
       <AdminAuthGuard>
         <div data-testid="admin-content">Admin Content</div>
-      </AdminAuthGuard>
+      </AdminAuthGuard>,
     );
 
     expect(screen.getByRole("status", { hidden: true })).toBeInTheDocument();
@@ -104,7 +104,7 @@ describe("AdminAuthGuard", () => {
     render(
       <AdminAuthGuard>
         <div data-testid="admin-content">Admin Content</div>
-      </AdminAuthGuard>
+      </AdminAuthGuard>,
     );
 
     await waitFor(() => {
@@ -138,7 +138,7 @@ describe("AdminAuthGuard", () => {
     render(
       <AdminAuthGuard>
         <div data-testid="admin-content">Admin Content</div>
-      </AdminAuthGuard>
+      </AdminAuthGuard>,
     );
 
     await waitFor(() => {
@@ -168,7 +168,7 @@ describe("AdminAuthGuard", () => {
     render(
       <AdminAuthGuard>
         <div data-testid="admin-content">Admin Content</div>
-      </AdminAuthGuard>
+      </AdminAuthGuard>,
     );
 
     expect(screen.getByRole("status", { hidden: true })).toBeInTheDocument();
@@ -181,7 +181,7 @@ describe("AdminAuthGuard", () => {
     render(
       <AdminAuthGuard>
         <div data-testid="admin-content">Admin Content</div>
-      </AdminAuthGuard>
+      </AdminAuthGuard>,
     );
 
     expect(mockPush).not.toHaveBeenCalled();
@@ -193,7 +193,7 @@ describe("AdminAuthGuard", () => {
     render(
       <AdminAuthGuard>
         <div data-testid="admin-content">Admin Content</div>
-      </AdminAuthGuard>
+      </AdminAuthGuard>,
     );
 
     expect(mockPush).not.toHaveBeenCalled();
@@ -221,7 +221,7 @@ describe("AdminAuthGuard", () => {
     render(
       <AdminAuthGuard>
         <div data-testid="admin-content">Admin Content</div>
-      </AdminAuthGuard>
+      </AdminAuthGuard>,
     );
 
     expect(mockUseRole.hasAnyRole).toHaveBeenCalledWith([UserRole.ADMIN]);
@@ -233,11 +233,18 @@ describe("AdminAuthGuard", () => {
     render(
       <AdminAuthGuard>
         <div data-testid="admin-content">Admin Content</div>
-      </AdminAuthGuard>
+      </AdminAuthGuard>,
     );
 
     const spinner = screen.getByRole("status", { hidden: true });
-    expect(spinner).toHaveClass("h-8", "w-8", "animate-spin", "rounded-full", "border-b-2", "border-red-600");
+    expect(spinner).toHaveClass(
+      "h-8",
+      "w-8",
+      "animate-spin",
+      "rounded-full",
+      "border-b-2",
+      "border-red-600",
+    );
   });
 
   it("should handle multiple role checks correctly", () => {
@@ -263,7 +270,7 @@ describe("AdminAuthGuard", () => {
     render(
       <AdminAuthGuard>
         <div data-testid="admin-content">Admin Content</div>
-      </AdminAuthGuard>
+      </AdminAuthGuard>,
     );
 
     expect(mockUseRole.hasAnyRole).toHaveBeenCalledTimes(2);
@@ -274,7 +281,7 @@ describe("AdminAuthGuard", () => {
     const { rerender } = render(
       <AdminAuthGuard>
         <div data-testid="admin-content">Admin Content</div>
-      </AdminAuthGuard>
+      </AdminAuthGuard>,
     );
 
     // Initially no user
@@ -303,7 +310,7 @@ describe("AdminAuthGuard", () => {
     rerender(
       <AdminAuthGuard>
         <div data-testid="admin-content">Admin Content</div>
-      </AdminAuthGuard>
+      </AdminAuthGuard>,
     );
 
     await waitFor(() => {
@@ -330,7 +337,7 @@ describe("AdminAuthGuard", () => {
     render(
       <AdminAuthGuard>
         <div data-testid="admin-content">Admin Content</div>
-      </AdminAuthGuard>
+      </AdminAuthGuard>,
     );
 
     expect(screen.getByRole("status", { hidden: true })).toBeInTheDocument();

@@ -72,15 +72,6 @@ export async function logout(): Promise<void> {
   }
 }
 
-export async function resendEmailVerification(): Promise<void> {
-  try {
-    await apiClient.post("/auth/resend-verification");
-  } catch (error) {
-    console.error("Resend verification error:", error);
-    throw error;
-  }
-}
-
 export async function getUserProfile(): Promise<User | null> {
   try {
     const response = await apiClient.get("/users/me");

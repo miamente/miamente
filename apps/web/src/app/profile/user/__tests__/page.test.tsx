@@ -35,7 +35,11 @@ vi.mock("next/navigation", () => ({
 
 // Mock FileUpload component
 vi.mock("@/components/file-upload", () => ({
-  FileUpload: ({ onFileSelect, disabled, label }: {
+  FileUpload: ({
+    onFileSelect,
+    disabled,
+    label,
+  }: {
     onFileSelect: (file: File) => void;
     disabled: boolean;
     label: string;
@@ -117,13 +121,17 @@ describe("UserProfilePage", () => {
 
     mockGetUserUid.mockImplementation(() => "user-1");
     mockGetUserEmail.mockReturnValue("test@example.com");
-    mockGetUserProfile.mockImplementation(() => Promise.resolve(mockProfile as unknown as Record<string, unknown>));
-    mockUpdateUserProfile.mockImplementation(() => Promise.resolve(mockProfile as unknown as Record<string, unknown>));
-    mockUploadFile.mockResolvedValue({ 
+    mockGetUserProfile.mockImplementation(() =>
+      Promise.resolve(mockProfile as unknown as Record<string, unknown>),
+    );
+    mockUpdateUserProfile.mockImplementation(() =>
+      Promise.resolve(mockProfile as unknown as Record<string, unknown>),
+    );
+    mockUploadFile.mockResolvedValue({
       url: "https://example.com/file.jpg",
       filename: "file.jpg",
       size: 1024,
-      content_type: "image/jpeg"
+      content_type: "image/jpeg",
     });
   });
 
@@ -207,7 +215,7 @@ describe("UserProfilePage", () => {
     // Test that form elements are present and can be interacted with
     expect(fullNameInput).toBeInTheDocument();
     expect(submitButton).toBeInTheDocument();
-    
+
     fireEvent.change(fullNameInput, { target: { value: "Updated Name" } });
     expect(fullNameInput).toHaveValue("Updated Name");
   });
@@ -228,7 +236,7 @@ describe("UserProfilePage", () => {
     // Test that form elements are present and can be interacted with
     expect(fullNameInput).toBeInTheDocument();
     expect(submitButton).toBeInTheDocument();
-    
+
     fireEvent.change(fullNameInput, { target: { value: "Updated Name" } });
     expect(fullNameInput).toHaveValue("Updated Name");
   });
@@ -243,7 +251,7 @@ describe("UserProfilePage", () => {
     // Simulate file selection
     const fileInput = screen.getByTestId("file-input");
     const file = new File(["test"], "test.jpg", { type: "image/jpeg" });
-    
+
     fireEvent.change(fileInput, { target: { files: [file] } });
 
     // Wait for file to be selected
@@ -252,15 +260,15 @@ describe("UserProfilePage", () => {
     });
 
     const submitButton = screen.getByText("Actualizar Perfil");
-    
+
     // Test that the submit button is present
     expect(submitButton).toBeInTheDocument();
   });
 
   it("should show loading state during submission", async () => {
     // Make updateUserProfile take some time
-    mockUpdateUserProfile.mockImplementation(() => 
-      new Promise(resolve => setTimeout(resolve, 100))
+    mockUpdateUserProfile.mockImplementation(
+      () => new Promise((resolve) => setTimeout(resolve, 100)),
     );
 
     render(<UserProfilePage />);
@@ -270,7 +278,7 @@ describe("UserProfilePage", () => {
     });
 
     const submitButton = screen.getByText("Actualizar Perfil");
-    
+
     // Test that the submit button is present
     expect(submitButton).toBeInTheDocument();
   });
@@ -284,7 +292,7 @@ describe("UserProfilePage", () => {
 
     // Try to submit without filling required fields
     const submitButton = screen.getByText("Actualizar Perfil");
-    
+
     // Test that the submit button is present
     expect(submitButton).toBeInTheDocument();
   });
