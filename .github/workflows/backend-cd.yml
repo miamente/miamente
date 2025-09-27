@@ -373,6 +373,15 @@ jobs:
             --html=integration_report.html \
             --self-contained-html
 
+      - name: Upload Test Reports Artifacts
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: integration-test-reports
+          path: |
+            integration_report.html
+            integration_coverage.xml
+
   seed-data-staging:
     needs: [test-staging, deploy-cfn-staging]
     runs-on: ubuntu-latest
@@ -397,15 +406,6 @@ jobs:
           python scripts/post_deployment_seed.py --env staging --wait-for-health --verbose
           
           echo "✅ Data seeding completed successfully for staging!"
-
-      - name: Upload Test Reports Artifacts
-        uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: integration-test-reports
-          path: |
-            backend/integration_report.html
-            backend/integration_coverage.xml
 
   sonar:
     name: SonarCloud (aggregate coverage)
