@@ -2,10 +2,15 @@ import { renderHook, waitFor } from "@testing-library/react";
 import { vi, describe, it, expect, beforeEach, afterEach } from "vitest";
 import { useModalities } from "../useModalities";
 
-// Mock fetch
-global.fetch = vi.fn();
+// Mock apiClient
+vi.mock("@/lib/api", () => ({
+  apiClient: {
+    getModalities: vi.fn(),
+  },
+}));
 
-const mockFetch = vi.mocked(fetch);
+import { apiClient } from "@/lib/api";
+const mockApiClient = vi.mocked(apiClient);
 
 describe("useModalities", () => {
   beforeEach(() => {
@@ -34,8 +39,8 @@ describe("useModalities", () => {
       {
         id: "1",
         name: "Virtual",
-        description: "Online therapy sessions",
-        category: "therapy",
+        description: "Virtual therapy sessions",
+        category: "online",
         currency: "COP",
         default_price_cents: 50000,
         is_active: true,
@@ -46,7 +51,7 @@ describe("useModalities", () => {
         id: "2",
         name: "Presencial",
         description: "In-person therapy sessions",
-        category: "therapy",
+        category: "in-person",
         currency: "COP",
         default_price_cents: 80000,
         is_active: true,
@@ -55,10 +60,7 @@ describe("useModalities", () => {
       },
     ];
 
-    mockFetch.mockResolvedValue({
-      ok: true,
-      json: () => Promise.resolve(mockModalities),
-    } as Response);
+    mockApiClient.getModalities.mockResolvedValue(mockModalities);
 
     const { result } = renderHook(() => useModalities());
 
@@ -68,17 +70,11 @@ describe("useModalities", () => {
 
     expect(result.current.modalities).toEqual(mockModalities);
     expect(result.current.error).toBe(null);
-    expect(mockFetch).toHaveBeenCalledWith(
-      `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/api/v1/modalities`,
-    );
+    expect(mockApiClient.getModalities).toHaveBeenCalledTimes(1);
   });
 
   it("should handle API errors", async () => {
-    mockFetch.mockResolvedValue({
-      ok: false,
-      status: 500,
-      statusText: "Internal Server Error",
-    } as Response);
+    mockApiClient.getModalities.mockRejectedValue(new Error("Failed to fetch modalities"));
 
     const { result } = renderHook(() => useModalities());
 
@@ -87,11 +83,11 @@ describe("useModalities", () => {
     });
 
     expect(result.current.modalities).toEqual([]);
-    expect(result.current.error).toBe("Failed to fetch modalities: 500 Internal Server Error");
+    expect(result.current.error).toBe("Failed to fetch modalities");
   });
 
   it("should handle network errors", async () => {
-    mockFetch.mockRejectedValue(new Error("Network error"));
+    mockApiClient.getModalities.mockRejectedValue(new Error("Network error"));
 
     const { result } = renderHook(() => useModalities());
 
@@ -104,10 +100,7 @@ describe("useModalities", () => {
   });
 
   it("should handle empty response", async () => {
-    mockFetch.mockResolvedValue({
-      ok: true,
-      json: () => Promise.resolve([]),
-    } as Response);
+    mockApiClient.getModalities.mockResolvedValue([]);
 
     const { result } = renderHook(() => useModalities());
 
@@ -119,11 +112,8 @@ describe("useModalities", () => {
     expect(result.current.error).toBe(null);
   });
 
-  it("should handle malformed response", async () => {
-    mockFetch.mockResolvedValue({
-      ok: true,
-      json: () => Promise.resolve("invalid json"),
-    } as Response);
+  it("should handle non-Error exceptions", async () => {
+    mockApiClient.getModalities.mockRejectedValue("String error");
 
     const { result } = renderHook(() => useModalities());
 
@@ -131,34 +121,22 @@ describe("useModalities", () => {
       expect(result.current.loading).toBe(false);
     });
 
-    // The hook should still set the data even if it's not an array
-    expect(result.current.modalities).toEqual("invalid json");
-    expect(result.current.error).toBe(null);
+    expect(result.current.modalities).toEqual([]);
+    expect(result.current.error).toBe("An error occurred");
   });
 
   it("should use correct API URL", async () => {
-    // Mock the environment variable before importing the hook
-    const originalEnv = process.env.NEXT_PUBLIC_API_URL;
+    // This test is no longer relevant since we're using apiClient
+    // which handles the URL internally
+    mockApiClient.getModalities.mockResolvedValue([]);
 
-    // Clear the module cache to ensure the new env var is used
-    vi.resetModules();
-    process.env.NEXT_PUBLIC_API_URL = "https://api.example.com";
-
-    mockFetch.mockResolvedValue({
-      ok: true,
-      json: () => Promise.resolve([]),
-    } as Response);
-
-    // Import the hook after setting the env var
-    const { useModalities } = await import("../useModalities");
-    renderHook(() => useModalities());
+    const { result } = renderHook(() => useModalities());
 
     await waitFor(() => {
-      expect(mockFetch).toHaveBeenCalledWith("https://api.example.com/api/v1/modalities");
+      expect(result.current.loading).toBe(false);
     });
 
-    // Restore original env
-    process.env.NEXT_PUBLIC_API_URL = originalEnv;
+    expect(mockApiClient.getModalities).toHaveBeenCalledTimes(1);
   });
 
   it("should handle different modality properties", async () => {
@@ -166,10 +144,10 @@ describe("useModalities", () => {
       {
         id: "1",
         name: "Virtual",
-        description: "Online therapy sessions",
-        category: "therapy",
-        currency: "USD",
-        default_price_cents: 10000,
+        description: "Virtual therapy sessions",
+        category: "online",
+        currency: "COP",
+        default_price_cents: 50000,
         is_active: true,
         created_at: "2023-01-01T00:00:00Z",
         updated_at: "2023-01-01T00:00:00Z",
@@ -178,19 +156,27 @@ describe("useModalities", () => {
         id: "2",
         name: "Presencial",
         description: "In-person therapy sessions",
-        category: "therapy",
-        currency: "EUR",
-        default_price_cents: 15000,
+        category: "in-person",
+        currency: "COP",
+        default_price_cents: 80000,
         is_active: false,
         created_at: "2023-01-01T00:00:00Z",
         // No updated_at for this one
       },
+      {
+        id: "3",
+        name: "Hybrid",
+        // No description for this one
+        category: "mixed",
+        currency: "COP",
+        default_price_cents: 65000,
+        is_active: true,
+        created_at: "2023-01-01T00:00:00Z",
+        updated_at: "2023-01-01T00:00:00Z",
+      },
     ];
 
-    mockFetch.mockResolvedValue({
-      ok: true,
-      json: () => Promise.resolve(mockModalities),
-    } as Response);
+    mockApiClient.getModalities.mockResolvedValue(mockModalities);
 
     const { result } = renderHook(() => useModalities());
 
@@ -199,25 +185,35 @@ describe("useModalities", () => {
     });
 
     expect(result.current.modalities).toEqual(mockModalities);
-    expect(result.current.modalities[0]).toHaveProperty("currency", "USD");
+    expect(result.current.modalities[0]).toHaveProperty("description", "Virtual therapy sessions");
     expect(result.current.modalities[1]).toHaveProperty("is_active", false);
-    expect(result.current.modalities[1]).not.toHaveProperty("updated_at");
+    expect(result.current.modalities[2]).not.toHaveProperty("description");
   });
 
   it("should only fetch once on mount", async () => {
-    mockFetch.mockResolvedValue({
-      ok: true,
-      json: () => Promise.resolve([]),
-    } as Response);
+    mockApiClient.getModalities.mockResolvedValue([]);
 
     const { rerender } = renderHook(() => useModalities());
 
     await waitFor(() => {
-      expect(mockFetch).toHaveBeenCalledTimes(1);
+      expect(mockApiClient.getModalities).toHaveBeenCalledTimes(1);
     });
 
     // Rerender should not trigger another fetch
     rerender();
-    expect(mockFetch).toHaveBeenCalledTimes(1);
+    expect(mockApiClient.getModalities).toHaveBeenCalledTimes(1);
+  });
+
+  it("should handle malformed JSON response", async () => {
+    mockApiClient.getModalities.mockRejectedValue(new Error("Invalid JSON"));
+
+    const { result } = renderHook(() => useModalities());
+
+    await waitFor(() => {
+      expect(result.current.loading).toBe(false);
+    });
+
+    expect(result.current.modalities).toEqual([]);
+    expect(result.current.error).toBe("Invalid JSON");
   });
 });

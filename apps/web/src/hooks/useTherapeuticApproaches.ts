@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
+import { apiClient } from "@/lib/api";
 import { TherapeuticApproach } from "@/lib/types";
-
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
 export function useTherapeuticApproaches() {
   const [approaches, setApproaches] = useState<TherapeuticApproach[]>([]);
@@ -12,13 +11,7 @@ export function useTherapeuticApproaches() {
     const fetchApproaches = async () => {
       try {
         setLoading(true);
-        const response = await fetch(`${API_BASE_URL}/api/v1/therapeutic-approaches`);
-
-        if (!response.ok) {
-          throw new Error("Failed to fetch therapeutic approaches");
-        }
-
-        const data = await response.json();
+        const data = await apiClient.getTherapeuticApproaches();
         setApproaches(data);
       } catch (err) {
         setError(err instanceof Error ? err.message : "An error occurred");

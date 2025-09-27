@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Award, Plus, Trash2, Upload, FileText, ChevronDown, ChevronRight } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
+import { apiClient } from "@/lib/api";
 import type { Certification } from "@/lib/types";
 
 interface CertificationsEditorProps {
@@ -59,30 +60,14 @@ export function CertificationsEditor({ disabled = false }: CertificationsEditorP
     // If there's a file associated, delete it from the server
     if (certificationToRemove?.documentUrl) {
       try {
-        const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
-        const token = localStorage.getItem("access_token");
-
         // Extract filename and user_id from the URL
         const urlParts = certificationToRemove.documentUrl.split("/");
         const filename = urlParts.pop();
         const userId = urlParts[urlParts.length - 1]; // Get the user_id from the URL
 
         if (filename && userId) {
-          const deleteResponse = await fetch(
-            `${API_BASE_URL}/api/v1/files/certification/${userId}/${filename}`,
-            {
-              method: "DELETE",
-              headers: {
-                Authorization: `Bearer ${token}`,
-              },
-            },
-          );
-
-          if (deleteResponse.ok) {
-            console.log("File deleted successfully");
-          } else {
-            console.warn("Could not delete file from server");
-          }
+          await apiClient.deleteCertification(userId, filename);
+          console.log("File deleted successfully");
         }
       } catch (error) {
         console.warn("Error deleting file:", error);
@@ -101,9 +86,7 @@ export function CertificationsEditor({ disabled = false }: CertificationsEditorP
     }
 
     try {
-      const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
-      const token = localStorage.getItem("access_token");
-      console.log("Upload token exists:", !!token);
+      console.log("Upload token exists:", !!localStorage.getItem("access_token"));
 
       // Check if there's an existing file to delete
       const currentCertification = certifications?.[index];
@@ -116,21 +99,8 @@ export function CertificationsEditor({ disabled = false }: CertificationsEditorP
 
           if (existingFilename && userId) {
             // Delete the existing file
-            const deleteResponse = await fetch(
-              `${API_BASE_URL}/api/v1/files/certification/${userId}/${existingFilename}`,
-              {
-                method: "DELETE",
-                headers: {
-                  Authorization: `Bearer ${token}`,
-                },
-              },
-            );
-
-            if (deleteResponse.ok) {
-              console.log("Previous file deleted successfully");
-            } else {
-              console.warn("Could not delete previous file, but continuing with upload");
-            }
+            await apiClient.deleteCertification(userId, existingFilename);
+            console.log("Previous file deleted successfully");
           }
         } catch (deleteError) {
           console.warn("Error deleting previous file:", deleteError);
@@ -139,24 +109,7 @@ export function CertificationsEditor({ disabled = false }: CertificationsEditorP
       }
 
       // Upload new file to backend
-      const formData = new FormData();
-      formData.append("file", file);
-
-      const response = await fetch(`${API_BASE_URL}/api/v1/files/upload/certification`, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-        body: formData,
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({ detail: "Unknown error" }));
-        console.error("Upload error:", response.status, errorData);
-        throw new Error(`Error uploading file: ${errorData.detail || response.statusText}`);
-      }
-
-      const result = await response.json();
+      const result = await apiClient.uploadCertification(file);
 
       // Update the certification with the file URL
       const currentCertifications = certifications || [];

@@ -474,6 +474,7 @@ export interface ReviewStats {
 
 export interface UploadResponse {
   url: string;
+  file_url: string;
   filename: string;
   size: number;
   content_type: string;

@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
+import { apiClient } from "@/lib/api";
 import { ProfessionalSpecialty } from "@/lib/types";
-
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
 export function useProfessionalSpecialties(professionalId?: string) {
   const [specialties, setSpecialties] = useState<ProfessionalSpecialty[]>([]);
@@ -17,15 +16,7 @@ export function useProfessionalSpecialties(professionalId?: string) {
     const fetchSpecialties = async () => {
       try {
         setLoading(true);
-        const response = await fetch(
-          `${API_BASE_URL}/api/v1/professional-specialties/professional/${professionalId}`,
-        );
-
-        if (!response.ok) {
-          throw new Error("Failed to fetch professional specialties");
-        }
-
-        const data = await response.json();
+        const data = await apiClient.getProfessionalSpecialties(professionalId);
         setSpecialties(data);
       } catch (err) {
         setError(err instanceof Error ? err.message : "An error occurred");
@@ -42,23 +33,7 @@ export function useProfessionalSpecialties(professionalId?: string) {
 
     try {
       setLoading(true);
-      const response = await fetch(
-        `${API_BASE_URL}/api/v1/professional-specialties/professional/${professionalId}/specialties`,
-        {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(specialtyIds),
-        },
-      );
-
-      if (!response.ok) {
-        throw new Error("Failed to update professional specialties");
-      }
-
-      // Refresh the data
-      const data = await response.json();
+      const data = await apiClient.updateProfessionalSpecialties(professionalId, specialtyIds);
       setSpecialties(data);
     } catch (err) {
       setError(err instanceof Error ? err.message : "An error occurred");
