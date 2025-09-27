@@ -343,17 +343,6 @@ jobs:
           done
 
 
-      - name: Trigger Frontend CD for Staging
-        uses: peter-evans/repository-dispatch@v3
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          repository: ${{ github.repository }}
-          event-type: frontend-deploy-staging
-          client-payload: |
-            {
-              "backend_url": "${{ needs.deploy-cfn-staging.outputs.alb_url_staging }}",
-              "environment": "staging"
-            }
 
   test-staging:
     needs: [test-db-staging, deploy-cfn-staging]
@@ -676,17 +665,6 @@ jobs:
           cd backend
           python scripts/seed_environment_data.py --env production
 
-      - name: Trigger Frontend CD for Production
-        uses: peter-evans/repository-dispatch@v3
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          repository: ${{ github.repository }}
-          event-type: frontend-deploy-production
-          client-payload: |
-            {
-              "backend_url": "${{ needs.deploy-cfn-production.outputs.alb_url_production }}",
-              "environment": "production"
-            }
 
   rollback-production:
     needs:
