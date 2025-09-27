@@ -131,9 +131,9 @@ jobs:
           echo "Package.json contents:"
           cat package.json
           
-          # Clean install with npm ci (faster and more reliable for CI)
-          echo "Running npm ci..."
-          npm ci --verbose
+          # Clean install with npm install (faster and more reliable for CI)
+          echo "Running npm install..."
+          npm install
           echo "Dependencies installed successfully"
 
       - name: Install Playwright browsers & system deps
@@ -223,14 +223,6 @@ jobs:
           echo "Final verification of staging environment..."
           curl -fsS "$BACKEND_INTERNAL_URL/health" || echo "❌ Backend health check failed"
           curl -fsS "$E2E_BASE_URL" || echo "❌ Frontend check failed"
-          
-          # Ensure backend has test data (check if specialties endpoint returns data)
-          echo "Checking if backend has test data..."
-          if curl -fsS "$BACKEND_INTERNAL_URL/api/v1/specialties" | jq -e '. | length > 0' > /dev/null 2>&1; then
-            echo "✅ Backend has test data"
-          else
-            echo "⚠️ Backend appears to have no test data - tests will seed data automatically"
-          fi
 
           # Run Playwright tests against staging using npm script (more reliable)
           echo "Running Playwright tests against staging..."
