@@ -74,10 +74,8 @@ export default function ProfessionalProfilePage() {
           certifications:
             proProfile.certifications?.map((cert: Certification) => {
               const documentUrl = cert.document_url || "";
-              // Use fileName from database if available, otherwise extract from URL
-              const fileName =
-                cert.file_name ||
-                (documentUrl ? documentUrl.split("/").pop() || "Archivo adjunto" : "");
+              // Extract fileName from URL if available, otherwise use default
+              const fileName = documentUrl ? documentUrl.split("/").pop() || "Archivo adjunto" : "";
 
               return {
                 name: cert.name,
@@ -176,8 +174,8 @@ export default function ProfessionalProfilePage() {
       work_experience: data.workExperience,
       certifications: data.certifications?.map((cert) => ({
         name: cert.name,
-        documentUrl: cert.documentUrl,
-        fileName: cert.fileName,
+        document_url: cert.documentUrl,
+        file_name: cert.fileName,
       })),
       languages: data.languages,
       therapy_approaches_ids: data.therapyApproaches,

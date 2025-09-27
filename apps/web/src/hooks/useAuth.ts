@@ -11,6 +11,7 @@ import {
   type RegisterProfessionalRequest,
 } from "@/lib/api";
 import type { AuthUser } from "@/lib/types";
+import { UserRole } from "@/lib/types";
 
 // Re-export AuthUser from types for backward compatibility
 export type { AuthUser };
@@ -74,10 +75,18 @@ export function useAuth() {
       }
 
       const userData = await apiClient.getCurrentUser();
-      setAuthState({
-        user: userData,
-        isLoading: false,
-        isAuthenticated: true,
+      
+      // Only update state if we don't already have a user with the same ID
+      // This prevents overriding the state set by registration
+      setAuthState(prevState => {
+        if (prevState.user && prevState.user.data.id === userData.data.id) {
+          return prevState;
+        }
+        return {
+          user: userData,
+          isLoading: false,
+          isAuthenticated: true,
+        };
       });
     } catch (error) {
       console.error("Auth check failed:", error);
@@ -132,38 +141,104 @@ export function useAuth() {
     [router, checkAuth],
   );
 
+  const loginUnified = useCallback(
+    async (credentials: LoginRequest) => {
+      try {
+        const response = await apiClient.login(credentials.email, credentials.password);
+        
+        // Update auth state directly with the response data
+        setAuthState({
+          user: {
+            type: response.user_type === "professional" ? UserRole.PROFESSIONAL : UserRole.USER,
+            data: response.user_type === "professional" ? response.professional_data! : response.user_data!,
+          },
+          isLoading: false,
+          isAuthenticated: true,
+        });
+
+        router.push("/dashboard");
+      } catch (error) {
+        console.error("Unified login failed:", error);
+        throw error;
+      }
+    },
+    [router],
+  );
+
   const registerUser = useCallback(
     async (userData: RegisterUserRequest) => {
       try {
-        await apiClient.registerUser(userData);
-        // Auto-login after registration
-        await loginUser({
-          email: userData.email,
-          password: userData.password,
+        // Registration now returns tokens and user data
+        const response = await apiClient.registerUser(userData);
+        
+        // Update auth state directly with the response data
+        // The response should have a 'user' property from the backend
+        setAuthState({
+          user: {
+            type: UserRole.USER, // Default to user type for registration
+            data: response.user!,
+          },
+          isLoading: false,
+          isAuthenticated: true,
         });
+        
+        router.push("/dashboard");
       } catch (error) {
         console.error("User registration failed:", error);
         throw error;
       }
     },
-    [loginUser],
+    [router],
   );
 
   const registerProfessional = useCallback(
     async (professionalData: RegisterProfessionalRequest) => {
       try {
-        await apiClient.registerProfessional(professionalData);
-        // Auto-login after registration
-        await loginProfessional({
-          email: professionalData.email,
-          password: professionalData.password,
+        // Registration now returns tokens and professional data
+        const response = await apiClient.registerProfessional(professionalData);
+        
+        // Update auth state directly with the response data
+        setAuthState({
+          user: {
+            type: UserRole.PROFESSIONAL,
+            data: response.professional!,
+          },
+          isLoading: false,
+          isAuthenticated: true,
         });
+        
+        router.push("/dashboard");
       } catch (error) {
         console.error("Professional registration failed:", error);
         throw error;
       }
     },
-    [loginProfessional],
+    [router],
+  );
+
+  const registerUnified = useCallback(
+    async (registerData: { email: string; password: string }) => {
+      try {
+        // Registration now returns tokens and user data
+        const response = await apiClient.registerUnified(registerData);
+        
+        // Update auth state directly with the response data
+        setAuthState({
+          user: {
+            type: response.user_type === "user" ? UserRole.USER : UserRole.PROFESSIONAL,
+            data: response.user_type === "user" ? response.user_data! : response.professional_data!,
+          },
+          isLoading: false,
+          isAuthenticated: true,
+        });
+        
+        router.push("/dashboard");
+      } catch (error) {
+        console.error("Unified registration failed:", error);
+        throw error;
+      }
+    },
+    [router],
   );
 
   const logout = useCallback(() => {
@@ -192,8 +267,10 @@ export function useAuth() {
     ...authState,
     loginUser,
     loginProfessional,
+    loginUnified,
     registerUser,
     registerProfessional,
+    registerUnified,
     logout,
     refreshUser,
     getAuthHeaders,

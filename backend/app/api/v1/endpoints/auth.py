@@ -9,20 +9,23 @@ from app.core.database import get_db
 from app.core.security import create_token_response, verify_token
 from app.utils.auth import get_current_user_id
 from app.schemas.auth import (
+    ProfessionalRegisterResponse,
     ProfessionalTokenResponse,
     RefreshToken,
     Token,
     UnifiedLogin,
     UnifiedLoginResponse,
+    UnifiedRegisterResponse,
     UserLogin,
+    UserRegisterResponse,
     UserTokenResponse,
 )
 from app.schemas.professional import (
     ProfessionalCreate,
     ProfessionalLogin,
-    ProfessionalResponse,
 )
-from app.schemas.user import UserCreate, UserResponse
+from app.schemas.user import UserCreate
+from app.models.user import UserRole
 from app.services.auth_service import AuthService
 from app.utils.parsers import parse_professional_data, parse_user_data
 
@@ -34,24 +37,79 @@ USER_NOT_FOUND_MESSAGE = "User not found"
 INVALID_REFRESH_TOKEN_MESSAGE = "Invalid refresh token"
 
 
-@router.post("/register/user", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
+@router.post("/register/user", response_model=UserRegisterResponse, status_code=status.HTTP_201_CREATED)
 async def register_user(user_data: UserCreate, db: Session = Depends(get_db)):
-    """Register a new user."""
+    """Register a new user and return authentication tokens."""
     auth_service = AuthService(db)
     user = auth_service.create_user(user_data)
-    return user
+
+    # Create authentication tokens
+    token_response = create_token_response(str(user.id))
+
+    # Parse user data for response
+    user_data_response = parse_user_data(user)
+
+    return UserRegisterResponse(
+        access_token=token_response["access_token"],
+        refresh_token=token_response["refresh_token"],
+        token_type=token_response["token_type"],
+        user=user_data_response,
+    )
 
 
 @router.post(
     "/register/professional",
-    response_model=ProfessionalResponse,
+    response_model=ProfessionalRegisterResponse,
     status_code=status.HTTP_201_CREATED,
 )
 async def register_professional(professional_data: ProfessionalCreate, db: Session = Depends(get_db)):
-    """Register a new professional."""
+    """Register a new professional and return authentication tokens."""
     auth_service = AuthService(db)
     professional = auth_service.create_professional(professional_data)
-    return professional
+
+    # Create authentication tokens
+    token_response = create_token_response(str(professional.id))
+
+    # Parse professional data for response
+    professional_data_response = parse_professional_data(professional)
+
+    return ProfessionalRegisterResponse(
+        access_token=token_response["access_token"],
+        refresh_token=token_response["refresh_token"],
+        token_type=token_response["token_type"],
+        professional=professional_data_response,
+    )
+
+
+@router.post("/register", response_model=UnifiedRegisterResponse, status_code=status.HTTP_201_CREATED)
+async def register_unified(register_data: UnifiedLogin, db: Session = Depends(get_db)):
+    """Unified registration for both users and professionals."""
+    auth_service = AuthService(db)
+
+    # For now, we'll default to creating a regular user
+    # In the future, this could be enhanced to determine user type based on additional fields
+    user_data = UserCreate(
+        email=register_data.email,
+        password=register_data.password,
+        full_name="",  # This would need to be provided in the request
+        role=UserRole.USER,
+    )
+
+    user = auth_service.create_user(user_data)
+
+    # Create authentication tokens
+    token_response = create_token_response(str(user.id))
+
+    # Parse user data for response
+    user_data_response = parse_user_data(user)
+
+    return UnifiedRegisterResponse(
+        access_token=token_response["access_token"],
+        refresh_token=token_response["refresh_token"],
+        token_type=token_response["token_type"],
+        user_type="user",
+        user_data=user_data_response,
+    )
 
 
 @router.post("/login/user", response_model=UserTokenResponse)
@@ -100,7 +158,7 @@ async def login_professional(professional_login: ProfessionalLogin, db: Session 
         access_token=token_response["access_token"],
         refresh_token=token_response["refresh_token"],
         token_type=token_response["token_type"],
-        professional=professional,
+        professional=parse_professional_data(professional),
     )
 
 

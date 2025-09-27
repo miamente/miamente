@@ -28,6 +28,10 @@ interface AuthContextType {
     readonly email: string;
     readonly password: string;
   }) => Promise<void>;
+  readonly loginUnified: (credentials: {
+    readonly email: string;
+    readonly password: string;
+  }) => Promise<void>;
   readonly registerUser: (userData: {
     readonly email: string;
     readonly full_name: string;
@@ -41,6 +45,10 @@ interface AuthContextType {
     readonly specialty: string;
     readonly rate_cents: number;
     readonly phone?: string;
+  }) => Promise<void>;
+  readonly registerUnified: (registerData: {
+    readonly email: string;
+    readonly password: string;
   }) => Promise<void>;
   readonly logout: () => void;
   readonly refreshUser: () => Promise<void>;

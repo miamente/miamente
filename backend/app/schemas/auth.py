@@ -62,3 +62,19 @@ class RefreshToken(BaseModel):
     """Refresh token schema."""
 
     refresh_token: str
+
+
+class UserRegisterResponse(UserTokenResponse):
+    """User registration response with tokens and user data."""
+
+
+class ProfessionalRegisterResponse(ProfessionalTokenResponse):
+    """Professional registration response with tokens and professional data."""
+
+
+class UnifiedRegisterResponse(Token):
+    """Unified registration response with user type and data."""
+
+    user_type: str  # "user" or "professional"
+    user_data: Optional[UserResponse] = None
+    professional_data: Optional[ProfessionalResponse] = None

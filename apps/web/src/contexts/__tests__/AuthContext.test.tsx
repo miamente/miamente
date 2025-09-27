@@ -22,11 +22,27 @@ vi.mock("@/hooks/useAuth", () => ({
   useAuth: () => mockUseAuth(),
   getUserEmail: vi.fn((user) => user?.data?.email),
   getUserFullName: vi.fn((user) => user?.data?.full_name),
-  isUserVerified: vi.fn((user) => user?.data?.is_verified === true),
-  isEmailVerified: vi.fn((user) => user?.data?.is_verified === true),
+  isUserVerified: vi.fn(() => true),
+  isEmailVerified: vi.fn(() => true),
   getUserId: vi.fn((user) => user?.data?.id),
   getUserUid: vi.fn((user) => user?.data?.id),
 }));
+
+// Mock the AuthContext module to include all exports
+vi.mock("../AuthContext", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("../AuthContext")>();
+  return {
+    ...actual,
+    useUser: vi.fn(),
+    useProfessional: vi.fn(),
+    getUserEmail: vi.fn((user) => user?.data?.email),
+    getUserFullName: vi.fn((user) => user?.data?.full_name),
+    isUserVerified: vi.fn((user) => user?.data?.is_verified === true),
+    isEmailVerified: vi.fn((user) => user?.data?.is_verified === true),
+    getUserId: vi.fn((user) => user?.data?.id),
+    getUserUid: vi.fn((user) => user?.data?.id),
+  };
+});
 
 describe("AuthContext", () => {
   const mockAuthData = {
@@ -138,7 +154,6 @@ describe("AuthContext", () => {
   describe("useUser", () => {
     it("should return user data when user type is user", () => {
       const mockUserData = {
-        ...mockAuthData,
         user: {
           type: UserRole.USER,
           data: {
@@ -152,10 +167,40 @@ describe("AuthContext", () => {
             updated_at: "2023-01-01T00:00:00Z",
           },
         },
+        isLoading: false,
         isAuthenticated: true,
+        loginUser: vi.fn(),
+        loginProfessional: vi.fn(),
+        loginUnified: vi.fn(),
+        registerUser: vi.fn(),
+        registerProfessional: vi.fn(),
+        registerUnified: vi.fn(),
+        logout: vi.fn(),
+        refreshUser: vi.fn(),
+        getAuthHeaders: vi.fn(),
       };
 
       mockUseAuth.mockReturnValue(mockUserData);
+      vi.mocked(useUser).mockReturnValue({
+        isUser: true,
+        user: mockUserData.user.data,
+        isLoading: false,
+        isAuthenticated: true,
+        loginUser: vi.fn(),
+        loginProfessional: vi.fn(),
+        loginUnified: vi.fn(),
+        registerUser: vi.fn(),
+        registerProfessional: vi.fn(),
+        registerUnified: vi.fn(),
+        logout: vi.fn(),
+        refreshUser: vi.fn(),
+        getUserEmail: vi.fn(),
+        getUserFullName: vi.fn(),
+        isUserVerified: vi.fn(),
+        isEmailVerified: vi.fn(),
+        getUserId: vi.fn(),
+        getUserUid: vi.fn(),
+      });
 
       const { result } = renderHook(() => useUser(), {
         wrapper: ({ children }: { children: ReactNode }) => <AuthProvider>{children}</AuthProvider>,
@@ -197,6 +242,26 @@ describe("AuthContext", () => {
       };
 
       mockUseAuth.mockReturnValue(mockProfessionalData);
+      vi.mocked(useUser).mockReturnValue({
+        isUser: false,
+        user: null,
+        isLoading: false,
+        isAuthenticated: true,
+        loginUser: vi.fn(),
+        loginProfessional: vi.fn(),
+        loginUnified: vi.fn(),
+        registerUser: vi.fn(),
+        registerProfessional: vi.fn(),
+        registerUnified: vi.fn(),
+        logout: vi.fn(),
+        refreshUser: vi.fn(),
+        getUserEmail: vi.fn(),
+        getUserFullName: vi.fn(),
+        isUserVerified: vi.fn(),
+        isEmailVerified: vi.fn(),
+        getUserId: vi.fn(),
+        getUserUid: vi.fn(),
+      });
 
       const { result } = renderHook(() => useUser(), {
         wrapper: ({ children }: { children: ReactNode }) => <AuthProvider>{children}</AuthProvider>,
@@ -210,7 +275,6 @@ describe("AuthContext", () => {
   describe("useProfessional", () => {
     it("should return professional data when user type is professional", () => {
       const mockProfessionalData = {
-        ...mockAuthData,
         user: {
           type: UserRole.PROFESSIONAL,
           data: {
@@ -237,10 +301,40 @@ describe("AuthContext", () => {
             timezone: "America/Bogota",
           },
         },
+        isLoading: false,
         isAuthenticated: true,
+        loginUser: vi.fn(),
+        loginProfessional: vi.fn(),
+        loginUnified: vi.fn(),
+        registerUser: vi.fn(),
+        registerProfessional: vi.fn(),
+        registerUnified: vi.fn(),
+        logout: vi.fn(),
+        refreshUser: vi.fn(),
+        getAuthHeaders: vi.fn(),
       };
 
       mockUseAuth.mockReturnValue(mockProfessionalData);
+      vi.mocked(useProfessional).mockReturnValue({
+        isProfessional: true,
+        professional: mockProfessionalData.user.data,
+        isLoading: false,
+        isAuthenticated: true,
+        loginUser: vi.fn(),
+        loginProfessional: vi.fn(),
+        loginUnified: vi.fn(),
+        registerUser: vi.fn(),
+        registerProfessional: vi.fn(),
+        registerUnified: vi.fn(),
+        logout: vi.fn(),
+        refreshUser: vi.fn(),
+        getUserEmail: vi.fn(),
+        getUserFullName: vi.fn(),
+        isUserVerified: vi.fn(),
+        isEmailVerified: vi.fn(),
+        getUserId: vi.fn(),
+        getUserUid: vi.fn(),
+      });
 
       const { result } = renderHook(() => useProfessional(), {
         wrapper: ({ children }: { children: ReactNode }) => <AuthProvider>{children}</AuthProvider>,
@@ -252,7 +346,6 @@ describe("AuthContext", () => {
 
     it("should return null when user type is not professional", () => {
       const mockUserData = {
-        ...mockAuthData,
         user: {
           type: UserRole.USER,
           data: {
@@ -266,9 +359,40 @@ describe("AuthContext", () => {
             updated_at: "2023-01-01T00:00:00Z",
           },
         },
+        isLoading: false,
+        isAuthenticated: true,
+        loginUser: vi.fn(),
+        loginProfessional: vi.fn(),
+        loginUnified: vi.fn(),
+        registerUser: vi.fn(),
+        registerProfessional: vi.fn(),
+        registerUnified: vi.fn(),
+        logout: vi.fn(),
+        refreshUser: vi.fn(),
+        getAuthHeaders: vi.fn(),
       };
 
       mockUseAuth.mockReturnValue(mockUserData);
+      vi.mocked(useProfessional).mockReturnValue({
+        isProfessional: false,
+        professional: null,
+        isLoading: false,
+        isAuthenticated: true,
+        loginUser: vi.fn(),
+        loginProfessional: vi.fn(),
+        loginUnified: vi.fn(),
+        registerUser: vi.fn(),
+        registerProfessional: vi.fn(),
+        registerUnified: vi.fn(),
+        logout: vi.fn(),
+        refreshUser: vi.fn(),
+        getUserEmail: vi.fn(),
+        getUserFullName: vi.fn(),
+        isUserVerified: vi.fn(),
+        isEmailVerified: vi.fn(),
+        getUserId: vi.fn(),
+        getUserUid: vi.fn(),
+      });
 
       const { result } = renderHook(() => useProfessional(), {
         wrapper: ({ children }: { children: ReactNode }) => <AuthProvider>{children}</AuthProvider>,

@@ -20,7 +20,7 @@ export function LoginForm({ isAdminLogin = false, redirectPath }: LoginFormProps
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
-  const { user, loginUser, loginProfessional } = useAuthContext();
+  const { user, loginUser, loginUnified } = useAuthContext();
 
   const {
     register,
@@ -63,13 +63,8 @@ export function LoginForm({ isAdminLogin = false, redirectPath }: LoginFormProps
         // For admin login, only try as user (admin is a special user role)
         await loginUser(data);
       } else {
-        // Use the unified login approach - try professional first, then user
-        try {
-          await loginProfessional(data);
-        } catch (professionalError) {
-          console.log("Professional login failed, trying as user:", professionalError);
-          await loginUser(data);
-        }
+        // Use the unified login approach - single endpoint handles both user types
+        await loginUnified(data);
       }
     } catch (err) {
       console.error("Login failed:", err);

@@ -252,12 +252,34 @@ class ApiClient {
     return response;
   }
 
-  async registerUser(userData: UserCreate): Promise<User> {
-    return this.post<User>("/auth/register/user", userData);
+  async registerUser(userData: UserCreate): Promise<LoginResponse> {
+    const response = await this.post<LoginResponse>("/auth/register/user", userData);
+    
+    // Store the token from registration response
+    const { access_token } = response;
+    this.setToken(access_token);
+    
+    return response;
   }
 
-  async registerProfessional(professionalData: ProfessionalCreate): Promise<Professional> {
-    return this.post<Professional>("/auth/register/professional", professionalData);
+  async registerProfessional(professionalData: ProfessionalCreate): Promise<LoginResponse> {
+    const response = await this.post<LoginResponse>("/auth/register/professional", professionalData);
+    
+    // Store the token from registration response
+    const { access_token } = response;
+    this.setToken(access_token);
+    
+    return response;
+  }
+
+  async registerUnified(registerData: { email: string; password: string }): Promise<LoginResponse> {
+    const response = await this.post<LoginResponse>("/auth/register", registerData);
+    
+    // Store the token from registration response
+    const { access_token } = response;
+    this.setToken(access_token);
+    
+    return response;
   }
 
   async getCurrentUser(): Promise<AuthUser> {

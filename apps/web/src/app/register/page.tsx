@@ -9,14 +9,13 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/hooks/useAuth";
-import { registerWithEmail } from "@/lib/auth";
 import { registerSchema, type RegisterFormData } from "@/lib/validations";
 
 export default function RegisterPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
-  const { user, loginUser } = useAuth();
+  const { user, registerUser } = useAuth();
 
   const {
     register,
@@ -38,17 +37,11 @@ export default function RegisterPage() {
     setError(null);
 
     try {
-      // Register the user
-      await registerWithEmail({
+      // Register the user - now includes automatic login and redirect
+      await registerUser({
         email: data.email,
         password: data.password,
         full_name: data.fullName,
-      });
-
-      // Auto-login after successful registration
-      await loginUser({
-        email: data.email,
-        password: data.password,
       });
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : "Error al crear la cuenta";

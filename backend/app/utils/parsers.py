@@ -16,6 +16,48 @@ def parse_professional_data(professional: Professional) -> dict:
         for pmod in professional.professional_modalities:
             print(f"DEBUG: Modality: {pmod.modality_name}, Active: {pmod.is_active}")
 
+    # Parse JSON fields
+    academic_experience = []
+    if professional.academic_experience:
+        try:
+            academic_experience = json.loads(professional.academic_experience)
+            if not isinstance(academic_experience, list):
+                academic_experience = []
+        except json.JSONDecodeError:
+            academic_experience = []
+
+    work_experience = []
+    if professional.work_experience:
+        try:
+            work_experience = json.loads(professional.work_experience)
+            if not isinstance(work_experience, list):
+                work_experience = []
+        except json.JSONDecodeError:
+            work_experience = []
+
+    # Parse certifications - convert strings to objects if needed
+    certifications = []
+    if professional.certifications:
+        try:
+            # Handle case where certifications is already a list
+            if isinstance(professional.certifications, list):
+                cert_data = professional.certifications
+            else:
+                cert_data = json.loads(professional.certifications)
+
+            if isinstance(cert_data, list):
+                for cert in cert_data:
+                    if isinstance(cert, str):
+                        # Convert string to object format
+                        certifications.append({"name": cert, "document_url": None})
+                    elif isinstance(cert, dict):
+                        # Already in object format
+                        certifications.append(cert)
+            elif isinstance(cert_data, dict):
+                certifications = [cert_data]
+        except (json.JSONDecodeError, TypeError):
+            certifications = []
+
     return {
         "id": professional.id,
         "email": professional.email,
@@ -40,9 +82,9 @@ def parse_professional_data(professional: Professional) -> dict:
             if ps.specialty
         ],
         "bio": professional.bio,
-        "academic_experience": professional.academic_experience,
-        "work_experience": professional.work_experience,
-        "certifications": professional.certifications,
+        "academic_experience": academic_experience,
+        "work_experience": work_experience,
+        "certifications": certifications,
         "languages": professional.languages,
         "therapy_approaches_ids": professional.therapy_approaches_ids,
         "specialty_ids": professional.specialty_ids,

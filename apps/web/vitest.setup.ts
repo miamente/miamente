@@ -87,3 +87,55 @@ console.error = (...args) => {
   }
   originalConsoleError(...args);
 };
+
+// Mock useAuth hook globally
+vi.mock("@/hooks/useAuth", () => ({
+  useAuth: vi.fn(() => ({
+    user: null,
+    isLoading: false,
+    isAuthenticated: false,
+    loginUser: vi.fn(),
+    loginProfessional: vi.fn(),
+    loginUnified: vi.fn(),
+    registerUser: vi.fn(),
+    registerProfessional: vi.fn(),
+    registerUnified: vi.fn(),
+    logout: vi.fn(),
+    refreshUser: vi.fn(),
+    getUserEmail: vi.fn(),
+    getUserFullName: vi.fn(),
+    isUserVerified: vi.fn(),
+    isEmailVerified: vi.fn(),
+    getUserId: vi.fn(),
+    getUserRole: vi.fn(),
+    getUserUid: vi.fn(),
+  })),
+  isUserVerified: vi.fn(),
+  getUserEmail: vi.fn(),
+  getUserFullName: vi.fn(),
+}));
+
+// Mock AuthContext globally
+vi.mock("@/contexts/AuthContext", () => ({
+  AuthProvider: ({ children }: { children: React.ReactNode }) => children,
+  useAuthContext: vi.fn(() => ({
+    user: null,
+    isLoading: false,
+    isAuthenticated: false,
+    loginUser: vi.fn(),
+    loginProfessional: vi.fn(),
+    loginUnified: vi.fn(),
+    registerUser: vi.fn(),
+    registerProfessional: vi.fn(),
+    registerUnified: vi.fn(),
+    logout: vi.fn(),
+    refreshUser: vi.fn(),
+    getUserEmail: vi.fn(),
+    getUserFullName: vi.fn(),
+    isUserVerified: vi.fn(),
+    isEmailVerified: vi.fn(),
+    getUserId: vi.fn(),
+    getUserRole: vi.fn(),
+    getUserUid: vi.fn(),
+  })),
+}));

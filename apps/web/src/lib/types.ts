@@ -289,9 +289,12 @@ export interface AuthUser {
 export interface LoginResponse {
   access_token: string;
   token_type: string;
-  user_type: string;
+  user_type?: string;
   user?: User;
   professional?: Professional;
+  // For unified responses
+  user_data?: User;
+  professional_data?: Professional;
 }
 
 export interface RegisterRequest {

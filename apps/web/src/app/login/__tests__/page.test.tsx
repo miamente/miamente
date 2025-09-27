@@ -46,8 +46,10 @@ describe("LoginPage", () => {
       isAuthenticated: false,
       loginUser: vi.fn(),
       loginProfessional: vi.fn(),
+      loginUnified: vi.fn(),
       registerUser: vi.fn(),
       registerProfessional: vi.fn(),
+      registerUnified: vi.fn(),
       logout: vi.fn(),
       refreshUser: vi.fn(),
       getUserEmail: vi.fn(),
@@ -89,8 +91,10 @@ describe("LoginPage", () => {
       isAuthenticated: true,
       loginUser: vi.fn(),
       loginProfessional: vi.fn(),
+      loginUnified: vi.fn(),
       registerUser: vi.fn(),
       registerProfessional: vi.fn(),
+      registerUnified: vi.fn(),
       logout: vi.fn(),
       refreshUser: vi.fn(),
       getUserEmail: vi.fn(),
@@ -128,8 +132,10 @@ describe("LoginPage", () => {
       isAuthenticated: true,
       loginUser: vi.fn(),
       loginProfessional: vi.fn(),
+      loginUnified: vi.fn(),
       registerUser: vi.fn(),
       registerProfessional: vi.fn(),
+      registerUnified: vi.fn(),
       logout: vi.fn(),
       refreshUser: vi.fn(),
       getUserEmail: vi.fn(),
@@ -169,8 +175,10 @@ describe("LoginPage", () => {
       isAuthenticated: true,
       loginUser: vi.fn(),
       loginProfessional: vi.fn(),
+      loginUnified: vi.fn(),
       registerUser: vi.fn(),
       registerProfessional: vi.fn(),
+      registerUnified: vi.fn(),
       logout: vi.fn(),
       refreshUser: vi.fn(),
       getUserEmail: vi.fn(),
@@ -191,17 +199,18 @@ describe("LoginPage", () => {
 
   it("should handle successful professional login", async () => {
     const user = userEvent.setup();
-    const mockLoginProfessional = vi.fn().mockResolvedValue(undefined);
-    const mockLoginUser = vi.fn();
+    const mockLoginUnified = vi.fn().mockResolvedValue(undefined);
 
     mockUseAuthContext.mockReturnValue({
       user: null,
       isLoading: false,
       isAuthenticated: false,
-      loginUser: mockLoginUser,
-      loginProfessional: mockLoginProfessional,
+      loginUser: vi.fn(),
+      loginProfessional: vi.fn(),
+      loginUnified: mockLoginUnified,
       registerUser: vi.fn(),
       registerProfessional: vi.fn(),
+      registerUnified: vi.fn(),
       logout: vi.fn(),
       refreshUser: vi.fn(),
       getUserEmail: vi.fn(),
@@ -219,28 +228,27 @@ describe("LoginPage", () => {
     await user.click(screen.getByRole("button", { name: "Iniciar Sesión" }));
 
     await waitFor(() => {
-      expect(mockLoginProfessional).toHaveBeenCalledWith({
+      expect(mockLoginUnified).toHaveBeenCalledWith({
         email: "prof@example.com",
         password: "password123",
       });
     });
-
-    expect(mockLoginUser).not.toHaveBeenCalled();
   });
 
-  it("should fallback to user login when professional login fails", async () => {
+  it("should handle unified login failure", async () => {
     const user = userEvent.setup();
-    const mockLoginProfessional = vi.fn().mockRejectedValue(new Error("Professional login failed"));
-    const mockLoginUser = vi.fn().mockResolvedValue(undefined);
+    const mockLoginUnified = vi.fn().mockRejectedValue(new Error("Login failed"));
 
     mockUseAuthContext.mockReturnValue({
       user: null,
       isLoading: false,
       isAuthenticated: false,
-      loginUser: mockLoginUser,
-      loginProfessional: mockLoginProfessional,
+      loginUser: vi.fn(),
+      loginProfessional: vi.fn(),
+      loginUnified: mockLoginUnified,
       registerUser: vi.fn(),
       registerProfessional: vi.fn(),
+      registerUnified: vi.fn(),
       logout: vi.fn(),
       refreshUser: vi.fn(),
       getUserEmail: vi.fn(),
@@ -258,33 +266,27 @@ describe("LoginPage", () => {
     await user.click(screen.getByRole("button", { name: "Iniciar Sesión" }));
 
     await waitFor(() => {
-      expect(mockLoginProfessional).toHaveBeenCalledWith({
-        email: "user@example.com",
-        password: "password123",
-      });
-    });
-
-    await waitFor(() => {
-      expect(mockLoginUser).toHaveBeenCalledWith({
+      expect(mockLoginUnified).toHaveBeenCalledWith({
         email: "user@example.com",
         password: "password123",
       });
     });
   });
 
-  it("should show error message when both logins fail", async () => {
+  it("should show error message when login fails", async () => {
     const user = userEvent.setup();
-    const mockLoginProfessional = vi.fn().mockRejectedValue(new Error("Professional login failed"));
-    const mockLoginUser = vi.fn().mockRejectedValue(new Error("User login failed"));
+    const mockLoginUnified = vi.fn().mockRejectedValue(new Error("Login failed"));
 
     mockUseAuthContext.mockReturnValue({
       user: null,
       isLoading: false,
       isAuthenticated: false,
-      loginUser: mockLoginUser,
-      loginProfessional: mockLoginProfessional,
+      loginUser: vi.fn(),
+      loginProfessional: vi.fn(),
+      loginUnified: mockLoginUnified,
       registerUser: vi.fn(),
       registerProfessional: vi.fn(),
+      registerUnified: vi.fn(),
       logout: vi.fn(),
       refreshUser: vi.fn(),
       getUserEmail: vi.fn(),
@@ -302,22 +304,24 @@ describe("LoginPage", () => {
     await user.click(screen.getByRole("button", { name: "Iniciar Sesión" }));
 
     await waitFor(() => {
-      expect(screen.getByText("User login failed")).toBeInTheDocument();
+      expect(screen.getByText("Login failed")).toBeInTheDocument();
     });
   });
 
   it("should show loading state during login", async () => {
     const user = userEvent.setup();
-    const mockLoginProfessional = vi.fn().mockImplementation(() => new Promise(() => {})); // Never resolves
+    const mockLoginUnified = vi.fn().mockImplementation(() => new Promise(() => {})); // Never resolves
 
     mockUseAuthContext.mockReturnValue({
       user: null,
       isLoading: false,
       isAuthenticated: false,
       loginUser: vi.fn(),
-      loginProfessional: mockLoginProfessional,
+      loginProfessional: vi.fn(),
+      loginUnified: mockLoginUnified,
       registerUser: vi.fn(),
       registerProfessional: vi.fn(),
+      registerUnified: vi.fn(),
       logout: vi.fn(),
       refreshUser: vi.fn(),
       getUserEmail: vi.fn(),
@@ -345,16 +349,18 @@ describe("LoginPage", () => {
 
   it("should handle form submission with valid data", async () => {
     const user = userEvent.setup();
-    const mockLoginProfessional = vi.fn().mockResolvedValue(undefined);
+    const mockLoginUnified = vi.fn().mockResolvedValue(undefined);
 
     mockUseAuthContext.mockReturnValue({
       user: null,
       isLoading: false,
       isAuthenticated: false,
       loginUser: vi.fn(),
-      loginProfessional: mockLoginProfessional,
+      loginProfessional: vi.fn(),
+      loginUnified: mockLoginUnified,
       registerUser: vi.fn(),
       registerProfessional: vi.fn(),
+      registerUnified: vi.fn(),
       logout: vi.fn(),
       refreshUser: vi.fn(),
       getUserEmail: vi.fn(),
@@ -372,7 +378,7 @@ describe("LoginPage", () => {
     await user.click(screen.getByRole("button", { name: "Iniciar Sesión" }));
 
     await waitFor(() => {
-      expect(mockLoginProfessional).toHaveBeenCalledWith({
+      expect(mockLoginUnified).toHaveBeenCalledWith({
         email: "test@example.com",
         password: "password123",
       });
@@ -386,8 +392,10 @@ describe("LoginPage", () => {
       isAuthenticated: false,
       loginUser: vi.fn(),
       loginProfessional: vi.fn(),
+      loginUnified: vi.fn(),
       registerUser: vi.fn(),
       registerProfessional: vi.fn(),
+      registerUnified: vi.fn(),
       logout: vi.fn(),
       refreshUser: vi.fn(),
       getUserEmail: vi.fn(),
@@ -421,8 +429,10 @@ describe("LoginPage", () => {
       isAuthenticated: false,
       loginUser: vi.fn(),
       loginProfessional: vi.fn(),
+      loginUnified: vi.fn(),
       registerUser: vi.fn(),
       registerProfessional: vi.fn(),
+      registerUnified: vi.fn(),
       logout: vi.fn(),
       refreshUser: vi.fn(),
       getUserEmail: vi.fn(),
@@ -450,17 +460,18 @@ describe("LoginPage", () => {
 
   it("should handle generic error messages", async () => {
     const user = userEvent.setup();
-    const mockLoginProfessional = vi.fn().mockRejectedValue("String error");
-    const mockLoginUser = vi.fn().mockRejectedValue("String error");
+    const mockLoginUnified = vi.fn().mockRejectedValue("String error");
 
     mockUseAuthContext.mockReturnValue({
       user: null,
       isLoading: false,
       isAuthenticated: false,
-      loginUser: mockLoginUser,
-      loginProfessional: mockLoginProfessional,
+      loginUser: vi.fn(),
+      loginProfessional: vi.fn(),
+      loginUnified: mockLoginUnified,
       registerUser: vi.fn(),
       registerProfessional: vi.fn(),
+      registerUnified: vi.fn(),
       logout: vi.fn(),
       refreshUser: vi.fn(),
       getUserEmail: vi.fn(),
