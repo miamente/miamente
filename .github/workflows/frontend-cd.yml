@@ -116,6 +116,13 @@ jobs:
           echo "✅ Backend ALB URL: $BACKEND_ALB_URL_HTTP"
           echo "backend_alb_url=$BACKEND_ALB_URL_HTTP" >> $GITHUB_OUTPUT
 
+      - name: Setup Node.js for E2E tests
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: tests/e2e/package-lock.json
+
       - name: Install E2E test dependencies
         working-directory: tests/e2e
         run: npm ci
@@ -175,6 +182,15 @@ jobs:
           echo "Backend URL: $BACKEND_INTERNAL_URL"
           echo "Frontend URL: $E2E_BASE_URL"
           echo "Current directory: $(pwd)"
+          
+          # Debug information
+          echo "Node.js version: $(node --version)"
+          echo "npm version: $(npm --version)"
+          echo "Package.json exists: $([ -f package.json ] && echo 'Yes' || echo 'No')"
+          echo "node_modules exists: $([ -d node_modules ] && echo 'Yes' || echo 'No')"
+          echo "Playwright binary exists: $([ -f node_modules/.bin/playwright ] && echo 'Yes' || echo 'No')"
+          echo "Package contents:"
+          ls -la node_modules/@playwright/ || echo "❌ @playwright directory not found"
 
           # Verify staging environment is accessible
           echo "Final verification of staging environment..."
