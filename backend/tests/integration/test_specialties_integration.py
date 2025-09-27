@@ -270,7 +270,8 @@ class TestSpecialtiesIntegration:
         assert updated_specialty["name"] == update_data["name"]
 
         # Step 4: Verify the specialty appears in the list
-        response = client.get("/api/v1/specialties/")
+        # Use a higher limit to ensure we get all specialties
+        response = client.get("/api/v1/specialties/?limit=1000")
         assert response.status_code == 200
         all_specialties = response.json()
 
