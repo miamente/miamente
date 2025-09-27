@@ -13,7 +13,7 @@ from app.core.database import get_session_factory
 from app.models.specialty import Specialty
 from app.models.therapeutic_approach import TherapeuticApproach
 from app.models.modality import Modality
-from app.models.user import User
+from app.models.user import User, UserRole
 from app.models.professional import Professional
 from app.core.security import get_password_hash
 
@@ -119,17 +119,24 @@ def seed_reference_data(db: Session) -> None:
 
 def seed_users(db: Session) -> None:
     """Create demo users (idempotent)."""
-    get_or_create(
+    import logging
+
+    logger = logging.getLogger(__name__)
+
+    user_email = "usuario.test@miamente.com"
+    logger.info("Creating/checking demo user: %s", user_email)
+
+    _, created = get_or_create(
         User,
         db,
-        email="usuario.test@miamente.com",
+        email=user_email,
         defaults={
             "hashed_password": get_password_hash("test123456"),
             "full_name": "Usuario Test",
             "phone": "+573001234568",
             "is_active": True,
             "is_verified": True,  # Always verified - no email verification required
-            "role": "user",  # Default role
+            "role": UserRole.USER,  # Default role
             "date_of_birth": None,
             "emergency_contact": "Contacto de Emergencia",
             "emergency_phone": "+573001234569",
@@ -137,14 +144,33 @@ def seed_users(db: Session) -> None:
         },
     )
 
+    if created:
+        logger.info("✅ Created new demo user: %s", user_email)
+    else:
+        logger.info("✅ Demo user already exists: %s", user_email)
+
 
 def seed_professional(db: Session) -> None:
     """Create a demo professional and link to a specialty if available."""
+    import logging
+
+    logger = logging.getLogger(__name__)
+
+    professional_email = "dr.test@miamente.com"
+    logger.info("Creating/checking demo professional: %s", professional_email)
+
     specialty = db.query(Specialty).filter_by(name="Psicología clínica").first()
-    get_or_create(
+    if specialty:
+        logger.info("✅ Found specialty: %s", specialty.name)
+    else:
+        logger.warning(
+            "⚠️ Specialty 'Psicología clínica' not found, professional will be created without specialty link"
+        )
+
+    _, created = get_or_create(
         Professional,
         db,
-        email="dr.test@miamente.com",
+        email=professional_email,
         defaults={
             "hashed_password": get_password_hash("test123456"),
             "full_name": "Dr. Test Professional",
@@ -177,16 +203,43 @@ def seed_professional(db: Session) -> None:
         },
     )
 
+    if created:
+        logger.info("✅ Created new demo professional: %s", professional_email)
+    else:
+        logger.info("✅ Demo professional already exists: %s", professional_email)
+
 
 def run() -> None:
     """Entry point: open a DB session and perform the full seeding."""
+    import logging
+
+    logger = logging.getLogger(__name__)
+
     session_local = get_session_factory()
+    if session_local is None:
+        raise RuntimeError("Could not create database session factory")
+
     db = session_local()
     try:
+        logger.info("🌱 Starting demo data seeding...")
+
+        # Seed reference data
+        logger.info("📊 Seeding reference data...")
         seed_reference_data(db)
+
+        # Seed users
+        logger.info("👥 Seeding demo users...")
         seed_users(db)
+
+        # Seed professionals
+        logger.info("👨‍⚕️ Seeding demo professionals...")
         seed_professional(db)
+
+        logger.info("✅ Demo data seeded successfully")
         print("✅ Demo data seeded")
+    except Exception as e:
+        logger.error("❌ Error during seeding: %s", e)
+        raise
     finally:
         db.close()
 
