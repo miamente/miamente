@@ -127,12 +127,20 @@ class TestAuthEndpointsUnit:
         return {"access_token": "access_token_123", "refresh_token": "refresh_token_123", "token_type": "bearer"}
 
     @pytest.mark.asyncio
+    @patch("app.api.v1.endpoints.auth.create_token_response")
     @patch("app.api.v1.endpoints.auth.AuthService")
-    async def test_register_user_success(self, mock_auth_service_class, mock_db_session, sample_user_data, sample_user):
+    async def test_register_user_success(
+        self, mock_auth_service_class, mock_create_token, mock_db_session, sample_user_data, sample_user
+    ):
         """Test successful user registration."""
         # Arrange
         mock_auth_service = mock_auth_service_class.return_value
         mock_auth_service.create_user.return_value = sample_user
+        mock_create_token.return_value = {
+            "access_token": "test_access_token",
+            "refresh_token": "test_refresh_token",
+            "token_type": "bearer",
+        }
 
         # Act
         result = await register_user(sample_user_data, mock_db_session)
@@ -140,17 +148,27 @@ class TestAuthEndpointsUnit:
         # Assert
         mock_auth_service_class.assert_called_once_with(mock_db_session)
         mock_auth_service.create_user.assert_called_once_with(sample_user_data)
-        assert result == sample_user
+        mock_create_token.assert_called_once_with(str(sample_user.id))
+        assert result.access_token == "test_access_token"
+        assert result.refresh_token == "test_refresh_token"
+        assert result.token_type == "bearer"
+        assert result.user.id == sample_user.id
 
     @pytest.mark.asyncio
+    @patch("app.api.v1.endpoints.auth.create_token_response")
     @patch("app.api.v1.endpoints.auth.AuthService")
     async def test_register_professional_success(
-        self, mock_auth_service_class, mock_db_session, sample_professional_data, sample_professional
+        self, mock_auth_service_class, mock_create_token, mock_db_session, sample_professional_data, sample_professional
     ):
         """Test successful professional registration."""
         # Arrange
         mock_auth_service = mock_auth_service_class.return_value
         mock_auth_service.create_professional.return_value = sample_professional
+        mock_create_token.return_value = {
+            "access_token": "test_access_token",
+            "refresh_token": "test_refresh_token",
+            "token_type": "bearer",
+        }
 
         # Act
         result = await register_professional(sample_professional_data, mock_db_session)
@@ -158,7 +176,11 @@ class TestAuthEndpointsUnit:
         # Assert
         mock_auth_service_class.assert_called_once_with(mock_db_session)
         mock_auth_service.create_professional.assert_called_once_with(sample_professional_data)
-        assert result == sample_professional
+        mock_create_token.assert_called_once_with(str(sample_professional.id))
+        assert result.access_token == "test_access_token"
+        assert result.refresh_token == "test_refresh_token"
+        assert result.token_type == "bearer"
+        assert result.professional.id == sample_professional.id
 
     @pytest.mark.asyncio
     @patch("app.api.v1.endpoints.auth.create_token_response")
@@ -414,7 +436,6 @@ class TestAuthEndpointsUnit:
 
         assert exc_info.value.status_code == status.HTTP_401_UNAUTHORIZED
         assert exc_info.value.detail == "Incorrect email or password"
-
 
     @pytest.mark.asyncio
     @patch("app.api.v1.endpoints.auth.create_token_response")

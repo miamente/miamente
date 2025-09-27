@@ -57,8 +57,10 @@ describe("RegisterPage", () => {
       isAuthenticated: false,
       loginUser: vi.fn(),
       loginProfessional: vi.fn(),
+      loginUnified: vi.fn(),
       registerUser: vi.fn(),
       registerProfessional: vi.fn(),
+      registerUnified: vi.fn(),
       logout: vi.fn(),
       refreshUser: vi.fn(),
       getAuthHeaders: vi.fn(),
@@ -97,8 +99,10 @@ describe("RegisterPage", () => {
       isAuthenticated: true,
       loginUser: vi.fn(),
       loginProfessional: vi.fn(),
+      loginUnified: vi.fn(),
       registerUser: vi.fn(),
       registerProfessional: vi.fn(),
+      registerUnified: vi.fn(),
       logout: vi.fn(),
       refreshUser: vi.fn(),
       getAuthHeaders: vi.fn(),
@@ -131,8 +135,10 @@ describe("RegisterPage", () => {
       isAuthenticated: true,
       loginUser: vi.fn(),
       loginProfessional: vi.fn(),
+      loginUnified: vi.fn(),
       registerUser: vi.fn(),
       registerProfessional: vi.fn(),
+      registerUnified: vi.fn(),
       logout: vi.fn(),
       refreshUser: vi.fn(),
       getAuthHeaders: vi.fn(),
@@ -165,8 +171,10 @@ describe("RegisterPage", () => {
       isAuthenticated: true,
       loginUser: vi.fn(),
       loginProfessional: vi.fn(),
+      loginUnified: vi.fn(),
       registerUser: vi.fn(),
       registerProfessional: vi.fn(),
+      registerUnified: vi.fn(),
       logout: vi.fn(),
       refreshUser: vi.fn(),
       getAuthHeaders: vi.fn(),
@@ -178,27 +186,18 @@ describe("RegisterPage", () => {
   });
 
   it("should handle successful registration and redirect to dashboard", async () => {
-    mockRegisterWithEmail.mockResolvedValue({
-      id: "user-123",
-      email: "test@example.com",
-      full_name: "Test User",
-      is_verified: false,
-      is_active: true,
-      phone: "+1234567890",
-      created_at: "2023-01-01T00:00:00Z",
-      updated_at: "2023-01-01T00:00:00Z",
-    });
-
-    const mockLoginUser = vi.fn().mockResolvedValue(undefined);
+    const mockRegisterUser = vi.fn().mockResolvedValue(undefined);
 
     mockUseAuth.mockReturnValue({
       user: null,
       isLoading: false,
       isAuthenticated: false,
-      loginUser: mockLoginUser,
+      loginUser: vi.fn(),
       loginProfessional: vi.fn(),
-      registerUser: vi.fn(),
+      loginUnified: vi.fn(),
+      registerUser: mockRegisterUser,
       registerProfessional: vi.fn(),
+      registerUnified: vi.fn(),
       logout: vi.fn(),
       refreshUser: vi.fn(),
       getAuthHeaders: vi.fn(),
@@ -223,29 +222,19 @@ describe("RegisterPage", () => {
     fireEvent.click(screen.getByRole("button", { name: "Crear Cuenta" }));
 
     await waitFor(() => {
-      expect(mockRegisterWithEmail).toHaveBeenCalledWith({
+      expect(mockRegisterUser).toHaveBeenCalledWith({
         email: "test@example.com",
         password: "password123",
         full_name: "Test User",
       });
     });
-
-    await waitFor(() => {
-      expect(mockLoginUser).toHaveBeenCalledWith({
-        email: "test@example.com",
-        password: "password123",
-      });
-    });
-
-    // loginUser already handles the redirect to dashboard
-    // so we don't need to check for router.push here
   });
 
 
 
   it("should handle registration error", async () => {
     const user = userEvent.setup();
-    mockRegisterWithEmail.mockRejectedValue(new Error("Email already exists"));
+    const mockRegisterUser = vi.fn().mockRejectedValue(new Error("Email already exists"));
 
     mockUseAuth.mockReturnValue({
       user: null,
@@ -253,8 +242,10 @@ describe("RegisterPage", () => {
       isAuthenticated: false,
       loginUser: vi.fn(),
       loginProfessional: vi.fn(),
-      registerUser: vi.fn(),
+      loginUnified: vi.fn(),
+      registerUser: mockRegisterUser,
       registerProfessional: vi.fn(),
+      registerUnified: vi.fn(),
       logout: vi.fn(),
       refreshUser: vi.fn(),
       getAuthHeaders: vi.fn(),
@@ -278,7 +269,7 @@ describe("RegisterPage", () => {
   it("should show loading state during registration", async () => {
     const user = userEvent.setup();
     // Make the promise resolve after a delay to test loading state
-    mockRegisterWithEmail.mockImplementation(
+    const mockRegisterUser = vi.fn().mockImplementation(
       () => new Promise((resolve) => setTimeout(resolve, 100)),
     );
 
@@ -288,8 +279,10 @@ describe("RegisterPage", () => {
       isAuthenticated: false,
       loginUser: vi.fn(),
       loginProfessional: vi.fn(),
-      registerUser: vi.fn(),
+      loginUnified: vi.fn(),
+      registerUser: mockRegisterUser,
       registerProfessional: vi.fn(),
+      registerUnified: vi.fn(),
       logout: vi.fn(),
       refreshUser: vi.fn(),
       getAuthHeaders: vi.fn(),
@@ -327,8 +320,10 @@ describe("RegisterPage", () => {
       isAuthenticated: false,
       loginUser: vi.fn(),
       loginProfessional: vi.fn(),
+      loginUnified: vi.fn(),
       registerUser: vi.fn(),
       registerProfessional: vi.fn(),
+      registerUnified: vi.fn(),
       logout: vi.fn(),
       refreshUser: vi.fn(),
       getAuthHeaders: vi.fn(),
@@ -354,8 +349,10 @@ describe("RegisterPage", () => {
       isAuthenticated: false,
       loginUser: vi.fn(),
       loginProfessional: vi.fn(),
+      loginUnified: vi.fn(),
       registerUser: vi.fn(),
       registerProfessional: vi.fn(),
+      registerUnified: vi.fn(),
       logout: vi.fn(),
       refreshUser: vi.fn(),
       getAuthHeaders: vi.fn(),
@@ -389,8 +386,10 @@ describe("RegisterPage", () => {
       isAuthenticated: false,
       loginUser: vi.fn(),
       loginProfessional: vi.fn(),
+      loginUnified: vi.fn(),
       registerUser: vi.fn(),
       registerProfessional: vi.fn(),
+      registerUnified: vi.fn(),
       logout: vi.fn(),
       refreshUser: vi.fn(),
       getAuthHeaders: vi.fn(),
@@ -421,8 +420,10 @@ describe("RegisterPage", () => {
       isAuthenticated: false,
       loginUser: vi.fn(),
       loginProfessional: vi.fn(),
+      loginUnified: vi.fn(),
       registerUser: vi.fn(),
       registerProfessional: vi.fn(),
+      registerUnified: vi.fn(),
       logout: vi.fn(),
       refreshUser: vi.fn(),
       getAuthHeaders: vi.fn(),
@@ -452,8 +453,10 @@ describe("RegisterPage", () => {
       isAuthenticated: false,
       loginUser: vi.fn(),
       loginProfessional: vi.fn(),
+      loginUnified: vi.fn(),
       registerUser: vi.fn(),
       registerProfessional: vi.fn(),
+      registerUnified: vi.fn(),
       logout: vi.fn(),
       refreshUser: vi.fn(),
       getAuthHeaders: vi.fn(),
@@ -475,8 +478,10 @@ describe("RegisterPage", () => {
       isAuthenticated: false,
       loginUser: vi.fn(),
       loginProfessional: vi.fn(),
+      loginUnified: vi.fn(),
       registerUser: vi.fn(),
       registerProfessional: vi.fn(),
+      registerUnified: vi.fn(),
       logout: vi.fn(),
       refreshUser: vi.fn(),
       getAuthHeaders: vi.fn(),

@@ -9,6 +9,7 @@ This module contains a smoke test to verify the basic loading and key elements
 of the Miamente landing page using Selenium and pytest.
 """
 
+
 @pytest.fixture
 def browser():
     """Fixture to set up the Chrome browser for Selenium tests.
@@ -24,6 +25,8 @@ def browser():
     yield driver
     driver.quit()
 
+
+@pytest.mark.smoke
 def test_smoke_test(browser):
     """Verifica la carga básica y los elementos clave de la página de aterrizaje.
 
