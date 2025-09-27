@@ -117,17 +117,14 @@ jobs:
           echo "backend_alb_url=$BACKEND_ALB_URL_HTTP" >> $GITHUB_OUTPUT
 
       - name: Install E2E test dependencies
-        if: steps.get_backend_url_e2e.outputs.backend_available == 'true'
         working-directory: tests/e2e
         run: npm ci
 
-      - name: Install Playwright browsers & system deps
-        if: steps.get_backend_url_e2e.outputs.backend_available == 'true'
+      - name: Install Playwright browsers & system deps¡
         working-directory: tests/e2e
         run: npx playwright install --with-deps
 
       - name: Wait for Staging Environment to be Ready
-        if: steps.get_backend_url_e2e.outputs.backend_available == 'true'
         run: |
           echo "🔍 Waiting for staging environment to be ready..."
           echo "Backend URL: ${{ steps.get_backend_url_e2e.outputs.backend_alb_url }}"
@@ -200,7 +197,7 @@ jobs:
           ls -la test-results/ || echo "❌ test-results/ not found"
 
       - name: Upload Playwright report artifacts
-        if: always() && steps.get_backend_url_e2e.outputs.backend_available == 'true'
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: playwright-staging-report
