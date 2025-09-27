@@ -23,6 +23,7 @@ import {
   createProfessionalProfile,
   updateProfessionalProfile,
 } from "@/lib/profiles";
+import { apiClient } from "@/lib/api";
 import type { ProfessionalProfile } from "@/lib/profiles";
 import { professionalProfileSchema, type ProfessionalProfileFormData } from "@/lib/validations";
 import type { Certification } from "@/lib/types";
@@ -113,9 +114,6 @@ export default function ProfessionalProfilePage() {
   }, [user, isLoading, router, loadProfile]);
 
   const uploadProfilePicture = async (file: File): Promise<string> => {
-    const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
-    const token = localStorage.getItem("access_token");
-
     // Delete old profile picture if it exists
     if (profile?.profile_picture) {
       try {
@@ -123,13 +121,7 @@ export default function ProfessionalProfilePage() {
         const userId = urlParts[urlParts.length - 2];
         const filename = urlParts[urlParts.length - 1];
 
-        await fetch(`${API_BASE_URL}/api/v1/files/profile-picture/${userId}/${filename}`, {
-          method: "DELETE",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-
+        await apiClient.deleteProfilePicture(userId, filename);
         console.log("Old profile picture deleted successfully");
       } catch (deleteError) {
         console.warn("Error deleting old profile picture:", deleteError);
@@ -137,25 +129,7 @@ export default function ProfessionalProfilePage() {
       }
     }
 
-    const formData = new FormData();
-    formData.append("file", file);
-
-    const response = await fetch(`${API_BASE_URL}/api/v1/files/upload/profile-picture`, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-      body: formData,
-    });
-
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({ detail: "Unknown error" }));
-      throw new Error(
-        `Error uploading profile picture: ${errorData.detail || response.statusText}`,
-      );
-    }
-
-    const result = await response.json();
+    const result = await apiClient.uploadProfilePicture(file);
     return result.file_url;
   };
 
