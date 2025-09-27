@@ -135,16 +135,6 @@ jobs:
           echo "Running npm ci..."
           npm ci --verbose
           echo "Dependencies installed successfully"
-          
-          # Verify installation
-          echo "Checking node_modules structure..."
-          ls -la node_modules/ | head -10
-          echo "Checking .bin directory..."
-          ls -la node_modules/.bin/ | head -10
-          
-          # Verify @playwright/test is installed
-          echo "Checking Playwright installation..."
-          npm list @playwright/test
 
       - name: Install Playwright browsers & system deps
         working-directory: tests/e2e
@@ -156,17 +146,6 @@ jobs:
           echo "Installing Playwright browsers..."
           npx playwright install --with-deps
           echo "Playwright installation completed"
-          
-          # Verify Playwright installation
-          echo "Verifying Playwright installation..."
-          echo "Checking @playwright directory:"
-          ls -la node_modules/@playwright/ || echo "❌ @playwright directory not found"
-          
-          echo "Checking .bin directory:"
-          ls -la node_modules/.bin/ | grep playwright || echo "⚠️ playwright binary not in .bin"
-          
-          echo "Playwright version:"
-          npx playwright --version || echo "❌ Could not get Playwright version"
 
       - name: Wait for Staging Environment to be Ready
         run: |
