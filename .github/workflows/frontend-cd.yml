@@ -99,24 +99,44 @@ jobs:
             --output text 2>/dev/null || echo "")
           
           if [ -z "$BACKEND_ALB_URL" ] || [ "$BACKEND_ALB_URL" == "None" ]; then
-            echo "❌ Backend stack not found or ALB URL not available"
-            echo "Please ensure backend is deployed first"
-            exit 1
+            echo "⚠️ Backend stack not found or ALB URL not available"
+            echo "E2E tests will be skipped - backend may not be deployed yet"
+            echo "backend_available=false" >> $GITHUB_OUTPUT
+            echo "backend_alb_url=" >> $GITHUB_OUTPUT
+          else
+            BACKEND_ALB_URL_HTTP="http://${BACKEND_ALB_URL}"
+            echo "✅ Backend ALB URL for E2E: $BACKEND_ALB_URL_HTTP"
+            echo "backend_available=true" >> $GITHUB_OUTPUT
+            echo "backend_alb_url=$BACKEND_ALB_URL_HTTP" >> $GITHUB_OUTPUT
           fi
-          
-          BACKEND_ALB_URL_HTTP="http://${BACKEND_ALB_URL}"
-          echo "✅ Backend ALB URL for E2E: $BACKEND_ALB_URL_HTTP"
-          echo "backend_alb_url=$BACKEND_ALB_URL_HTTP" >> $GITHUB_OUTPUT
+
+      - name: Skip E2E Tests - Backend Not Available
+        if: steps.get_backend_url_e2e.outputs.backend_available != 'true'
+        run: |
+          echo "⚠️ E2E Tests Skipped: Backend not available"
+          echo "This usually happens when:"
+          echo "  1. Backend hasn't been deployed to staging yet"
+          echo "  2. Backend deployment is in progress"
+          echo "  3. Backend stack has a different name"
+          echo ""
+          echo "To run E2E tests:"
+          echo "  1. Ensure backend is deployed first (miamente-staging-stack)"
+          echo "  2. Re-run this workflow or trigger via workflow_dispatch"
+          echo ""
+          echo "Frontend deployment will continue without E2E tests."
 
       - name: Install E2E test dependencies
+        if: steps.get_backend_url_e2e.outputs.backend_available == 'true'
         working-directory: tests/e2e
         run: npm ci
 
       - name: Install Playwright browsers & system deps
+        if: steps.get_backend_url_e2e.outputs.backend_available == 'true'
         working-directory: tests/e2e
         run: npx playwright install --with-deps
 
       - name: Wait for Staging Environment to be Ready
+        if: steps.get_backend_url_e2e.outputs.backend_available == 'true'
         run: |
           echo "🔍 Waiting for staging environment to be ready..."
           echo "Backend URL: ${{ steps.get_backend_url_e2e.outputs.backend_alb_url }}"
@@ -157,6 +177,7 @@ jobs:
           done
 
       - name: Run Playwright E2E Tests Against Staging
+        if: steps.get_backend_url_e2e.outputs.backend_available == 'true'
         working-directory: tests/e2e
         env:
           # Override test URLs to use staging environment
@@ -188,7 +209,7 @@ jobs:
           ls -la test-results/ || echo "❌ test-results/ not found"
 
       - name: Upload Playwright report artifacts
-        if: always()
+        if: always() && steps.get_backend_url_e2e.outputs.backend_available == 'true'
         uses: actions/upload-artifact@v4
         with:
           name: playwright-staging-report
