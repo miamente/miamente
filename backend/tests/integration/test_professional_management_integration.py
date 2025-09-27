@@ -14,7 +14,6 @@ from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
 
 from app.models.professional import Professional as ProfessionalModel
-from app.models.user import User as UserModel
 from app.core.security import verify_token
 
 pytestmark = pytest.mark.integration
@@ -26,13 +25,14 @@ class TestProfessionalManagementIntegration:
     def _create_test_specialty(self, client: TestClient, test_name_generator):
         """Helper method to create a test specialty."""
         import uuid
+
         specialty_name = f"{test_name_generator('TestSpecialty')}_{uuid.uuid4().hex[:8]}"
         specialty_data = {"name": specialty_name, "description": f"Test specialty: {specialty_name}"}
-        
+
         response = client.post("/api/v1/specialties/", json=specialty_data)
         if response.status_code == 201:
             return response.json()["id"]
-        elif response.status_code == 400 and "already exists" in response.json().get("detail", ""):
+        if response.status_code == 400 and "already exists" in response.json().get("detail", ""):
             # Specialty already exists, get its ID
             response = client.get("/api/v1/specialties/")
             specialties = response.json()
@@ -44,13 +44,14 @@ class TestProfessionalManagementIntegration:
     def _create_test_modality(self, client: TestClient, test_name_generator):
         """Helper method to create a test modality."""
         import uuid
+
         modality_name = f"{test_name_generator('TestModality')}_{uuid.uuid4().hex[:8]}"
         modality_data = {"name": modality_name, "description": f"Test modality: {modality_name}"}
-        
+
         response = client.post("/api/v1/modalities/", json=modality_data)
         if response.status_code == 201:
             return response.json()["id"]
-        elif response.status_code == 400 and "already exists" in response.json().get("detail", ""):
+        if response.status_code == 400 and "already exists" in response.json().get("detail", ""):
             # Modality already exists, get its ID
             response = client.get("/api/v1/modalities/")
             modalities = response.json()
@@ -62,13 +63,14 @@ class TestProfessionalManagementIntegration:
     def _create_test_therapeutic_approach(self, client: TestClient, test_name_generator):
         """Helper method to create a test therapeutic approach."""
         import uuid
+
         approach_name = f"{test_name_generator('TestApproach')}_{uuid.uuid4().hex[:8]}"
         approach_data = {"name": approach_name, "description": f"Test approach: {approach_name}"}
-        
+
         response = client.post("/api/v1/therapeutic-approaches/", json=approach_data)
         if response.status_code == 201:
             return response.json()["id"]
-        elif response.status_code == 400 and "already exists" in response.json().get("detail", ""):
+        if response.status_code == 400 and "already exists" in response.json().get("detail", ""):
             # Approach already exists, get its ID
             response = client.get("/api/v1/therapeutic-approaches/")
             approaches = response.json()
@@ -86,14 +88,16 @@ class TestProfessionalManagementIntegration:
 
         # Create professional data
         professional_data = test_data_factory["professional"]("integration_professional")
-        professional_data.update({
-            "specialty_ids": [specialty_id] if specialty_id else [],
-            "modality_ids": [modality_id] if modality_id else [],
-            "therapeutic_approach_ids": [approach_id] if approach_id else [],
-            "bio": "Test professional bio for integration testing",
-            "rate_cents": 75000,  # $750 per session
-            "phone": "+1234567890"
-        })
+        professional_data.update(
+            {
+                "specialty_ids": [specialty_id] if specialty_id else [],
+                "modality_ids": [modality_id] if modality_id else [],
+                "therapeutic_approach_ids": [approach_id] if approach_id else [],
+                "bio": "Test professional bio for integration testing",
+                "rate_cents": 75000,  # $750 per session
+                "phone": "+1234567890",
+            }
+        )
 
         response = client.post("/api/v1/auth/register/professional", json=professional_data)
         assert response.status_code == 201
@@ -104,9 +108,9 @@ class TestProfessionalManagementIntegration:
         assert "id" in registered_professional
 
         # Verify professional was created in the database
-        db_professional = db_session.query(ProfessionalModel).filter(
-            ProfessionalModel.email == professional_data["email"]
-        ).first()
+        db_professional = (
+            db_session.query(ProfessionalModel).filter(ProfessionalModel.email == professional_data["email"]).first()
+        )
         assert db_professional is not None
         assert db_professional.email == professional_data["email"]
         assert db_professional.full_name == professional_data["full_name"]
@@ -140,10 +144,12 @@ class TestProfessionalManagementIntegration:
         assert professional_profile["full_name"] == expected_professional_data["full_name"]
         return professional_profile
 
-    def test_complete_professional_registration_flow(self, client: TestClient, db_session: Session, test_data_factory, test_name_generator):
+    def test_complete_professional_registration_flow(
+        self, client: TestClient, db_session: Session, test_data_factory, test_name_generator
+    ):
         """Test the complete professional registration flow from registration to profile access."""
         # Step 1: Register a new professional with complete data
-        professional_data, registered_professional, db_professional = self._register_professional(
+        professional_data, registered_professional, _ = self._register_professional(
             client, db_session, test_data_factory, test_name_generator
         )
 
@@ -153,7 +159,7 @@ class TestProfessionalManagementIntegration:
         # Step 3: Verify the token is valid
         token_user_id = verify_token(access_token)
         assert token_user_id is not None
-        assert token_user_id == str(db_professional.id)
+        assert token_user_id == str(registered_professional["id"])
 
         # Step 4: Access professional profile endpoint
         professional_profile = self._test_professional_profile_access(client, access_token, professional_data)
@@ -173,10 +179,12 @@ class TestProfessionalManagementIntegration:
         # Verify the new token works
         self._test_professional_profile_access(client, new_access_token, professional_data)
 
-    def test_professional_profile_update(self, client: TestClient, db_session: Session, test_data_factory, test_name_generator):
+    def test_professional_profile_update(
+        self, client: TestClient, db_session: Session, test_data_factory, test_name_generator
+    ):
         """Test professional profile update functionality."""
         # Step 1: Register and login as professional
-        professional_data, registered_professional, db_professional = self._register_professional(
+        professional_data, registered_professional, _ = self._register_professional(
             client, db_session, test_data_factory, test_name_generator
         )
         access_token, _ = self._login_professional(client, professional_data)
@@ -188,7 +196,7 @@ class TestProfessionalManagementIntegration:
             "full_name": "Updated Professional Name",
             "bio": "Updated professional bio with more details",
             "rate_cents": 85000,  # Updated rate
-            "phone": "+9876543210"
+            "phone": "+9876543210",
         }
 
         response = client.put("/api/v1/professionals/me", json=update_data, headers=headers)
@@ -208,9 +216,11 @@ class TestProfessionalManagementIntegration:
         # Note: For integration tests, we focus on API behavior rather than direct database state
         # The API response above already confirms the update was successful
         if db_session is not None:
-            db_professional_updated = db_session.query(ProfessionalModel).filter(
-                ProfessionalModel.id == registered_professional["id"]
-            ).first()
+            db_professional_updated = (
+                db_session.query(ProfessionalModel)
+                .filter(ProfessionalModel.id == registered_professional["id"])
+                .first()
+            )
             assert db_professional_updated is not None
             # The database might not reflect the update immediately due to transaction isolation
             # We rely on the API response validation above for integration testing
@@ -227,7 +237,9 @@ class TestProfessionalManagementIntegration:
         if "phone" in retrieved_profile and "phone" in update_data:
             assert retrieved_profile["phone"] == update_data["phone"]
 
-    def test_professional_authentication_and_authorization(self, client: TestClient, db_session: Session, test_data_factory, test_name_generator):
+    def test_professional_authentication_and_authorization(
+        self, client: TestClient, db_session: Session, test_data_factory, test_name_generator
+    ):
         """Test authentication and authorization for professional endpoints."""
         # Step 1: Register and login as professional
         professional_data, _, _ = self._register_professional(
@@ -249,7 +261,9 @@ class TestProfessionalManagementIntegration:
         response = client.get("/api/v1/professionals/me/profile", headers=invalid_headers)
         assert response.status_code == 401
 
-        response = client.put("/api/v1/professionals/me", json={"full_name": "Invalid Token Update"}, headers=invalid_headers)
+        response = client.put(
+            "/api/v1/professionals/me", json={"full_name": "Invalid Token Update"}, headers=invalid_headers
+        )
         assert response.status_code == 401
 
         # Step 4: Test authorized access
@@ -292,10 +306,12 @@ class TestProfessionalManagementIntegration:
         # The API might accept negative rates, so we just verify it doesn't crash
         assert response.status_code in [201, 400, 422]  # Accept various responses
 
-    def test_professional_specialties_and_modalities_management(self, client: TestClient, db_session: Session, test_data_factory, test_name_generator):
+    def test_professional_specialties_and_modalities_management(
+        self, client: TestClient, db_session: Session, test_data_factory, test_name_generator
+    ):
         """Test professional specialties and modalities management."""
         # Step 1: Register professional with specialties and modalities
-        professional_data, registered_professional, db_professional = self._register_professional(
+        professional_data, registered_professional, _ = self._register_professional(
             client, db_session, test_data_factory, test_name_generator
         )
         access_token, _ = self._login_professional(client, professional_data)
@@ -312,7 +328,7 @@ class TestProfessionalManagementIntegration:
             update_data = {
                 "specialty_ids": [new_specialty_id],
                 "modality_ids": [new_modality_id],
-                "therapeutic_approach_ids": [new_approach_id]
+                "therapeutic_approach_ids": [new_approach_id],
             }
 
             response = client.put("/api/v1/professionals/me", json=update_data, headers=headers)
@@ -329,10 +345,12 @@ class TestProfessionalManagementIntegration:
         profile = response.json()
         assert profile["id"] == registered_professional["id"]
 
-    def test_professional_complete_workflow(self, client: TestClient, db_session: Session, test_data_factory, test_name_generator):
+    def test_professional_complete_workflow(
+        self, client: TestClient, db_session: Session, test_data_factory, test_name_generator
+    ):
         """Test complete professional workflow from registration to multiple updates."""
         # Step 1: Register and login as professional
-        professional_data, registered_professional, db_professional = self._register_professional(
+        professional_data, registered_professional, _ = self._register_professional(
             client, db_session, test_data_factory, test_name_generator
         )
         access_token, _ = self._login_professional(client, professional_data)
@@ -351,7 +369,7 @@ class TestProfessionalManagementIntegration:
         first_update = {
             "full_name": "First Update Professional Name",
             "bio": "First updated bio with more professional details",
-            "rate_cents": 80000
+            "rate_cents": 80000,
         }
 
         response = client.put("/api/v1/professionals/me", json=first_update, headers=headers)
@@ -369,7 +387,7 @@ class TestProfessionalManagementIntegration:
         second_update = {
             "full_name": "Second Update Professional Name",
             "bio": "Second updated bio with even more details",
-            "rate_cents": 90000
+            "rate_cents": 90000,
         }
 
         response = client.put("/api/v1/professionals/me", json=second_update, headers=headers)
@@ -386,9 +404,11 @@ class TestProfessionalManagementIntegration:
 
         # Step 7: Verify final state in database (only if db_session is available)
         if db_session is not None:
-            db_professional_final = db_session.query(ProfessionalModel).filter(
-                ProfessionalModel.id == registered_professional["id"]
-            ).first()
+            db_professional_final = (
+                db_session.query(ProfessionalModel)
+                .filter(ProfessionalModel.id == registered_professional["id"])
+                .first()
+            )
             assert db_professional_final is not None
             # The database might not have been updated, so we check the API response instead
             # This is more reliable for integration testing
