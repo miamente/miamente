@@ -74,7 +74,6 @@ jobs:
     if: github.event_name == 'push' && github.ref == 'refs/heads/staging'
 
     env:
-      # Use deployed staging URLs instead of localhost
       FRONTEND_STAGING_URL: ${{ needs.deploy-cfn-staging.outputs.alb_url_staging }}
       NODE_ENV: production
       PROJECT_NAME: ${{ secrets.PROJECT_NAME }}
@@ -83,10 +82,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Setup Node.js & deps
-        uses: ./.github/actions/setup-frontend
-        with:
-          node-version: "22"
+      # (Removed) setup-frontend here to avoid installing in apps/web for E2E
 
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
@@ -116,6 +112,7 @@ jobs:
           echo "✅ Backend ALB URL: $BACKEND_ALB_URL_HTTP"
           echo "backend_alb_url=$BACKEND_ALB_URL_HTTP" >> $GITHUB_OUTPUT
 
+      # ⬇️ Everything below runs in tests/e2e (your Playwright project)
       - name: Setup Node.js for E2E tests
         uses: actions/setup-node@v4
         with:
@@ -123,10 +120,12 @@ jobs:
           cache: 'npm'
           cache-dependency-path: tests/e2e/package-lock.json
 
-      - name: Install dependencies
+      - name: Install E2E deps (tests/e2e)
+        working-directory: tests/e2e
         run: npm ci
 
       - name: Install Playwright browsers (with OS deps)
+        working-directory: tests/e2e
         run: npx playwright install --with-deps
 
       - name: Wait for Staging Environment to be Ready
@@ -172,23 +171,15 @@ jobs:
       - name: Run Playwright E2E Tests Against Staging
         working-directory: tests/e2e
         env:
-          # Override test URLs to use staging environment
           E2E_BASE_URL: ${{ env.FRONTEND_STAGING_URL }}
           BACKEND_INTERNAL_URL: ${{ steps.get_backend_url_e2e.outputs.backend_alb_url }}
-          # Backend API URL for data seeding and API tests
           BACKEND_API_URL: ${{ steps.get_backend_url_e2e.outputs.backend_alb_url }}
-          # Test data configuration
           E2E_TEST_PASSWORD: "TestPassword123!"
         run: |
-          # Verify staging environment is accessible
           echo "Final verification of staging environment..."
           curl -fsS "$BACKEND_INTERNAL_URL/health" || echo "❌ Backend health check failed"
           curl -fsS "$E2E_BASE_URL" || echo "❌ Frontend check failed"
 
-          # Run Playwright tests against staging using npm script (more reliable)
-          echo "Running Playwright tests against staging..."
-          
-          # Set environment variables for the test run
           export PLAYWRIGHT_BASE_URL="$E2E_BASE_URL"
           export BACKEND_API_URL="$BACKEND_INTERNAL_URL"
           export E2E_TEST_PASSWORD="TestPassword123!"
@@ -239,7 +230,6 @@ jobs:
   sonar:
     name: SonarCloud Frontend Analysis
     runs-on: ubuntu-latest
-    # Ensure Sonar runs only after E2E (Playwright) completes in staging dispatch
     needs:
       - unit-tests
       - e2e-tests-staging
@@ -289,7 +279,6 @@ jobs:
       - name: Get Backend URL
         id: get_backend_url
         run: |
-          # Get from CloudFormation stack
           echo "Getting backend ALB URL from backend stack..."
           BACKEND_ALB_URL=$(aws cloudformation describe-stacks \
             --stack-name miamente-staging-stack \
@@ -385,7 +374,7 @@ jobs:
       - name: Get Stack Outputs
         id: get_stack_outputs
         run: |
-          if ! command -v jq &> /dev/null; then
+          if ! command -v jq &> %2Fdev%2Fnull; then
             sudo apt-get update && sudo apt-get install -y jq
           fi
           OUTPUTS=$(aws cloudformation describe-stacks \
@@ -416,7 +405,6 @@ jobs:
       - name: Get Backend URL
         id: get_backend_url_prod
         run: |
-          # Get from CloudFormation stack
           echo "Getting backend ALB URL from backend production stack..."
           BACKEND_ALB_URL=$(aws cloudformation describe-stacks \
             --stack-name miamente-production-stack \
