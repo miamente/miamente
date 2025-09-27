@@ -82,8 +82,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # (Removed) setup-frontend here to avoid installing in apps/web for E2E
-
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
@@ -94,7 +92,6 @@ jobs:
 
       - name: Get Backend URL for E2E Tests
         id: get_backend_url_e2e
-        if: github.event_name == 'push'
         run: |
           echo "Getting backend ALB URL for E2E tests..."
           BACKEND_ALB_URL=$(aws cloudformation describe-stacks \
@@ -112,17 +109,40 @@ jobs:
           echo "✅ Backend ALB URL: $BACKEND_ALB_URL_HTTP"
           echo "backend_alb_url=$BACKEND_ALB_URL_HTTP" >> $GITHUB_OUTPUT
 
-      # ⬇️ Everything below runs in tests/e2e (your Playwright project)
-      - name: Setup Node.js for E2E tests
+      - name: Setup Node.js for E2E
         uses: actions/setup-node@v4
         with:
-          node-version: '22'
-          cache: 'npm'
-          cache-dependency-path: tests/e2e/package-lock.json
+          node-version: 22
+          cache: npm
+          cache-dependency-path: |
+            tests/e2e/package-lock.json
+            tests/e2e/package.json
 
-      - name: Install E2E deps (tests/e2e)
+      - name: Install E2E deps
         working-directory: tests/e2e
-        run: npm ci
+        run: |
+          if [ -f package-lock.json ]; then
+            npm ci
+          else
+            echo "ℹ️ No package-lock.json found, using npm install"
+            npm install --no-audit --no-fund
+          fi
+
+      # ⬇️ Auto-fix: ensure @playwright/test exists; if missing, install based on package.json (fallback to latest)
+      - name: Ensure Playwright is installed (auto-fix)
+        working-directory: tests/e2e
+        shell: bash
+        run: |
+          set -e
+          if node -e "require.resolve('@playwright/test')" 2>/dev/null; then
+            echo "✅ @playwright/test already installed: $(node -p "require('@playwright/test/package.json').version")"
+          else
+            echo "⚠️  @playwright/test not found. Installing…"
+            PIN=$(node -p "try { (require('./package.json').devDependencies || {})['@playwright/test'] || 'latest' } catch { 'latest' }")
+            echo "Using version spec: $PIN"
+            npm install -D @playwright/test@$PIN --no-audit --no-fund
+            echo "✅ Installed @playwright/test: $(node -p "require('@playwright/test/package.json').version")"
+          fi
 
       - name: Install Playwright browsers (with OS deps)
         working-directory: tests/e2e
@@ -374,7 +394,7 @@ jobs:
       - name: Get Stack Outputs
         id: get_stack_outputs
         run: |
-          if ! command -v jq &> %2Fdev%2Fnull; then
+          if ! command -v jq &> /dev/null; then
             sudo apt-get update && sudo apt-get install -y jq
           fi
           OUTPUTS=$(aws cloudformation describe-stacks \
