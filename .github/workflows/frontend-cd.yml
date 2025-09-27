@@ -123,29 +123,11 @@ jobs:
           cache: 'npm'
           cache-dependency-path: tests/e2e/package-lock.json
 
-      - name: Install E2E test dependencies
-        working-directory: tests/e2e
-        run: |
-          echo "Installing E2E test dependencies..."
-          echo "Current directory: $(pwd)"
-          echo "Package.json contents:"
-          cat package.json
-          
-          # Clean install with npm install (faster and more reliable for CI)
-          echo "Running npm install..."
-          npm install
-          echo "Dependencies installed successfully"
+      - name: Install dependencies
+        run: npm ci
 
-      - name: Install Playwright browsers & system deps
-        working-directory: tests/e2e
-        run: |
-          echo "Installing Playwright browsers and system dependencies..."
-          echo "Current directory: $(pwd)"
-          
-          # Install browsers and system dependencies (npm ci should have already installed @playwright/test)
-          echo "Installing Playwright browsers..."
-          npx playwright install --with-deps
-          echo "Playwright installation completed"
+      - name: Install Playwright browsers (with OS deps)
+        run: npx playwright install --with-deps
 
       - name: Wait for Staging Environment to be Ready
         run: |
@@ -198,27 +180,6 @@ jobs:
           # Test data configuration
           E2E_TEST_PASSWORD: "TestPassword123!"
         run: |
-          echo "🔍 Running Playwright tests against staging environment..."
-          echo "Backend URL: $BACKEND_INTERNAL_URL"
-          echo "Frontend URL: $E2E_BASE_URL"
-          echo "Current directory: $(pwd)"
-          
-          # Debug information
-          echo "Node.js version: $(node --version)"
-          echo "npm version: $(npm --version)"
-          echo "Package.json exists: $([ -f package.json ] && echo 'Yes' || echo 'No')"
-          echo "node_modules exists: $([ -d node_modules ] && echo 'Yes' || echo 'No')"
-          echo "Playwright binary exists: $([ -f node_modules/.bin/playwright ] && echo 'Yes' || echo 'No')"
-          echo "Package contents:"
-          ls -la node_modules/@playwright/ || echo "❌ @playwright directory not found"
-          
-          # Check if Playwright is properly installed
-          if [ ! -f node_modules/.bin/playwright ]; then
-            echo "❌ Playwright binary not found, attempting to reinstall..."
-            npm install @playwright/test
-            npx playwright install --with-deps
-          fi
-
           # Verify staging environment is accessible
           echo "Final verification of staging environment..."
           curl -fsS "$BACKEND_INTERNAL_URL/health" || echo "❌ Backend health check failed"
@@ -232,27 +193,7 @@ jobs:
           export BACKEND_API_URL="$BACKEND_INTERNAL_URL"
           export E2E_TEST_PASSWORD="TestPassword123!"
           
-          # Run tests with timeout and error handling
-          timeout 600 npm run test -- --reporter=line,html,json --timeout=30000 || {
-            exit_code=$?
-            if [ $exit_code -eq 124 ]; then
-              echo "⚠️ Tests timed out after 10 minutes"
-            elif [ $exit_code -eq 0 ]; then
-              echo "✅ All tests passed"
-            else
-              echo "⚠️ Some tests failed or had issues (exit code: $exit_code)"
-            fi
-          }
-
-          echo "Test execution completed. Exit code: $?"
-
-          # List files after test execution
-          echo "Files after test execution:"
-          ls -la
-          echo "Playwright report directory:"
-          ls -la playwright-report/ || echo "❌ playwright-report/ not found"
-          echo "Test results directory:"
-          ls -la test-results/ || echo "❌ test-results/ not found"
+          npx playwright test --reporter=html,line,json
 
       - name: Upload Playwright report artifacts
         if: always()

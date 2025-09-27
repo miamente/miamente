@@ -379,8 +379,8 @@ jobs:
         with:
           name: integration-test-reports
           path: |
-            integration_report.html
-            integration_coverage.xml
+            backend/integration_report.html
+            backend/integration_coverage.xml
 
   seed-data-staging:
     needs: [test-staging, deploy-cfn-staging]
