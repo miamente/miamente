@@ -382,6 +382,31 @@ jobs:
             backend/integration_report.html
             backend/integration_coverage.xml
 
+  seed-data-staging:
+    needs: [test-staging, deploy-cfn-staging]
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/staging'
+    env:
+      DATABASE_URL: postgresql://${{ secrets.DB_USERNAME }}:${{ secrets.DB_PASSWORD }}@${{ needs.deploy-cfn-staging.outputs.database_endpoint_staging }}:5432/miamente_staging
+      STAGING_HEALTH_URL: ${{ needs.deploy-cfn-staging.outputs.alb_url_staging }}/health
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Python & deps
+        uses: ./.github/actions/setup-backend
+        with:
+          python-version: "3.13"
+
+      - name: Run Post-Deployment Data Seeding
+        run: |
+          echo "🌱 Starting post-deployment data seeding for staging environment..."
+          python scripts/post_deployment_seed.py --env staging --wait-for-health --verbose
+          
+          echo "✅ Data seeding completed successfully for staging!"
+
   sonar:
     name: SonarCloud (aggregate coverage)
     runs-on: ubuntu-latest
@@ -661,12 +686,6 @@ jobs:
             fi
           done
 
-      - name: Seed Demo Data for Production
-        run: |
-          echo "🌱 Seeding demo data for production environment..."
-          cd backend
-          python scripts/seed_environment_data.py --env production
-
 
   rollback-production:
     needs:
@@ -806,3 +825,28 @@ jobs:
       - name: Run Backend Smoke Test
         run: |
           pytest tests/smoke/test_backend_smoke.py --ignore=tests/integration
+
+  seed-data-production:
+    needs: [backend-smoke-test-production, deploy-cfn-production]
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    env:
+      DATABASE_URL: postgresql://${{ secrets.DB_USERNAME }}:${{ secrets.DB_PASSWORD }}@${{ needs.deploy-cfn-production.outputs.database_endpoint_production }}:5432/miamente_production
+      PRODUCTION_HEALTH_URL: ${{ needs.deploy-cfn-production.outputs.alb_url_production }}/health
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Python & deps
+        uses: ./.github/actions/setup-backend
+        with:
+          python-version: "3.13"
+
+      - name: Run Post-Deployment Data Seeding
+        run: |
+          echo "🌱 Starting post-deployment data seeding for production environment..."
+          python scripts/post_deployment_seed.py --env production --wait-for-health --verbose
+          
+          echo "✅ Data seeding completed successfully for production!"

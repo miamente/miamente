@@ -154,7 +154,7 @@ cp env.example .env
 alembic stamp head
 alembic upgrade head
 
-# Seed demo data
+# Seed demo data (enhanced script with validation)
 python scripts/seed_environment_data.py --env staging
 ```
 
@@ -165,6 +165,67 @@ uvicorn app.main:app --reload
 ```
 
 The API will be available at `http://localhost:8000` with interactive docs at `http://localhost:8000/docs`.
+
+## Data Management
+
+The platform includes comprehensive data management tools for seeding and maintaining data across environments.
+
+### Data Seeding Commands
+
+#### Basic Seeding
+```bash
+# Seed staging environment
+python scripts/seed_environment_data.py --env staging
+
+# Seed production environment  
+python scripts/seed_environment_data.py --env production
+
+# Force re-seed (overwrites existing data)
+python scripts/seed_environment_data.py --env staging --force
+
+# Validate existing data without seeding
+python scripts/seed_environment_data.py --env staging --validate-only
+```
+
+#### Management Commands
+```bash
+# Show data status (via validation)
+python scripts/seed_environment_data.py --env staging --validate-only
+
+# Validate data integrity
+python scripts/seed_environment_data.py --env staging --validate-only
+
+# Seed data
+python scripts/seed_environment_data.py --env staging
+
+# Post-deployment seeding
+python scripts/post_deployment_seed.py --env staging --wait-for-health
+```
+
+### Seeded Data
+
+The system seeds the following data:
+
+#### Reference Data
+- **Specialties**: Medical and psychological specialties (10+ entries)
+- **Therapeutic Approaches**: Therapy methodologies (11+ entries)  
+- **Modalities**: Treatment modalities (11+ entries)
+
+#### Demo Accounts
+
+**Staging/Production**:
+- **Demo User**: `usuario.test@miamente.com` / `test123456`
+- **Demo Professional**: `dr.test@miamente.com` / `test123456`
+
+### Automated Seeding
+
+Data seeding is automatically performed after successful deployments:
+- **Staging**: Triggered after staging deployment
+- **Production**: Triggered after production deployment
+
+Both include health check validation and comprehensive error handling.
+
+For detailed information, see [DATA_POPULATION_GUIDE.md](../DATA_POPULATION_GUIDE.md).
 
 ## API Endpoints
 
