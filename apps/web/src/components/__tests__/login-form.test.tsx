@@ -17,12 +17,25 @@ vi.mock("next/navigation", () => ({
 // Mock AuthContext
 const mockLoginUser = vi.fn();
 const mockLoginProfessional = vi.fn();
+const mockLoginUnified = vi.fn();
 const mockAuthContext = {
   user: null as AuthUser | null,
   loginUser: mockLoginUser,
   loginProfessional: mockLoginProfessional,
+  loginUnified: mockLoginUnified,
   logout: vi.fn(),
   isLoading: false,
+  isAuthenticated: false,
+  registerUser: vi.fn(),
+  registerProfessional: vi.fn(),
+  registerUnified: vi.fn(),
+  refreshUser: vi.fn(),
+  getUserEmail: vi.fn(),
+  getUserFullName: vi.fn(),
+  isUserVerified: vi.fn(),
+  isEmailVerified: vi.fn(),
+  getUserId: vi.fn(),
+  getUserUid: vi.fn(),
 };
 
 vi.mock("@/contexts/AuthContext", () => ({
@@ -59,8 +72,7 @@ describe("LoginForm", () => {
   });
 
   it("should handle form submission with valid data", async () => {
-    mockLoginProfessional.mockRejectedValue(new Error("Professional login failed"));
-    mockLoginUser.mockResolvedValue(undefined);
+    mockLoginUnified.mockResolvedValue(undefined);
 
     render(<LoginForm />);
 
@@ -69,7 +81,7 @@ describe("LoginForm", () => {
     await user.click(screen.getByRole("button", { name: "Iniciar Sesión" }));
 
     await waitFor(() => {
-      expect(mockLoginUser).toHaveBeenCalledWith({
+      expect(mockLoginUnified).toHaveBeenCalledWith({
         email: "test@example.com",
         password: "password123",
       });
@@ -93,9 +105,8 @@ describe("LoginForm", () => {
     });
   });
 
-  it("should try professional login first, then user login for regular form", async () => {
-    mockLoginProfessional.mockRejectedValue(new Error("Professional login failed"));
-    mockLoginUser.mockResolvedValue(undefined);
+  it("should use unified login for regular form", async () => {
+    mockLoginUnified.mockResolvedValue(undefined);
 
     render(<LoginForm />);
 
@@ -104,11 +115,7 @@ describe("LoginForm", () => {
     await user.click(screen.getByRole("button", { name: "Iniciar Sesión" }));
 
     await waitFor(() => {
-      expect(mockLoginProfessional).toHaveBeenCalledWith({
-        email: "test@example.com",
-        password: "password123",
-      });
-      expect(mockLoginUser).toHaveBeenCalledWith({
+      expect(mockLoginUnified).toHaveBeenCalledWith({
         email: "test@example.com",
         password: "password123",
       });
@@ -116,7 +123,7 @@ describe("LoginForm", () => {
   });
 
   it("should show error message when login fails", async () => {
-    mockLoginUser.mockRejectedValue(new Error("Invalid credentials"));
+    mockLoginUnified.mockRejectedValue(new Error("Invalid credentials"));
 
     render(<LoginForm />);
 
@@ -130,7 +137,7 @@ describe("LoginForm", () => {
   });
 
   it("should show loading state during form submission", async () => {
-    mockLoginUser.mockImplementation(() => new Promise((resolve) => setTimeout(resolve, 100)));
+    mockLoginUnified.mockImplementation(() => new Promise((resolve) => setTimeout(resolve, 100)));
 
     render(<LoginForm />);
 
@@ -244,7 +251,7 @@ describe("LoginForm", () => {
   });
 
   it("should disable form fields during loading", async () => {
-    mockLoginUser.mockImplementation(() => new Promise((resolve) => setTimeout(resolve, 100)));
+    mockLoginUnified.mockImplementation(() => new Promise((resolve) => setTimeout(resolve, 100)));
 
     render(<LoginForm />);
 
@@ -264,8 +271,7 @@ describe("LoginForm", () => {
     await user.click(screen.getByRole("button", { name: "Iniciar Sesión" }));
 
     // The login functions should not be called due to validation failure
-    expect(mockLoginProfessional).not.toHaveBeenCalled();
-    expect(mockLoginUser).not.toHaveBeenCalled();
+    expect(mockLoginUnified).not.toHaveBeenCalled();
   });
 
   it("should show validation errors for empty password", async () => {
@@ -279,9 +285,8 @@ describe("LoginForm", () => {
     });
   });
 
-  it("should handle both professional and user login failures", async () => {
-    mockLoginProfessional.mockRejectedValue(new Error("Professional login failed"));
-    mockLoginUser.mockRejectedValue(new Error("User login failed"));
+  it("should handle unified login failure", async () => {
+    mockLoginUnified.mockRejectedValue(new Error("Login failed"));
 
     render(<LoginForm />);
 
@@ -290,12 +295,12 @@ describe("LoginForm", () => {
     await user.click(screen.getByRole("button", { name: "Iniciar Sesión" }));
 
     await waitFor(() => {
-      expect(screen.getByText("User login failed")).toBeInTheDocument();
+      expect(screen.getByText("Login failed")).toBeInTheDocument();
     });
   });
 
   it("should clear error message when form is resubmitted", async () => {
-    mockLoginUser.mockRejectedValueOnce(new Error("First error")).mockResolvedValueOnce(undefined);
+    mockLoginUnified.mockRejectedValueOnce(new Error("First error")).mockResolvedValueOnce(undefined);
 
     render(<LoginForm />);
 

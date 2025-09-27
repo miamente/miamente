@@ -63,9 +63,12 @@ class TestParseProfessionalData:
         assert result["rate_cents"] == 10000
         assert result["currency"] == "USD"
         assert result["bio"] == "Test bio"
-        assert result["academic_experience"] == "Test academic"
-        assert result["work_experience"] == "Test work"
-        assert result["certifications"] == ["Cert1", "Cert2"]
+        assert result["academic_experience"] == []
+        assert result["work_experience"] == []
+        assert result["certifications"] == [
+            {"name": "Cert1", "document_url": None},
+            {"name": "Cert2", "document_url": None},
+        ]
         assert result["languages"] == ["English", "Spanish"]
         assert result["therapy_approaches_ids"] == ["approach1", "approach2"]
         assert result["specialty_ids"] == ["specialty1", "specialty2"]
