@@ -661,12 +661,6 @@ jobs:
             fi
           done
 
-      - name: Seed Demo Data for Production
-        run: |
-          echo "🌱 Seeding demo data for production environment..."
-          cd backend
-          python scripts/seed_environment_data.py --env production
-
 
   rollback-production:
     needs:

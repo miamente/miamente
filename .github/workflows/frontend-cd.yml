@@ -88,6 +88,14 @@ jobs:
         with:
           node-version: "22"
 
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
+          aws-region: us-east-1
+
       - name: Get Backend URL for E2E Tests
         id: get_backend_url_e2e
         if: github.event_name == 'push'
@@ -105,7 +113,7 @@ jobs:
           fi
           
           BACKEND_ALB_URL_HTTP="http://${BACKEND_ALB_URL}"
-          echo "✅ Backend ALB URL for E2E: $BACKEND_ALB_URL_HTTP"
+          echo "✅ Backend ALB URL: $BACKEND_ALB_URL_HTTP"
           echo "backend_alb_url=$BACKEND_ALB_URL_HTTP" >> $GITHUB_OUTPUT
 
       - name: Install E2E test dependencies
