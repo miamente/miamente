@@ -120,7 +120,7 @@ jobs:
         working-directory: tests/e2e
         run: npm ci
 
-      - name: Install Playwright browsers & system deps¡
+      - name: Install Playwright browsers & system deps
         working-directory: tests/e2e
         run: npx playwright install --with-deps
 
@@ -165,7 +165,6 @@ jobs:
           done
 
       - name: Run Playwright E2E Tests Against Staging
-        if: steps.get_backend_url_e2e.outputs.backend_available == 'true'
         working-directory: tests/e2e
         env:
           # Override test URLs to use staging environment
