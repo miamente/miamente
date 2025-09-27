@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { apiClient } from "@/lib/api";
 
 export interface Modality {
   id: string;
@@ -12,8 +13,6 @@ export interface Modality {
   updated_at?: string;
 }
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
-
 export function useModalities() {
   const [modalities, setModalities] = useState<Modality[]>([]);
   const [loading, setLoading] = useState(true);
@@ -26,18 +25,7 @@ export function useModalities() {
         setLoading(true);
         setError(null);
 
-        const url = `${API_BASE_URL}/api/v1/modalities`;
-        console.log("useModalities - Fetching from:", url);
-
-        const response = await fetch(url);
-        console.log("useModalities - Response status:", response.status);
-        console.log("useModalities - Response ok:", response.ok);
-
-        if (!response.ok) {
-          throw new Error(`Failed to fetch modalities: ${response.status} ${response.statusText}`);
-        }
-
-        const data = await response.json();
+        const data = await apiClient.getModalities();
         console.log("useModalities - Data received:", data.length, "items");
         setModalities(data);
       } catch (err) {

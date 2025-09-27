@@ -8,6 +8,9 @@ import type {
   Specialty,
   TherapeuticApproach,
   Modality,
+  ProfessionalSpecialty,
+  ProfessionalTherapeuticApproach,
+  ProfessionalModality,
   Review,
   LoginResponse,
   UserCreate,
@@ -481,8 +484,73 @@ class ApiClient {
     });
   }
 
+  async uploadProfilePicture(file: File): Promise<UploadResponse> {
+    const formData = new FormData();
+    formData.append("file", file);
+
+    return this.post<UploadResponse>("/files/upload/profile-picture", formData, {
+      headers: {
+        // Don't set Content-Type, let the browser set it with boundary
+      },
+    });
+  }
+
+  async uploadCertification(file: File): Promise<UploadResponse> {
+    const formData = new FormData();
+    formData.append("file", file);
+
+    return this.post<UploadResponse>("/files/upload/certification", formData, {
+      headers: {
+        // Don't set Content-Type, let the browser set it with boundary
+      },
+    });
+  }
+
   async deleteFile(filename: string): Promise<void> {
     return this.delete<void>(`/files/${filename}`);
+  }
+
+  async deleteProfilePicture(userId: string, filename: string): Promise<void> {
+    return this.delete<void>(`/files/profile-picture/${userId}/${filename}`);
+  }
+
+  async deleteCertification(userId: string, filename: string): Promise<void> {
+    return this.delete<void>(`/files/certification/${userId}/${filename}`);
+  }
+
+  // Professional specialties
+  async getProfessionalSpecialties(professionalId: string): Promise<ProfessionalSpecialty[]> {
+    return this.get<ProfessionalSpecialty[]>(`/professional-specialties/professional/${professionalId}`);
+  }
+
+  async updateProfessionalSpecialties(professionalId: string, specialtyIds: string[]): Promise<ProfessionalSpecialty[]> {
+    return this.put<ProfessionalSpecialty[]>(`/professional-specialties/professional/${professionalId}/specialties`, specialtyIds);
+  }
+
+  // Professional therapeutic approaches
+  async getProfessionalTherapeuticApproaches(professionalId: string): Promise<ProfessionalTherapeuticApproach[]> {
+    return this.get<ProfessionalTherapeuticApproach[]>(`/professional-therapeutic-approaches/professional/${professionalId}`);
+  }
+
+  async updateProfessionalTherapeuticApproaches(professionalId: string, approachIds: string[]): Promise<ProfessionalTherapeuticApproach[]> {
+    return this.put<ProfessionalTherapeuticApproach[]>(`/professional-therapeutic-approaches/professional/${professionalId}/approaches`, approachIds);
+  }
+
+  // Professional modalities
+  async getProfessionalModalities(professionalId: string): Promise<ProfessionalModality[]> {
+    return this.get<ProfessionalModality[]>(`/professional-modalities/professional/${professionalId}`);
+  }
+
+  async createProfessionalModality(professionalId: string, modalityData: Omit<ProfessionalModality, "id" | "professional_id">): Promise<ProfessionalModality> {
+    return this.post<ProfessionalModality>(`/professional-modalities`, { professional_id: professionalId, ...modalityData });
+  }
+
+  async updateProfessionalModality(modalityId: string, modalityData: Partial<ProfessionalModality>): Promise<ProfessionalModality> {
+    return this.put<ProfessionalModality>(`/professional-modalities/${modalityId}`, modalityData);
+  }
+
+  async deleteProfessionalModality(modalityId: string): Promise<void> {
+    return this.delete<void>(`/professional-modalities/${modalityId}`);
   }
 
   // Health check

@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
+import { apiClient } from "@/lib/api";
 import { ProfessionalTherapeuticApproach } from "@/lib/types";
-
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
 export function useProfessionalTherapeuticApproaches(professionalId?: string) {
   const [approaches, setApproaches] = useState<ProfessionalTherapeuticApproach[]>([]);
@@ -17,15 +16,7 @@ export function useProfessionalTherapeuticApproaches(professionalId?: string) {
     const fetchApproaches = async () => {
       try {
         setLoading(true);
-        const response = await fetch(
-          `${API_BASE_URL}/api/v1/professional-therapeutic-approaches/professional/${professionalId}`,
-        );
-
-        if (!response.ok) {
-          throw new Error("Failed to fetch professional therapeutic approaches");
-        }
-
-        const data = await response.json();
+        const data = await apiClient.getProfessionalTherapeuticApproaches(professionalId);
         setApproaches(data);
       } catch (err) {
         setError(err instanceof Error ? err.message : "An error occurred");
@@ -42,23 +33,7 @@ export function useProfessionalTherapeuticApproaches(professionalId?: string) {
 
     try {
       setLoading(true);
-      const response = await fetch(
-        `${API_BASE_URL}/api/v1/professional-therapeutic-approaches/professional/${professionalId}/approaches`,
-        {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(approachIds),
-        },
-      );
-
-      if (!response.ok) {
-        throw new Error("Failed to update professional therapeutic approaches");
-      }
-
-      // Refresh the data
-      const data = await response.json();
+      const data = await apiClient.updateProfessionalTherapeuticApproaches(professionalId, approachIds);
       setApproaches(data);
     } catch (err) {
       setError(err instanceof Error ? err.message : "An error occurred");

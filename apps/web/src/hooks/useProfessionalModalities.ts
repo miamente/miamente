@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
+import { apiClient } from "@/lib/api";
 import { ProfessionalModality } from "@/lib/types";
-
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
 export function useProfessionalModalities(professionalId?: string) {
   const [modalities, setModalities] = useState<ProfessionalModality[]>([]);
@@ -17,15 +16,7 @@ export function useProfessionalModalities(professionalId?: string) {
     const fetchModalities = async () => {
       try {
         setLoading(true);
-        const response = await fetch(
-          `${API_BASE_URL}/api/v1/professional-modalities/professional/${professionalId}`,
-        );
-
-        if (!response.ok) {
-          throw new Error("Failed to fetch professional modalities");
-        }
-
-        const data = await response.json();
+        const data = await apiClient.getProfessionalModalities(professionalId);
         setModalities(data);
       } catch (err) {
         setError(err instanceof Error ? err.message : "An error occurred");
@@ -37,29 +28,12 @@ export function useProfessionalModalities(professionalId?: string) {
     fetchModalities();
   }, [professionalId]);
 
-  const createModality = async (
-    modalityData: Omit<ProfessionalModality, "id" | "professionalId">,
-  ) => {
+  const createModality = async (modalityData: Omit<ProfessionalModality, "id" | "professional_id">) => {
     if (!professionalId) return;
 
     try {
       setLoading(true);
-      const response = await fetch(`${API_BASE_URL}/api/v1/professional-modalities`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          ...modalityData,
-          professionalId,
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to create professional modality");
-      }
-
-      const data = await response.json();
+      const data = await apiClient.createProfessionalModality(professionalId, modalityData);
       setModalities((prev) => [...prev, data]);
     } catch (err) {
       setError(err instanceof Error ? err.message : "An error occurred");
@@ -68,25 +42,10 @@ export function useProfessionalModalities(professionalId?: string) {
     }
   };
 
-  const updateModality = async (
-    modalityId: string,
-    modalityData: Partial<ProfessionalModality>,
-  ) => {
+  const updateModality = async (modalityId: string, modalityData: Partial<ProfessionalModality>) => {
     try {
       setLoading(true);
-      const response = await fetch(`${API_BASE_URL}/api/v1/professional-modalities/${modalityId}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(modalityData),
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to update professional modality");
-      }
-
-      const data = await response.json();
+      const data = await apiClient.updateProfessionalModality(modalityId, modalityData);
       setModalities((prev) => prev.map((m) => (m.id === modalityId ? data : m)));
     } catch (err) {
       setError(err instanceof Error ? err.message : "An error occurred");
@@ -98,14 +57,7 @@ export function useProfessionalModalities(professionalId?: string) {
   const deleteModality = async (modalityId: string) => {
     try {
       setLoading(true);
-      const response = await fetch(`${API_BASE_URL}/api/v1/professional-modalities/${modalityId}`, {
-        method: "DELETE",
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to delete professional modality");
-      }
-
+      await apiClient.deleteProfessionalModality(modalityId);
       setModalities((prev) => prev.filter((m) => m.id !== modalityId));
     } catch (err) {
       setError(err instanceof Error ? err.message : "An error occurred");
@@ -117,12 +69,10 @@ export function useProfessionalModalities(professionalId?: string) {
   const setDefaultModality = async (modalityId: string) => {
     try {
       setLoading(true);
-      const response = await fetch(
-        `${API_BASE_URL}/api/v1/professional-modalities/${modalityId}/set-default`,
-        {
-          method: "PUT",
-        },
-      );
+      // Note: This endpoint might need to be added to apiClient
+      const response = await fetch(`/api/v1/professional-modalities/${modalityId}/set-default`, {
+        method: "PUT",
+      });
 
       if (!response.ok) {
         throw new Error("Failed to set default modality");
@@ -132,7 +82,7 @@ export function useProfessionalModalities(professionalId?: string) {
       setModalities((prev) =>
         prev.map((m) => ({
           ...m,
-          isDefault: m.id === modalityId,
+          is_default: m.id === modalityId,
         })),
       );
     } catch (err) {
