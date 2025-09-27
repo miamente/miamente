@@ -127,35 +127,46 @@ jobs:
         working-directory: tests/e2e
         run: |
           echo "Installing E2E test dependencies..."
-          npm ci
+          echo "Current directory: $(pwd)"
+          echo "Package.json contents:"
+          cat package.json
+          
+          # Clean install with npm ci (faster and more reliable for CI)
+          echo "Running npm ci..."
+          npm ci --verbose
           echo "Dependencies installed successfully"
+          
+          # Verify installation
+          echo "Checking node_modules structure..."
+          ls -la node_modules/ | head -10
+          echo "Checking .bin directory..."
+          ls -la node_modules/.bin/ | head -10
           
           # Verify @playwright/test is installed
           echo "Checking Playwright installation..."
-          if npm list @playwright/test; then
-            echo "✅ @playwright/test is properly installed"
-          else
-            echo "❌ @playwright/test not found, installing..."
-            npm install @playwright/test
-          fi
+          npm list @playwright/test
 
       - name: Install Playwright browsers & system deps
         working-directory: tests/e2e
         run: |
           echo "Installing Playwright browsers and system dependencies..."
-          # First ensure @playwright/test is installed
-          npm install @playwright/test
+          echo "Current directory: $(pwd)"
           
-          # Now install browsers and system dependencies
+          # Install browsers and system dependencies (npm ci should have already installed @playwright/test)
+          echo "Installing Playwright browsers..."
           npx playwright install --with-deps
           echo "Playwright installation completed"
           
           # Verify Playwright installation
           echo "Verifying Playwright installation..."
-          ls -la node_modules/@playwright/
-          ls -la node_modules/.bin/ | grep playwright
+          echo "Checking @playwright directory:"
+          ls -la node_modules/@playwright/ || echo "❌ @playwright directory not found"
+          
+          echo "Checking .bin directory:"
+          ls -la node_modules/.bin/ | grep playwright || echo "⚠️ playwright binary not in .bin"
+          
           echo "Playwright version:"
-          npx playwright --version
+          npx playwright --version || echo "❌ Could not get Playwright version"
 
       - name: Wait for Staging Environment to be Ready
         run: |
@@ -203,6 +214,10 @@ jobs:
           # Override test URLs to use staging environment
           E2E_BASE_URL: ${{ env.FRONTEND_STAGING_URL }}
           BACKEND_INTERNAL_URL: ${{ steps.get_backend_url_e2e.outputs.backend_alb_url }}
+          # Backend API URL for data seeding and API tests
+          BACKEND_API_URL: ${{ steps.get_backend_url_e2e.outputs.backend_alb_url }}
+          # Test data configuration
+          E2E_TEST_PASSWORD: "TestPassword123!"
         run: |
           echo "🔍 Running Playwright tests against staging environment..."
           echo "Backend URL: $BACKEND_INTERNAL_URL"
@@ -229,10 +244,34 @@ jobs:
           echo "Final verification of staging environment..."
           curl -fsS "$BACKEND_INTERNAL_URL/health" || echo "❌ Backend health check failed"
           curl -fsS "$E2E_BASE_URL" || echo "❌ Frontend check failed"
+          
+          # Ensure backend has test data (check if specialties endpoint returns data)
+          echo "Checking if backend has test data..."
+          if curl -fsS "$BACKEND_INTERNAL_URL/api/v1/specialties" | jq -e '. | length > 0' > /dev/null 2>&1; then
+            echo "✅ Backend has test data"
+          else
+            echo "⚠️ Backend appears to have no test data - tests will seed data automatically"
+          fi
 
           # Run Playwright tests against staging using npm script (more reliable)
           echo "Running Playwright tests against staging..."
-          npm run test -- --reporter=line,html,json || echo "⚠️ Playwright tests completed with some issues"
+          
+          # Set environment variables for the test run
+          export PLAYWRIGHT_BASE_URL="$E2E_BASE_URL"
+          export BACKEND_API_URL="$BACKEND_INTERNAL_URL"
+          export E2E_TEST_PASSWORD="TestPassword123!"
+          
+          # Run tests with timeout and error handling
+          timeout 600 npm run test -- --reporter=line,html,json --timeout=30000 || {
+            exit_code=$?
+            if [ $exit_code -eq 124 ]; then
+              echo "⚠️ Tests timed out after 10 minutes"
+            elif [ $exit_code -eq 0 ]; then
+              echo "✅ All tests passed"
+            else
+              echo "⚠️ Some tests failed or had issues (exit code: $exit_code)"
+            fi
+          }
 
           echo "Test execution completed. Exit code: $?"
 

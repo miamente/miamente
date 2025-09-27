@@ -31,6 +31,7 @@ from app.models.therapeutic_approach import TherapeuticApproach
 from app.models.modality import Modality
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy import text
 
 # Configure logging
 logging.basicConfig(
@@ -51,7 +52,7 @@ def validate_database_connection() -> bool:
         db = session_factory()
         try:
             # Test basic query
-            db.execute("SELECT 1")
+            db.execute(text("SELECT 1"))
             db.commit()
             logger.info("✅ Database connection validated successfully")
             return True
@@ -118,10 +119,22 @@ def validate_seeded_data(db: Session) -> bool:
             "usuario.test@miamente.com"
         ])).count()
         
+        # Debug: List all users to see what's actually in the database
+        all_users = db.query(User).all()
+        logger.info(f"📊 Total users in database: {len(all_users)}")
+        for user in all_users:
+            logger.info(f"   - User: {user.email} (ID: {user.id}, Active: {user.is_active})")
+        
         # Check demo professionals
         demo_professionals = db.query(Professional).filter(Professional.email.in_([
             "dr.test@miamente.com"
         ])).count()
+        
+        # Debug: List all professionals to see what's actually in the database
+        all_professionals = db.query(Professional).all()
+        logger.info(f"📊 Total professionals in database: {len(all_professionals)}")
+        for professional in all_professionals:
+            logger.info(f"   - Professional: {professional.email} (ID: {professional.id}, Active: {professional.is_active})")
         
         # Validate counts
         if specialties_count < 5:
@@ -214,34 +227,65 @@ def run_seeding_process(env: str, force: bool = False, validate_only: bool = Fal
         # Step 4: Check if seeding is needed
         has_existing_data = any(data_status[key] > 0 for key in ["users", "professionals", "specialties"])
         
+        # Check if we have the specific demo users we need
+        demo_user_exists = db.query(User).filter(User.email == "usuario.test@miamente.com").first() is not None
+        demo_professional_exists = db.query(Professional).filter(Professional.email == "dr.test@miamente.com").first() is not None
+        
         if has_existing_data and not force:
-            logger.warning("⚠️  Demo data already exists in the database.")
-            logger.info("   Use --force flag to re-seed data.")
-            logger.info("   Existing demo accounts:")
-            for user in env_info["users"]:
-                logger.info(f"     👤 {user['name']}: {user['email']} / {user['password']}")
-            for prof in env_info["professionals"]:
-                logger.info(f"     👨‍⚕️ {prof['name']}: {prof['email']} / {prof['password']}")
+            logger.warning("⚠️  Some data already exists in the database.")
             
-            # Validate existing data instead
-            logger.info("🔍 Validating existing data...")
-            if validate_seeded_data(db):
-                logger.info("✅ Existing data validation passed")
-                return True
+            # Check if we have the demo users we need
+            if demo_user_exists and demo_professional_exists:
+                logger.info("✅ Demo users and professionals already exist.")
+                logger.info("   Existing demo accounts:")
+                logger.info(f"     👤 Usuario Test: usuario.test@miamente.com / test123456")
+                logger.info(f"     👨‍⚕️ Dr. Test Professional: dr.test@miamente.com / test123456")
+                
+                # Validate existing data
+                logger.info("🔍 Validating existing data...")
+                if validate_seeded_data(db):
+                    logger.info("✅ Existing data validation passed")
+                    return True
+                else:
+                    logger.error("❌ Existing data validation failed - consider using --force")
+                    return False
             else:
-                logger.error("❌ Existing data validation failed - consider using --force")
-                return False
+                logger.info("⚠️  Demo users are missing, will seed them now.")
+                logger.info(f"   Demo user exists: {demo_user_exists}")
+                logger.info(f"   Demo professional exists: {demo_professional_exists}")
+                # Continue to seeding step
         
-        # Step 5: Run seeding process
-        logger.info("📊 Seeding reference data (specialties, approaches, modalities)...")
-        logger.info("👥 Seeding demo users...")
-        logger.info("👨‍⚕️ Seeding demo professionals...")
-        
+        # Step 5: Run selective seeding process
         start_time = time.time()
-        seed_demo_data()
-        seeding_time = time.time() - start_time
         
-        logger.info(f"⏱️  Seeding completed in {seeding_time:.2f} seconds")
+        try:
+            # Always seed reference data (it's idempotent)
+            logger.info("📊 Seeding reference data (specialties, approaches, modalities)...")
+            from app.services.seed_demo_data import seed_reference_data
+            seed_reference_data(db)
+            
+            # Only seed demo users if they don't exist
+            if not demo_user_exists:
+                logger.info("👥 Seeding demo users...")
+                from app.services.seed_demo_data import seed_users
+                seed_users(db)
+            else:
+                logger.info("✅ Demo users already exist, skipping...")
+            
+            # Only seed demo professionals if they don't exist
+            if not demo_professional_exists:
+                logger.info("👨‍⚕️ Seeding demo professionals...")
+                from app.services.seed_demo_data import seed_professional
+                seed_professional(db)
+            else:
+                logger.info("✅ Demo professionals already exist, skipping...")
+            
+            seeding_time = time.time() - start_time
+            logger.info(f"⏱️  Seeding completed in {seeding_time:.2f} seconds")
+            
+        except Exception as e:
+            logger.error(f"❌ Error during seeding: {e}")
+            return False
         
         # Step 6: Validate seeded data
         logger.info("🔍 Validating seeded data...")
