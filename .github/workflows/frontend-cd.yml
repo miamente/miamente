@@ -125,11 +125,37 @@ jobs:
 
       - name: Install E2E test dependencies
         working-directory: tests/e2e
-        run: npm ci
+        run: |
+          echo "Installing E2E test dependencies..."
+          npm ci
+          echo "Dependencies installed successfully"
+          
+          # Verify @playwright/test is installed
+          echo "Checking Playwright installation..."
+          if npm list @playwright/test; then
+            echo "✅ @playwright/test is properly installed"
+          else
+            echo "❌ @playwright/test not found, installing..."
+            npm install @playwright/test
+          fi
 
       - name: Install Playwright browsers & system deps
         working-directory: tests/e2e
-        run: npx playwright install --with-deps
+        run: |
+          echo "Installing Playwright browsers and system dependencies..."
+          # First ensure @playwright/test is installed
+          npm install @playwright/test
+          
+          # Now install browsers and system dependencies
+          npx playwright install --with-deps
+          echo "Playwright installation completed"
+          
+          # Verify Playwright installation
+          echo "Verifying Playwright installation..."
+          ls -la node_modules/@playwright/
+          ls -la node_modules/.bin/ | grep playwright
+          echo "Playwright version:"
+          npx playwright --version
 
       - name: Wait for Staging Environment to be Ready
         run: |
@@ -191,15 +217,22 @@ jobs:
           echo "Playwright binary exists: $([ -f node_modules/.bin/playwright ] && echo 'Yes' || echo 'No')"
           echo "Package contents:"
           ls -la node_modules/@playwright/ || echo "❌ @playwright directory not found"
+          
+          # Check if Playwright is properly installed
+          if [ ! -f node_modules/.bin/playwright ]; then
+            echo "❌ Playwright binary not found, attempting to reinstall..."
+            npm install @playwright/test
+            npx playwright install --with-deps
+          fi
 
           # Verify staging environment is accessible
           echo "Final verification of staging environment..."
           curl -fsS "$BACKEND_INTERNAL_URL/health" || echo "❌ Backend health check failed"
           curl -fsS "$E2E_BASE_URL" || echo "❌ Frontend check failed"
 
-          # Run Playwright tests against staging
+          # Run Playwright tests against staging using npm script (more reliable)
           echo "Running Playwright tests against staging..."
-          npx playwright test --reporter=line,html,json || echo "⚠️ Playwright tests completed with some issues"
+          npm run test -- --reporter=line,html,json || echo "⚠️ Playwright tests completed with some issues"
 
           echo "Test execution completed. Exit code: $?"
 
