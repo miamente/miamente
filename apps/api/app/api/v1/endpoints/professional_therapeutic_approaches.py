@@ -1,0 +1,99 @@
+"""
+Professional therapeutic approach endpoints.
+"""
+
+from typing import List
+
+from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
+from sqlalchemy.orm import Session
+
+from app.core.database import get_db
+from app.schemas.professional_therapeutic_approach import (
+    ProfessionalTherapeuticApproachCreate,
+    ProfessionalTherapeuticApproachResponse,
+    ProfessionalTherapeuticApproachUpdate,
+)
+from app.services.professional_therapeutic_approach_service import (
+    ProfessionalTherapeuticApproachService,
+)
+
+router = APIRouter()
+
+# Error messages
+PROFESSIONAL_THERAPEUTIC_APPROACH_NOT_FOUND_MESSAGE = "Professional therapeutic approach not found"
+
+
+@router.get(
+    "/professional/{professional_id}",
+    response_model=List[ProfessionalTherapeuticApproachResponse],
+)
+def get_professional_therapeutic_approaches(professional_id: str, db: Session = Depends(get_db)):
+    """Get all therapeutic approaches for a professional."""
+    service = ProfessionalTherapeuticApproachService(db)
+    approaches = service.get_professional_therapeutic_approaches(professional_id)
+    return approaches
+
+
+@router.get("/{approach_id}", response_model=ProfessionalTherapeuticApproachResponse)
+def get_professional_therapeutic_approach(approach_id: str, db: Session = Depends(get_db)):
+    """Get a professional therapeutic approach by ID."""
+    service = ProfessionalTherapeuticApproachService(db)
+    approach = service.get_professional_therapeutic_approach(approach_id)
+    if not approach:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=PROFESSIONAL_THERAPEUTIC_APPROACH_NOT_FOUND_MESSAGE,
+        )
+    return approach
+
+
+@router.post("/", response_model=ProfessionalTherapeuticApproachResponse, status_code=status.HTTP_201_CREATED)
+def create_professional_therapeutic_approach(
+    approach: ProfessionalTherapeuticApproachCreate, db: Session = Depends(get_db)
+):
+    """Create a new professional therapeutic approach."""
+    service = ProfessionalTherapeuticApproachService(db)
+    return service.create_professional_therapeutic_approach(approach)
+
+
+@router.put("/{approach_id}", response_model=ProfessionalTherapeuticApproachResponse)
+def update_professional_therapeutic_approach(
+    approach_id: str,
+    approach_update: ProfessionalTherapeuticApproachUpdate,
+    db: Session = Depends(get_db),
+):
+    """Update a professional therapeutic approach."""
+    service = ProfessionalTherapeuticApproachService(db)
+    approach = service.update_professional_therapeutic_approach(approach_id, approach_update)
+    if not approach:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=PROFESSIONAL_THERAPEUTIC_APPROACH_NOT_FOUND_MESSAGE,
+        )
+    return approach
+
+
+@router.delete("/{approach_id}")
+def delete_professional_therapeutic_approach(approach_id: str, db: Session = Depends(get_db)):
+    """Delete a professional therapeutic approach."""
+    service = ProfessionalTherapeuticApproachService(db)
+    success = service.delete_professional_therapeutic_approach(approach_id)
+    if not success:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=PROFESSIONAL_THERAPEUTIC_APPROACH_NOT_FOUND_MESSAGE,
+        )
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+
+@router.put("/professional/{professional_id}/approaches")
+def update_professional_therapeutic_approaches(
+    professional_id: str, approach_ids: str = Query(...), db: Session = Depends(get_db)
+):
+    """Update therapeutic approaches for a professional."""
+    # Split the comma-separated approach_ids into a list
+    approach_ids_list = [aid.strip() for aid in approach_ids.split(",") if aid.strip()]
+
+    service = ProfessionalTherapeuticApproachService(db)
+    approaches = service.add_therapeutic_approaches_to_professional(professional_id, approach_ids_list)
+    return {"message": f"Updated {len(approaches)} therapeutic approaches for professional"}

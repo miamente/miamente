@@ -2,14 +2,16 @@ name: Backend CI
 
 on:
   pull_request:
-    branches: [develop]
+    branches: [develop, staging]
+  push:
+    branches: [staging]
     paths:
-      - "backend/**"
+      - "apps/api/**"
       - ".github/workflows/backend-ci.yml"
 
 defaults:
   run:
-    working-directory: backend
+    working-directory: apps/api
 
 jobs:
   lint:
@@ -22,6 +24,7 @@ jobs:
         uses: ./.github/actions/setup-backend
         with:
           python-version: "3.13"
+          working-directory: "apps/api"
 
       - name: Run Black (Formatter)
         run: black app --check
@@ -51,6 +54,7 @@ jobs:
         uses: ./.github/actions/setup-backend
         with:
           python-version: "3.13"
+          working-directory: "apps/api"
 
       - name: Run Unit Tests with pytest and Coverage
         run: |

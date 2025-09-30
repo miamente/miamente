@@ -1,0 +1,24 @@
+# Railway Environment Variables Template
+# Copy these to your Railway project dashboard
+
+# Database
+DATABASE_URL=${{Postgres.DATABASE_URL}}
+
+# Authentication
+JWT_SECRET=${{JWT_SECRET}}
+JWT_ALGORITHM=HS256
+ACCESS_TOKEN_EXPIRE_MINUTES=30
+
+# CORS
+CORS_ORIGINS=${{CORS_ORIGINS}}
+
+# Application
+ENVIRONMENT=production
+DEBUG=false
+
+# Uploads
+MAX_FILE_SIZE=10485760
+UPLOAD_PATH=/tmp/uploads
+
+# Logging
+LOG_LEVEL=INFO
