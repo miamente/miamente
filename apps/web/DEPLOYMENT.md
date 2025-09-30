@@ -1,179 +1,97 @@
 # Frontend Deployment Guide
 
-This document describes the AWS infrastructure and deployment process for the Miamente frontend (Next.js React application).
+This document describes the deployment process for the Miamente frontend (Next.js React application).
 
 ## Architecture Overview
 
-The frontend is deployed using AWS CloudFormation with the following architecture:
+The frontend can be deployed using various platforms with the following architecture:
 
-- **ECS Fargate**: Containerized Next.js application
-- **Application Load Balancer (ALB)**: Routes traffic to ECS service
+- **Containerized Next.js application**: Docker-based deployment
+- **Load Balancer**: Routes traffic to the application
 - **Auto Scaling**: Scales based on CPU utilization
-- **CloudWatch Logs**: Centralized logging
+- **Logging**: Centralized logging
 - **Security Groups**: Network security configuration
 
-## Infrastructure Components
+## Deployment Platforms
 
-### ECS Cluster
+### Railway (Recommended)
 
-- Managed container orchestration using Fargate
-- Environment-specific clusters (staging/production)
-- Container insights enabled for monitoring
+Railway provides a simple and efficient deployment platform:
 
-### Task Definition
+- **Automatic builds**: From Git repository
+- **Environment management**: Development, staging, production
+- **Database integration**: PostgreSQL included
+- **Custom domains**: Easy domain configuration
 
-- **Staging**: 512 CPU, 1024 MB memory
-- **Production**: 1024 CPU, 2048 MB memory
-- Health check endpoint: `/health`
-- Logging to CloudWatch
+### Other Platforms
 
-### Load Balancer
-
-- Internet-facing ALB
-- Health checks on port 3000
-- HTTP listener (port 80)
-
-### Auto Scaling
-
-- **Staging**: 1-3 instances
-- **Production**: 2-10 instances
-- CPU target: 70%
-- Cooldown periods: 300 seconds
+- **Vercel**: Optimized for Next.js with zero configuration
+- **Netlify**: Automatic deployments from Git
+- **Docker**: Any container orchestration platform
 
 ## Environment Variables
 
 The application uses the following environment variables:
 
 - `NODE_ENV`: Environment (development/production)
-- `NEXT_PUBLIC_API_URL`: Backend API URL (from backend deployment)
+- `NEXT_PUBLIC_API_URL`: Backend API URL
 - `PROJECT_NAME`: Project name
 - `VERSION`: Application version
 
-## Required GitHub Secrets
+## Required Configuration
 
-The following secrets must be configured in GitHub:
+### For Railway Deployment
 
-### AWS Credentials
+1. Connect your GitHub repository to Railway
+2. Configure environment variables in Railway dashboard
+3. Set up custom domain (optional)
 
-- `AWS_ACCESS_KEY_ID`
-- `AWS_SECRET_ACCESS_KEY`
-- `AWS_SESSION_TOKEN`
+### For Other Platforms
 
-### Infrastructure
+1. Configure your preferred deployment platform
+2. Set environment variables
+3. Configure build settings for Next.js
 
-- `LAB_ROLE_ARN`: IAM role for ECS tasks
-- `VPC_ID`: VPC ID for deployment
-- `SUBNET_IDS`: Comma-separated list of public subnet IDs
+## Build Configuration
 
-### Backend URLs
+The application uses Next.js with the following build configuration:
 
-- `BACKEND_API_URL_STAGING`: Backend ALB URL for staging
-- `BACKEND_API_URL_PROD`: Backend ALB URL for production
+- **Output**: Standalone for containerized deployment
+- **Static files**: Optimized for production
+- **Health checks**: Available at `/api/health`
 
-### Docker Hub
+## Monitoring and Logs
 
-- `DOCKERHUB_USERNAME`: Docker Hub username
-- `DOCKERHUB_FRONTEND_REPOSITORY`: Frontend repository name
+- **Health checks**: Monitor application status
+- **Logs**: Application and error logs
+- **Metrics**: Performance and usage metrics
 
-### Project Configuration
+## Security Considerations
 
-- `PROJECT_NAME`: Project name
-- `VERSION`: Application version
-
-## Deployment Process
-
-### Staging Deployment
-
-Triggered on push to `develop` branch:
-
-1. Build and test frontend
-2. Build and push Docker image
-3. Deploy CloudFormation stack to staging
-4. Run SonarCloud analysis
-
-### Production Deployment
-
-Triggered on push to `main` branch:
-
-1. Build and test frontend
-2. Build and push Docker image
-3. Deploy CloudFormation stack to production
-
-## Health Check
-
-The application includes a health check endpoint at `/health` that returns:
-
-```json
-{
-  "status": "healthy",
-  "timestamp": "2024-01-01T00:00:00.000Z",
-  "service": "frontend"
-}
-```
-
-## Monitoring
-
-- **CloudWatch Logs**: Application logs
-- **ECS Service**: Container health and metrics
-- **ALB**: Load balancer metrics and access logs
-- **Auto Scaling**: Scaling events and metrics
-
-## Scaling Configuration
-
-### Staging Environment
-
-- Min capacity: 1 task
-- Max capacity: 3 tasks
-- Target CPU: 70%
-
-### Production Environment
-
-- Min capacity: 2 tasks
-- Max capacity: 10 tasks
-- Target CPU: 70%
-
-## Security
-
-- Security groups restrict traffic to necessary ports
-- ALB security group allows HTTP/HTTPS from internet
-- ECS security group allows traffic only from ALB
-- IAM roles follow least privilege principle
+- **HTTPS**: Always use HTTPS in production
+- **CORS**: Configure CORS for API access
+- **Environment variables**: Secure storage of sensitive data
+- **Dependencies**: Regular security updates
 
 ## Troubleshooting
 
 ### Common Issues
 
-1. **Health Check Failures**
-   - Verify `/health` endpoint is accessible
-   - Check application logs in CloudWatch
-   - Ensure container is listening on port 3000
+1. **Build failures**: Check Node.js version and dependencies
+2. **Environment variables**: Verify all required variables are set
+3. **API connectivity**: Check backend URL configuration
+4. **Performance**: Monitor resource usage and scaling
 
-2. **Deployment Failures**
-   - Check CloudFormation events in AWS Console
-   - Verify all required secrets are configured
-   - Ensure VPC and subnets are correctly configured
+### Health Checks
 
-3. **Scaling Issues**
-   - Monitor CPU utilization in CloudWatch
-   - Check Auto Scaling group metrics
-   - Verify target group health
+- **Application health**: `GET /api/health`
+- **Build status**: Check deployment logs
+- **Dependencies**: Verify all packages are installed
 
-### Useful Commands
+## Best Practices
 
-```bash
-# Check ECS service status
-aws ecs describe-services --cluster miamente-frontend-staging --services miamente-frontend-staging-service
-
-# View CloudWatch logs
-aws logs describe-log-streams --log-group-name /ecs/miamente-frontend-staging
-
-# Check ALB target health
-aws elbv2 describe-target-health --target-group-arn <target-group-arn>
-```
-
-## Cost Optimization
-
-- Use Fargate Spot for non-production workloads
-- Implement CloudWatch alarms for cost monitoring
-- Regular review of resource utilization
-- Use appropriate instance sizes based on load
+1. **Environment separation**: Use different environments for development, staging, and production
+2. **Security**: Never commit sensitive data to version control
+3. **Monitoring**: Set up proper logging and monitoring
+4. **Backups**: Regular backups of configuration and data
+5. **Updates**: Keep dependencies and platform updated

@@ -344,7 +344,7 @@ python scripts/seed_environment_data.py --env staging --force
 
 ### Cloud Deployment
 
-1. Choose your preferred cloud platform (AWS, Google Cloud, Azure, etc.)
+1. Choose your preferred cloud platform (Railway, Google Cloud, Azure, etc.)
 2. Add environment variables in your deployment platform
 3. Configure automatic deployment on push to main branch
 
