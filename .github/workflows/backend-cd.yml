@@ -16,26 +16,24 @@ jobs:
   deploy-railway:
     name: Deploy to Railway
     runs-on: ubuntu-latest
+    container: ghcr.io/railwayapp/cli:latest
+    env:
+      RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
     if: ${{ github.event.workflow_run.conclusion == 'success' || github.event_name == 'push' }}
     
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Install Railway CLI
-        run: npm install -g @railway/cli
-
       - name: Deploy to Railway
         run: |
           if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
             echo "Deploying backend to production environment"
-            railway up --service miamente-backend --environment production
+            railway up --service backend --environment production
           elif [[ "${{ github.ref }}" == "refs/heads/staging" ]]; then
             echo "Deploying backend to staging environment"
-            railway up --service miamente-backend --environment staging
+            railway up --service backend --environment staging
           fi
-        env:
-          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
 
       - name: Wait for deployment
         run: sleep 120
