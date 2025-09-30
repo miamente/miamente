@@ -29,12 +29,10 @@ jobs:
         run: |
           if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
             echo "Deploying backend to production environment"
-            railway link --environment production
-            railway up --service miamente-backend --detach
+            railway up --service miamente-backend --environment production
           elif [[ "${{ github.ref }}" == "refs/heads/staging" ]]; then
             echo "Deploying backend to staging environment"
-            railway link --environment staging
-            railway up --service miamente-backend --detach
+            railway up --service miamente-backend --environment staging
           fi
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
