@@ -12,7 +12,7 @@
       "name": "miamente-backend", 
       "source": {
         "repo": "miamente/miamente",
-        "rootDirectory": "apps/api"
+        "rootDirectory": "backend"
       }
     }
   ]
