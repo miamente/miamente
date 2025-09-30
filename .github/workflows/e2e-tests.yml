@@ -30,13 +30,22 @@ jobs:
           # Get frontend URL from Railway
           FRONTEND_URL=$(railway domain --service miamente-frontend --environment $ENV 2>/dev/null | grep -o 'https://[^[:space:]]*' | head -1)
           
-          # Fallback to predefined staging URL if command fails
+          # Get backend URL from Railway
+          BACKEND_URL=$(railway domain --service miamente-backend --environment $ENV 2>/dev/null | grep -o 'https://[^[:space:]]*' | head -1)
+          
+          # Fallback to predefined staging URLs if commands fail
           if [ -z "$FRONTEND_URL" ]; then
             FRONTEND_URL="https://miamente-staging.railway.app"
           fi
           
+          if [ -z "$BACKEND_URL" ]; then
+            BACKEND_URL="https://miamente-backend-staging.railway.app"
+          fi
+          
           echo "frontend_url=$FRONTEND_URL" >> $GITHUB_OUTPUT
+          echo "backend_url=$BACKEND_URL" >> $GITHUB_OUTPUT
           echo "🌐 Frontend URL (Staging): $FRONTEND_URL"
+          echo "🔧 Backend URL (Staging): $BACKEND_URL"
       
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -57,6 +66,7 @@ jobs:
           npm test
         env:
           PLAYWRIGHT_BASE_URL: ${{ steps.get-urls.outputs.frontend_url }}
+          BACKEND_API_URL: ${{ steps.get-urls.outputs.backend_url }}
           E2E_TEST_PASSWORD: ${{ secrets.E2E_TEST_PASSWORD }}
       
       - name: Upload E2E results
