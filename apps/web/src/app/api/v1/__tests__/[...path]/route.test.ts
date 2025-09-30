@@ -13,7 +13,7 @@ describe("API Proxy Route", () => {
     vi.clearAllMocks();
     process.env = {
       ...originalEnv,
-      BACKEND_INTERNAL_URL: "http://backend:8000",
+      NEXT_PUBLIC_API_URL: "http://backend:8000",
     };
   });
 
@@ -209,7 +209,7 @@ describe("API Proxy Route", () => {
 
   describe("Environment configuration", () => {
     it("should use default backend URL when env var is not set", async () => {
-      process.env.BACKEND_INTERNAL_URL = undefined;
+      process.env.NEXT_PUBLIC_API_URL = undefined;
 
       const mockResponse = new Response('{"data": "default"}', {
         status: 200,
