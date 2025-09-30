@@ -7,65 +7,52 @@ on:
       - "apps/web/**"
       - ".github/workflows/frontend-cd.yml"
       - ".github/actions/setup-frontend/**"
-  workflow_dispatch:
-    inputs:
-      backend_url:
-        description: 'Backend URL for testing'
-        required: true
-        type: string
-      environment:
-        description: 'Environment (staging or production)'
-        required: true
-        type: choice
-        options:
-          - staging
-          - production
-
-permissions:
-  contents: read
-  actions: read
-
-env:
-  PROJECT_NAME: ${{ secrets.PROJECT_NAME }}
-  VERSION: ${{ secrets.VERSION }}
-  TIMEZONE: ${{ secrets.TIME_ZONE }}
-
-defaults:
-  run:
-    working-directory: apps/web
+  workflow_run:
+    workflows: ["Frontend CI"]
+    types: [completed]
+    branches: [staging, main]
 
 jobs:
-  docker-build-push:
-    name: Build & Push Docker image
+  deploy-railway:
+    name: Deploy to Railway
     runs-on: ubuntu-latest
-    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/staging')
+    if: ${{ github.event.workflow_run.conclusion == 'success' || github.event_name == 'push' }}
+
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
 
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
+      - name: Install Railway CLI
+        run: npm install -g @railway/cli
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+      - name: Deploy to Railway
+        run: |
+          if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
+            echo "Deploying frontend to production environment"
+            railway login --token ${{ secrets.RAILWAY_TOKEN }}
+            railway environment set production
+            railway up --service miamente-frontend --detach
+          elif [[ "${{ github.ref }}" == "refs/heads/staging" ]]; then
+            echo "Deploying frontend to staging environment"
+            railway login --token ${{ secrets.RAILWAY_TOKEN }}
+            railway environment set staging
+            railway up --service miamente-frontend --detach
+          fi
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
 
-      - name: Login to Docker Hub
-        uses: docker/login-action@v3
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - name: Wait for deployment
+        run: sleep 120
 
-      - name: Build and push Docker image
-        uses: docker/build-push-action@v5
-        with:
-          context: ./apps/web
-          file: ./apps/web/Dockerfile
-          push: true
-          tags: |
-            ${{ secrets.DOCKERHUB_USERNAME }}/${{ secrets.DOCKERHUB_FRONTEND_REPOSITORY }}:${{ github.sha }}
-            ${{ secrets.DOCKERHUB_USERNAME }}/${{ secrets.DOCKERHUB_FRONTEND_REPOSITORY }}:latest
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-
-  # Note: AWS CloudFormation deployment removed
-  # This workflow now only handles Docker image building and pushing
-  # Actual deployment is handled by Railway deployment workflows
+      - name: Health check
+        run: |
+          if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
+            FRONTEND_URL="https://miamente.com"
+          else
+            FRONTEND_URL="https://miamente-staging.railway.app"
+          fi
+          
+          echo "Checking frontend health..."
+          curl -f "$FRONTEND_URL/api/health" || exit 1
+          echo "✅ Frontend deployment successful!"
+          echo "🌐 Frontend URL: $FRONTEND_URL"
