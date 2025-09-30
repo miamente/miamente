@@ -3,11 +3,17 @@
   "services": [
     {
       "name": "miamente-frontend",
-      "source": "./apps/web"
+      "source": {
+        "repo": "miamente/miamente",
+        "rootDirectory": "apps/web"
+      }
     },
     {
-      "name": "miamente-backend",
-      "source": "./apps/api"
+      "name": "miamente-backend", 
+      "source": {
+        "repo": "miamente/miamente",
+        "rootDirectory": "apps/api"
+      }
     }
   ]
 }
