@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server";
 
-const backendBaseUrl = process.env.BACKEND_INTERNAL_URL || "http://localhost:8000";
+const backendBaseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
 async function proxy(request: NextRequest, context: { params?: Promise<{ path?: string | string[] }> }) {
   const params = await context?.params;
