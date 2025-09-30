@@ -14,7 +14,7 @@ WORKDIR /app
 ENV NODE_ENV=production
 ENV PORT=3000
 ENV HOST=0.0.0.0
-# Instala curl para healthchecks de ECS y container
+# Install curl for health checks
 RUN apk add --no-cache curl
 
 # Copia output standalone + static + public
@@ -24,7 +24,7 @@ COPY --from=builder /app/public ./public
 
 EXPOSE 3000
 
-# Healthcheck interno del contenedor (misma ruta que usará ECS/ALB)
+# Health check for container
 HEALTHCHECK --interval=30s --timeout=5s --start-period=30s --retries=3 \
   CMD curl -fsS http://127.0.0.1:3000/api/health || exit 1
 
