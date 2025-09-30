@@ -1,24 +1,68 @@
 # Railway Environment Variables Template
 # Copy these to your Railway project dashboard
 
-# Database
+# ===========================================
+# DATABASE CONFIGURATION
+# ===========================================
 DATABASE_URL=${{Postgres.DATABASE_URL}}
 
-# Authentication
-JWT_SECRET=${{JWT_SECRET}}
+# ===========================================
+# AUTHENTICATION & SECURITY
+# ===========================================
+SECRET_KEY=${{SECRET_KEY}}
 JWT_ALGORITHM=HS256
-ACCESS_TOKEN_EXPIRE_MINUTES=30
+ACCESS_TOKEN_EXPIRE_MINUTES=10080
+REFRESH_TOKEN_EXPIRE_MINUTES=43200
 
-# CORS
-CORS_ORIGINS=${{CORS_ORIGINS}}
+# ===========================================
+# CORS CONFIGURATION
+# ===========================================
+# Development: Allow all origins
+# Staging: Specific staging URLs
+# Production: Specific production URLs
+BACKEND_CORS_ORIGINS=${{CORS_ORIGINS}}
+ALLOWED_HOSTS=${{ALLOWED_HOSTS}}
 
-# Application
-ENVIRONMENT=production
-DEBUG=false
+# ===========================================
+# APPLICATION CONFIGURATION
+# ===========================================
+ENVIRONMENT=${{ENVIRONMENT}}
+DEBUG=${{DEBUG}}
+LOG_LEVEL=${{LOG_LEVEL}}
 
-# Uploads
+# ===========================================
+# SERVER CONFIGURATION
+# ===========================================
+SERVER_NAME=${{SERVER_NAME}}
+SERVER_HOST=${{SERVER_HOST}}
+
+# ===========================================
+# FILE UPLOAD CONFIGURATION
+# ===========================================
 MAX_FILE_SIZE=10485760
 UPLOAD_PATH=/tmp/uploads
 
-# Logging
-LOG_LEVEL=INFO
+# ===========================================
+# EMAIL CONFIGURATION (Optional)
+# ===========================================
+SENDGRID_API_KEY=${{SENDGRID_API_KEY}}
+SENDGRID_FROM_EMAIL=${{SENDGRID_FROM_EMAIL}}
+SENDGRID_FROM_NAME=Miamente
+
+# ===========================================
+# FRONTEND CONFIGURATION
+# ===========================================
+NEXT_PUBLIC_API_URL=${{NEXT_PUBLIC_API_URL}}
+NEXT_PUBLIC_ENVIRONMENT=${{NEXT_PUBLIC_ENVIRONMENT}}
+
+# ===========================================
+# TIMEZONE CONFIGURATION
+# ===========================================
+TIMEZONE=America/Bogota
+
+# ===========================================
+# DEVELOPMENT SPECIFIC
+# ===========================================
+# Only for development environment
+NODE_ENV=production
+NEXT_TELEMETRY_DISABLED=1
