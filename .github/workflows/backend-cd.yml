@@ -1,3 +1,4 @@
+# .github/workflows/backend-cd.yml
 name: Backend CD
 
 on:
@@ -17,37 +18,55 @@ jobs:
     name: Deploy to Railway
     runs-on: ubuntu-latest
     container: ghcr.io/railwayapp/cli:latest
-    env:
-      RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
-    if: ${{ github.event.workflow_run.conclusion == 'success' || github.event_name == 'push' }}
-    
+
+    # Run on push or when the CI finished successfully
+    if: ${{ github.event_name == 'push' || github.event.workflow_run.conclusion == 'success' }}
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Deploy to Railway
+      - name: Set Railway token, env and URLs by branch
+        id: cfg
         run: |
-          if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
-            echo "Deploying backend to production environment"
-            railway up --service backend --environment production
-          elif [[ "${{ github.ref }}" == "refs/heads/staging" ]]; then
-            echo "Deploying backend to staging environment"
-            railway up --service backend --environment staging
-          fi
-
-      - name: Wait for deployment
-        run: sleep 120
-
-      - name: Health check
-        run: |
-          if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
-            BACKEND_URL="https://miamente-backend.railway.app"
+          if [[ "${{ github.ref_name }}" == "main" ]]; then
+            echo "token=${{ secrets.RAILWAY_TOKEN_PROD }}" >> $GITHUB_OUTPUT
+            echo "env=production" >> $GITHUB_OUTPUT
+            echo "backend_url=https://miamente-backend.railway.app" >> $GITHUB_OUTPUT
           else
-            BACKEND_URL="https://miamente-backend-staging.railway.app"
+            echo "token=${{ secrets.RAILWAY_TOKEN_STG }}" >> $GITHUB_OUTPUT
+            echo "env=staging" >> $GITHUB_OUTPUT
+            echo "backend_url=https://miamente-backend-staging.railway.app" >> $GITHUB_OUTPUT
           fi
-          
-          echo "Checking backend health..."
-          curl -f "$BACKEND_URL/health" || exit 1
-          echo "✅ Backend deployment successful!"
-          echo "🌐 Backend URL: $BACKEND_URL"
-          echo "📊 API Docs: $BACKEND_URL/docs"
+
+      - name: Validate token presence
+        run: |
+          if [[ -z "${{ steps.cfg.outputs.token }}" ]]; then
+            echo "❌ Missing Railway Project Token (use RAILWAY_TOKEN_STG/RAILWAY_TOKEN_PROD)."
+            exit 1
+          fi
+
+      - name: Deploy to Railway
+        env:
+          RAILWAY_TOKEN: ${{ steps.cfg.outputs.token }}
+        run: |
+          echo "Deploying backend to ${{ steps.cfg.outputs.env }} environment"
+          # If your Railway service is named something else, update --service
+          railway up --service backend --environment ${{ steps.cfg.outputs.env }}
+
+      - name: Health check (retry)
+        run: |
+          BACKEND_URL="${{ steps.cfg.outputs.backend_url }}"
+          echo "Checking backend health at ${BACKEND_URL}/health ..."
+          for i in {1..18}; do
+            if curl -sf "${BACKEND_URL}/health" > /dev/null; then
+              echo "✅ Backend deployment healthy!"
+              echo "🌐 Backend URL: ${BACKEND_URL}"
+              echo "📊 API Docs: ${BACKEND_URL}/docs"
+              exit 0
+            fi
+            echo "Health not ready yet (attempt $i/18). Waiting 10s..."
+            sleep 10
+          done
+          echo "❌ Health check failed after retries."
+          exit 1

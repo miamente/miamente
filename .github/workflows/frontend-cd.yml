@@ -1,3 +1,4 @@
+# .github/workflows/frontend-cd.yml
 name: Frontend CD
 
 on:
@@ -17,36 +18,45 @@ jobs:
     name: Deploy to Railway
     runs-on: ubuntu-latest
     container: ghcr.io/railwayapp/cli:latest
-    env:
-      RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
-    if: ${{ github.event.workflow_run.conclusion == 'success' || github.event_name == 'push' }}
-    
+
+    if: ${{ github.event_name == 'push' || github.event.workflow_run.conclusion == 'success' }}
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Deploy to Railway
+      - name: Set Railway Token by branch
+        id: token
         run: |
-          if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
-            echo "Deploying frontend to production environment"
-            railway up --service frontend --environment production
-          elif [[ "${{ github.ref }}" == "refs/heads/staging" ]]; then
-            echo "Deploying frontend to staging environment"
-            railway up --service frontend --environment staging
+          if [[ "${{ github.ref_name }}" == "main" ]]; then
+            echo "token=${{ secrets.RAILWAY_TOKEN_PROD }}" >> $GITHUB_OUTPUT
+            echo "env=production" >> $GITHUB_OUTPUT
+            echo "url=https://miamente.com" >> $GITHUB_OUTPUT
+          else
+            echo "token=${{ secrets.RAILWAY_TOKEN_STG }}" >> $GITHUB_OUTPUT
+            echo "env=staging" >> $GITHUB_OUTPUT
+            echo "url=https://miamente-staging.railway.app" >> $GITHUB_OUTPUT
           fi
 
-      - name: Wait for deployment
-        run: sleep 120
+      - name: Deploy to Railway
+        env:
+          RAILWAY_TOKEN: ${{ steps.token.outputs.token }}
+        run: |
+          echo "Deploying frontend to ${{ steps.token.outputs.env }} environment"
+          railway up --service frontend --environment ${{ steps.token.outputs.env }}
 
       - name: Health check
         run: |
-          if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
-            FRONTEND_URL="https://miamente.com"
-          else
-            FRONTEND_URL="https://miamente-staging.railway.app"
-          fi
-          
+          FRONTEND_URL="${{ steps.token.outputs.url }}"
           echo "Checking frontend health..."
-          curl -f "$FRONTEND_URL/api/health" || exit 1
-          echo "✅ Frontend deployment successful!"
-          echo "🌐 Frontend URL: $FRONTEND_URL"
+          for i in {1..12}; do
+            if curl -sf "$FRONTEND_URL/api/health" > /dev/null; then
+              echo "✅ Frontend deployment healthy!"
+              echo "🌐 $FRONTEND_URL"
+              exit 0
+            fi
+            echo "Waiting for app to be ready... attempt $i"
+            sleep 10
+          done
+          echo "❌ Health check failed"
+          exit 1
