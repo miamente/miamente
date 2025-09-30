@@ -17,7 +17,7 @@ jobs:
     name: Deploy to Railway
     runs-on: ubuntu-latest
     if: ${{ github.event.workflow_run.conclusion == 'success' || github.event_name == 'push' }}
-
+    
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -29,13 +29,11 @@ jobs:
         run: |
           if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
             echo "Deploying frontend to production environment"
-            railway login --token ${{ secrets.RAILWAY_TOKEN }}
-            railway environment set production
+            railway link --environment production
             railway up --service miamente-frontend --detach
           elif [[ "${{ github.ref }}" == "refs/heads/staging" ]]; then
             echo "Deploying frontend to staging environment"
-            railway login --token ${{ secrets.RAILWAY_TOKEN }}
-            railway environment set staging
+            railway link --environment staging
             railway up --service miamente-frontend --detach
           fi
         env:
