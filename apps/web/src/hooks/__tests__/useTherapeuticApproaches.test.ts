@@ -68,7 +68,9 @@ describe("useTherapeuticApproaches", () => {
   });
 
   it("should handle API errors", async () => {
-    mockApiClient.getTherapeuticApproaches.mockRejectedValue(new Error("Failed to fetch therapeutic approaches"));
+    mockApiClient.getTherapeuticApproaches.mockRejectedValue(
+      new Error("Failed to fetch therapeutic approaches"),
+    );
 
     const { result } = renderHook(() => useTherapeuticApproaches());
 
@@ -170,7 +172,10 @@ describe("useTherapeuticApproaches", () => {
     });
 
     expect(result.current.approaches).toEqual(mockApproaches);
-    expect(result.current.approaches[0]).toHaveProperty("description", "Cognitive Behavioral Therapy");
+    expect(result.current.approaches[0]).toHaveProperty(
+      "description",
+      "Cognitive Behavioral Therapy",
+    );
     expect(result.current.approaches[1]).toHaveProperty("is_active", false);
     expect(result.current.approaches[2]).not.toHaveProperty("description");
   });

@@ -3,14 +3,14 @@ import React from "react";
 export default function PrivacyPage() {
   return (
     <div className="container mx-auto max-w-4xl px-4 py-8">
-      <div className="prose prose-neutral dark:prose-invert max-w-none">
+      <div className="prose prose-neutral max-w-none">
         <h1 className="mb-8 text-3xl font-bold">Política de Privacidad y Protección de Datos</h1>
 
-        <div className="mb-6 rounded-lg border border-blue-200 bg-blue-50 p-4 dark:border-blue-800 dark:bg-blue-900/20">
-          <p className="text-sm text-blue-800 dark:text-blue-200">
+        <div className="mb-6 rounded-lg border border-blue-200 bg-blue-50 p-4">
+          <p className="text-sm text-blue-800">
             <strong>Última actualización:</strong> {new Date().toLocaleDateString("es-CO")}
           </p>
-          <p className="mt-2 text-sm text-blue-800 dark:text-blue-200">
+          <p className="mt-2 text-sm text-blue-800">
             <strong>Cumplimiento:</strong> Ley 1581 de 2012 y Decreto 1377 de 2013 de Colombia
           </p>
         </div>
@@ -105,11 +105,11 @@ export default function PrivacyPage() {
             </li>
           </ul>
 
-          <div className="mt-6 rounded-lg border border-yellow-200 bg-yellow-50 p-4 dark:border-yellow-800 dark:bg-yellow-900/20">
-            <h3 className="mb-2 font-semibold text-yellow-800 dark:text-yellow-200">
+          <div className="mt-6 rounded-lg border border-yellow-200 bg-yellow-50 p-4">
+            <h3 className="mb-2 font-semibold text-yellow-800">
               ⚠️ Datos Sensibles - Historia Clínica
             </h3>
-            <p className="text-sm text-yellow-700 dark:text-yellow-300">
+            <p className="text-sm text-yellow-700">
               <strong>IMPORTANTE:</strong> En esta versión MVP, Miamente NO recopila, almacena ni
               procesa historias clínicas, diagnósticos o información médica sensible. Los
               profesionales mantienen sus propios registros clínicos de acuerdo con sus protocolos
@@ -347,8 +347,8 @@ export default function PrivacyPage() {
           </ul>
         </section>
 
-        <div className="mt-12 rounded-lg bg-gray-50 p-6 dark:bg-gray-800">
-          <p className="text-sm text-gray-600 dark:text-gray-400">
+        <div className="mt-12 rounded-lg bg-gray-50 p-6">
+          <p className="text-sm text-gray-600">
             Esta política de privacidad cumple con la Ley 1581 de 2012 y el Decreto 1377 de 2013 de
             Colombia. Al utilizar Miamente, usted acepta el tratamiento de sus datos personales
             según se describe en esta política.

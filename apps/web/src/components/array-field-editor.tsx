@@ -76,9 +76,9 @@ export function ArrayFieldEditor({
           {fields.map((field, index) => (
             <div
               key={field.id}
-              className="flex items-center justify-between rounded-lg bg-gray-50 px-3 py-2 dark:bg-gray-800"
+              className="flex items-center justify-between rounded-lg bg-gray-50 px-3 py-2"
             >
-              <span className="text-sm text-gray-700 dark:text-gray-300">
+              <span className="text-sm text-gray-700">
                 {typeof field === "string" ? field : String(field)}
               </span>
               <Button
@@ -96,9 +96,7 @@ export function ArrayFieldEditor({
         </div>
 
         {fields.length === 0 && (
-          <p className="py-4 text-center text-sm text-gray-500 dark:text-gray-400">
-            No hay elementos agregados
-          </p>
+          <p className="py-4 text-center text-sm text-gray-500">No hay elementos agregados</p>
         )}
       </CardContent>
     </Card>

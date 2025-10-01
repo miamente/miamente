@@ -67,7 +67,7 @@ export function AcademicExperienceEditor({ disabled = false }: AcademicExperienc
     <Card className={isOpen ? "pt-0" : "p-0"}>
       <Collapsible open={isOpen} onOpenChange={setIsOpen}>
         <CollapsibleTrigger asChild>
-          <CardHeader className="group cursor-pointer py-6 transition-colors duration-200 hover:bg-blue-50/30 dark:hover:bg-blue-900/10">
+          <CardHeader className="group cursor-pointer py-6 transition-colors duration-200 hover:bg-blue-50/30">
             <CardTitle className="flex items-center justify-between text-lg">
               <div className="flex items-center gap-2">
                 <GraduationCap className="h-5 w-5 text-blue-600 transition-colors group-hover:text-blue-700" />
@@ -86,7 +86,7 @@ export function AcademicExperienceEditor({ disabled = false }: AcademicExperienc
             {fields.map((field, index) => (
               <div key={field.id} className="space-y-4 rounded-lg border p-4">
                 <div className="flex items-center justify-between">
-                  <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                  <h4 className="text-sm font-medium text-gray-700">
                     {academicExperience?.[index]?.institution && academicExperience?.[index]?.degree
                       ? `${academicExperience[index].institution} - ${academicExperience[index].degree}`
                       : `Experiencia ${index + 1}`}
@@ -107,7 +107,7 @@ export function AcademicExperienceEditor({ disabled = false }: AcademicExperienc
                   <div>
                     <label
                       htmlFor={`institution-${index}`}
-                      className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300"
+                      className="mb-1 block text-sm font-medium text-gray-700"
                     >
                       Institución *
                     </label>
@@ -127,7 +127,7 @@ export function AcademicExperienceEditor({ disabled = false }: AcademicExperienc
                   <div>
                     <label
                       htmlFor={`degree-${index}`}
-                      className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300"
+                      className="mb-1 block text-sm font-medium text-gray-700"
                     >
                       Título/Degree *
                     </label>
@@ -147,7 +147,7 @@ export function AcademicExperienceEditor({ disabled = false }: AcademicExperienc
                   <div>
                     <label
                       htmlFor={`field-${index}`}
-                      className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300"
+                      className="mb-1 block text-sm font-medium text-gray-700"
                     >
                       Campo de Estudio *
                     </label>
@@ -167,7 +167,7 @@ export function AcademicExperienceEditor({ disabled = false }: AcademicExperienc
                   <div>
                     <label
                       htmlFor={`start-date-${index}`}
-                      className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300"
+                      className="mb-1 block text-sm font-medium text-gray-700"
                     >
                       Fecha de Inicio *
                     </label>
@@ -187,7 +187,7 @@ export function AcademicExperienceEditor({ disabled = false }: AcademicExperienc
                   <div>
                     <label
                       htmlFor={`end-date-${index}`}
-                      className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300"
+                      className="mb-1 block text-sm font-medium text-gray-700"
                     >
                       Fecha de Finalización
                     </label>
@@ -208,7 +208,7 @@ export function AcademicExperienceEditor({ disabled = false }: AcademicExperienc
                 <div>
                   <label
                     htmlFor={`description-${index}`}
-                    className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300"
+                    className="mb-1 block text-sm font-medium text-gray-700"
                   >
                     Descripción
                   </label>

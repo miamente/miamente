@@ -300,7 +300,9 @@ describe("LoginForm", () => {
   });
 
   it("should clear error message when form is resubmitted", async () => {
-    mockLoginUnified.mockRejectedValueOnce(new Error("First error")).mockResolvedValueOnce(undefined);
+    mockLoginUnified
+      .mockRejectedValueOnce(new Error("First error"))
+      .mockResolvedValueOnce(undefined);
 
     render(<LoginForm />);
 

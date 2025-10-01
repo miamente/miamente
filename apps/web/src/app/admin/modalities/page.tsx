@@ -211,12 +211,8 @@ export default function AdminModalities() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-            Gestión de Modalidades
-          </h1>
-          <p className="mt-2 text-gray-600 dark:text-gray-400">
-            Administrar modalidades de consulta y precios
-          </p>
+          <h1 className="text-3xl font-bold text-gray-900">Gestión de Modalidades</h1>
+          <p className="mt-2 text-gray-600">Administrar modalidades de consulta y precios</p>
         </div>
         <Button onClick={handleCreateModality}>
           <Plus className="mr-2 h-4 w-4" />
@@ -225,9 +221,7 @@ export default function AdminModalities() {
       </div>
 
       {error && (
-        <div className="rounded-md border border-red-200 bg-red-50 p-4 text-red-600 dark:border-red-800 dark:bg-red-900/20 dark:text-red-400">
-          {error}
-        </div>
+        <div className="rounded-md border border-red-200 bg-red-50 p-4 text-red-600">{error}</div>
       )}
 
       {/* Search */}
@@ -266,7 +260,7 @@ export default function AdminModalities() {
             <CardContent>
               <div className="space-y-4">
                 {modality.description && (
-                  <p className="text-sm text-gray-600 dark:text-gray-400">{modality.description}</p>
+                  <p className="text-sm text-gray-600">{modality.description}</p>
                 )}
 
                 <div className="space-y-2">

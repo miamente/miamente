@@ -250,7 +250,7 @@ export default function ProfessionalProfilePage() {
                 alt="Profile"
                 width={128}
                 height={128}
-                className="h-32 w-32 rounded-full border-4 border-blue-200 object-cover dark:border-blue-800"
+                className="h-32 w-32 rounded-full border-4 border-blue-200 object-cover"
               />
               <div className="bg-opacity-50 absolute inset-0 flex items-center justify-center rounded-full bg-black opacity-0 transition-opacity group-hover:opacity-100">
                 <svg
@@ -269,9 +269,9 @@ export default function ProfessionalProfilePage() {
               </div>
             </div>
           ) : (
-            <div className="group flex h-32 w-32 cursor-pointer items-center justify-center rounded-full border-2 border-dashed border-gray-300 bg-gray-50 transition-colors hover:bg-gray-100 dark:border-gray-600 dark:bg-gray-800 dark:hover:bg-gray-700">
+            <div className="group flex h-32 w-32 cursor-pointer items-center justify-center rounded-full border-2 border-dashed border-gray-300 bg-gray-50 transition-colors hover:bg-gray-100">
               <svg
-                className="h-12 w-12 text-gray-400 group-hover:text-gray-600 dark:group-hover:text-gray-300"
+                className="h-12 w-12 text-gray-400 group-hover:text-gray-600"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -304,21 +304,15 @@ export default function ProfessionalProfilePage() {
         {/* File Info */}
         {photoFile && (
           <div className="text-center">
-            <p className="text-sm font-medium text-gray-900 dark:text-gray-100">{photoFile.name}</p>
-            <p className="text-xs text-gray-500 dark:text-gray-400">
-              {(photoFile.size / 1024 / 1024).toFixed(2)} MB
-            </p>
+            <p className="text-sm font-medium text-gray-900">{photoFile.name}</p>
+            <p className="text-xs text-gray-500">{(photoFile.size / 1024 / 1024).toFixed(2)} MB</p>
           </div>
         )}
 
         {/* Instructions */}
         <div className="text-center">
-          <p className="text-sm text-gray-600 dark:text-gray-400">
-            Haz clic para seleccionar una foto profesional
-          </p>
-          <p className="mt-1 text-xs text-gray-500 dark:text-gray-500">
-            JPG, PNG, GIF • Máximo 2MB
-          </p>
+          <p className="text-sm text-gray-600">Haz clic para seleccionar una foto profesional</p>
+          <p className="mt-1 text-xs text-gray-500">JPG, PNG, GIF • Máximo 2MB</p>
         </div>
       </div>
 
@@ -330,13 +324,13 @@ export default function ProfessionalProfilePage() {
             className="space-y-6"
           >
             {error && (
-              <div className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-600 dark:border-red-800 dark:bg-red-900/20 dark:text-red-400">
+              <div className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-600">
                 {error}
               </div>
             )}
 
             {success && (
-              <div className="rounded-md border border-green-200 bg-green-50 p-3 text-sm text-green-600 dark:border-green-800 dark:bg-green-900/20 dark:text-green-400">
+              <div className="rounded-md border border-green-200 bg-green-50 p-3 text-sm text-green-600">
                 Perfil actualizado exitosamente
               </div>
             )}
@@ -355,7 +349,7 @@ export default function ProfessionalProfilePage() {
                   <div>
                     <label
                       htmlFor="fullName"
-                      className="block text-sm font-medium text-neutral-700 dark:text-neutral-300"
+                      className="block text-sm font-medium text-neutral-700"
                     >
                       Nombre Completo
                     </label>
@@ -367,17 +361,12 @@ export default function ProfessionalProfilePage() {
                       disabled={isSubmitting}
                     />
                     {errors.fullName && (
-                      <p className="mt-1 text-sm text-red-600 dark:text-red-400">
-                        {errors.fullName.message}
-                      </p>
+                      <p className="mt-1 text-sm text-red-600">{errors.fullName.message}</p>
                     )}
                   </div>
 
                   <div>
-                    <label
-                      htmlFor="email"
-                      className="block text-sm font-medium text-neutral-700 dark:text-neutral-300"
-                    >
+                    <label htmlFor="email" className="block text-sm font-medium text-neutral-700">
                       Correo Electrónico
                     </label>
                     <Input
@@ -389,17 +378,12 @@ export default function ProfessionalProfilePage() {
                       disabled={true}
                     />
                     {errors.email && (
-                      <p className="mt-1 text-sm text-red-600 dark:text-red-400">
-                        {errors.email.message}
-                      </p>
+                      <p className="mt-1 text-sm text-red-600">{errors.email.message}</p>
                     )}
                   </div>
 
                   <div>
-                    <label
-                      htmlFor="phone"
-                      className="block text-sm font-medium text-neutral-700 dark:text-neutral-300"
-                    >
+                    <label htmlFor="phone" className="block text-sm font-medium text-neutral-700">
                       Teléfono
                     </label>
                     <PhoneInputFieldWithRef
@@ -417,36 +401,27 @@ export default function ProfessionalProfilePage() {
                       disabled={isSubmitting}
                     />
                     {errors.phoneCountryCode && (
-                      <p className="mt-1 text-sm text-red-600 dark:text-red-400">
-                        {errors.phoneCountryCode.message}
-                      </p>
+                      <p className="mt-1 text-sm text-red-600">{errors.phoneCountryCode.message}</p>
                     )}
                     {errors.phoneNumber && (
-                      <p className="mt-1 text-sm text-red-600 dark:text-red-400">
-                        {errors.phoneNumber.message}
-                      </p>
+                      <p className="mt-1 text-sm text-red-600">{errors.phoneNumber.message}</p>
                     )}
                   </div>
 
                   <div>
-                    <label
-                      htmlFor="bio"
-                      className="block text-sm font-medium text-neutral-700 dark:text-neutral-300"
-                    >
+                    <label htmlFor="bio" className="block text-sm font-medium text-neutral-700">
                       Biografía
                     </label>
                     <textarea
                       id="bio"
                       {...register("bio")}
-                      className="focus:border-primary focus:ring-primary mt-1 block w-full rounded-md border border-neutral-300 px-3 py-2 text-sm placeholder-neutral-400 focus:ring-1 focus:outline-none dark:border-neutral-600 dark:bg-neutral-800 dark:text-neutral-100 dark:placeholder-neutral-500"
+                      className="focus:border-primary focus:ring-primary mt-1 block w-full rounded-md border border-neutral-300 px-3 py-2 text-sm placeholder-neutral-400 focus:ring-1 focus:outline-none"
                       rows={4}
                       placeholder="Cuéntanos sobre tu experiencia y enfoque terapéutico..."
                       disabled={isSubmitting}
                     />
                     {errors.bio && (
-                      <p className="mt-1 text-sm text-red-600 dark:text-red-400">
-                        {errors.bio.message}
-                      </p>
+                      <p className="mt-1 text-sm text-red-600">{errors.bio.message}</p>
                     )}
                   </div>
                 </CardContent>
@@ -466,7 +441,7 @@ export default function ProfessionalProfilePage() {
                   <div>
                     <label
                       htmlFor="licenseNumber"
-                      className="block text-sm font-medium text-neutral-700 dark:text-neutral-300"
+                      className="block text-sm font-medium text-neutral-700"
                     >
                       Número de Licencia
                     </label>
@@ -478,16 +453,14 @@ export default function ProfessionalProfilePage() {
                       disabled={isSubmitting}
                     />
                     {errors.licenseNumber && (
-                      <p className="mt-1 text-sm text-red-600 dark:text-red-400">
-                        {errors.licenseNumber.message}
-                      </p>
+                      <p className="mt-1 text-sm text-red-600">{errors.licenseNumber.message}</p>
                     )}
                   </div>
 
                   <div>
                     <label
                       htmlFor="yearsExperience"
-                      className="block text-sm font-medium text-neutral-700 dark:text-neutral-300"
+                      className="block text-sm font-medium text-neutral-700"
                     >
                       Años de Experiencia
                     </label>
@@ -500,9 +473,7 @@ export default function ProfessionalProfilePage() {
                       disabled={isSubmitting}
                     />
                     {errors.yearsExperience && (
-                      <p className="mt-1 text-sm text-red-600 dark:text-red-400">
-                        {errors.yearsExperience.message}
-                      </p>
+                      <p className="mt-1 text-sm text-red-600">{errors.yearsExperience.message}</p>
                     )}
                   </div>
 

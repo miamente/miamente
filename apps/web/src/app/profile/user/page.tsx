@@ -128,7 +128,7 @@ export default function UserProfilePage() {
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold">Perfil de Usuario</h1>
-        <p className="text-neutral-600 dark:text-neutral-300">Actualiza tu información personal</p>
+        <p className="text-neutral-600">Actualiza tu información personal</p>
       </div>
 
       <div className="grid gap-6 md:grid-cols-2">
@@ -137,17 +137,20 @@ export default function UserProfilePage() {
             <CardTitle>Información Personal</CardTitle>
           </CardHeader>
           <CardContent>
-            <form onSubmit={handleSubmit(onSubmit, (errors) => {
-              console.log("Form validation errors:", errors);
-            })} className="space-y-4">
+            <form
+              onSubmit={handleSubmit(onSubmit, (errors) => {
+                console.log("Form validation errors:", errors);
+              })}
+              className="space-y-4"
+            >
               {error && (
-                <div className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-600 dark:border-red-800 dark:bg-red-900/20 dark:text-red-400">
+                <div className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-600">
                   {error}
                 </div>
               )}
 
               {success && (
-                <div className="rounded-md border border-green-200 bg-green-50 p-3 text-sm text-green-600 dark:border-green-800 dark:bg-green-900/20 dark:text-green-400">
+                <div className="rounded-md border border-green-200 bg-green-50 p-3 text-sm text-green-600">
                   Perfil actualizado exitosamente
                 </div>
               )}
@@ -159,9 +162,7 @@ export default function UserProfilePage() {
                   disabled={isSubmitting}
                 />
                 {errors.fullName && (
-                  <p className="mt-1 text-sm text-red-600 dark:text-red-400">
-                    {errors.fullName.message}
-                  </p>
+                  <p className="mt-1 text-sm text-red-600">{errors.fullName.message}</p>
                 )}
               </div>
 
@@ -173,9 +174,7 @@ export default function UserProfilePage() {
                   disabled={isSubmitting}
                 />
                 {errors.email && (
-                  <p className="mt-1 text-sm text-red-600 dark:text-red-400">
-                    {errors.email.message}
-                  </p>
+                  <p className="mt-1 text-sm text-red-600">{errors.email.message}</p>
                 )}
               </div>
 
@@ -186,9 +185,7 @@ export default function UserProfilePage() {
                   disabled={isSubmitting}
                 />
                 {errors.phoneCountryCode && (
-                  <p className="mt-1 text-sm text-red-600 dark:text-red-400">
-                    {errors.phoneCountryCode.message}
-                  </p>
+                  <p className="mt-1 text-sm text-red-600">{errors.phoneCountryCode.message}</p>
                 )}
               </div>
 
@@ -213,9 +210,7 @@ export default function UserProfilePage() {
               currentFile={currentPhotoUrl || undefined}
             />
             {photoFile && (
-              <p className="mt-2 text-sm text-blue-600 dark:text-blue-400">
-                Archivo seleccionado: {photoFile.name}
-              </p>
+              <p className="mt-2 text-sm text-blue-600">Archivo seleccionado: {photoFile.name}</p>
             )}
           </CardContent>
         </Card>
@@ -229,7 +224,8 @@ export default function UserProfilePage() {
           <CardContent>
             <div className="space-y-2">
               <p>
-                <strong>Email:</strong> {getUserEmail(user) || (profile as { email?: string }).email || "No disponible"}
+                <strong>Email:</strong>{" "}
+                {getUserEmail(user) || (profile as { email?: string }).email || "No disponible"}
               </p>
               <p>
                 <strong>Nombre:</strong> {(profile as { full_name?: string }).full_name}

@@ -105,7 +105,7 @@ describe("PrivacyPage", () => {
 
     // Check prose styling
     const proseContainer = container.querySelector(".prose");
-    expect(proseContainer).toHaveClass("prose-neutral", "dark:prose-invert", "max-w-none");
+    expect(proseContainer).toHaveClass("prose-neutral", "", "max-w-none");
   });
 
   it("should display the final compliance notice", () => {

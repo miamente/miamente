@@ -24,7 +24,11 @@ export const userProfileSchema = z.object({
   fullName: z.string().min(2, "El nombre debe tener al menos 2 caracteres"),
   email: z.string().email("Email inválido").optional().or(z.literal("")),
   phoneCountryCode: z.string().optional().or(z.literal("")),
-  phoneNumber: z.string().min(7, "El número de teléfono debe tener al menos 7 dígitos").optional().or(z.literal("")),
+  phoneNumber: z
+    .string()
+    .min(7, "El número de teléfono debe tener al menos 7 dígitos")
+    .optional()
+    .or(z.literal("")),
 });
 
 export const professionalProfileSchema = z.object({

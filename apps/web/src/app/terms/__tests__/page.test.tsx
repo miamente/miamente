@@ -182,8 +182,8 @@ describe("TermsPage", () => {
       "border-blue-200",
       "bg-blue-50",
       "p-4",
-      "dark:border-blue-800",
-      "dark:bg-blue-900/20",
+      "",
+      "",
     );
 
     // Check the important notice box
@@ -194,13 +194,13 @@ describe("TermsPage", () => {
       "border-yellow-200",
       "bg-yellow-50",
       "p-4",
-      "dark:border-yellow-800",
-      "dark:bg-yellow-900/20",
+      "",
+      "",
     );
 
     // Check the final acceptance notice box
     expect(
       screen.getByText(/Al utilizar Miamente, usted confirma que ha leído/).closest("div"),
-    ).toHaveClass("mt-12", "rounded-lg", "bg-gray-50", "p-6", "dark:bg-gray-800");
+    ).toHaveClass("mt-12", "rounded-lg", "bg-gray-50", "p-6", "");
   });
 });

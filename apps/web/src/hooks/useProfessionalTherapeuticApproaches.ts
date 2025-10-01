@@ -33,7 +33,10 @@ export function useProfessionalTherapeuticApproaches(professionalId?: string) {
 
     try {
       setLoading(true);
-      const data = await apiClient.updateProfessionalTherapeuticApproaches(professionalId, approachIds);
+      const data = await apiClient.updateProfessionalTherapeuticApproaches(
+        professionalId,
+        approachIds,
+      );
       setApproaches(data);
     } catch (err) {
       setError(err instanceof Error ? err.message : "An error occurred");

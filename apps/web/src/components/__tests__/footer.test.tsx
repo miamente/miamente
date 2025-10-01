@@ -155,23 +155,12 @@ describe("Footer", () => {
     render(<Footer />);
 
     const footer = screen.getByRole("contentinfo");
-    expect(footer).toHaveClass(
-      "border-t",
-      "py-8",
-      "text-sm",
-      "text-neutral-600",
-      "dark:text-neutral-400",
-    );
+    expect(footer).toHaveClass("border-t", "py-8", "text-sm", "text-neutral-600", "");
 
     // Check that headings have proper classes
     const headings = screen.getAllByRole("heading", { level: 3 });
     headings.forEach((heading) => {
-      expect(heading).toHaveClass(
-        "mb-3",
-        "font-semibold",
-        "text-neutral-900",
-        "dark:text-neutral-100",
-      );
+      expect(heading).toHaveClass("mb-3", "font-semibold", "text-neutral-900", "");
     });
   });
 

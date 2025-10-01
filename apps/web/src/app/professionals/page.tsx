@@ -119,9 +119,7 @@ export default function ProfessionalsPage() {
 
   const renderSpecialtyInfo = (pro: ProfessionalProfile) => {
     if (specialtiesLoading) {
-      return (
-        <div className="h-4 w-32 animate-pulse rounded bg-neutral-200 dark:bg-neutral-700"></div>
-      );
+      return <div className="h-4 w-32 animate-pulse rounded bg-neutral-200"></div>;
     }
 
     if (pro.specialty_ids && pro.specialty_ids.length > 0) {
@@ -130,7 +128,7 @@ export default function ProfessionalsPage() {
           {getSpecialtyNames(pro.specialty_ids).map((specialty: string, index: number) => (
             <span
               key={`${pro.id}-specialty-${specialty}-${index}`}
-              className="rounded-full bg-blue-100 px-2 py-1 text-xs text-blue-800 dark:bg-blue-900 dark:text-blue-200"
+              className="rounded-full bg-blue-100 px-2 py-1 text-xs text-blue-800"
             >
               {specialty}
             </span>
@@ -163,12 +161,10 @@ export default function ProfessionalsPage() {
     if (!loading && !isInitialLoad && items.length === 0) {
       return (
         <output className="rounded-md border p-6 text-center">
-          <p className="text-neutral-700 dark:text-neutral-300">
+          <p className="text-neutral-700">
             No encontramos profesionales con los filtros seleccionados.
           </p>
-          <p className="text-sm text-neutral-500 dark:text-neutral-400">
-            Intenta ajustar los filtros.
-          </p>
+          <p className="text-sm text-neutral-500">Intenta ajustar los filtros.</p>
         </output>
       );
     }
@@ -180,10 +176,8 @@ export default function ProfessionalsPage() {
             <Card className="flex cursor-pointer flex-col transition-shadow duration-200 hover:shadow-lg">
               <CardHeader>
                 <CardTitle className="text-xl">{pro.full_name}</CardTitle>
-                <div className="text-sm text-neutral-600 dark:text-neutral-400">
-                  {renderSpecialtyInfo(pro)}
-                </div>
-                <p className="text-sm text-neutral-600 dark:text-neutral-400">
+                <div className="text-sm text-neutral-600">{renderSpecialtyInfo(pro)}</div>
+                <p className="text-sm text-neutral-600">
                   {(pro.rate_cents / 100).toLocaleString("es-CO", {
                     minimumFractionDigits: 0,
                     maximumFractionDigits: 0,
@@ -201,13 +195,11 @@ export default function ProfessionalsPage() {
                     className="h-40 w-full rounded-md object-cover"
                   />
                 ) : (
-                  <div className="flex h-40 w-full items-center justify-center rounded-md bg-neutral-100 text-neutral-500 dark:bg-neutral-900 dark:text-neutral-400">
+                  <div className="flex h-40 w-full items-center justify-center rounded-md bg-neutral-100 text-neutral-500">
                     Sin foto
                   </div>
                 )}
-                <p className="line-clamp-3 text-sm text-neutral-700 dark:text-neutral-300">
-                  {pro.bio}
-                </p>
+                <p className="line-clamp-3 text-sm text-neutral-700">{pro.bio}</p>
                 <div className="mt-auto">
                   <Button
                     className="w-full"
@@ -246,7 +238,7 @@ export default function ProfessionalsPage() {
             placeholder="Selecciona una especialidad"
             aria-describedby="specialty-help"
           />
-          <p id="specialty-help" className="mt-1 text-xs text-neutral-500 dark:text-neutral-400">
+          <p id="specialty-help" className="mt-1 text-xs text-neutral-500">
             Filtra por especialidad
           </p>
         </div>
@@ -303,7 +295,7 @@ export default function ProfessionalsPage() {
       </form>
 
       {error && (
-        <output className="mb-6 rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-600 dark:border-red-800 dark:bg-red-900/20 dark:text-red-400">
+        <output className="mb-6 rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-600">
           {error}
         </output>
       )}

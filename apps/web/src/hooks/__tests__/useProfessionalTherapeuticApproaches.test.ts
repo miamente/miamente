@@ -80,7 +80,9 @@ describe("useProfessionalTherapeuticApproaches", () => {
   });
 
   it("should handle API errors", async () => {
-    mockApiClient.getProfessionalTherapeuticApproaches.mockRejectedValue(new Error("Failed to fetch professional therapeutic approaches"));
+    mockApiClient.getProfessionalTherapeuticApproaches.mockRejectedValue(
+      new Error("Failed to fetch professional therapeutic approaches"),
+    );
 
     const { result } = renderHook(() => useProfessionalTherapeuticApproaches("prof-123"));
 
@@ -93,7 +95,9 @@ describe("useProfessionalTherapeuticApproaches", () => {
   });
 
   it("should handle network errors", async () => {
-    mockApiClient.getProfessionalTherapeuticApproaches.mockRejectedValue(new Error("Network error"));
+    mockApiClient.getProfessionalTherapeuticApproaches.mockRejectedValue(
+      new Error("Network error"),
+    );
 
     const { result } = renderHook(() => useProfessionalTherapeuticApproaches("prof-123"));
 
@@ -144,7 +148,9 @@ describe("useProfessionalTherapeuticApproaches", () => {
     });
 
     expect(result.current.approaches).toEqual(mockApproaches);
-    expect(mockApiClient.updateProfessionalTherapeuticApproaches).toHaveBeenCalledWith("prof-123", ["approach-1"]);
+    expect(mockApiClient.updateProfessionalTherapeuticApproaches).toHaveBeenCalledWith("prof-123", [
+      "approach-1",
+    ]);
   });
 
   it("should not update when professionalId is not provided", async () => {
@@ -159,7 +165,9 @@ describe("useProfessionalTherapeuticApproaches", () => {
 
   it("should handle update errors", async () => {
     mockApiClient.getProfessionalTherapeuticApproaches.mockResolvedValue([]);
-    mockApiClient.updateProfessionalTherapeuticApproaches.mockRejectedValue(new Error("Failed to update professional therapeutic approaches"));
+    mockApiClient.updateProfessionalTherapeuticApproaches.mockRejectedValue(
+      new Error("Failed to update professional therapeutic approaches"),
+    );
 
     const { result } = renderHook(() => useProfessionalTherapeuticApproaches("prof-123"));
 
@@ -177,7 +185,7 @@ describe("useProfessionalTherapeuticApproaches", () => {
   it("should refetch when professionalId changes", async () => {
     const { result, rerender } = renderHook(
       ({ professionalId }) => useProfessionalTherapeuticApproaches(professionalId),
-      { initialProps: { professionalId: "prof-123" } }
+      { initialProps: { professionalId: "prof-123" } },
     );
 
     await waitFor(() => {

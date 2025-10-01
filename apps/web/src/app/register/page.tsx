@@ -55,7 +55,6 @@ export default function RegisterPage() {
     return <div className="flex min-h-[50vh] items-center justify-center">Redirigiendo...</div>;
   }
 
-
   return (
     <div className="flex min-h-[50vh] items-center justify-center">
       <Card className="w-full max-w-md">
@@ -65,7 +64,7 @@ export default function RegisterPage() {
         <CardContent>
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             {error && (
-              <div className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-600 dark:border-red-800 dark:bg-red-900/20 dark:text-red-400">
+              <div className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-600">
                 {error}
               </div>
             )}
@@ -78,19 +77,13 @@ export default function RegisterPage() {
                 disabled={isLoading}
               />
               {errors.fullName && (
-                <p className="mt-1 text-sm text-red-600 dark:text-red-400">
-                  {errors.fullName.message}
-                </p>
+                <p className="mt-1 text-sm text-red-600">{errors.fullName.message}</p>
               )}
             </div>
 
             <div>
               <Input {...register("email")} type="email" placeholder="Email" disabled={isLoading} />
-              {errors.email && (
-                <p className="mt-1 text-sm text-red-600 dark:text-red-400">
-                  {errors.email.message}
-                </p>
-              )}
+              {errors.email && <p className="mt-1 text-sm text-red-600">{errors.email.message}</p>}
             </div>
 
             <div>
@@ -101,9 +94,7 @@ export default function RegisterPage() {
                 disabled={isLoading}
               />
               {errors.password && (
-                <p className="mt-1 text-sm text-red-600 dark:text-red-400">
-                  {errors.password.message}
-                </p>
+                <p className="mt-1 text-sm text-red-600">{errors.password.message}</p>
               )}
             </div>
 
@@ -115,9 +106,7 @@ export default function RegisterPage() {
                 disabled={isLoading}
               />
               {errors.confirmPassword && (
-                <p className="mt-1 text-sm text-red-600 dark:text-red-400">
-                  {errors.confirmPassword.message}
-                </p>
+                <p className="mt-1 text-sm text-red-600">{errors.confirmPassword.message}</p>
               )}
             </div>
 
@@ -130,22 +119,20 @@ export default function RegisterPage() {
                 className="mt-1 h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                 disabled={isLoading}
               />
-              <label htmlFor="consent" className="text-sm text-gray-600 dark:text-gray-400">
+              <label htmlFor="consent" className="text-sm text-gray-600">
                 Acepto los{" "}
-                <Link href="/terms" className="text-blue-600 hover:underline dark:text-blue-400">
+                <Link href="/terms" className="text-blue-600 hover:underline">
                   Términos y Condiciones
                 </Link>{" "}
                 y la{" "}
-                <Link href="/privacy" className="text-blue-600 hover:underline dark:text-blue-400">
+                <Link href="/privacy" className="text-blue-600 hover:underline">
                   Política de Privacidad
                 </Link>
                 . Autorizo el tratamiento de mis datos personales según la Ley 1581 de 2012.
               </label>
             </div>
             {errors.consent && (
-              <p className="mt-1 text-sm text-red-600 dark:text-red-400">
-                {errors.consent.message}
-              </p>
+              <p className="mt-1 text-sm text-red-600">{errors.consent.message}</p>
             )}
 
             <Button type="submit" className="w-full" disabled={isLoading}>
@@ -154,8 +141,8 @@ export default function RegisterPage() {
           </form>
 
           <div className="mt-4 text-center text-sm">
-            <span className="text-neutral-600 dark:text-neutral-400">¿Ya tienes cuenta? </span>
-            <Link href="/login" className="text-blue-600 hover:underline dark:text-blue-400">
+            <span className="text-neutral-600">¿Ya tienes cuenta? </span>
+            <Link href="/login" className="text-blue-600 hover:underline">
               Inicia sesión
             </Link>
           </div>

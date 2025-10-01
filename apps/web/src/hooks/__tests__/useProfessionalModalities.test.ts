@@ -90,7 +90,9 @@ describe("useProfessionalModalities", () => {
   });
 
   it("should handle API errors", async () => {
-    mockApiClient.getProfessionalModalities.mockRejectedValue(new Error("Failed to fetch professional modalities"));
+    mockApiClient.getProfessionalModalities.mockRejectedValue(
+      new Error("Failed to fetch professional modalities"),
+    );
 
     const { result } = renderHook(() => useProfessionalModalities("prof-123"));
 
@@ -176,7 +178,9 @@ describe("useProfessionalModalities", () => {
 
   it("should handle create modality errors", async () => {
     mockApiClient.getProfessionalModalities.mockResolvedValue([]);
-    mockApiClient.createProfessionalModality.mockRejectedValue(new Error("Failed to create professional modality"));
+    mockApiClient.createProfessionalModality.mockRejectedValue(
+      new Error("Failed to create professional modality"),
+    );
 
     const { result } = renderHook(() => useProfessionalModalities("prof-123"));
 
@@ -236,7 +240,9 @@ describe("useProfessionalModalities", () => {
 
   it("should handle update modality errors", async () => {
     mockApiClient.getProfessionalModalities.mockResolvedValue([]);
-    mockApiClient.updateProfessionalModality.mockRejectedValue(new Error("Failed to update professional modality"));
+    mockApiClient.updateProfessionalModality.mockRejectedValue(
+      new Error("Failed to update professional modality"),
+    );
 
     const { result } = renderHook(() => useProfessionalModalities("prof-123"));
 
@@ -300,7 +306,9 @@ describe("useProfessionalModalities", () => {
 
   it("should handle delete modality errors", async () => {
     mockApiClient.getProfessionalModalities.mockResolvedValue([]);
-    mockApiClient.deleteProfessionalModality.mockRejectedValue(new Error("Failed to delete professional modality"));
+    mockApiClient.deleteProfessionalModality.mockRejectedValue(
+      new Error("Failed to delete professional modality"),
+    );
 
     const { result } = renderHook(() => useProfessionalModalities("prof-123"));
 
@@ -383,7 +391,7 @@ describe("useProfessionalModalities", () => {
   it("should refetch when professionalId changes", async () => {
     const { result, rerender } = renderHook(
       ({ professionalId }) => useProfessionalModalities(professionalId),
-      { initialProps: { professionalId: "prof-123" } }
+      { initialProps: { professionalId: "prof-123" } },
     );
 
     await waitFor(() => {

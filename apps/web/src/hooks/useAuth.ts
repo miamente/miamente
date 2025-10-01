@@ -75,10 +75,10 @@ export function useAuth() {
       }
 
       const userData = await apiClient.getCurrentUser();
-      
+
       // Only update state if we don't already have a user with the same ID
       // This prevents overriding the state set by registration
-      setAuthState(prevState => {
+      setAuthState((prevState) => {
         if (prevState.user && prevState.user.data.id === userData.data.id) {
           return prevState;
         }
@@ -145,12 +145,15 @@ export function useAuth() {
     async (credentials: LoginRequest) => {
       try {
         const response = await apiClient.login(credentials.email, credentials.password);
-        
+
         // Update auth state directly with the response data
         setAuthState({
           user: {
             type: response.user_type === "professional" ? UserRole.PROFESSIONAL : UserRole.USER,
-            data: response.user_type === "professional" ? response.professional_data! : response.user_data!,
+            data:
+              response.user_type === "professional"
+                ? response.professional_data!
+                : response.user_data!,
           },
           isLoading: false,
           isAuthenticated: true,
@@ -170,7 +173,7 @@ export function useAuth() {
       try {
         // Registration now returns tokens and user data
         const response = await apiClient.registerUser(userData);
-        
+
         // Update auth state directly with the response data
         // The response should have a 'user' property from the backend
         setAuthState({
@@ -181,7 +184,7 @@ export function useAuth() {
           isLoading: false,
           isAuthenticated: true,
         });
-        
+
         router.push("/dashboard");
       } catch (error) {
         console.error("User registration failed:", error);
@@ -196,7 +199,7 @@ export function useAuth() {
       try {
         // Registration now returns tokens and professional data
         const response = await apiClient.registerProfessional(professionalData);
-        
+
         // Update auth state directly with the response data
         setAuthState({
           user: {
@@ -206,7 +209,7 @@ export function useAuth() {
           isLoading: false,
           isAuthenticated: true,
         });
-        
+
         router.push("/dashboard");
       } catch (error) {
         console.error("Professional registration failed:", error);
@@ -221,7 +224,7 @@ export function useAuth() {
       try {
         // Registration now returns tokens and user data
         const response = await apiClient.registerUnified(registerData);
-        
+
         // Update auth state directly with the response data
         setAuthState({
           user: {
@@ -231,7 +234,7 @@ export function useAuth() {
           isLoading: false,
           isAuthenticated: true,
         });
-        
+
         router.push("/dashboard");
       } catch (error) {
         console.error("Unified registration failed:", error);

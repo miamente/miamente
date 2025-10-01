@@ -98,9 +98,9 @@ describe("Utils Functions", () => {
       expect(result).toBe("bg-blue-500 hover:bg-blue-600 focus:bg-blue-700 active:bg-blue-800");
     });
 
-    it("should handle dark mode classes", () => {
-      const result = cn("bg-white text-black", "dark:bg-black dark:text-white");
-      expect(result).toBe("bg-white text-black dark:bg-black dark:text-white");
+    it("should handle whitespace in inputs", () => {
+      const result = cn("bg-white text-black", " ");
+      expect(result).toBe("bg-white text-black");
     });
 
     it("should handle arbitrary values", () => {

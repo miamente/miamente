@@ -132,10 +132,8 @@ export default function ProfessionalProfilePage() {
         </div>
 
         <div className="py-12 text-center">
-          <h1 className="mb-2 text-2xl font-bold text-gray-900 dark:text-gray-100">
-            Profesional no encontrado
-          </h1>
-          <p className="mb-6 text-gray-600 dark:text-gray-400">
+          <h1 className="mb-2 text-2xl font-bold text-gray-900">Profesional no encontrado</h1>
+          <p className="mb-6 text-gray-600">
             {error || "El profesional que buscas no existe o no está disponible."}
           </p>
           <Button onClick={() => router.push("/professionals")}>Ver todos los profesionales</Button>
@@ -162,7 +160,7 @@ export default function ProfessionalProfilePage() {
           {getSpecialtyNames(professional.specialty_ids).map((specialty: string) => (
             <span
               key={specialty}
-              className="rounded-full bg-blue-100 px-2 py-1 text-xs text-blue-800 dark:bg-blue-900 dark:text-blue-200"
+              className="rounded-full bg-blue-100 px-2 py-1 text-xs text-blue-800"
             >
               {specialty}
             </span>
@@ -187,9 +185,7 @@ export default function ProfessionalProfilePage() {
         />
 
         <div className="flex items-center justify-between">
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">
-            Perfil del Profesional
-          </h1>
+          <h1 className="text-3xl font-bold text-gray-900">Perfil del Profesional</h1>
           {isOwnProfile && (
             <Button asChild>
               <Link href="/profile/professional">
@@ -215,20 +211,18 @@ export default function ProfessionalProfilePage() {
                   className="mx-auto mb-4 h-48 w-48 rounded-full object-cover"
                 />
               ) : (
-                <div className="mx-auto mb-4 flex h-48 w-48 items-center justify-center rounded-full bg-gray-200 dark:bg-gray-700">
+                <div className="mx-auto mb-4 flex h-48 w-48 items-center justify-center rounded-full bg-gray-200">
                   <User className="h-24 w-24 text-gray-400" />
                 </div>
               )}
 
               <CardTitle className="text-xl">{professional.full_name}</CardTitle>
-              <div className="text-sm text-gray-600 dark:text-gray-400">
-                {renderSpecialtyInfo()}
-              </div>
+              <div className="text-sm text-gray-600">{renderSpecialtyInfo()}</div>
 
               {professional.is_verified && (
                 <div className="mt-2 flex items-center justify-center">
                   <Star className="mr-1 h-4 w-4 text-yellow-500" />
-                  <span className="text-sm text-yellow-600 dark:text-yellow-400">Verificado</span>
+                  <span className="text-sm text-yellow-600">Verificado</span>
                 </div>
               )}
             </CardHeader>
@@ -271,9 +265,7 @@ export default function ProfessionalProfilePage() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="whitespace-pre-line text-gray-700 dark:text-gray-300">
-                  {professional.bio}
-                </p>
+                <p className="whitespace-pre-line text-gray-700">{professional.bio}</p>
               </CardContent>
             </Card>
           )}
@@ -294,19 +286,15 @@ export default function ProfessionalProfilePage() {
                       key={`${education.degree}-${education.institution}`}
                       className="border-l-4 border-blue-200 pl-4"
                     >
-                      <h4 className="font-semibold text-gray-900 dark:text-gray-100">
-                        {education.degree}
-                      </h4>
-                      <p className="text-sm text-gray-600 dark:text-gray-400">
+                      <h4 className="font-semibold text-gray-900">{education.degree}</h4>
+                      <p className="text-sm text-gray-600">
                         {education.institution} - {education.field}
                       </p>
-                      <p className="text-xs text-gray-500 dark:text-gray-500">
+                      <p className="text-xs text-gray-500">
                         {education.start_date} - {education.end_date || "Presente"}
                       </p>
                       {education.description && (
-                        <p className="mt-2 text-sm text-gray-700 dark:text-gray-300">
-                          {education.description}
-                        </p>
+                        <p className="mt-2 text-sm text-gray-700">{education.description}</p>
                       )}
                     </div>
                   ))}
@@ -329,7 +317,7 @@ export default function ProfessionalProfilePage() {
                   {professional.certifications.map((cert) => (
                     <li key={cert.name} className="flex items-center">
                       <span className="mr-3 h-2 w-2 rounded-full bg-blue-500"></span>
-                      <span className="text-gray-700 dark:text-gray-300">{cert.name}</span>
+                      <span className="text-gray-700">{cert.name}</span>
                     </li>
                   ))}
                 </ul>
@@ -351,7 +339,7 @@ export default function ProfessionalProfilePage() {
                   {professional.languages.map((language) => (
                     <span
                       key={language}
-                      className="rounded-full bg-blue-100 px-3 py-1 text-sm text-blue-800 dark:bg-blue-900 dark:text-blue-200"
+                      className="rounded-full bg-blue-100 px-3 py-1 text-sm text-blue-800"
                     >
                       {language}
                     </span>
@@ -383,7 +371,7 @@ export default function ProfessionalProfilePage() {
                         (approach: string) => (
                           <span
                             key={approach}
-                            className="rounded-full bg-green-100 px-3 py-1 text-sm text-green-800 dark:bg-green-900 dark:text-green-200"
+                            className="rounded-full bg-green-100 px-3 py-1 text-sm text-green-800"
                           >
                             {approach}
                           </span>

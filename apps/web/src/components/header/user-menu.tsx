@@ -84,7 +84,7 @@ export function UserMenu({
       </Button>
 
       {isOpen && (
-        <div className="absolute top-full right-0 mt-2 w-56 rounded-md border bg-white shadow-lg dark:border-neutral-700 dark:bg-neutral-900">
+        <div className="absolute top-full right-0 mt-2 w-56 rounded-md border bg-white shadow-lg">
           <div className="p-2">
             {/* User Info */}
             <div className="px-3 py-2 text-sm">

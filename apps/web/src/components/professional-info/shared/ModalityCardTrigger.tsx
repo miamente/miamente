@@ -12,7 +12,7 @@ interface ModalityCardTriggerProps {
 export function ModalityCardTrigger({ isOpen }: ModalityCardTriggerProps) {
   return (
     <CollapsibleTrigger asChild>
-      <CardHeader className="group cursor-pointer py-6 transition-colors duration-200 hover:bg-purple-50/30 dark:hover:bg-purple-900/10">
+      <CardHeader className="group cursor-pointer py-6 transition-colors duration-200 hover:bg-purple-50/30">
         <CardTitle className="flex items-center justify-between text-lg">
           <div className="flex items-center gap-2">
             <Star className="h-5 w-5 text-purple-600 transition-colors group-hover:text-purple-700" />

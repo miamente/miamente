@@ -52,14 +52,14 @@ export default function LandingPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
       {/* Hero Section */}
       <section className="container mx-auto px-4 py-16 text-center">
         <div className="mx-auto max-w-4xl">
-          <h1 className="mb-6 text-5xl font-bold text-gray-900 md:text-6xl dark:text-white">
-            Cuidamos tu <span className="text-blue-600 dark:text-blue-400">bienestar mental</span>
+          <h1 className="mb-6 text-5xl font-bold text-gray-900 md:text-6xl">
+            Cuidamos tu <span className="text-blue-600">bienestar mental</span>
           </h1>
-          <p className="mx-auto mb-8 max-w-2xl text-xl text-gray-600 dark:text-gray-300">
+          <p className="mx-auto mb-8 max-w-2xl text-xl text-gray-600">
             Conecta con profesionales de la salud mental certificados para sesiones virtuales
             seguras y confidenciales desde la comodidad de tu hogar.
           </p>
@@ -79,13 +79,13 @@ export default function LandingPage() {
       </section>
 
       {/* Value Proposition */}
-      <section className="bg-white py-16 dark:bg-gray-900">
+      <section className="bg-white py-16">
         <div className="container mx-auto px-4">
           <div className="mb-12 text-center">
-            <h2 className="mb-4 text-3xl font-bold text-gray-900 md:text-4xl dark:text-white">
+            <h2 className="mb-4 text-3xl font-bold text-gray-900 md:text-4xl">
               ¿Por qué elegir Miamente?
             </h2>
-            <p className="mx-auto max-w-2xl text-lg text-gray-600 dark:text-gray-300">
+            <p className="mx-auto max-w-2xl text-lg text-gray-600">
               Ofrecemos una plataforma segura, confiable y fácil de usar para tu bienestar mental
             </p>
           </div>
@@ -93,9 +93,9 @@ export default function LandingPage() {
           <div className="grid gap-8 md:grid-cols-3">
             <Card className="text-center">
               <CardHeader>
-                <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-blue-100 dark:bg-blue-900">
+                <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-blue-100">
                   <svg
-                    className="h-8 w-8 text-blue-600 dark:text-blue-400"
+                    className="h-8 w-8 text-blue-600"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -111,7 +111,7 @@ export default function LandingPage() {
                 <CardTitle>Profesionales Certificados</CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-gray-600 dark:text-gray-300">
+                <p className="text-gray-600">
                   Todos nuestros profesionales están debidamente certificados y colegiados en
                   Colombia, con especialidades en diferentes áreas de la salud mental.
                 </p>
@@ -120,9 +120,9 @@ export default function LandingPage() {
 
             <Card className="text-center">
               <CardHeader>
-                <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-green-100 dark:bg-green-900">
+                <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-green-100">
                   <svg
-                    className="h-8 w-8 text-green-600 dark:text-green-400"
+                    className="h-8 w-8 text-green-600"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -138,7 +138,7 @@ export default function LandingPage() {
                 <CardTitle>100% Seguro y Confidencial</CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-gray-600 dark:text-gray-300">
+                <p className="text-gray-600">
                   Utilizamos tecnología de videollamadas encriptada y cumplimos con todas las
                   normativas de protección de datos personales.
                 </p>
@@ -147,9 +147,9 @@ export default function LandingPage() {
 
             <Card className="text-center">
               <CardHeader>
-                <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-purple-100 dark:bg-purple-900">
+                <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-purple-100">
                   <svg
-                    className="h-8 w-8 text-purple-600 dark:text-purple-400"
+                    className="h-8 w-8 text-purple-600"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -165,7 +165,7 @@ export default function LandingPage() {
                 <CardTitle>Acceso Inmediato</CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-gray-600 dark:text-gray-300">
+                <p className="text-gray-600">
                   Reserva tu cita en minutos y conéctate desde cualquier lugar. Sin desplazamientos,
                   sin esperas, solo atención de calidad.
                 </p>
@@ -176,13 +176,11 @@ export default function LandingPage() {
       </section>
 
       {/* How It Works */}
-      <section className="bg-gray-50 py-16 dark:bg-gray-800">
+      <section className="bg-gray-50 py-16">
         <div className="container mx-auto px-4">
           <div className="mb-12 text-center">
-            <h2 className="mb-4 text-3xl font-bold text-gray-900 md:text-4xl dark:text-white">
-              ¿Cómo funciona?
-            </h2>
-            <p className="text-lg text-gray-600 dark:text-gray-300">
+            <h2 className="mb-4 text-3xl font-bold text-gray-900 md:text-4xl">¿Cómo funciona?</h2>
+            <p className="text-lg text-gray-600">
               En solo 3 pasos puedes comenzar tu camino hacia el bienestar mental
             </p>
           </div>
@@ -192,10 +190,8 @@ export default function LandingPage() {
               <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-blue-600 text-2xl font-bold text-white">
                 1
               </div>
-              <h3 className="mb-4 text-xl font-semibold text-gray-900 dark:text-white">
-                Crea tu cuenta
-              </h3>
-              <p className="text-gray-600 dark:text-gray-300">
+              <h3 className="mb-4 text-xl font-semibold text-gray-900">Crea tu cuenta</h3>
+              <p className="text-gray-600">
                 Regístrate de forma gratuita y completa tu perfil. El proceso toma menos de 2
                 minutos.
               </p>
@@ -205,10 +201,8 @@ export default function LandingPage() {
               <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-blue-600 text-2xl font-bold text-white">
                 2
               </div>
-              <h3 className="mb-4 text-xl font-semibold text-gray-900 dark:text-white">
-                Encuentra tu profesional
-              </h3>
-              <p className="text-gray-600 dark:text-gray-300">
+              <h3 className="mb-4 text-xl font-semibold text-gray-900">Encuentra tu profesional</h3>
+              <p className="text-gray-600">
                 Explora nuestra red de profesionales certificados, lee sus perfiles y elige el que
                 mejor se adapte a tus necesidades.
               </p>
@@ -218,10 +212,8 @@ export default function LandingPage() {
               <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-blue-600 text-2xl font-bold text-white">
                 3
               </div>
-              <h3 className="mb-4 text-xl font-semibold text-gray-900 dark:text-white">
-                Reserva y conéctate
-              </h3>
-              <p className="text-gray-600 dark:text-gray-300">
+              <h3 className="mb-4 text-xl font-semibold text-gray-900">Reserva y conéctate</h3>
+              <p className="text-gray-600">
                 Selecciona el horario que prefieras, realiza el pago de forma segura y conéctate a
                 tu sesión virtual.
               </p>
@@ -231,7 +223,7 @@ export default function LandingPage() {
       </section>
 
       {/* Statistics */}
-      <section className="bg-blue-600 py-16 dark:bg-blue-700">
+      <section className="bg-blue-600 py-16">
         <div className="container mx-auto px-4">
           <div className="grid gap-8 text-center text-white md:grid-cols-4">
             <div>
@@ -255,13 +247,13 @@ export default function LandingPage() {
       </section>
 
       {/* FAQ Section */}
-      <section className="bg-white py-16 dark:bg-gray-900">
+      <section className="bg-white py-16">
         <div className="container mx-auto px-4">
           <div className="mb-12 text-center">
-            <h2 className="mb-4 text-3xl font-bold text-gray-900 md:text-4xl dark:text-white">
+            <h2 className="mb-4 text-3xl font-bold text-gray-900 md:text-4xl">
               Preguntas Frecuentes
             </h2>
-            <p className="text-lg text-gray-600 dark:text-gray-300">
+            <p className="text-lg text-gray-600">
               Resolvemos las dudas más comunes sobre nuestros servicios
             </p>
           </div>
@@ -270,15 +262,13 @@ export default function LandingPage() {
             {faqs.map((faq) => (
               <div key={faq.id} className="mb-4">
                 <button
-                  className="w-full rounded-lg bg-gray-50 p-6 text-left transition-colors hover:bg-gray-100 dark:bg-gray-800 dark:hover:bg-gray-700"
+                  className="w-full rounded-lg bg-gray-50 p-6 text-left transition-colors hover:bg-gray-100"
                   onClick={() => toggleFaq(faq.id)}
                   aria-expanded={expandedFaq === faq.id}
                   aria-controls={`faq-answer-${faq.id}`}
                 >
                   <div className="flex items-center justify-between">
-                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                      {faq.question}
-                    </h3>
+                    <h3 className="text-lg font-semibold text-gray-900">{faq.question}</h3>
                     <svg
                       className={`h-5 w-5 text-gray-500 transition-transform ${
                         expandedFaq === faq.id ? "rotate-180" : ""
@@ -299,9 +289,9 @@ export default function LandingPage() {
                 {expandedFaq === faq.id && (
                   <div
                     id={`faq-answer-${faq.id}`}
-                    className="border-t border-gray-200 bg-white p-6 dark:border-gray-700 dark:bg-gray-900"
+                    className="border-t border-gray-200 bg-white p-6"
                   >
-                    <p className="text-gray-600 dark:text-gray-300">{faq.answer}</p>
+                    <p className="text-gray-600">{faq.answer}</p>
                   </div>
                 )}
               </div>

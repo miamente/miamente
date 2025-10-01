@@ -3,11 +3,11 @@ import React from "react";
 export default function TermsPage() {
   return (
     <div className="container mx-auto max-w-4xl px-4 py-8">
-      <div className="prose prose-neutral dark:prose-invert max-w-none">
+      <div className="prose prose-neutral max-w-none">
         <h1 className="mb-8 text-3xl font-bold">Términos y Condiciones de Uso</h1>
 
-        <div className="mb-6 rounded-lg border border-blue-200 bg-blue-50 p-4 dark:border-blue-800 dark:bg-blue-900/20">
-          <p className="text-sm text-blue-800 dark:text-blue-200">
+        <div className="mb-6 rounded-lg border border-blue-200 bg-blue-50 p-4">
+          <p className="text-sm text-blue-800">
             <strong>Última actualización:</strong> {new Date().toLocaleDateString("es-CO")}
           </p>
         </div>
@@ -68,11 +68,11 @@ export default function TermsPage() {
             <li>Calificación y reseñas de profesionales</li>
           </ul>
 
-          <div className="mt-6 rounded-lg border border-yellow-200 bg-yellow-50 p-4 dark:border-yellow-800 dark:bg-yellow-900/20">
-            <h3 className="mb-2 font-semibold text-yellow-800 dark:text-yellow-200">
+          <div className="mt-6 rounded-lg border border-yellow-200 bg-yellow-50 p-4">
+            <h3 className="mb-2 font-semibold text-yellow-800">
               ⚠️ Importante - No es Historia Clínica
             </h3>
-            <p className="text-sm text-yellow-700 dark:text-yellow-300">
+            <p className="text-sm text-yellow-700">
               En esta versión MVP, Miamente NO almacena ni gestiona historias clínicas. Los
               profesionales mantienen sus propios registros clínicos de acuerdo con sus protocolos y
               normativas profesionales.
@@ -207,8 +207,8 @@ export default function TermsPage() {
           </ul>
         </section>
 
-        <div className="mt-12 rounded-lg bg-gray-50 p-6 dark:bg-gray-800">
-          <p className="text-sm text-gray-600 dark:text-gray-400">
+        <div className="mt-12 rounded-lg bg-gray-50 p-6">
+          <p className="text-sm text-gray-600">
             Al utilizar Miamente, usted confirma que ha leído, entendido y acepta estos Términos y
             Condiciones de Uso.
           </p>

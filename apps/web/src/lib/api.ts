@@ -257,31 +257,34 @@ class ApiClient {
 
   async registerUser(userData: UserCreate): Promise<LoginResponse> {
     const response = await this.post<LoginResponse>("/auth/register/user", userData);
-    
+
     // Store the token from registration response
     const { access_token } = response;
     this.setToken(access_token);
-    
+
     return response;
   }
 
   async registerProfessional(professionalData: ProfessionalCreate): Promise<LoginResponse> {
-    const response = await this.post<LoginResponse>("/auth/register/professional", professionalData);
-    
+    const response = await this.post<LoginResponse>(
+      "/auth/register/professional",
+      professionalData,
+    );
+
     // Store the token from registration response
     const { access_token } = response;
     this.setToken(access_token);
-    
+
     return response;
   }
 
   async registerUnified(registerData: { email: string; password: string }): Promise<LoginResponse> {
     const response = await this.post<LoginResponse>("/auth/register", registerData);
-    
+
     // Store the token from registration response
     const { access_token } = response;
     this.setToken(access_token);
-    
+
     return response;
   }
 
@@ -520,32 +523,61 @@ class ApiClient {
 
   // Professional specialties
   async getProfessionalSpecialties(professionalId: string): Promise<ProfessionalSpecialty[]> {
-    return this.get<ProfessionalSpecialty[]>(`/professional-specialties/professional/${professionalId}`);
+    return this.get<ProfessionalSpecialty[]>(
+      `/professional-specialties/professional/${professionalId}`,
+    );
   }
 
-  async updateProfessionalSpecialties(professionalId: string, specialtyIds: string[]): Promise<ProfessionalSpecialty[]> {
-    return this.put<ProfessionalSpecialty[]>(`/professional-specialties/professional/${professionalId}/specialties`, specialtyIds);
+  async updateProfessionalSpecialties(
+    professionalId: string,
+    specialtyIds: string[],
+  ): Promise<ProfessionalSpecialty[]> {
+    return this.put<ProfessionalSpecialty[]>(
+      `/professional-specialties/professional/${professionalId}/specialties`,
+      specialtyIds,
+    );
   }
 
   // Professional therapeutic approaches
-  async getProfessionalTherapeuticApproaches(professionalId: string): Promise<ProfessionalTherapeuticApproach[]> {
-    return this.get<ProfessionalTherapeuticApproach[]>(`/professional-therapeutic-approaches/professional/${professionalId}`);
+  async getProfessionalTherapeuticApproaches(
+    professionalId: string,
+  ): Promise<ProfessionalTherapeuticApproach[]> {
+    return this.get<ProfessionalTherapeuticApproach[]>(
+      `/professional-therapeutic-approaches/professional/${professionalId}`,
+    );
   }
 
-  async updateProfessionalTherapeuticApproaches(professionalId: string, approachIds: string[]): Promise<ProfessionalTherapeuticApproach[]> {
-    return this.put<ProfessionalTherapeuticApproach[]>(`/professional-therapeutic-approaches/professional/${professionalId}/approaches`, approachIds);
+  async updateProfessionalTherapeuticApproaches(
+    professionalId: string,
+    approachIds: string[],
+  ): Promise<ProfessionalTherapeuticApproach[]> {
+    return this.put<ProfessionalTherapeuticApproach[]>(
+      `/professional-therapeutic-approaches/professional/${professionalId}/approaches`,
+      approachIds,
+    );
   }
 
   // Professional modalities
   async getProfessionalModalities(professionalId: string): Promise<ProfessionalModality[]> {
-    return this.get<ProfessionalModality[]>(`/professional-modalities/professional/${professionalId}`);
+    return this.get<ProfessionalModality[]>(
+      `/professional-modalities/professional/${professionalId}`,
+    );
   }
 
-  async createProfessionalModality(professionalId: string, modalityData: Omit<ProfessionalModality, "id" | "professional_id">): Promise<ProfessionalModality> {
-    return this.post<ProfessionalModality>(`/professional-modalities`, { professional_id: professionalId, ...modalityData });
+  async createProfessionalModality(
+    professionalId: string,
+    modalityData: Omit<ProfessionalModality, "id" | "professional_id">,
+  ): Promise<ProfessionalModality> {
+    return this.post<ProfessionalModality>(`/professional-modalities`, {
+      professional_id: professionalId,
+      ...modalityData,
+    });
   }
 
-  async updateProfessionalModality(modalityId: string, modalityData: Partial<ProfessionalModality>): Promise<ProfessionalModality> {
+  async updateProfessionalModality(
+    modalityId: string,
+    modalityData: Partial<ProfessionalModality>,
+  ): Promise<ProfessionalModality> {
     return this.put<ProfessionalModality>(`/professional-modalities/${modalityId}`, modalityData);
   }
 

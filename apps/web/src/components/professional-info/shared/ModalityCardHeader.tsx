@@ -27,7 +27,7 @@ export function ModalityCardHeader({
   return (
     <div className="flex items-center justify-between">
       <div className="flex items-center gap-2">
-        <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300">
+        <h4 className="text-sm font-medium text-gray-700">
           {modalityName || `Modalidad ${index + 1}`}
         </h4>
         <div className="flex gap-1">
