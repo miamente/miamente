@@ -6,7 +6,7 @@ async function globalSetup() {
   console.log("🚀 Starting E2E test setup...");
 
   // Get backend URL from environment variable or fallback to localhost
-  const backendUrl = process.env.BACKEND_API_URL || "http://localhost:8000";
+  const backendUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
   console.log(`🌐 Using backend URL: ${backendUrl}`);
 
   // Create API request context

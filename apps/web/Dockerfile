@@ -1,31 +1,37 @@
 # Step 1: Build
-FROM node:22-alpine AS builder
+FROM node:22-alpine3.20 AS builder
 WORKDIR /app
+
+# Accept build arguments
+ARG NEXT_PUBLIC_API_URL
+ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
+
 COPY package*.json ./
 RUN npm ci
 COPY . .
-# Asegura output standalone
-# (next.config.js debe tener: module.exports = { output: 'standalone' })
 RUN npm run build
 
 # Step 2: Run
-FROM node:22-alpine AS runner
+FROM node:22-alpine3.20 AS runner
 WORKDIR /app
 ENV NODE_ENV=production
-ENV PORT=3000
-ENV HOST=0.0.0.0
-# Instala curl para healthchecks de ECS y container
+
+# Install curl for health checks
 RUN apk add --no-cache curl
 
-# Copia output standalone + static + public
+# Copy standalone output + static + public
 COPY --from=builder /app/.next/standalone ./
 COPY --from=builder /app/.next/static ./.next/static
 COPY --from=builder /app/public ./public
 
-EXPOSE 3000
+# Railway assigns PORT dynamically
+ENV PORT=3000
+ENV HOSTNAME=0.0.0.0
 
-# Healthcheck interno del contenedor (misma ruta que usará ECS/ALB)
-HEALTHCHECK --interval=30s --timeout=5s --start-period=30s --retries=3 \
-  CMD curl -fsS http://127.0.0.1:3000/api/health || exit 1
+EXPOSE $PORT
 
-CMD ["node", "server.js"]
+# Health check
+HEALTHCHECK --interval=30s --timeout=5s --start-period=60s --retries=5 \
+  CMD curl -fsS http://127.0.0.1:${PORT:-3000}/ || exit 1
+
+CMD node server.js

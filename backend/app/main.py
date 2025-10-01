@@ -57,11 +57,16 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Add trusted host middleware
-app.add_middleware(
-    TrustedHostMiddleware,
-    allowed_hosts=settings.ALLOWED_HOSTS,
-)
+# Add trusted host middleware only if specific hosts are configured
+# Don't add it if ALLOWED_HOSTS is "*" (wildcard)
+if not settings.hosts_allow_all:
+    logger.info("MAIN: Adding TrustedHostMiddleware with hosts: %s", settings.ALLOWED_HOSTS)
+    app.add_middleware(
+        TrustedHostMiddleware,
+        allowed_hosts=settings.ALLOWED_HOSTS,
+    )
+else:
+    logger.info("MAIN: TrustedHostMiddleware disabled (ALLOWED_HOSTS is wildcard)")
 
 
 # Add database error handling middleware

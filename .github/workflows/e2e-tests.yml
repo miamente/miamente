@@ -1,0 +1,78 @@
+name: E2E Tests
+
+on:
+  push:
+    branches: [staging]
+  workflow_run:
+    workflows: ["Backend CD", "Frontend CD"]
+    types: [completed]
+    branches: [staging]
+
+jobs:
+  e2e-tests:
+    name: E2E Tests (Staging Only)
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' || github.event_name == 'push' }}
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Install Railway CLI
+        run: npm install -g @railway/cli
+      
+      - name: Get Deployment URLs
+        id: get-urls
+        run: |
+          # Always use staging environment for E2E tests
+          ENV="staging"
+          export RAILWAY_TOKEN="${{ secrets.RAILWAY_TOKEN_STG }}"
+          
+          # Get frontend URL from Railway
+          FRONTEND_URL=$(railway domain --service miamente-frontend --environment $ENV 2>/dev/null | grep -o 'https://[^[:space:]]*' | head -1)
+          
+          # Get backend URL from Railway
+          BACKEND_URL=$(railway domain --service miamente-backend --environment $ENV 2>/dev/null | grep -o 'https://[^[:space:]]*' | head -1)
+          
+          # Fallback to predefined staging URLs if commands fail
+          if [ -z "$FRONTEND_URL" ]; then
+            FRONTEND_URL="https://miamente-staging.railway.app"
+          fi
+          
+          if [ -z "$BACKEND_URL" ]; then
+            BACKEND_URL="https://miamente-backend-staging.railway.app"
+          fi
+          
+          echo "frontend_url=$FRONTEND_URL" >> $GITHUB_OUTPUT
+          echo "backend_url=$BACKEND_URL" >> $GITHUB_OUTPUT
+          echo "🌐 Frontend URL (Staging): $FRONTEND_URL"
+          echo "🔧 Backend URL (Staging): $BACKEND_URL"
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: tests/e2e/package-lock.json
+      
+      - name: Install E2E dependencies
+        run: |
+          cd tests/e2e
+          npm ci
+          npx playwright install
+      
+      - name: Run E2E tests
+        run: |
+          cd tests/e2e
+          npm test
+        env:
+          PLAYWRIGHT_BASE_URL: ${{ steps.get-urls.outputs.frontend_url }}
+          BACKEND_API_URL: ${{ steps.get-urls.outputs.backend_url }}
+          E2E_TEST_PASSWORD: ${{ secrets.E2E_TEST_PASSWORD }}
+      
+      - name: Upload E2E results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: e2e-test-results-staging
+          path: tests/e2e/test-results/
+          retention-days: 30

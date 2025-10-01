@@ -203,13 +203,13 @@ npm run test:e2e:report
 
 ### Backend Deployment
 
-1. Configura tu plataforma de despliegue preferida (AWS, Google Cloud, Azure, etc.)
+1. Configura tu plataforma de despliegue preferida (Railway, Google Cloud, Azure, etc.)
 2. Configura las variables de entorno en tu plataforma
 3. Configura la aplicación FastAPI
 
 ### Frontend Deployment
 
-1. Configura tu plataforma de despliegue preferida (AWS S3+CloudFront, Netlify, etc.)
+1. Configura tu plataforma de despliegue preferida (Railway, Netlify, Vercel, etc.)
 2. Configura la variable `NEXT_PUBLIC_API_URL` con tu URL de backend
 3. Configura el build del proyecto Next.js
 

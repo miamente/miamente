@@ -9,6 +9,7 @@
     "test:headed": "playwright test --headed",
     "test:debug": "playwright test --debug",
     "test:fast": "playwright test --project=chromium --timeout=10000",
+    "test:smoke": "playwright test --project=chromium --timeout=5000 --grep 'smoke|critical|health'",
     "test:chromium": "playwright test --project=chromium",
     "test:firefox": "playwright test --project=firefox",
     "test:webkit": "playwright test --project=webkit",
