@@ -1,6 +1,6 @@
 "use client";
 import React, { useEffect, useState } from "react";
-import { Search, Plus, Edit, Trash2, Save, X, Settings, DollarSign, Clock } from "lucide-react";
+import { Search, Plus, Edit, Trash2, Save, X, Settings, DollarSign } from "lucide-react";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -10,33 +10,26 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
+import { apiClient } from "@/lib/api";
+import type { Modality, ModalityCreate, ModalityUpdate } from "@/lib/types";
 
-interface Modality {
-  id: string;
-  name: string;
-  description?: string;
-  virtual_price: number;
-  presencial_price: number;
-  offers_presencial: boolean;
-  is_active: boolean;
-  created_at: string;
-  updated_at: string;
+interface ModalityWithCount extends Modality {
   professional_count?: number;
 }
 
 export default function AdminModalities() {
-  const [modalities, setModalities] = useState<Modality[]>([]);
+  const [modalities, setModalities] = useState<ModalityWithCount[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [editingModality, setEditingModality] = useState<Modality | null>(null);
+  const [editingModality, setEditingModality] = useState<ModalityWithCount | null>(null);
   const [formData, setFormData] = useState({
     name: "",
     description: "",
-    virtual_price: 0,
-    presencial_price: 0,
-    offers_presencial: true,
+    category: "",
+    currency: "COP",
+    default_price_cents: 0,
     is_active: true,
   });
 
@@ -45,50 +38,9 @@ export default function AdminModalities() {
       try {
         setLoading(true);
         setError(null);
-        // TODO: Replace with actual API call
-        // const data = await getModalities();
-        // setModalities(data);
-
-        // Mock data for now
-        const mockModalities: Modality[] = [
-          {
-            id: "1",
-            name: "Consulta Individual",
-            description: "Sesión individual de terapia o consulta médica",
-            virtual_price: 80000,
-            presencial_price: 100000,
-            offers_presencial: true,
-            is_active: true,
-            created_at: "2024-01-15T10:30:00Z",
-            updated_at: "2024-01-15T10:30:00Z",
-            professional_count: 15,
-          },
-          {
-            id: "2",
-            name: "Terapia de Pareja",
-            description: "Sesión de terapia para parejas",
-            virtual_price: 120000,
-            presencial_price: 150000,
-            offers_presencial: true,
-            is_active: true,
-            created_at: "2024-01-16T09:15:00Z",
-            updated_at: "2024-01-16T09:15:00Z",
-            professional_count: 8,
-          },
-          {
-            id: "3",
-            name: "Grupo de Apoyo",
-            description: "Sesión grupal de apoyo terapéutico",
-            virtual_price: 50000,
-            presencial_price: 60000,
-            offers_presencial: false,
-            is_active: false,
-            created_at: "2024-01-17T14:20:00Z",
-            updated_at: "2024-01-17T14:20:00Z",
-            professional_count: 3,
-          },
-        ];
-        setModalities(mockModalities);
+        const data = await apiClient.getAllModalitiesAdmin();
+        // Use API data directly; professional_count should come from backend when available
+        setModalities(data as ModalityWithCount[]);
       } catch (err) {
         console.error("Error loading modalities:", err);
         setError("Error al cargar las modalidades");
@@ -106,7 +58,8 @@ export default function AdminModalities() {
       modality.description?.toLowerCase().includes(searchTerm.toLowerCase()),
   );
 
-  const formatPrice = (price: number) => {
+  const formatPrice = (priceCents: number) => {
+    const price = priceCents / 100; // Convert cents to currency units
     return new Intl.NumberFormat("es-CO", {
       style: "currency",
       currency: "COP",
@@ -119,22 +72,22 @@ export default function AdminModalities() {
     setFormData({
       name: "",
       description: "",
-      virtual_price: 0,
-      presencial_price: 0,
-      offers_presencial: true,
+      category: "",
+      currency: "COP",
+      default_price_cents: 0,
       is_active: true,
     });
     setIsDialogOpen(true);
   };
 
-  const handleEditModality = (modality: Modality) => {
+  const handleEditModality = (modality: ModalityWithCount) => {
     setEditingModality(modality);
     setFormData({
       name: modality.name,
       description: modality.description || "",
-      virtual_price: modality.virtual_price,
-      presencial_price: modality.presencial_price,
-      offers_presencial: modality.offers_presencial,
+      category: modality.category || "",
+      currency: modality.currency,
+      default_price_cents: modality.default_price_cents,
       is_active: modality.is_active,
     });
     setIsDialogOpen(true);
@@ -143,58 +96,69 @@ export default function AdminModalities() {
   const handleSaveModality = async () => {
     try {
       if (editingModality) {
-        // TODO: Implement API call to update modality
-        console.log("Update modality:", { id: editingModality.id, ...formData });
+        const updateData: ModalityUpdate = {
+          name: formData.name,
+          description: formData.description,
+          category: formData.category,
+          currency: formData.currency,
+          default_price_cents: formData.default_price_cents,
+          is_active: formData.is_active,
+        };
+        const updatedModality = await apiClient.updateModality(editingModality.id, updateData);
         setModalities((prev) =>
           prev.map((m) =>
             m.id === editingModality.id
-              ? { ...m, ...formData, updated_at: new Date().toISOString() }
+              ? { ...updatedModality, professional_count: m.professional_count }
               : m,
           ),
         );
       } else {
-        // TODO: Implement API call to create modality
-        console.log("Create modality:", formData);
-        const newModality: Modality = {
-          id: Date.now().toString(),
-          ...formData,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-          professional_count: 0,
+        const createData: ModalityCreate = {
+          name: formData.name,
+          description: formData.description,
+          category: formData.category,
+          currency: formData.currency,
+          default_price_cents: formData.default_price_cents,
+          is_active: formData.is_active,
         };
-        setModalities((prev) => [...prev, newModality]);
+        const newModality = await apiClient.createModality(createData);
+        setModalities((prev) => [...prev, { ...newModality, professional_count: 0 }]);
       }
       setIsDialogOpen(false);
     } catch (err) {
       console.error("Error saving modality:", err);
+      setError("Error al guardar la modalidad");
     }
   };
 
   const handleDeleteModality = async (modalityId: string) => {
     if (confirm("¿Estás seguro de que quieres eliminar esta modalidad?")) {
       try {
-        // TODO: Implement API call to delete modality
-        console.log("Delete modality:", modalityId);
+        await apiClient.deleteModality(modalityId);
         setModalities((prev) => prev.filter((m) => m.id !== modalityId));
       } catch (err) {
         console.error("Error deleting modality:", err);
+        setError("Error al eliminar la modalidad");
       }
     }
   };
 
   const handleToggleActive = async (modalityId: string, currentStatus: boolean) => {
     try {
-      // TODO: Implement API call to toggle modality status
-      console.log(`Toggle active status for modality ${modalityId} to ${!currentStatus}`);
+      const updateData: ModalityUpdate = {
+        is_active: !currentStatus,
+      };
+      const updatedModality = await apiClient.updateModality(modalityId, updateData);
       setModalities((prev) =>
         prev.map((m) =>
           m.id === modalityId
-            ? { ...m, is_active: !currentStatus, updated_at: new Date().toISOString() }
+            ? { ...updatedModality, professional_count: m.professional_count }
             : m,
         ),
       );
     } catch (err) {
       console.error("Error updating modality status:", err);
+      setError("Error al actualizar el estado de la modalidad");
     }
   };
 
@@ -267,18 +231,18 @@ export default function AdminModalities() {
                   <div className="flex items-center justify-between text-sm">
                     <span className="flex items-center space-x-1">
                       <DollarSign className="h-4 w-4 text-green-600" />
-                      <span>Virtual:</span>
+                      <span>Precio por defecto:</span>
                     </span>
-                    <span className="font-medium">{formatPrice(modality.virtual_price)}</span>
+                    <span className="font-medium">{formatPrice(modality.default_price_cents)}</span>
                   </div>
 
-                  {modality.offers_presencial && (
+                  {modality.category && (
                     <div className="flex items-center justify-between text-sm">
                       <span className="flex items-center space-x-1">
-                        <Clock className="h-4 w-4 text-blue-600" />
-                        <span>Presencial:</span>
+                        <Settings className="h-4 w-4 text-blue-600" />
+                        <span>Categoría:</span>
                       </span>
-                      <span className="font-medium">{formatPrice(modality.presencial_price)}</span>
+                      <span className="font-medium">{modality.category}</span>
                     </div>
                   )}
                 </div>
@@ -348,53 +312,47 @@ export default function AdminModalities() {
                 rows={3}
               />
             </div>
+            <div>
+              <Label htmlFor="category">Categoría</Label>
+              <Input
+                id="category"
+                value={formData.category}
+                onChange={(e) => setFormData((prev) => ({ ...prev, category: e.target.value }))}
+                placeholder="Categoría de la modalidad"
+              />
+            </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <Label htmlFor="virtual_price">Precio Virtual (COP) *</Label>
+                <Label htmlFor="currency">Moneda</Label>
                 <Input
-                  id="virtual_price"
-                  type="number"
-                  value={formData.virtual_price}
-                  onChange={(e) =>
-                    setFormData((prev) => ({ ...prev, virtual_price: Number(e.target.value) }))
-                  }
-                  placeholder="0"
+                  id="currency"
+                  value={formData.currency}
+                  onChange={(e) => setFormData((prev) => ({ ...prev, currency: e.target.value }))}
+                  placeholder="COP"
                 />
               </div>
               <div>
-                <Label htmlFor="presencial_price">Precio Presencial (COP) *</Label>
+                <Label htmlFor="default_price_cents">Precio por Defecto (centavos) *</Label>
                 <Input
-                  id="presencial_price"
+                  id="default_price_cents"
                   type="number"
-                  value={formData.presencial_price}
+                  value={formData.default_price_cents}
                   onChange={(e) =>
-                    setFormData((prev) => ({ ...prev, presencial_price: Number(e.target.value) }))
+                    setFormData((prev) => ({ ...prev, default_price_cents: Number(e.target.value) }))
                   }
                   placeholder="0"
                 />
               </div>
             </div>
-            <div className="space-y-2">
-              <div className="flex items-center space-x-2">
-                <Checkbox
-                  id="offers_presencial"
-                  checked={formData.offers_presencial}
-                  onCheckedChange={(checked) =>
-                    setFormData((prev) => ({ ...prev, offers_presencial: !!checked }))
-                  }
-                />
-                <Label htmlFor="offers_presencial">Ofrece consultas presenciales</Label>
-              </div>
-              <div className="flex items-center space-x-2">
-                <Checkbox
-                  id="is_active"
-                  checked={formData.is_active}
-                  onCheckedChange={(checked) =>
-                    setFormData((prev) => ({ ...prev, is_active: !!checked }))
-                  }
-                />
-                <Label htmlFor="is_active">Modalidad activa</Label>
-              </div>
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="is_active"
+                checked={formData.is_active}
+                onCheckedChange={(checked) =>
+                  setFormData((prev) => ({ ...prev, is_active: !!checked }))
+                }
+              />
+              <Label htmlFor="is_active">Modalidad activa</Label>
             </div>
             <div className="flex justify-end space-x-2">
               <Button variant="outline" onClick={() => setIsDialogOpen(false)}>

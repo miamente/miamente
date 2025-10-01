@@ -163,17 +163,15 @@ export interface ProfessionalLogin {
 
 export interface Specialty extends BaseEntity {
   name: string;
-  category: string;
+  professional_count?: number;
 }
 
 export interface SpecialtyCreate {
   name: string;
-  category: string;
 }
 
 export interface SpecialtyUpdate {
   name?: string;
-  category?: string;
 }
 
 // ============================================================================

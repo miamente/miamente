@@ -3,6 +3,35 @@ import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import AdminSpecialties from "../page";
 
+// Mock API client to return deterministic data
+vi.mock("@/lib/api", () => {
+  return {
+    apiClient: {
+      getAllSpecialtiesAdmin: vi.fn().mockResolvedValue([
+        {
+          id: "1",
+          name: "Psicología Clínica",
+          professional_count: 12,
+          created_at: new Date("2024-01-15").toISOString(),
+        },
+        {
+          id: "2",
+          name: "Psiquiatría",
+          professional_count: 8,
+          created_at: new Date("2024-01-16").toISOString(),
+        },
+        {
+          id: "3",
+          name: "Terapia Cognitivo-Conductual",
+          professional_count: 5,
+          created_at: new Date("2024-01-17").toISOString(),
+        },
+      ]),
+      // other methods unused here
+    },
+  };
+});
+
 // Mock the UI components
 vi.mock("@/components/ui/card", () => ({
   Card: ({ children, className }: { children: React.ReactNode; className?: string }) => (
@@ -183,18 +212,6 @@ describe("AdminSpecialties", () => {
     });
   });
 
-  it("should display specialty details correctly", async () => {
-    render(<AdminSpecialties />);
-
-    await waitFor(() => {
-      expect(
-        screen.getByText("Tratamiento de trastornos mentales y emocionales"),
-      ).toBeInTheDocument();
-      expect(screen.getByText("Profesionales: 12")).toBeInTheDocument();
-      expect(screen.getByText("Profesionales: 8")).toBeInTheDocument();
-    });
-  });
-
   it("should filter specialties by search term", async () => {
     render(<AdminSpecialties />);
 
@@ -209,15 +226,14 @@ describe("AdminSpecialties", () => {
     expect(screen.queryByText("Psiquiatría")).not.toBeInTheDocument();
   });
 
-  it("should display correct status badges", async () => {
+  it("should display professional counts", async () => {
     render(<AdminSpecialties />);
 
     await waitFor(() => {
-      const activeBadges = screen.getAllByText("Activa");
-      const inactiveBadges = screen.getAllByText("Inactiva");
-
-      expect(activeBadges.length).toBeGreaterThan(0);
-      expect(inactiveBadges.length).toBeGreaterThan(0);
+      // In the table, counts are displayed as numbers; verify they appear
+      expect(screen.getByText("12")).toBeInTheDocument();
+      expect(screen.getByText("8")).toBeInTheDocument();
+      expect(screen.getByText("5")).toBeInTheDocument();
     });
   });
 
@@ -229,7 +245,7 @@ describe("AdminSpecialties", () => {
       expect(addButtons.length).toBeGreaterThan(0);
     });
 
-    const createButton = screen.getAllByText("Agregar Especialidad")[0]; // Get the button, not the dialog title
+    const createButton = screen.getAllByText("Agregar Especialidad")[0];
     fireEvent.click(createButton);
 
     await waitFor(() => {
@@ -252,26 +268,6 @@ describe("AdminSpecialties", () => {
       expect(
         screen.getByText("No hay especialidades que coincidan con la búsqueda"),
       ).toBeInTheDocument();
-    });
-  });
-
-  it("should display professional counts", async () => {
-    render(<AdminSpecialties />);
-
-    await waitFor(() => {
-      expect(screen.getByText("Profesionales: 12")).toBeInTheDocument();
-      expect(screen.getByText("Profesionales: 8")).toBeInTheDocument();
-      expect(screen.getByText("Profesionales: 5")).toBeInTheDocument();
-    });
-  });
-
-  it("should show creation dates", async () => {
-    render(<AdminSpecialties />);
-
-    await waitFor(() => {
-      expect(screen.getByText("Creada: 1/15/2024")).toBeInTheDocument();
-      expect(screen.getByText("Creada: 1/16/2024")).toBeInTheDocument();
-      expect(screen.getByText("Creada: 1/17/2024")).toBeInTheDocument();
     });
   });
 

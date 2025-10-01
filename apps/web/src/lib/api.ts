@@ -134,6 +134,11 @@ class ApiClient {
       throw new Error(errorData.detail);
     }
 
+    // Handle 204 No Content responses (common for DELETE operations)
+    if (response.status === 204) {
+      return undefined as T;
+    }
+
     return response.json();
   }
 
@@ -375,6 +380,10 @@ class ApiClient {
     return this.get<Specialty[]>("/specialties");
   }
 
+  async getAllSpecialtiesAdmin(): Promise<Specialty[]> {
+    return this.get<Specialty[]>("/specialties/admin/all");
+  }
+
   async getSpecialty(specialtyId: string): Promise<Specialty> {
     return this.get<Specialty>(`/specialties/${specialtyId}`);
   }
@@ -420,6 +429,10 @@ class ApiClient {
   // Modality methods
   async getModalities(): Promise<Modality[]> {
     return this.get<Modality[]>("/modalities");
+  }
+
+  async getAllModalitiesAdmin(): Promise<Modality[]> {
+    return this.get<Modality[]>("/modalities/admin/all");
   }
 
   async getModality(modalityId: string): Promise<Modality> {

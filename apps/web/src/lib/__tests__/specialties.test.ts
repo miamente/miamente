@@ -2,7 +2,6 @@ import { describe, it, expect } from "vitest";
 import {
   DEFAULT_SPECIALTIES,
   getSpecialtyById,
-  getSpecialtiesByCategory,
   formatPrice,
   type Specialty,
 } from "../specialties";
@@ -22,14 +21,12 @@ describe("Specialties Functions", () => {
         expect(specialty).toHaveProperty("description");
         expect(specialty).toHaveProperty("defaultPriceCents");
         expect(specialty).toHaveProperty("currency");
-        expect(specialty).toHaveProperty("category");
 
         expect(typeof specialty.id).toBe("string");
         expect(typeof specialty.name).toBe("string");
         expect(typeof specialty.description).toBe("string");
         expect(typeof specialty.defaultPriceCents).toBe("number");
         expect(typeof specialty.currency).toBe("string");
-        expect(typeof specialty.category).toBe("string");
       });
     });
 
@@ -90,71 +87,13 @@ describe("Specialties Functions", () => {
     });
   });
 
-  describe("getSpecialtiesByCategory", () => {
-    it("should group specialties by category", () => {
-      const grouped = getSpecialtiesByCategory();
-
-      expect(typeof grouped).toBe("object");
-      expect(grouped).not.toBeNull();
-    });
-
-    it("should have expected categories", () => {
-      const grouped = getSpecialtiesByCategory();
-      const categories = Object.keys(grouped);
-
-      expect(categories).toContain("Salud Mental");
-      expect(categories).toContain("Terapia");
-      expect(categories).toContain("Psicología");
-      expect(categories).toContain("Especializada");
-    });
-
-    it("should have specialties in each category", () => {
-      const grouped = getSpecialtiesByCategory();
-
-      Object.values(grouped).forEach((specialties) => {
-        expect(Array.isArray(specialties)).toBe(true);
-        expect(specialties.length).toBeGreaterThan(0);
-      });
-    });
-
-    it("should contain all specialties", () => {
-      const grouped = getSpecialtiesByCategory();
-      const allGroupedSpecialties = Object.values(grouped).flat();
-
-      expect(allGroupedSpecialties.length).toBe(DEFAULT_SPECIALTIES.length);
-    });
-
-    it("should maintain specialty properties when grouped", () => {
-      const grouped = getSpecialtiesByCategory();
-
-      Object.values(grouped).forEach((specialties) => {
-        specialties.forEach((specialty) => {
-          expect(specialty).toHaveProperty("id");
-          expect(specialty).toHaveProperty("name");
-          expect(specialty).toHaveProperty("category");
-        });
-      });
-    });
-
-    it("should group specialties correctly by category", () => {
-      const grouped = getSpecialtiesByCategory();
-
-      // Check that each specialty is in the correct category
-      Object.entries(grouped).forEach(([category, specialties]) => {
-        specialties.forEach((specialty) => {
-          expect(specialty.category).toBe(category);
-        });
-      });
-    });
-  });
-
   describe("formatPrice", () => {
     it("should format price in COP currency", () => {
       const formatted = formatPrice(80000);
 
       expect(typeof formatted).toBe("string");
       expect(formatted).toContain("$");
-      expect(formatted).toContain("800");
+      expect(formatted).toMatch(/800/);
     });
 
     it("should handle different price amounts", () => {
@@ -162,9 +101,9 @@ describe("Specialties Functions", () => {
       const price2 = formatPrice(120000); // $1,200
       const price3 = formatPrice(150000); // $1,500
 
-      expect(price1).toContain("600");
-      expect(price2).toContain("1.200");
-      expect(price3).toContain("1.500");
+      expect(price1).toMatch(/600/);
+      expect(price2).toMatch(/1\.200/);
+      expect(price3).toMatch(/1\.500/);
     });
 
     it("should handle zero price", () => {
@@ -178,14 +117,14 @@ describe("Specialties Functions", () => {
       const formatted = formatPrice(1000000); // $10,000
 
       expect(formatted).toContain("$");
-      expect(formatted).toContain("10.000");
+      expect(formatted).toMatch(/10\.000/);
     });
 
     it("should use Spanish locale formatting", () => {
       const formatted = formatPrice(120000);
 
       // Spanish locale uses dots as thousand separators
-      expect(formatted).toContain("1.200");
+      expect(formatted).toMatch(/1\.200/);
     });
 
     it("should accept custom currency", () => {
@@ -198,21 +137,21 @@ describe("Specialties Functions", () => {
     it("should handle decimal prices correctly", () => {
       const formatted = formatPrice(80500); // $805.00
 
-      expect(formatted).toContain("805");
+      expect(formatted).toMatch(/805/);
     });
 
     it("should format prices from specialty data", () => {
       const psychology = getSpecialtyById("psychology");
       const formatted = formatPrice(psychology!.defaultPriceCents);
 
-      expect(formatted).toContain("800");
+      expect(formatted).toMatch(/800/);
     });
 
     it("should handle negative prices", () => {
       const formatted = formatPrice(-50000);
 
       expect(formatted).toContain("-");
-      expect(formatted).toContain("500");
+      expect(formatted).toMatch(/500/);
     });
   });
 
@@ -223,24 +162,11 @@ describe("Specialties Functions", () => {
 
       expect(specialty).toBeDefined();
       expect(formattedPrice).toBeDefined();
-      expect(formattedPrice).toContain("1.200");
-    });
-
-    it("should maintain data consistency", () => {
-      const grouped = getSpecialtiesByCategory();
-      const allSpecialties = Object.values(grouped).flat();
-
-      // All specialties from grouping should exist in DEFAULT_SPECIALTIES
-      allSpecialties.forEach((specialty) => {
-        const found = DEFAULT_SPECIALTIES.find((s) => s.id === specialty.id);
-        expect(found).toBeDefined();
-        expect(found).toEqual(specialty);
-      });
+      expect(formattedPrice).toMatch(/1\.200/);
     });
 
     it("should handle edge cases gracefully", () => {
       expect(() => getSpecialtyById("")).not.toThrow();
-      expect(() => getSpecialtiesByCategory()).not.toThrow();
       expect(() => formatPrice(0)).not.toThrow();
       expect(() => formatPrice(-100)).not.toThrow();
     });

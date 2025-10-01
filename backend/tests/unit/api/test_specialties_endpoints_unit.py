@@ -12,7 +12,6 @@ from app.api.v1.endpoints.specialties import (
     create_specialty,
     delete_specialty,
     get_specialties,
-    get_specialties_by_category,
     get_specialty,
     update_specialty,
 )
@@ -27,8 +26,6 @@ def sample_specialty():
     specialty = MagicMock()
     specialty.id = str(uuid.uuid4())
     specialty.name = "Clinical Psychology"
-    specialty.description = "Mental health treatment"
-    specialty.category = "Psychology"
     specialty.is_active = True
     return specialty
 
@@ -36,15 +33,13 @@ def sample_specialty():
 @pytest.fixture
 def sample_specialty_create():
     """Sample SpecialtyCreate for testing."""
-    return SpecialtyCreate(name="Neuropsychology", description="Brain-behavior relationships", category="Psychology")
+    return SpecialtyCreate(name="Neuropsychology")
 
 
 @pytest.fixture
 def sample_specialty_update():
     """Sample SpecialtyUpdate for testing."""
-    return SpecialtyUpdate(
-        name="Updated Neuropsychology", description="Updated brain-behavior relationships", category="Psychology"
-    )
+    return SpecialtyUpdate(name="Updated Neuropsychology")
 
 
 @pytest.fixture
@@ -103,35 +98,6 @@ class TestGetSpecialties:
         mock_service.get_specialties.assert_called_once_with(skip=0, limit=100)
 
 
-class TestGetSpecialtiesByCategory:
-    """Test get_specialties_by_category endpoint."""
-
-    @patch("app.api.v1.endpoints.specialties.SpecialtyService")
-    def test_get_specialties_by_category_success(self, mock_service_class, sample_specialty, mock_db_session):
-        """Test successful retrieval by category."""
-        mock_service = MagicMock()
-        mock_service_class.return_value = mock_service
-        mock_service.get_specialties_by_category.return_value = [sample_specialty]
-
-        result = get_specialties_by_category("Psychology", db=mock_db_session)
-
-        assert len(result) == 1
-        assert result[0] == sample_specialty
-        mock_service_class.assert_called_once_with(mock_db_session)
-        mock_service.get_specialties_by_category.assert_called_once_with("Psychology")
-
-    @patch("app.api.v1.endpoints.specialties.SpecialtyService")
-    def test_get_specialties_by_category_empty(self, mock_service_class, mock_db_session):
-        """Test retrieval by category when no specialties exist."""
-        mock_service = MagicMock()
-        mock_service_class.return_value = mock_service
-        mock_service.get_specialties_by_category.return_value = []
-
-        result = get_specialties_by_category("NonExistentCategory", db=mock_db_session)
-
-        assert len(result) == 0
-        mock_service_class.assert_called_once_with(mock_db_session)
-        mock_service.get_specialties_by_category.assert_called_once_with("NonExistentCategory")
 
 
 class TestGetSpecialty:

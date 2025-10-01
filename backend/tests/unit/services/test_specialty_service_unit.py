@@ -30,7 +30,6 @@ class TestSpecialtyServiceUnit:
         specialty = Mock(spec=Specialty)
         specialty.id = "test-specialty-1"
         specialty.name = "Cognitive Behavioral Therapy"
-        specialty.category = "therapy"
         return specialty
 
     def test_get_specialty_found(self, specialty_service, mock_db, sample_specialty):
@@ -114,30 +113,11 @@ class TestSpecialtyServiceUnit:
         mock_query.offset.assert_called_once_with(0)
         mock_offset.limit.assert_called_once_with(100)
 
-    def test_get_specialties_by_category(self, specialty_service, mock_db):
-        """Test getting specialties by category."""
-        # Arrange
-        category = "therapy"
-        mock_specialties = [Mock(spec=Specialty) for _ in range(2)]
-
-        mock_query = Mock()
-        mock_filter = Mock()
-        mock_query.filter.return_value = mock_filter
-        mock_filter.all.return_value = mock_specialties
-        mock_db.query.return_value = mock_query
-
-        # Act
-        result = specialty_service.get_specialties_by_category(category)
-
-        # Assert
-        assert result == mock_specialties
-        mock_db.query.assert_called_once_with(Specialty)
-        mock_query.filter.assert_called_once()
 
     def test_create_specialty_success(self, specialty_service, mock_db):
         """Test creating a specialty successfully."""
         # Arrange
-        specialty_data = SpecialtyCreate(name="Family Therapy", category="therapy")
+        specialty_data = SpecialtyCreate(name="Family Therapy")
 
         # Mock the database operations
         mock_db.add = Mock()
@@ -150,7 +130,6 @@ class TestSpecialtyServiceUnit:
         # Assert
         assert result is not None
         assert hasattr(result, "name")
-        assert hasattr(result, "category")
         mock_db.add.assert_called_once()
         mock_db.commit.assert_called_once()
         mock_db.refresh.assert_called_once()
@@ -159,7 +138,7 @@ class TestSpecialtyServiceUnit:
         """Test updating a specialty successfully."""
         # Arrange
         specialty_id = "test-specialty-1"
-        update_data = SpecialtyUpdate(name="Updated CBT", category="therapy")
+        update_data = SpecialtyUpdate(name="Updated CBT")
 
         # Mock get_specialty to return our sample specialty
         specialty_service.get_specialty = Mock(return_value=sample_specialty)
@@ -172,7 +151,6 @@ class TestSpecialtyServiceUnit:
         # Assert
         assert result == sample_specialty
         assert sample_specialty.name == "Updated CBT"
-        assert sample_specialty.category == "therapy"
         mock_db.commit.assert_called_once()
         mock_db.refresh.assert_called_once()
 
@@ -210,8 +188,6 @@ class TestSpecialtyServiceUnit:
         # Assert
         assert result == sample_specialty
         assert sample_specialty.name == "Only Name Updated"
-        # Category should remain unchanged
-        assert sample_specialty.category == "therapy"
         mock_db.commit.assert_called_once()
         mock_db.refresh.assert_called_once()
 

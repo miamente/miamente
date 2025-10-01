@@ -24,9 +24,6 @@ class SpecialtyService:
         """Get all specialties."""
         return self.db.query(Specialty).offset(skip).limit(limit).all()
 
-    def get_specialties_by_category(self, category: str) -> List[Specialty]:
-        """Get specialties by category."""
-        return self.db.query(Specialty).filter(Specialty.category == category).all()
 
     def create_specialty(self, specialty: SpecialtyCreate) -> Specialty:
         """Create a new specialty."""
@@ -59,3 +56,20 @@ class SpecialtyService:
         db_specialty.is_active = False
         self.db.commit()
         return True
+
+    def get_specialty_professional_count(self, specialty_id: str) -> int:
+        """Get the count of active professionals for a specialty."""
+        from app.models.professional_specialty import ProfessionalSpecialty
+        from app.models.professional import Professional
+        
+        count = (
+            self.db.query(ProfessionalSpecialty)
+            .join(Professional, ProfessionalSpecialty.professional_id == Professional.id)
+            .filter(
+                ProfessionalSpecialty.specialty_id == specialty_id,
+                ProfessionalSpecialty.is_active == True,
+                Professional.is_active == True
+            )
+            .count()
+        )
+        return count
