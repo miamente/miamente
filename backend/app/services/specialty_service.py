@@ -22,7 +22,29 @@ class SpecialtyService:
 
     def get_specialties(self, skip: int = 0, limit: int = 100) -> List[Specialty]:
         """Get all specialties."""
-        return self.db.query(Specialty).offset(skip).limit(limit).all()
+        return self.db.query(Specialty).filter(Specialty.is_active == True).order_by(Specialty.name.asc()).offset(skip).limit(limit).all()
+
+    def get_specialties_count(self, search: Optional[str] = None) -> int:
+        """Get total count of specialties."""
+        query = self.db.query(Specialty)
+        
+        if search:
+            # Use ILIKE for case-insensitive search with proper escaping
+            search_term = f"%{search.strip()}%"
+            query = query.filter(Specialty.name.ilike(search_term))
+        
+        return query.count()
+
+    def get_specialties_admin(self, skip: int = 0, limit: int = 100, search: Optional[str] = None) -> List[Specialty]:
+        """Get all specialties for admin (includes inactive)."""
+        query = self.db.query(Specialty)
+        
+        if search:
+            # Use ILIKE for case-insensitive search with proper escaping
+            search_term = f"%{search.strip()}%"
+            query = query.filter(Specialty.name.ilike(search_term))
+        
+        return query.order_by(Specialty.name.asc()).offset(skip).limit(limit).all()
 
 
     def create_specialty(self, specialty: SpecialtyCreate) -> Specialty:
@@ -53,7 +75,8 @@ class SpecialtyService:
         if not db_specialty:
             return False
 
-        db_specialty.is_active = False
+        # Actually delete the specialty from the database
+        self.db.delete(db_specialty)
         self.db.commit()
         return True
 

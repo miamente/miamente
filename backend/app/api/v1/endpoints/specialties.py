@@ -2,9 +2,10 @@
 Specialty (new version) endpoints.
 """
 
-from typing import List
+from typing import List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, status, Response
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.utils.auth import get_current_admin_user
@@ -13,6 +14,7 @@ from app.schemas.specialty import (
     SpecialtyCreate,
     SpecialtyResponse,
     SpecialtyUpdate,
+    PaginatedSpecialtiesResponse,
 )
 from app.services.specialty_service import SpecialtyService
 
@@ -32,26 +34,37 @@ def get_specialties(skip: int = 0, limit: int = 100, db: Session = Depends(get_d
     specialties_with_count = []
     for specialty in specialties:
         professional_count = service.get_specialty_professional_count(specialty.id)
+        # Only expose active specialties to public/professional context
+        if not specialty.is_active:
+            continue
         specialty_dict = {
             "id": specialty.id,
             "name": specialty.name,
-            "professional_count": professional_count
+            "is_active": specialty.is_active,
+            "professional_count": professional_count,
         }
         specialties_with_count.append(specialty_dict)
     
     return specialties_with_count
 
 
-@router.get("/admin/all", response_model=List[SpecialtyResponse])
+@router.get("/admin/all", response_model=PaginatedSpecialtiesResponse)
 def get_all_specialties_admin(
-    skip: int = 0, 
-    limit: int = 100, 
+    page: int = 1, 
+    page_size: int = 10,
+    search: Optional[str] = None,
     db: Session = Depends(get_db),
     _admin_user = Depends(get_current_admin_user),
 ):
-    """Get all specialties for admin (same as regular endpoint but requires admin access)."""
+    """Get all specialties for admin with pagination and search."""
     service = SpecialtyService(db)
-    specialties = service.get_specialties(skip=skip, limit=limit)
+    
+    # Calculate skip from page and page_size
+    skip = (page - 1) * page_size
+    
+    # Get specialties and total count with search filter
+    specialties = service.get_specialties_admin(skip=skip, limit=page_size, search=search)
+    total = service.get_specialties_count(search=search)
     
     # Add professional count for each specialty
     specialties_with_count = []
@@ -60,11 +73,22 @@ def get_all_specialties_admin(
         specialty_dict = {
             "id": specialty.id,
             "name": specialty.name,
-            "professional_count": professional_count
+            "description": specialty.description,
+            "is_active": specialty.is_active,
+            "professional_count": professional_count,
         }
         specialties_with_count.append(specialty_dict)
     
-    return specialties_with_count
+    # Calculate total pages
+    total_pages = (total + page_size - 1) // page_size
+    
+    return PaginatedSpecialtiesResponse(
+        items=specialties_with_count,
+        total=total,
+        page=page,
+        page_size=page_size,
+        total_pages=total_pages
+    )
 
 
 
@@ -83,10 +107,18 @@ def get_specialty(specialty_id: str, db: Session = Depends(get_db)):
 def create_specialty(specialty: SpecialtyCreate, db: Session = Depends(get_db), _admin_user = Depends(get_current_admin_user)):
     """Create a new specialty."""
     service = SpecialtyService(db)
-    return service.create_specialty(specialty)
+    try:
+        return service.create_specialty(specialty)
+    except IntegrityError:
+        # Duplicate name or other constraint violation
+        db.rollback()  # ensure session is clean after failed commit
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Specialty with this name already exists",
+        )
 
 
-@router.put("/{specialty_id}", response_model=SpecialtyResponse)
+@router.patch("/{specialty_id}", response_model=SpecialtyResponse)
 def update_specialty(specialty_id: str, specialty_update: SpecialtyUpdate, db: Session = Depends(get_db), _admin_user = Depends(get_current_admin_user)):
     """Update a specialty."""
     service = SpecialtyService(db)
@@ -100,6 +132,13 @@ def update_specialty(specialty_id: str, specialty_update: SpecialtyUpdate, db: S
 def delete_specialty(specialty_id: str, db: Session = Depends(get_db), _admin_user = Depends(get_current_admin_user)):
     """Delete a specialty."""
     service = SpecialtyService(db)
+    # Block deletion if specialty is assigned to any active professional
+    assigned_count = service.get_specialty_professional_count(specialty_id)
+    if assigned_count > 0:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Cannot delete specialty: it is assigned to one or more professionals",
+        )
     success = service.delete_specialty(specialty_id)
     if not success:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=SPECIALTY_NOT_FOUND_MESSAGE)

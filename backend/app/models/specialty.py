@@ -17,4 +17,5 @@ class Specialty(Base, TimestampMixin):
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     name = Column(String(255), nullable=False, unique=True)
+    description = Column(String(500), nullable=True)
     is_active = Column(Boolean, default=True, nullable=False)

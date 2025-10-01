@@ -72,7 +72,7 @@ def parse_professional_data(professional: Professional) -> dict:
             {
                 "id": str(ps.id),
                 "name": ps.specialty.name if ps.specialty else "Unknown Specialty",
-                "description": (ps.specialty.category if ps.specialty else "No description available"),
+                "description": (ps.specialty.description if ps.specialty and ps.specialty.description else "No description available"),
                 "price_cents": professional.rate_cents,  # Use professional's rate
                 "currency": professional.currency,
                 "is_default": False,  # Determined by business logic
