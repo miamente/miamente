@@ -30,7 +30,7 @@ export function ModalityFormFields({
         <div>
           <label
             htmlFor={`modality-${index}`}
-            className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300"
+            className="mb-1 block text-sm font-medium text-gray-700"
           >
             Modalidad *
           </label>
@@ -50,7 +50,7 @@ export function ModalityFormFields({
         <div>
           <label
             htmlFor={`virtual-price-${index}`}
-            className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300"
+            className="mb-1 block text-sm font-medium text-gray-700"
           >
             Precio Virtual (COP) *
           </label>
@@ -78,10 +78,7 @@ export function ModalityFormFields({
           disabled={disabled}
           className="h-4 w-4 rounded border-gray-300 text-purple-600 focus:ring-purple-500"
         />
-        <label
-          htmlFor={`offers-presencial-${index}`}
-          className="text-sm font-medium text-gray-700 dark:text-gray-300"
-        >
+        <label htmlFor={`offers-presencial-${index}`} className="text-sm font-medium text-gray-700">
           También ofrecer modalidad presencial
         </label>
       </div>
@@ -89,7 +86,7 @@ export function ModalityFormFields({
       <div>
         <label
           htmlFor={`description-${index}`}
-          className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300"
+          className="mb-1 block text-sm font-medium text-gray-700"
         >
           Descripción
         </label>
@@ -123,7 +120,7 @@ export function PresencialPriceField({
     <div>
       <label
         htmlFor={`presencial-price-${index}`}
-        className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300"
+        className="mb-1 block text-sm font-medium text-gray-700"
       >
         Precio Presencial (COP)
       </label>

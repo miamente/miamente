@@ -83,9 +83,7 @@ export default function AdminUsers() {
           {getRoleIcon(user.role)}
           <div>
             <div className="font-medium">{user.full_name}</div>
-            <div className="text-sm text-gray-500 dark:text-gray-400">
-              ID: {user.id.slice(0, 8)}...
-            </div>
+            <div className="text-sm text-gray-500">ID: {user.id.slice(0, 8)}...</div>
           </div>
         </div>
       ),

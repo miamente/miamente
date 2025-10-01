@@ -131,20 +131,14 @@ export default function AdminProfessionals() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-            Gestión de Profesionales
-          </h1>
-          <p className="mt-2 text-gray-600 dark:text-gray-400">
-            Administrar profesionales de la plataforma
-          </p>
+          <h1 className="text-3xl font-bold text-gray-900">Gestión de Profesionales</h1>
+          <p className="mt-2 text-gray-600">Administrar profesionales de la plataforma</p>
         </div>
         <Button>Agregar Profesional</Button>
       </div>
 
       {error && (
-        <div className="rounded-md border border-red-200 bg-red-50 p-4 text-red-600 dark:border-red-800 dark:bg-red-900/20 dark:text-red-400">
-          {error}
-        </div>
+        <div className="rounded-md border border-red-200 bg-red-50 p-4 text-red-600">{error}</div>
       )}
 
       {/* Filters */}
@@ -157,7 +151,7 @@ export default function AdminProfessionals() {
             <div>
               <label
                 htmlFor="search-professionals"
-                className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+                className="block text-sm font-medium text-gray-700"
               >
                 Buscar
               </label>
@@ -173,17 +167,14 @@ export default function AdminProfessionals() {
               </div>
             </div>
             <div>
-              <label
-                htmlFor="filter-status"
-                className="block text-sm font-medium text-gray-700 dark:text-gray-300"
-              >
+              <label htmlFor="filter-status" className="block text-sm font-medium text-gray-700">
                 Estado
               </label>
               <select
                 id="filter-status"
                 value={filterStatus}
                 onChange={(e) => setFilterStatus(e.target.value)}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500"
               >
                 <option value="all">Todos los estados</option>
                 <option value="active">Activos</option>
@@ -224,17 +215,14 @@ export default function AdminProfessionals() {
                 </thead>
                 <tbody>
                   {filteredProfessionals.map((professional) => (
-                    <tr
-                      key={professional.id}
-                      className="border-b hover:bg-gray-50 dark:hover:bg-gray-800"
-                    >
+                    <tr key={professional.id} className="border-b hover:bg-gray-50">
                       <td className="p-4">
                         <div className="font-medium">{professional.full_name}</div>
-                        <div className="text-sm text-gray-500 dark:text-gray-400">
+                        <div className="text-sm text-gray-500">
                           ID: {professional.id.slice(0, 8)}...
                         </div>
                         {professional.license_number && (
-                          <div className="text-sm text-gray-500 dark:text-gray-400">
+                          <div className="text-sm text-gray-500">
                             Licencia: {professional.license_number}
                           </div>
                         )}
@@ -260,7 +248,7 @@ export default function AdminProfessionals() {
                               : "Sin especialidades"}
                           </span>
                         </div>
-                        <div className="text-sm text-gray-500 dark:text-gray-400">
+                        <div className="text-sm text-gray-500">
                           {professional.years_experience} años de experiencia
                         </div>
                       </td>

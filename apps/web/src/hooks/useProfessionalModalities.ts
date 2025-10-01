@@ -28,7 +28,9 @@ export function useProfessionalModalities(professionalId?: string) {
     fetchModalities();
   }, [professionalId]);
 
-  const createModality = async (modalityData: Omit<ProfessionalModality, "id" | "professional_id">) => {
+  const createModality = async (
+    modalityData: Omit<ProfessionalModality, "id" | "professional_id">,
+  ) => {
     if (!professionalId) return;
 
     try {
@@ -42,7 +44,10 @@ export function useProfessionalModalities(professionalId?: string) {
     }
   };
 
-  const updateModality = async (modalityId: string, modalityData: Partial<ProfessionalModality>) => {
+  const updateModality = async (
+    modalityId: string,
+    modalityData: Partial<ProfessionalModality>,
+  ) => {
     try {
       setLoading(true);
       const data = await apiClient.updateProfessionalModality(modalityId, modalityData);

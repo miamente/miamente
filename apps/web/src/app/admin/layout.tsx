@@ -56,11 +56,11 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
   const isLoginRoute = pathname === "/admin/login";
 
   const adminContent = (
-    <div className="fixed inset-0 top-14 bg-gray-50 dark:bg-gray-900">
+    <div className="fixed inset-0 top-14 bg-gray-50">
       {/* Full-width layout without max-width constraints */}
       <div className="flex h-full">
         {/* Sidebar Navigation */}
-        <nav className="w-64 bg-white shadow-sm dark:bg-gray-800">
+        <nav className="w-64 bg-white shadow-sm">
           <div className="p-4">
             <ul className="space-y-2">
               {adminNavigation.map((item) => {
@@ -71,9 +71,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                       href={item.href}
                       className={cn(
                         "flex items-center space-x-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
-                        isActive
-                          ? "bg-red-50 text-red-700 dark:bg-red-900/20 dark:text-red-400"
-                          : "text-gray-700 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-gray-700",
+                        isActive ? "bg-red-50 text-red-700" : "text-gray-700 hover:bg-gray-50",
                       )}
                     >
                       <item.icon className="h-5 w-5" />

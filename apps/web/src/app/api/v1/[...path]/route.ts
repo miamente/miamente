@@ -6,7 +6,10 @@ const backendBaseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000
 
 console.log("🔧 Proxy using backend URL:", backendBaseUrl);
 
-async function proxy(request: NextRequest, context: { params?: Promise<{ path?: string | string[] }> }) {
+async function proxy(
+  request: NextRequest,
+  context: { params?: Promise<{ path?: string | string[] }> },
+) {
   const params = await context?.params;
   const raw = params?.path;
   const pathSuffix = Array.isArray(raw) ? raw.join("/") : (raw ?? "");

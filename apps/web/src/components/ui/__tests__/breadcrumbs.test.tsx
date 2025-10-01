@@ -90,14 +90,7 @@ describe("Breadcrumbs Component", () => {
       render(<Breadcrumbs items={[]} />);
 
       const nav = screen.getByRole("navigation");
-      expect(nav).toHaveClass(
-        "flex",
-        "items-center",
-        "space-x-1",
-        "text-sm",
-        "text-gray-600",
-        "dark:text-gray-400",
-      );
+      expect(nav).toHaveClass("flex", "items-center", "space-x-1", "text-sm", "text-gray-600", "");
     });
 
     it("should apply custom className", () => {
@@ -115,8 +108,8 @@ describe("Breadcrumbs Component", () => {
       const homeLink = screen.getByRole("link", { name: /inicio/i });
       const dashboardLink = screen.getByRole("link", { name: "Dashboard" });
 
-      expect(homeLink).toHaveClass("hover:text-gray-900", "dark:hover:text-gray-100");
-      expect(dashboardLink).toHaveClass("hover:text-gray-900", "dark:hover:text-gray-100");
+      expect(homeLink).toHaveClass("hover:text-gray-900", "");
+      expect(dashboardLink).toHaveClass("hover:text-gray-900", "");
     });
   });
 

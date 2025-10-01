@@ -3,12 +3,12 @@ import Link from "next/link";
 
 export function Footer() {
   return (
-    <footer className="border-t py-8 text-sm text-neutral-600 dark:text-neutral-400">
+    <footer className="border-t py-8 text-sm text-neutral-600">
       <div className="mx-auto max-w-6xl px-4">
         <div className="mb-6 grid grid-cols-1 gap-8 md:grid-cols-4">
           {/* Company Info */}
           <div>
-            <h3 className="mb-3 font-semibold text-neutral-900 dark:text-neutral-100">Miamente</h3>
+            <h3 className="mb-3 font-semibold text-neutral-900">Miamente</h3>
             <p className="text-sm">
               Conectamos usuarios con profesionales de la salud mental para sesiones virtuales
               seguras y confidenciales.
@@ -17,23 +17,20 @@ export function Footer() {
 
           {/* Services */}
           <div>
-            <h3 className="mb-3 font-semibold text-neutral-900 dark:text-neutral-100">Servicios</h3>
+            <h3 className="mb-3 font-semibold text-neutral-900">Servicios</h3>
             <ul className="space-y-2">
               <li>
-                <Link
-                  href="/professionals"
-                  className="hover:text-blue-600 dark:hover:text-blue-400"
-                >
+                <Link href="/professionals" className="hover:text-blue-600">
                   Buscar Profesionales
                 </Link>
               </li>
               <li>
-                <Link href="/landing" className="hover:text-blue-600 dark:hover:text-blue-400">
+                <Link href="/landing" className="hover:text-blue-600">
                   Cómo Funciona
                 </Link>
               </li>
               <li>
-                <Link href="/status" className="hover:text-blue-600 dark:hover:text-blue-400">
+                <Link href="/status" className="hover:text-blue-600">
                   Estado del Sistema
                 </Link>
               </li>
@@ -42,18 +39,15 @@ export function Footer() {
 
           {/* Support */}
           <div>
-            <h3 className="mb-3 font-semibold text-neutral-900 dark:text-neutral-100">Soporte</h3>
+            <h3 className="mb-3 font-semibold text-neutral-900">Soporte</h3>
             <ul className="space-y-2">
               <li>
-                <a
-                  href="mailto:soporte@miamente.com"
-                  className="hover:text-blue-600 dark:hover:text-blue-400"
-                >
+                <a href="mailto:soporte@miamente.com" className="hover:text-blue-600">
                   soporte@miamente.com
                 </a>
               </li>
               <li>
-                <a href="tel:+57123456789" className="hover:text-blue-600 dark:hover:text-blue-400">
+                <a href="tel:+57123456789" className="hover:text-blue-600">
                   +57 (1) 234-5678
                 </a>
               </li>
@@ -65,23 +59,20 @@ export function Footer() {
 
           {/* Legal */}
           <div>
-            <h3 className="mb-3 font-semibold text-neutral-900 dark:text-neutral-100">Legal</h3>
+            <h3 className="mb-3 font-semibold text-neutral-900">Legal</h3>
             <ul className="space-y-2">
               <li>
-                <Link href="/terms" className="hover:text-blue-600 dark:hover:text-blue-400">
+                <Link href="/terms" className="hover:text-blue-600">
                   Términos y Condiciones
                 </Link>
               </li>
               <li>
-                <Link href="/privacy" className="hover:text-blue-600 dark:hover:text-blue-400">
+                <Link href="/privacy" className="hover:text-blue-600">
                   Política de Privacidad
                 </Link>
               </li>
               <li>
-                <a
-                  href="mailto:legal@miamente.com"
-                  className="hover:text-blue-600 dark:hover:text-blue-400"
-                >
+                <a href="mailto:legal@miamente.com" className="hover:text-blue-600">
                   legal@miamente.com
                 </a>
               </li>

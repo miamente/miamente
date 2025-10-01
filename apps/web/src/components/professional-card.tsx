@@ -46,14 +46,12 @@ export function ProfessionalCard({ professional, onViewProfile }: ProfessionalCa
       <CardHeader>
         <CardTitle className="text-lg font-semibold">{professional.full_name}</CardTitle>
         {professional.bio && (
-          <p className="line-clamp-2 text-sm text-neutral-600 dark:text-neutral-400">
-            {professional.bio}
-          </p>
+          <p className="line-clamp-2 text-sm text-neutral-600">{professional.bio}</p>
         )}
         {professional.rating && professional.total_reviews && (
           <div className="flex items-center gap-2">
             <StarRating rating={professional.rating} maxRating={5} interactive={false} size="sm" />
-            <span className="text-sm text-neutral-600 dark:text-neutral-400">
+            <span className="text-sm text-neutral-600">
               {professional.rating} ({professional.total_reviews} reseñas)
             </span>
           </div>
@@ -69,7 +67,7 @@ export function ProfessionalCard({ professional, onViewProfile }: ProfessionalCa
             className="h-40 w-full rounded-md object-cover"
           />
         ) : (
-          <div className="flex h-40 w-full items-center justify-center rounded-md bg-neutral-100 text-neutral-500 dark:bg-neutral-900 dark:text-neutral-400">
+          <div className="flex h-40 w-full items-center justify-center rounded-md bg-neutral-100 text-neutral-500">
             Sin foto
           </div>
         )}

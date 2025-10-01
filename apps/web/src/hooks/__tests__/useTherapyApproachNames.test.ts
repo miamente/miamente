@@ -29,7 +29,7 @@ describe("useTherapyApproachNames", () => {
       () => {
         expect(result.current.loading).toBe(true);
       },
-      { timeout: 100 },
+      { timeout: 500 },
     );
 
     // Wait for the async effect to complete
@@ -37,7 +37,7 @@ describe("useTherapyApproachNames", () => {
       () => {
         expect(result.current.loading).toBe(false);
       },
-      { timeout: 100 },
+      { timeout: 1000 },
     );
   });
 

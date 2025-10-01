@@ -140,7 +140,7 @@ export function CertificationsEditor({ disabled = false }: CertificationsEditorP
     <Card className={isOpen ? "pt-0" : "p-0"}>
       <Collapsible open={isOpen} onOpenChange={setIsOpen}>
         <CollapsibleTrigger asChild>
-          <CardHeader className="group cursor-pointer py-6 transition-colors duration-200 hover:bg-purple-50/30 dark:hover:bg-purple-900/10">
+          <CardHeader className="group cursor-pointer py-6 transition-colors duration-200 hover:bg-purple-50/30">
             <CardTitle className="flex items-center justify-between text-lg">
               <div className="flex items-center gap-2">
                 <Award className="h-5 w-5 text-purple-600 transition-colors group-hover:text-purple-700" />
@@ -158,8 +158,8 @@ export function CertificationsEditor({ disabled = false }: CertificationsEditorP
         <CollapsibleContent>
           <CardContent className="space-y-4">
             {fields.length === 0 ? (
-              <div className="py-8 text-center text-gray-500 dark:text-gray-400">
-                <Award className="mx-auto mb-4 h-12 w-12 text-gray-300 dark:text-gray-600" />
+              <div className="py-8 text-center text-gray-500">
+                <Award className="mx-auto mb-4 h-12 w-12 text-gray-300" />
                 <p>No hay certificaciones agregadas</p>
                 <p className="text-sm">Haz clic en el botón + para agregar una certificación</p>
               </div>
@@ -168,7 +168,7 @@ export function CertificationsEditor({ disabled = false }: CertificationsEditorP
                 {fields.map((field, index) => (
                   <div key={field.id} className="space-y-4 rounded-lg border p-4">
                     <div className="flex items-center justify-between">
-                      <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                      <h4 className="text-sm font-medium text-gray-700">
                         {watchedCertifications?.[index]?.name || `Certificación ${index + 1}`}
                       </h4>
                       <Button
@@ -187,7 +187,7 @@ export function CertificationsEditor({ disabled = false }: CertificationsEditorP
                       <div>
                         <label
                           htmlFor={`certification-name-${index}`}
-                          className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300"
+                          className="mb-1 block text-sm font-medium text-gray-700"
                         >
                           Nombre de la Certificación *
                         </label>
@@ -209,7 +209,7 @@ export function CertificationsEditor({ disabled = false }: CertificationsEditorP
                       <div>
                         <label
                           htmlFor={`certification-file-${index}`}
-                          className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300"
+                          className="mb-1 block text-sm font-medium text-gray-700"
                         >
                           Documento de Certificación *
                         </label>
@@ -220,16 +220,14 @@ export function CertificationsEditor({ disabled = false }: CertificationsEditorP
                               "relative rounded-lg border-2 border-dashed p-6 text-center transition-colors ";
 
                             if (disabled) {
-                              className +=
-                                "cursor-not-allowed border-gray-300 bg-gray-100 dark:bg-gray-700";
+                              className += "cursor-not-allowed border-gray-300 bg-gray-100 ";
                             } else if (!isAuthenticated) {
-                              className +=
-                                "cursor-not-allowed border-red-300 bg-red-50 dark:bg-red-900/20";
+                              className += "cursor-not-allowed border-red-300 bg-red-50 ";
                             } else if (certifications?.[index]?.documentUrl) {
-                              className += "border-green-300 bg-green-50 dark:bg-green-900/20";
+                              className += "border-green-300 bg-green-50 ";
                             } else {
                               className +=
-                                "cursor-pointer border-gray-300 bg-gray-50 hover:bg-gray-100 dark:border-gray-600 dark:bg-gray-800 dark:hover:bg-gray-700";
+                                "cursor-pointer border-gray-300 bg-gray-50 hover:bg-gray-100 ";
                             }
 
                             return (
@@ -253,11 +251,9 @@ export function CertificationsEditor({ disabled = false }: CertificationsEditorP
 
                                     return (
                                       <>
-                                        <Upload className="mx-auto mb-2 h-8 w-8 text-gray-400 dark:text-gray-500" />
-                                        <p className="text-sm text-gray-600 dark:text-gray-400">
-                                          {uploadText}
-                                        </p>
-                                        <p className="mt-1 text-xs text-gray-500 dark:text-gray-500">
+                                        <Upload className="mx-auto mb-2 h-8 w-8 text-gray-400" />
+                                        <p className="text-sm text-gray-600">{uploadText}</p>
+                                        <p className="mt-1 text-xs text-gray-500">
                                           PDF, JPG, PNG • Máximo 5MB
                                         </p>
                                       </>
@@ -266,11 +262,11 @@ export function CertificationsEditor({ disabled = false }: CertificationsEditorP
 
                                   return (
                                     <>
-                                      <FileText className="mx-auto mb-2 h-8 w-8 text-green-600 dark:text-green-400" />
-                                      <p className="text-sm font-medium text-green-700 dark:text-green-300">
+                                      <FileText className="mx-auto mb-2 h-8 w-8 text-green-600" />
+                                      <p className="text-sm font-medium text-green-700">
                                         Documento adjunto
                                       </p>
-                                      <p className="text-xs text-green-500 dark:text-green-500">
+                                      <p className="text-xs text-green-500">
                                         {certifications[index]?.fileName ||
                                           certifications[index]?.document?.name ||
                                           "Archivo adjunto"}

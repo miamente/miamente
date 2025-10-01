@@ -65,7 +65,7 @@ export function WorkExperienceEditor({ disabled = false }: WorkExperienceEditorP
     <Card className={isOpen ? "pt-0" : "p-0"}>
       <Collapsible open={isOpen} onOpenChange={setIsOpen}>
         <CollapsibleTrigger asChild>
-          <CardHeader className="group cursor-pointer py-6 transition-colors duration-200 hover:bg-green-50/30 dark:hover:bg-green-900/10">
+          <CardHeader className="group cursor-pointer py-6 transition-colors duration-200 hover:bg-green-50/30">
             <CardTitle className="flex items-center justify-between text-lg">
               <div className="flex items-center gap-2">
                 <Briefcase className="h-5 w-5 text-green-600 transition-colors group-hover:text-green-700" />
@@ -84,7 +84,7 @@ export function WorkExperienceEditor({ disabled = false }: WorkExperienceEditorP
             {fields.map((field, index) => (
               <div key={field.id} className="space-y-4 rounded-lg border p-4">
                 <div className="flex items-center justify-between">
-                  <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                  <h4 className="text-sm font-medium text-gray-700">
                     {workExperience?.[index]?.company && workExperience?.[index]?.position
                       ? `${workExperience[index].company} - ${workExperience[index].position}`
                       : `Experiencia ${index + 1}`}
@@ -105,7 +105,7 @@ export function WorkExperienceEditor({ disabled = false }: WorkExperienceEditorP
                   <div>
                     <label
                       htmlFor={`workExperience-${index}-company`}
-                      className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300"
+                      className="mb-1 block text-sm font-medium text-gray-700"
                     >
                       Empresa/Institución *
                     </label>
@@ -125,7 +125,7 @@ export function WorkExperienceEditor({ disabled = false }: WorkExperienceEditorP
                   <div>
                     <label
                       htmlFor={`workExperience-${index}-position`}
-                      className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300"
+                      className="mb-1 block text-sm font-medium text-gray-700"
                     >
                       Cargo/Posición *
                     </label>
@@ -145,7 +145,7 @@ export function WorkExperienceEditor({ disabled = false }: WorkExperienceEditorP
                   <div>
                     <label
                       htmlFor={`workExperience-${index}-start_date`}
-                      className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300"
+                      className="mb-1 block text-sm font-medium text-gray-700"
                     >
                       Fecha de Inicio *
                     </label>
@@ -165,7 +165,7 @@ export function WorkExperienceEditor({ disabled = false }: WorkExperienceEditorP
                   <div>
                     <label
                       htmlFor={`workExperience-${index}-end_date`}
-                      className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300"
+                      className="mb-1 block text-sm font-medium text-gray-700"
                     >
                       Fecha de Finalización
                     </label>
@@ -186,7 +186,7 @@ export function WorkExperienceEditor({ disabled = false }: WorkExperienceEditorP
                 <div>
                   <label
                     htmlFor={`workExperience-${index}-description`}
-                    className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300"
+                    className="mb-1 block text-sm font-medium text-gray-700"
                   >
                     Descripción
                   </label>

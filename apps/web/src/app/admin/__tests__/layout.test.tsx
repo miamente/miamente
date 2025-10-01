@@ -224,7 +224,7 @@ describe("AdminLayout", () => {
     expect(mainContent).toHaveClass("flex-1", "p-6", "overflow-auto");
   });
 
-  it("should apply dark mode classes correctly", () => {
+  it("should apply correct base classes", () => {
     (
       usePathname as unknown as {
         mockResolvedValue: (value: unknown) => void;
@@ -236,10 +236,10 @@ describe("AdminLayout", () => {
     render(<AdminLayout>{mockChildren}</AdminLayout>);
 
     const mainContainer = screen.getByTestId("admin-content").closest(".fixed");
-    expect(mainContainer).toHaveClass("dark:bg-gray-900");
+    expect(mainContainer).toHaveClass("bg-gray-50");
 
     const sidebar = screen.getByText("Dashboard").closest("nav");
-    expect(sidebar).toHaveClass("dark:bg-gray-800");
+    expect(sidebar).toHaveClass("bg-white", "shadow-sm");
   });
 
   it("should render children in main content area", () => {

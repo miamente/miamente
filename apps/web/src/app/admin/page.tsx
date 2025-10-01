@@ -11,12 +11,8 @@ export default function AdminDashboard() {
     <div className="space-y-6">
       {/* Page Header */}
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-          Dashboard de Administración
-        </h1>
-        <p className="mt-2 text-gray-600 dark:text-gray-400">
-          Panel de control para administrar la plataforma
-        </p>
+        <h1 className="text-3xl font-bold text-gray-900">Dashboard de Administración</h1>
+        <p className="mt-2 text-gray-600">Panel de control para administrar la plataforma</p>
       </div>
 
       {/* Quick Actions */}

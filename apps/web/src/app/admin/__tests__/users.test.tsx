@@ -100,8 +100,8 @@ vi.mock("@/components/admin/AdminDataTable", () => ({
       <div>
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">{title}</h1>
-            <p className="mt-2 text-gray-600 dark:text-gray-400">{description}</p>
+            <h1 className="text-3xl font-bold text-gray-900">{title}</h1>
+            <p className="mt-2 text-gray-600">{description}</p>
           </div>
           {addButtonText && onAdd && (
             <button data-testid="button" onClick={onAdd}>
@@ -111,9 +111,7 @@ vi.mock("@/components/admin/AdminDataTable", () => ({
         </div>
 
         {error && (
-          <div className="rounded-md border border-red-200 bg-red-50 p-4 text-red-600 dark:border-red-800 dark:bg-red-900/20 dark:text-red-400">
-            {error}
-          </div>
+          <div className="rounded-md border border-red-200 bg-red-50 p-4 text-red-600">{error}</div>
         )}
 
         <div data-testid="card">
@@ -139,10 +137,7 @@ vi.mock("@/components/admin/AdminDataTable", () => ({
                   </thead>
                   <tbody>
                     {data.map((item: MockUser) => (
-                      <tr
-                        key={item.id}
-                        className="border-b hover:bg-gray-50 dark:hover:bg-gray-800"
-                      >
+                      <tr key={item.id} className="border-b hover:bg-gray-50">
                         {columns.map((column: MockColumn) => (
                           <td key={String(column.key)} className="p-4">
                             {column.render

@@ -181,12 +181,8 @@ export default function AdminSpecialties() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-            Gestión de Especialidades
-          </h1>
-          <p className="mt-2 text-gray-600 dark:text-gray-400">
-            Administrar especialidades médicas y terapéuticas
-          </p>
+          <h1 className="text-3xl font-bold text-gray-900">Gestión de Especialidades</h1>
+          <p className="mt-2 text-gray-600">Administrar especialidades médicas y terapéuticas</p>
         </div>
         <Button onClick={handleCreateSpecialty}>
           <Plus className="mr-2 h-4 w-4" />
@@ -195,9 +191,7 @@ export default function AdminSpecialties() {
       </div>
 
       {error && (
-        <div className="rounded-md border border-red-200 bg-red-50 p-4 text-red-600 dark:border-red-800 dark:bg-red-900/20 dark:text-red-400">
-          {error}
-        </div>
+        <div className="rounded-md border border-red-200 bg-red-50 p-4 text-red-600">{error}</div>
       )}
 
       {/* Search */}
@@ -236,9 +230,7 @@ export default function AdminSpecialties() {
             <CardContent>
               <div className="space-y-4">
                 {specialty.description && (
-                  <p className="text-sm text-gray-600 dark:text-gray-400">
-                    {specialty.description}
-                  </p>
+                  <p className="text-sm text-gray-600">{specialty.description}</p>
                 )}
 
                 <div className="flex items-center justify-between text-sm text-gray-500">

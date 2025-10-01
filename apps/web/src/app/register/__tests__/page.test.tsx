@@ -230,8 +230,6 @@ describe("RegisterPage", () => {
     });
   });
 
-
-
   it("should handle registration error", async () => {
     const user = userEvent.setup();
     const mockRegisterUser = vi.fn().mockRejectedValue(new Error("Email already exists"));
@@ -269,9 +267,9 @@ describe("RegisterPage", () => {
   it("should show loading state during registration", async () => {
     const user = userEvent.setup();
     // Make the promise resolve after a delay to test loading state
-    const mockRegisterUser = vi.fn().mockImplementation(
-      () => new Promise((resolve) => setTimeout(resolve, 100)),
-    );
+    const mockRegisterUser = vi
+      .fn()
+      .mockImplementation(() => new Promise((resolve) => setTimeout(resolve, 100)));
 
     mockUseAuth.mockReturnValue({
       user: null,

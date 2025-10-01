@@ -54,10 +54,8 @@ export default function DashboardPage() {
         <h1 className="text-3xl font-bold">
           {isProfessional ? "Dashboard Profesional" : "Dashboard Usuario"}
         </h1>
-        <p className="text-neutral-600 dark:text-neutral-300">
-          Bienvenido, {getUserFullName(user)}
-        </p>
-        <p className="text-sm text-neutral-500 dark:text-neutral-400">
+        <p className="text-neutral-600">Bienvenido, {getUserFullName(user)}</p>
+        <p className="text-sm text-neutral-500">
           Rol: {user.type === "professional" ? "Profesional" : "Usuario"}
         </p>
       </div>
@@ -134,7 +132,7 @@ export default function DashboardPage() {
             <CardTitle>Notificaciones</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-sm text-neutral-600 dark:text-neutral-400">
+            <p className="text-sm text-neutral-600">
               {isProfessional
                 ? "Gestiona las notificaciones de tus citas y pacientes"
                 : "Revisa tus notificaciones y recordatorios"}
@@ -150,7 +148,7 @@ export default function DashboardPage() {
             <CardTitle>Configuración</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-sm text-neutral-600 dark:text-neutral-400">
+            <p className="text-sm text-neutral-600">
               {isProfessional
                 ? "Configura tu perfil profesional y preferencias"
                 : "Personaliza tu experiencia de usuario"}
@@ -166,7 +164,7 @@ export default function DashboardPage() {
             <CardTitle>Soporte</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-sm text-neutral-600 dark:text-neutral-400">
+            <p className="text-sm text-neutral-600">
               ¿Necesitas ayuda? Contacta con nuestro equipo de soporte
             </p>
             <Button className="mt-2 w-full" variant="outline" size="sm">

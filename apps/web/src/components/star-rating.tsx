@@ -34,7 +34,7 @@ export function StarRating({
     if (isFilled || isHalfFilled) {
       return "text-yellow-400";
     }
-    return "text-neutral-300 dark:text-neutral-600";
+    return "text-neutral-300";
   };
 
   return (

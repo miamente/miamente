@@ -98,7 +98,7 @@ export function FileUpload({
 
       <Card
         className={`cursor-pointer transition-colors ${
-          dragActive ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20" : ""
+          dragActive ? "border-blue-500 bg-blue-50" : ""
         } ${disabled ? "cursor-not-allowed opacity-50" : ""}`}
         onDragEnter={handleDrag}
         onDragLeave={handleDrag}
@@ -110,12 +110,12 @@ export function FileUpload({
           <div className="flex flex-col items-center space-y-2">
             <div className="text-4xl">📁</div>
             <div className="text-center">
-              <p className="text-sm text-neutral-600 dark:text-neutral-400">
+              <p className="text-sm text-neutral-600">
                 {dragActive
                   ? "Suelta el archivo aquí"
                   : "Arrastra un archivo o haz clic para seleccionar"}
               </p>
-              <p className="text-xs text-neutral-500 dark:text-neutral-500">
+              <p className="text-xs text-neutral-500">
                 Máximo {Math.round(maxSize / 1024 / 1024)}MB
               </p>
             </div>
@@ -135,10 +135,10 @@ export function FileUpload({
         disabled={disabled}
       />
 
-      {error && <p className="text-sm text-red-600 dark:text-red-400">{error}</p>}
+      {error && <p className="text-sm text-red-600">{error}</p>}
 
       {currentFile && (
-        <div className="text-sm text-green-600 dark:text-green-400">
+        <div className="text-sm text-green-600">
           ✅ Archivo actual: {currentFile.split("/").pop()}
         </div>
       )}

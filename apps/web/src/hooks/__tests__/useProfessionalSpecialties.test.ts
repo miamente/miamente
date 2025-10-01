@@ -86,7 +86,9 @@ describe("useProfessionalSpecialties", () => {
   });
 
   it("should handle API errors", async () => {
-    mockApiClient.getProfessionalSpecialties.mockRejectedValue(new Error("Failed to fetch professional specialties"));
+    mockApiClient.getProfessionalSpecialties.mockRejectedValue(
+      new Error("Failed to fetch professional specialties"),
+    );
 
     const { result } = renderHook(() => useProfessionalSpecialties("prof-123"));
 
@@ -166,7 +168,9 @@ describe("useProfessionalSpecialties", () => {
     });
 
     expect(result.current.specialties).toEqual(mockSpecialties);
-    expect(mockApiClient.updateProfessionalSpecialties).toHaveBeenCalledWith("prof-123", ["spec-1"]);
+    expect(mockApiClient.updateProfessionalSpecialties).toHaveBeenCalledWith("prof-123", [
+      "spec-1",
+    ]);
   });
 
   it("should not update when professionalId is not provided", async () => {
@@ -181,7 +185,9 @@ describe("useProfessionalSpecialties", () => {
 
   it("should handle update errors", async () => {
     mockApiClient.getProfessionalSpecialties.mockResolvedValue([]);
-    mockApiClient.updateProfessionalSpecialties.mockRejectedValue(new Error("Failed to update professional specialties"));
+    mockApiClient.updateProfessionalSpecialties.mockRejectedValue(
+      new Error("Failed to update professional specialties"),
+    );
 
     const { result } = renderHook(() => useProfessionalSpecialties("prof-123"));
 
@@ -199,7 +205,7 @@ describe("useProfessionalSpecialties", () => {
   it("should refetch when professionalId changes", async () => {
     const { result, rerender } = renderHook(
       ({ professionalId }) => useProfessionalSpecialties(professionalId),
-      { initialProps: { professionalId: "prof-123" } }
+      { initialProps: { professionalId: "prof-123" } },
     );
 
     await waitFor(() => {

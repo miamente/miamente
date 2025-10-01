@@ -98,18 +98,14 @@ export function LoginForm({ isAdminLogin = false, redirectPath }: LoginFormProps
         <CardContent>
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             {error && (
-              <div className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-600 dark:border-red-800 dark:bg-red-900/20 dark:text-red-400">
+              <div className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-600">
                 {error}
               </div>
             )}
 
             <div>
               <Input {...register("email")} type="email" placeholder="Email" disabled={isLoading} />
-              {errors.email && (
-                <p className="mt-1 text-sm text-red-600 dark:text-red-400">
-                  {errors.email.message}
-                </p>
-              )}
+              {errors.email && <p className="mt-1 text-sm text-red-600">{errors.email.message}</p>}
             </div>
 
             <div>
@@ -120,9 +116,7 @@ export function LoginForm({ isAdminLogin = false, redirectPath }: LoginFormProps
                 disabled={isLoading}
               />
               {errors.password && (
-                <p className="mt-1 text-sm text-red-600 dark:text-red-400">
-                  {errors.password.message}
-                </p>
+                <p className="mt-1 text-sm text-red-600">{errors.password.message}</p>
               )}
             </div>
 
@@ -133,8 +127,8 @@ export function LoginForm({ isAdminLogin = false, redirectPath }: LoginFormProps
 
           {!isAdminLogin && (
             <div className="mt-4 text-center text-sm">
-              <span className="text-neutral-600 dark:text-neutral-400">¿No tienes cuenta? </span>
-              <Link href="/register" className="text-blue-600 hover:underline dark:text-blue-400">
+              <span className="text-neutral-600">¿No tienes cuenta? </span>
+              <Link href="/register" className="text-blue-600 hover:underline">
                 Regístrate
               </Link>
             </div>

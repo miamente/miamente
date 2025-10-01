@@ -53,7 +53,7 @@ export function MobileMenu({
       />
 
       {/* Menu Panel */}
-      <div className="fixed top-0 right-0 h-full w-80 bg-white shadow-xl dark:bg-neutral-900">
+      <div className="fixed top-0 right-0 h-full w-80 bg-white shadow-xl">
         <div className="flex h-14 items-center justify-between border-b px-4">
           <span className="font-semibold">Menú</span>
           <Button variant="ghost" size="icon" onClick={onClose}>
@@ -65,7 +65,7 @@ export function MobileMenu({
           {/* User Info */}
           {isAuthenticated && (
             <div className="border-b p-4">
-              <div className="px-3 py-2 text-sm font-medium text-neutral-900 dark:text-neutral-100">
+              <div className="px-3 py-2 text-sm font-medium text-neutral-900">
                 {userName || "Usuario"}
               </div>
             </div>

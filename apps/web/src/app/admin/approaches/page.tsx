@@ -212,12 +212,8 @@ export default function AdminApproaches() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-            Gestión de Enfoques Terapéuticos
-          </h1>
-          <p className="mt-2 text-gray-600 dark:text-gray-400">
-            Administrar enfoques y metodologías terapéuticas
-          </p>
+          <h1 className="text-3xl font-bold text-gray-900">Gestión de Enfoques Terapéuticos</h1>
+          <p className="mt-2 text-gray-600">Administrar enfoques y metodologías terapéuticas</p>
         </div>
         <Button onClick={handleCreateApproach}>
           <Plus className="mr-2 h-4 w-4" />
@@ -226,9 +222,7 @@ export default function AdminApproaches() {
       </div>
 
       {error && (
-        <div className="rounded-md border border-red-200 bg-red-50 p-4 text-red-600 dark:border-red-800 dark:bg-red-900/20 dark:text-red-400">
-          {error}
-        </div>
+        <div className="rounded-md border border-red-200 bg-red-50 p-4 text-red-600">{error}</div>
       )}
 
       {/* Search */}
@@ -273,7 +267,7 @@ export default function AdminApproaches() {
                 )}
 
                 {approach.description && (
-                  <p className="text-sm text-gray-600 dark:text-gray-400">{approach.description}</p>
+                  <p className="text-sm text-gray-600">{approach.description}</p>
                 )}
 
                 <div className="flex items-center justify-between text-sm text-gray-500">
@@ -342,7 +336,7 @@ export default function AdminApproaches() {
                 id="category"
                 value={formData.category}
                 onChange={(e) => setFormData((prev) => ({ ...prev, category: e.target.value }))}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500"
               >
                 <option value="">Seleccionar categoría</option>
                 {categories.map((category) => (
