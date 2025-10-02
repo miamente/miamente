@@ -163,17 +163,20 @@ export interface ProfessionalLogin {
 
 export interface Specialty extends BaseEntity {
   name: string;
-  category: string;
+  is_active?: boolean;
+  description?: string;
+  professional_count?: number;
 }
 
 export interface SpecialtyCreate {
   name: string;
-  category: string;
+  description?: string;
 }
 
 export interface SpecialtyUpdate {
   name?: string;
-  category?: string;
+  is_active?: boolean;
+  description?: string;
 }
 
 // ============================================================================
@@ -320,6 +323,14 @@ export interface PaginatedResponse<T> {
   total: number;
   page: number;
   per_page: number;
+  total_pages: number;
+}
+
+export interface PaginatedSpecialtiesResponse {
+  items: Specialty[];
+  total: number;
+  page: number;
+  page_size: number;
   total_pages: number;
 }
 

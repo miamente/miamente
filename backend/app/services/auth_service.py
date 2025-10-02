@@ -102,6 +102,18 @@ class AuthService:
         self.db.add(db_professional)
         self.db.commit()
         self.db.refresh(db_professional)
+
+        # Create professional-specialty relationships
+        if professional_data.specialty_ids:
+            from app.models.professional_specialty import ProfessionalSpecialty
+
+            for specialty_id in professional_data.specialty_ids:
+                professional_specialty = ProfessionalSpecialty(
+                    professional_id=db_professional.id, specialty_id=specialty_id, is_active=True
+                )
+                self.db.add(professional_specialty)
+            self.db.commit()
+
         return db_professional
 
     def get_user_by_id(self, user_id: str) -> Optional[User]:

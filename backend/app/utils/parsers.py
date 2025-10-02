@@ -7,6 +7,42 @@ from app.models.professional import Professional
 from app.models.user import User
 
 
+def _parse_json_field(field_value: str) -> list:
+    """Parse a JSON field safely, returning an empty list if invalid."""
+    if not field_value:
+        return []
+    try:
+        parsed = json.loads(field_value)
+        return parsed if isinstance(parsed, list) else []
+    except json.JSONDecodeError:
+        return []
+
+
+def _parse_certifications(certifications_field) -> list:
+    """Parse certifications field, handling both list and JSON string formats."""
+    if not certifications_field:
+        return []
+    try:
+        if isinstance(certifications_field, list):
+            cert_data = certifications_field
+        else:
+            cert_data = json.loads(certifications_field)
+
+        certifications = []
+        if isinstance(cert_data, list):
+            for cert in cert_data:
+                if isinstance(cert, str):
+                    certifications.append({"name": cert, "document_url": None})
+                elif isinstance(cert, dict):
+                    certifications.append(cert)
+        elif isinstance(cert_data, dict):
+            certifications = [cert_data]
+
+        return certifications
+    except (json.JSONDecodeError, TypeError):
+        return []
+
+
 def parse_professional_data(professional: Professional) -> dict:
     """Parse professional data including JSON fields."""
     print(f"DEBUG: Parsing professional data for {professional.id}")
@@ -16,47 +52,10 @@ def parse_professional_data(professional: Professional) -> dict:
         for pmod in professional.professional_modalities:
             print(f"DEBUG: Modality: {pmod.modality_name}, Active: {pmod.is_active}")
 
-    # Parse JSON fields
-    academic_experience = []
-    if professional.academic_experience:
-        try:
-            academic_experience = json.loads(professional.academic_experience)
-            if not isinstance(academic_experience, list):
-                academic_experience = []
-        except json.JSONDecodeError:
-            academic_experience = []
-
-    work_experience = []
-    if professional.work_experience:
-        try:
-            work_experience = json.loads(professional.work_experience)
-            if not isinstance(work_experience, list):
-                work_experience = []
-        except json.JSONDecodeError:
-            work_experience = []
-
-    # Parse certifications - convert strings to objects if needed
-    certifications = []
-    if professional.certifications:
-        try:
-            # Handle case where certifications is already a list
-            if isinstance(professional.certifications, list):
-                cert_data = professional.certifications
-            else:
-                cert_data = json.loads(professional.certifications)
-
-            if isinstance(cert_data, list):
-                for cert in cert_data:
-                    if isinstance(cert, str):
-                        # Convert string to object format
-                        certifications.append({"name": cert, "document_url": None})
-                    elif isinstance(cert, dict):
-                        # Already in object format
-                        certifications.append(cert)
-            elif isinstance(cert_data, dict):
-                certifications = [cert_data]
-        except (json.JSONDecodeError, TypeError):
-            certifications = []
+    # Parse JSON fields using helper functions
+    academic_experience = _parse_json_field(professional.academic_experience)
+    work_experience = _parse_json_field(professional.work_experience)
+    certifications = _parse_certifications(professional.certifications)
 
     return {
         "id": professional.id,
@@ -72,7 +71,11 @@ def parse_professional_data(professional: Professional) -> dict:
             {
                 "id": str(ps.id),
                 "name": ps.specialty.name if ps.specialty else "Unknown Specialty",
-                "description": (ps.specialty.category if ps.specialty else "No description available"),
+                "description": (
+                    ps.specialty.description
+                    if ps.specialty and ps.specialty.description
+                    else "No description available"
+                ),
                 "price_cents": professional.rate_cents,  # Use professional's rate
                 "currency": professional.currency,
                 "is_default": False,  # Determined by business logic

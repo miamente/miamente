@@ -8,25 +8,25 @@ const mockSpecialties: Specialty[] = [
   {
     id: "spec1",
     name: "Terapia Cognitiva",
-    category: "Cognitiva",
+    description: "Terapia cognitiva conductual",
     created_at: "2024-01-01T00:00:00Z",
   },
   {
     id: "spec2",
     name: "Terapia Familiar",
-    category: "Sistémica",
+    description: "Terapia sistémica familiar",
     created_at: "2024-01-01T00:00:00Z",
   },
   {
     id: "spec3",
     name: "Terapia de Pareja",
-    category: "Sistémica",
+    description: "Terapia de pareja sistémica",
     created_at: "2024-01-01T00:00:00Z",
   },
   {
     id: "spec4",
     name: "Terapia Individual",
-    category: "Individual",
+    description: "Terapia individual",
     created_at: "2024-01-01T00:00:00Z",
   },
 ];
@@ -155,13 +155,13 @@ describe("SpecialtiesMultiSelect", () => {
       const specialty: Specialty = {
         id: "test-id",
         name: "Test Specialty",
-        category: "Test Category",
+        description: "Test Description",
         created_at: "2024-01-01T00:00:00Z",
       };
 
       expect(specialty.id).toBe("test-id");
       expect(specialty.name).toBe("Test Specialty");
-      expect(specialty.category).toBe("Test Category");
+      expect(specialty.description).toBe("Test Description");
       expect(specialty.created_at).toBe("2024-01-01T00:00:00Z");
     });
 

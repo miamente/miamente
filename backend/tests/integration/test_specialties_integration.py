@@ -44,7 +44,7 @@ class TestSpecialtiesIntegration:
     def _create_test_specialty(self, client: TestClient, test_name_generator, suffix=""):
         """Helper method to create a test specialty."""
         specialty_name = f"{test_name_generator('TestSpecialty')}{suffix}_{uuid.uuid4().hex[:8]}"
-        specialty_data = {"name": specialty_name, "category": "test_category"}
+        specialty_data = {"name": specialty_name}
         return specialty_data
 
     def test_get_all_specialties(self, client: TestClient, db_session: Session):
@@ -79,8 +79,6 @@ class TestSpecialtiesIntegration:
         retrieved_specialty = response.json()
         assert retrieved_specialty["id"] == specialty_id
         assert retrieved_specialty["name"] == specialty_data["name"]
-        if "category" in retrieved_specialty:
-            assert retrieved_specialty["category"] == specialty_data["category"]
 
     def test_get_nonexistent_specialty(self, client: TestClient):
         """Test retrieving a non-existent specialty."""
@@ -102,15 +100,11 @@ class TestSpecialtiesIntegration:
         created_specialty = response.json()
         assert "id" in created_specialty
         assert created_specialty["name"] == specialty_data["name"]
-        if "category" in created_specialty:
-            assert created_specialty["category"] == specialty_data["category"]
 
         # Verify it was actually created in the database
         db_specialty = db_session.query(SpecialtyModel).filter(SpecialtyModel.id == created_specialty["id"]).first()
         assert db_specialty is not None
         assert db_specialty.name == specialty_data["name"]
-        if hasattr(db_specialty, "category") and "category" in specialty_data:
-            assert db_specialty.category == specialty_data["category"]
 
     def test_create_duplicate_specialty(self, client: TestClient, test_name_generator):
         """Test creating a specialty with duplicate name."""
@@ -142,13 +136,13 @@ class TestSpecialtiesIntegration:
     def test_create_specialty_validation(self, client: TestClient):
         """Test specialty creation with invalid data."""
         # Test with missing required fields (only name is required)
-        invalid_data = {"category": "some_category"}  # Missing required "name" field
+        invalid_data = {}  # Missing required "name" field
 
         response = client.post("/api/v1/specialties/", json=invalid_data)
         assert response.status_code == 422  # Validation error
 
         # Test with empty name
-        invalid_data = {"name": "", "category": "test_category"}
+        invalid_data = {"name": ""}
 
         # The API may not handle empty names gracefully
         try:
@@ -178,20 +172,16 @@ class TestSpecialtiesIntegration:
         updated_specialty = response.json()
         assert updated_specialty["id"] == specialty_id
         assert updated_specialty["name"] == update_data["name"]
-        if "category" in updated_specialty:
-            assert updated_specialty["category"] == update_data["category"]
 
         # Verify update in database
         db_specialty = db_session.query(SpecialtyModel).filter(SpecialtyModel.id == specialty_id).first()
         assert db_specialty is not None
         assert db_specialty.name == update_data["name"]
-        if hasattr(db_specialty, "category") and "category" in update_data:
-            assert db_specialty.category == update_data["category"]
 
     def test_update_nonexistent_specialty(self, client: TestClient):
         """Test updating a non-existent specialty."""
         fake_id = str(uuid.uuid4())
-        update_data = {"name": "Updated Name", "category": "updated_category"}
+        update_data = {"name": "Updated Name"}
 
         response = client.put(f"/api/v1/specialties/{fake_id}", json=update_data)
         assert response.status_code == 404
@@ -224,27 +214,6 @@ class TestSpecialtiesIntegration:
         specialties = response.json()
         assert isinstance(specialties, list)
 
-    def test_get_specialties_by_category(self, client: TestClient, test_name_generator):
-        """Test retrieving specialties by category."""
-        # Create a specialty with a specific category
-        specialty_data = self._create_test_specialty(client, test_name_generator, "_category")
-        specialty_data["category"] = "test_integration_category"
-
-        response = client.post("/api/v1/specialties/", json=specialty_data)
-        assert response.status_code == 201
-
-        # Test the category endpoint
-        category = specialty_data["category"]
-        response = client.get(f"/api/v1/specialties/category/{category}")
-        assert response.status_code == 200
-
-        specialties = response.json()
-        assert isinstance(specialties, list)
-        # All returned specialties should have the requested category
-        for specialty in specialties:
-            if "category" in specialty:
-                assert specialty["category"] == category
-
     def test_specialty_workflow_complete(self, client: TestClient, db_session: Session, test_name_generator):
         """Test complete specialty management workflow."""
         # Step 1: Create a specialty
@@ -262,7 +231,7 @@ class TestSpecialtiesIntegration:
         assert retrieved_specialty["name"] == specialty_data["name"]
 
         # Step 3: Update the specialty
-        update_data = {"name": f"{specialty_data['name']}_WORKFLOW_UPDATED", "category": "workflow_updated_category"}
+        update_data = {"name": f"{specialty_data['name']}_WORKFLOW_UPDATED"}
 
         response = client.put(f"/api/v1/specialties/{specialty_id}", json=update_data)
         assert response.status_code == 200
@@ -284,15 +253,11 @@ class TestSpecialtiesIntegration:
 
         assert found_specialty is not None
         assert found_specialty["name"] == update_data["name"]
-        if "category" in found_specialty:
-            assert found_specialty["category"] == update_data["category"]
 
         # Step 5: Verify final state in database
         db_specialty = db_session.query(SpecialtyModel).filter(SpecialtyModel.id == specialty_id).first()
         assert db_specialty is not None
         assert db_specialty.name == update_data["name"]
-        if hasattr(db_specialty, "category") and "category" in update_data:
-            assert db_specialty.category == update_data["category"]
 
     def test_specialty_error_handling(self, client: TestClient):
         """Test various error scenarios for specialty endpoints."""

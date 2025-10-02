@@ -21,6 +21,7 @@ import type {
   CreateReviewRequest,
   ApiResponse,
   PaginatedResponse,
+  PaginatedSpecialtiesResponse,
   ErrorResponse,
   AuthUser,
   UserUpdate,
@@ -132,6 +133,11 @@ class ApiClient {
         detail: `HTTP ${response.status}: ${response.statusText}`,
       }));
       throw new Error(errorData.detail);
+    }
+
+    // Handle 204 No Content responses (common for DELETE operations)
+    if (response.status === 204) {
+      return undefined as T;
     }
 
     return response.json();
@@ -375,6 +381,19 @@ class ApiClient {
     return this.get<Specialty[]>("/specialties");
   }
 
+  async getAllSpecialtiesAdmin(page: number = 1, pageSize: number = 10, search?: string): Promise<PaginatedSpecialtiesResponse> {
+    const params = new URLSearchParams({
+      page: page.toString(),
+      page_size: pageSize.toString(),
+    });
+    
+    if (search && search.trim()) {
+      params.append('search', search.trim());
+    }
+    
+    return this.get<PaginatedSpecialtiesResponse>(`/specialties/admin/all?${params.toString()}`);
+  }
+
   async getSpecialty(specialtyId: string): Promise<Specialty> {
     return this.get<Specialty>(`/specialties/${specialtyId}`);
   }
@@ -420,6 +439,10 @@ class ApiClient {
   // Modality methods
   async getModalities(): Promise<Modality[]> {
     return this.get<Modality[]>("/modalities");
+  }
+
+  async getAllModalitiesAdmin(): Promise<Modality[]> {
+    return this.get<Modality[]>("/modalities/admin/all");
   }
 
   async getModality(modalityId: string): Promise<Modality> {

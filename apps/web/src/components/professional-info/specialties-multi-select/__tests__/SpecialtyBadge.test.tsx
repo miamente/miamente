@@ -32,7 +32,7 @@ describe("SpecialtyBadge", () => {
   const mockSpecialty: Specialty = {
     id: "spec1",
     name: "Terapia Cognitiva",
-    category: "Cognitiva",
+    description: "Terapia cognitiva conductual",
     created_at: "2024-01-01T00:00:00Z",
   };
 
@@ -128,7 +128,7 @@ describe("SpecialtyBadge", () => {
     const specialtyWithLongName: Specialty = {
       id: "spec2",
       name: "Terapia Cognitivo-Conductual para Adolescentes",
-      category: "Cognitiva",
+      description: "Terapia cognitiva conductual",
       created_at: "2024-01-01T00:00:00Z",
     };
 
