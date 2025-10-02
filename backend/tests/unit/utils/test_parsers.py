@@ -114,6 +114,7 @@ class TestParseProfessionalData:
         mock_specialty = Mock(spec=Specialty)
         mock_specialty.name = "Psychology"
         mock_specialty.category = "Mental Health"
+        mock_specialty.description = "Mental Health"
 
         # Mock professional specialty
         mock_prof_specialty = Mock(spec=ProfessionalSpecialty)

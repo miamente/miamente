@@ -63,11 +63,18 @@ class TestGetSpecialties:
         mock_service = MagicMock()
         mock_service_class.return_value = mock_service
         mock_service.get_specialties.return_value = [sample_specialty]
+        mock_service.get_specialty_professional_count.return_value = 5
 
         result = get_specialties(skip=0, limit=100, db=mock_db_session)
 
         assert len(result) == 1
-        assert result[0] == sample_specialty
+        expected_specialty = {
+            "id": sample_specialty.id,
+            "name": sample_specialty.name,
+            "is_active": sample_specialty.is_active,
+            "professional_count": 5,
+        }
+        assert result[0] == expected_specialty
         mock_service_class.assert_called_once_with(mock_db_session)
         mock_service.get_specialties.assert_called_once_with(skip=0, limit=100)
 
@@ -96,8 +103,6 @@ class TestGetSpecialties:
         assert len(result) == 0
         mock_service_class.assert_called_once_with(mock_db_session)
         mock_service.get_specialties.assert_called_once_with(skip=0, limit=100)
-
-
 
 
 class TestGetSpecialty:
@@ -228,6 +233,7 @@ class TestDeleteSpecialty:
         specialty_id = str(uuid.uuid4())
         mock_service = MagicMock()
         mock_service_class.return_value = mock_service
+        mock_service.get_specialty_professional_count.return_value = 0
         mock_service.delete_specialty.return_value = True
 
         result = delete_specialty(specialty_id, db=mock_db_session)
@@ -243,6 +249,7 @@ class TestDeleteSpecialty:
         specialty_id = str(uuid.uuid4())
         mock_service = MagicMock()
         mock_service_class.return_value = mock_service
+        mock_service.get_specialty_professional_count.return_value = 0
         mock_service.delete_specialty.return_value = False
 
         with pytest.raises(HTTPException) as exc_info:
@@ -259,6 +266,7 @@ class TestDeleteSpecialty:
         specialty_id = str(uuid.uuid4())
         mock_service = MagicMock()
         mock_service_class.return_value = mock_service
+        mock_service.get_specialty_professional_count.return_value = 0
         mock_service.delete_specialty.side_effect = Exception("Service error")
 
         with pytest.raises(Exception) as exc_info:

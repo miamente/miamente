@@ -212,7 +212,7 @@ export default function ProfessionalProfilePage() {
                 />
               ) : (
                 <div className="mx-auto mb-4 flex h-48 w-48 items-center justify-center rounded-full bg-gray-200">
-                  <User className="h-24 w-24 text-gray-400" />
+                  <User className="h-24 w-24 text-gray-400" data-testid="user-icon" />
                 </div>
               )}
 

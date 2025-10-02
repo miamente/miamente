@@ -8,13 +8,12 @@ import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { apiClient } from "@/lib/api";
-import type { Specialty, SpecialtyCreate, SpecialtyUpdate, PaginatedSpecialtiesResponse } from "@/lib/types";
+import type { Specialty, SpecialtyCreate, SpecialtyUpdate } from "@/lib/types";
 import { Pagination } from "@/components/ui/pagination";
 
 export default function AdminSpecialties() {
   const [specialties, setSpecialties] = useState<Specialty[]>([]);
   const [totalItems, setTotalItems] = useState(0);
-  const [totalPages, setTotalPages] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
@@ -57,7 +56,6 @@ export default function AdminSpecialties() {
         const response = await apiClient.getAllSpecialtiesAdmin(currentPage, pageSize, appliedSearch);
         setSpecialties(response.items);
         setTotalItems(response.total);
-        setTotalPages(response.total_pages);
       } catch (err) {
         console.error("Error loading specialties:", err);
         setError("Error al cargar las especialidades");
@@ -110,7 +108,6 @@ export default function AdminSpecialties() {
       const response = await apiClient.getAllSpecialtiesAdmin(currentPage, pageSize, appliedSearch);
       setSpecialties(response.items);
       setTotalItems(response.total);
-      setTotalPages(response.total_pages);
       setIsDialogOpen(false);
     } catch (err) {
       console.error("Error saving specialty:", err);
@@ -131,11 +128,10 @@ export default function AdminSpecialties() {
       const response = await apiClient.getAllSpecialtiesAdmin(currentPage, pageSize, appliedSearch);
       setSpecialties(response.items);
       setTotalItems(response.total);
-      setTotalPages(response.total_pages);
       setIsDeleteDialogOpen(false);
       setDeletingSpecialty(null);
-    } catch (err) {
-      console.error("Error deleting specialty:", err);
+      } catch (err) {
+        console.error("Error deleting specialty:", err);
       const message = err instanceof Error ? err.message : "Error al eliminar la especialidad";
       setError(message);
       setIsDeleteDialogOpen(false);
@@ -177,14 +173,14 @@ export default function AdminSpecialties() {
         <CardContent>
           <div className="flex gap-2">
             <div className="relative flex-1">
-              <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-gray-400" />
-              <Input
+            <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-gray-400" />
+            <Input
                 placeholder="Buscar por nombre de especialidad..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
                 onKeyDown={handleKeyDown}
-                className="pl-10"
-              />
+              className="pl-10"
+            />
             </div>
             <Button onClick={handleSearch} disabled={loading}>
               <Search className="mr-2 h-4 w-4" />
@@ -205,12 +201,12 @@ export default function AdminSpecialties() {
                 : `Se encontraron ${totalItems} especialidad${totalItems === 1 ? '' : 'es'} que coinciden con "${appliedSearch}"`
               }
             </span>
-          </div>
+                </div>
           <Button variant="outline" size="sm" onClick={handleClearSearch}>
             <X className="mr-1 h-3 w-3" />
             Limpiar
           </Button>
-        </div>
+              </div>
       )}
 
       {/* Specialties Table */}
@@ -253,7 +249,7 @@ export default function AdminSpecialties() {
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 max-w-xs">
                       <div className="truncate">
                         {specialty.description || "-"}
-                      </div>
+                </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                       <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
@@ -269,17 +265,17 @@ export default function AdminSpecialties() {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                       <div className="flex justify-end space-x-2">
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => handleEditSpecialty(specialty)}
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => handleEditSpecialty(specialty)}
                           className="hover:bg-gray-50"
-                        >
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="outline"
+                  >
+                    <Edit className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
                           aria-label={specialty.is_active !== false ? "Deshabilitar especialidad" : "Habilitar especialidad"}
                           onClick={() => {
                             setTogglingSpecialty(specialty);
@@ -300,16 +296,16 @@ export default function AdminSpecialties() {
                           variant="outline"
                           onClick={() => confirmDeleteSpecialty(specialty)}
                           className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
                     </td>
                   </tr>
                 ))}
               </tbody>
             </table>
-          </div>
+              </div>
           <Pagination
             totalItems={totalItems}
             currentPage={currentPage}
@@ -321,8 +317,8 @@ export default function AdminSpecialties() {
             }}
             compact
           />
-        </CardContent>
-      </Card>
+            </CardContent>
+          </Card>
 
       {totalItems === 0 && (
         <Card>
@@ -436,7 +432,6 @@ export default function AdminSpecialties() {
                     const response = await apiClient.getAllSpecialtiesAdmin(currentPage, pageSize, appliedSearch);
                     setSpecialties(response.items);
                     setTotalItems(response.total);
-                    setTotalPages(response.total_pages);
                   } catch (e) {
                     console.error("Error toggling specialty status", e);
                     setError("Error al actualizar el estado de la especialidad");

@@ -29,7 +29,7 @@ def get_specialties(skip: int = 0, limit: int = 100, db: Session = Depends(get_d
     """Get all specialties."""
     service = SpecialtyService(db)
     specialties = service.get_specialties(skip=skip, limit=limit)
-    
+
     # Add professional count for each specialty
     specialties_with_count = []
     for specialty in specialties:
@@ -44,28 +44,28 @@ def get_specialties(skip: int = 0, limit: int = 100, db: Session = Depends(get_d
             "professional_count": professional_count,
         }
         specialties_with_count.append(specialty_dict)
-    
+
     return specialties_with_count
 
 
 @router.get("/admin/all", response_model=PaginatedSpecialtiesResponse)
 def get_all_specialties_admin(
-    page: int = 1, 
+    page: int = 1,
     page_size: int = 10,
     search: Optional[str] = None,
     db: Session = Depends(get_db),
-    _admin_user = Depends(get_current_admin_user),
+    _admin_user=Depends(get_current_admin_user),
 ):
     """Get all specialties for admin with pagination and search."""
     service = SpecialtyService(db)
-    
+
     # Calculate skip from page and page_size
     skip = (page - 1) * page_size
-    
+
     # Get specialties and total count with search filter
     specialties = service.get_specialties_admin(skip=skip, limit=page_size, search=search)
     total = service.get_specialties_count(search=search)
-    
+
     # Add professional count for each specialty
     specialties_with_count = []
     for specialty in specialties:
@@ -78,19 +78,13 @@ def get_all_specialties_admin(
             "professional_count": professional_count,
         }
         specialties_with_count.append(specialty_dict)
-    
+
     # Calculate total pages
     total_pages = (total + page_size - 1) // page_size
-    
+
     return PaginatedSpecialtiesResponse(
-        items=specialties_with_count,
-        total=total,
-        page=page,
-        page_size=page_size,
-        total_pages=total_pages
+        items=specialties_with_count, total=total, page=page, page_size=page_size, total_pages=total_pages
     )
-
-
 
 
 @router.get("/{specialty_id}", response_model=SpecialtyResponse)
@@ -104,7 +98,9 @@ def get_specialty(specialty_id: str, db: Session = Depends(get_db)):
 
 
 @router.post("/", response_model=SpecialtyResponse, status_code=status.HTTP_201_CREATED)
-def create_specialty(specialty: SpecialtyCreate, db: Session = Depends(get_db), _admin_user = Depends(get_current_admin_user)):
+def create_specialty(
+    specialty: SpecialtyCreate, db: Session = Depends(get_db), _admin_user=Depends(get_current_admin_user)
+):
     """Create a new specialty."""
     service = SpecialtyService(db)
     try:
@@ -119,7 +115,12 @@ def create_specialty(specialty: SpecialtyCreate, db: Session = Depends(get_db), 
 
 
 @router.patch("/{specialty_id}", response_model=SpecialtyResponse)
-def update_specialty(specialty_id: str, specialty_update: SpecialtyUpdate, db: Session = Depends(get_db), _admin_user = Depends(get_current_admin_user)):
+def update_specialty(
+    specialty_id: str,
+    specialty_update: SpecialtyUpdate,
+    db: Session = Depends(get_db),
+    _admin_user=Depends(get_current_admin_user),
+):
     """Update a specialty."""
     service = SpecialtyService(db)
     specialty = service.update_specialty(specialty_id, specialty_update)
@@ -129,7 +130,7 @@ def update_specialty(specialty_id: str, specialty_update: SpecialtyUpdate, db: S
 
 
 @router.delete("/{specialty_id}")
-def delete_specialty(specialty_id: str, db: Session = Depends(get_db), _admin_user = Depends(get_current_admin_user)):
+def delete_specialty(specialty_id: str, db: Session = Depends(get_db), _admin_user=Depends(get_current_admin_user)):
     """Delete a specialty."""
     service = SpecialtyService(db)
     # Block deletion if specialty is assigned to any active professional

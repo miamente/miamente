@@ -26,7 +26,7 @@ async def get_modalities(db: Session = Depends(get_db)):
 @router.get("/admin/all", response_model=List[ModalityResponse])
 async def get_all_modalities_admin(
     db: Session = Depends(get_db),
-    _admin_user = Depends(get_current_admin_user),
+    _admin_user=Depends(get_current_admin_user),
 ):
     """Get all modalities (including inactive ones) for admin."""
     modalities = db.query(Modality).all()
@@ -50,7 +50,7 @@ async def get_modality(
 async def create_modality(
     modality: ModalityCreate,
     db: Session = Depends(get_db),
-    _admin_user = Depends(get_current_admin_user),
+    _admin_user=Depends(get_current_admin_user),
 ):
     """Create a new modality."""
     # Check if modality with same name already exists
@@ -73,7 +73,7 @@ async def update_modality(
     modality_id: str,
     modality_update: ModalityUpdate,
     db: Session = Depends(get_db),
-    _admin_user = Depends(get_current_admin_user),
+    _admin_user=Depends(get_current_admin_user),
 ):
     """Update a modality."""
     modality = db.query(Modality).filter(Modality.id == modality_id).first()
@@ -93,7 +93,7 @@ async def update_modality(
 async def delete_modality(
     modality_id: str,
     db: Session = Depends(get_db),
-    _admin_user = Depends(get_current_admin_user),
+    _admin_user=Depends(get_current_admin_user),
 ):
     """Delete a modality (soft delete by setting is_active to False)."""
     modality = db.query(Modality).filter(Modality.id == modality_id).first()

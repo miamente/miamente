@@ -214,7 +214,6 @@ class TestSpecialtiesIntegration:
         specialties = response.json()
         assert isinstance(specialties, list)
 
-
     def test_specialty_workflow_complete(self, client: TestClient, db_session: Session, test_name_generator):
         """Test complete specialty management workflow."""
         # Step 1: Create a specialty

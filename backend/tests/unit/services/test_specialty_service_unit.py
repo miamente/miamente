@@ -30,6 +30,7 @@ class TestSpecialtyServiceUnit:
         specialty = Mock(spec=Specialty)
         specialty.id = "test-specialty-1"
         specialty.name = "Cognitive Behavioral Therapy"
+        specialty.is_active = True
         return specialty
 
     def test_get_specialty_found(self, specialty_service, mock_db, sample_specialty):
@@ -76,12 +77,17 @@ class TestSpecialtyServiceUnit:
         mock_specialties = [Mock(spec=Specialty) for _ in range(3)]
 
         mock_query = Mock()
+        mock_filter = Mock()
+        mock_order_by = Mock()
         mock_offset = Mock()
         mock_limit = Mock()
-        mock_query.offset.return_value = mock_offset
+
+        mock_db.query.return_value = mock_query
+        mock_query.filter.return_value = mock_filter
+        mock_filter.order_by.return_value = mock_order_by
+        mock_order_by.offset.return_value = mock_offset
         mock_offset.limit.return_value = mock_limit
         mock_limit.all.return_value = mock_specialties
-        mock_db.query.return_value = mock_query
 
         # Act
         result = specialty_service.get_specialties(skip=skip, limit=limit)
@@ -89,8 +95,11 @@ class TestSpecialtyServiceUnit:
         # Assert
         assert result == mock_specialties
         mock_db.query.assert_called_once_with(Specialty)
-        mock_query.offset.assert_called_once_with(skip)
+        mock_query.filter.assert_called_once()
+        mock_filter.order_by.assert_called_once()
+        mock_order_by.offset.assert_called_once_with(skip)
         mock_offset.limit.assert_called_once_with(limit)
+        mock_limit.all.assert_called_once()
 
     def test_get_specialties_default_pagination(self, specialty_service, mock_db):
         """Test getting specialties with default pagination."""
@@ -98,21 +107,29 @@ class TestSpecialtyServiceUnit:
         mock_specialties = [Mock(spec=Specialty) for _ in range(2)]
 
         mock_query = Mock()
+        mock_filter = Mock()
+        mock_order_by = Mock()
         mock_offset = Mock()
         mock_limit = Mock()
-        mock_query.offset.return_value = mock_offset
+
+        mock_db.query.return_value = mock_query
+        mock_query.filter.return_value = mock_filter
+        mock_filter.order_by.return_value = mock_order_by
+        mock_order_by.offset.return_value = mock_offset
         mock_offset.limit.return_value = mock_limit
         mock_limit.all.return_value = mock_specialties
-        mock_db.query.return_value = mock_query
 
         # Act
         result = specialty_service.get_specialties()
 
         # Assert
         assert result == mock_specialties
-        mock_query.offset.assert_called_once_with(0)
+        mock_db.query.assert_called_once_with(Specialty)
+        mock_query.filter.assert_called_once()
+        mock_filter.order_by.assert_called_once()
+        mock_order_by.offset.assert_called_once_with(0)
         mock_offset.limit.assert_called_once_with(100)
-
+        mock_limit.all.assert_called_once()
 
     def test_create_specialty_success(self, specialty_service, mock_db):
         """Test creating a specialty successfully."""
@@ -206,8 +223,8 @@ class TestSpecialtyServiceUnit:
 
         # Assert
         assert result is True
-        # Verify soft delete - set is_active to False
-        assert sample_specialty.is_active is False
+        # Verify hard delete - specialty is deleted from database
+        mock_db.delete.assert_called_once_with(sample_specialty)
         mock_db.commit.assert_called_once()
 
     def test_delete_specialty_not_found(self, specialty_service, mock_db):
