@@ -103,7 +103,6 @@ describe("AdminLayout", () => {
     expect(screen.getByText("Usuarios Administrativos")).toBeInTheDocument();
     expect(screen.getByText("Profesionales")).toBeInTheDocument();
     expect(screen.getByText("Especialidades")).toBeInTheDocument();
-    expect(screen.getByText("Modalidades")).toBeInTheDocument();
     expect(screen.getByText("Enfoques")).toBeInTheDocument();
   });
 
@@ -122,7 +121,6 @@ describe("AdminLayout", () => {
     expect(screen.getByTestId("shield-icon")).toBeInTheDocument();
     expect(screen.getByTestId("user-check-icon")).toBeInTheDocument();
     expect(screen.getAllByTestId("stethoscope-icon")).toHaveLength(2); // Especialidades and Enfoques both use Stethoscope
-    expect(screen.getByTestId("settings-icon")).toBeInTheDocument();
     expect(screen.getByTestId("bar-chart-icon")).toBeInTheDocument();
   });
 
@@ -144,8 +142,7 @@ describe("AdminLayout", () => {
     expect(links[2]).toHaveAttribute("href", "/admin/admin-users");
     expect(links[3]).toHaveAttribute("href", "/admin/professionals");
     expect(links[4]).toHaveAttribute("href", "/admin/specialties");
-    expect(links[5]).toHaveAttribute("href", "/admin/modalities");
-    expect(links[6]).toHaveAttribute("href", "/admin/approaches");
+    expect(links[5]).toHaveAttribute("href", "/admin/approaches");
   });
 
   it("should highlight active navigation item", () => {

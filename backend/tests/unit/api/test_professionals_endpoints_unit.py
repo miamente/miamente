@@ -343,6 +343,69 @@ class TestProfessionalsEndpointsUnit:
 
     @pytest.mark.asyncio
     @patch("app.api.v1.endpoints.professionals.parse_professional_data")
+    @patch("app.api.v1.endpoints.professionals.AuthService")
+    @patch("app.api.v1.endpoints.professionals.uuid.uuid4")
+    async def test_update_current_professional_with_temporary_modality_ids(
+        self,
+        mock_uuid4,
+        mock_auth_service_class,
+        mock_parse_professional_data,
+        mock_db_session,
+        sample_professional,
+        sample_professional_response,
+    ):
+        """Test update current professional with temporary modality IDs from frontend."""
+        # Arrange
+        mock_auth_service = mock_auth_service_class.return_value
+        mock_auth_service.get_professional_by_id.return_value = sample_professional
+        mock_parse_professional_data.return_value = sample_professional_response
+        
+        # Mock UUID generation for temporary IDs
+        mock_uuid4.return_value = uuid.UUID("12345678-1234-1234-1234-123456789abc")
+        
+        # Mock database query for modalities deletion
+        mock_query = MagicMock()
+        mock_db_session.query.return_value = mock_query
+        mock_filter = MagicMock()
+        mock_query.filter.return_value = mock_filter
+        
+        # Create update data with temporary modality IDs
+        update_data = ProfessionalUpdate(
+            full_name="Updated Professional",
+            modalities=[
+                {
+                    "id": "temp-1234567890",  # Temporary ID from frontend
+                    "modalityId": "temp-1234567890",
+                    "modalityName": "Virtual",
+                    "virtualPrice": 50000,
+                    "presencialPrice": 0,
+                    "offersPresencial": False,
+                    "description": "Virtual sessions",
+                    "isDefault": True,
+                }
+            ]
+        )
+
+        # Act
+        result = await update_current_professional(update_data, "prof-123", mock_db_session)
+
+        # Assert
+        mock_auth_service_class.assert_called_once_with(mock_db_session)
+        mock_auth_service.get_professional_by_id.assert_called_once_with("prof-123")
+        
+        # Verify that temporary modality IDs are handled properly
+        mock_uuid4.assert_called_once()  # Should generate new UUID for temp ID
+        
+        # Verify that modalities are deleted and new ones added
+        mock_db_session.query.assert_called()
+        mock_db_session.add.assert_called()  # Should add new modality
+        mock_db_session.commit.assert_called_once()
+        mock_db_session.refresh.assert_called_once_with(sample_professional)
+        mock_parse_professional_data.assert_called_once_with(sample_professional)
+        assert result == sample_professional_response
+
+    @pytest.mark.asyncio
+    @patch("app.api.v1.endpoints.professionals.parse_professional_data")
     async def test_toggle_professional_status_success(
         self, mock_parse_professional_data, mock_db_session, sample_professional, sample_professional_response
     ):

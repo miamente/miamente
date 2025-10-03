@@ -1,12 +1,13 @@
 "use client";
 import React, { useEffect, useState } from "react";
-import { Search, Plus, Edit, Trash2, Save, X, Stethoscope, Eye, EyeOff, AlertTriangle } from "lucide-react";
+import { Search, Plus, Edit, Trash2, X, Stethoscope, Eye, EyeOff } from "lucide-react";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Label } from "@/components/ui/label";
+import { EntityFormDialog, EntityFormData } from "@/components/admin/EntityFormDialog";
+import { DeleteConfirmDialog } from "@/components/admin/DeleteConfirmDialog";
+import { ToggleStatusDialog } from "@/components/admin/ToggleStatusDialog";
 import { apiClient } from "@/lib/api";
 import type { Specialty, SpecialtyCreate, SpecialtyUpdate } from "@/lib/types";
 import { Pagination } from "@/components/ui/pagination";
@@ -43,7 +44,7 @@ export default function AdminSpecialties() {
   const [deletingSpecialty, setDeletingSpecialty] = useState<Specialty | null>(null);
   const [isToggleDialogOpen, setIsToggleDialogOpen] = useState(false);
   const [togglingSpecialty, setTogglingSpecialty] = useState<Specialty | null>(null);
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<EntityFormData>({
     name: "",
     description: "",
   });
@@ -136,6 +137,25 @@ export default function AdminSpecialties() {
       setError(message);
       setIsDeleteDialogOpen(false);
       setDeletingSpecialty(null);
+    }
+  };
+
+  const handleConfirmToggle = async () => {
+    if (!togglingSpecialty) return;
+    try {
+      await apiClient.updateSpecialty(togglingSpecialty.id, {
+        is_active: !(togglingSpecialty.is_active !== false),
+      });
+      // Reload data from server since we're using server-side pagination
+      const response = await apiClient.getAllSpecialtiesAdmin(currentPage, pageSize, appliedSearch);
+      setSpecialties(response.items);
+      setTotalItems(response.total);
+    } catch (e) {
+      console.error("Error toggling specialty status", e);
+      setError("Error al actualizar el estado de la especialidad");
+    } finally {
+      setIsToggleDialogOpen(false);
+      setTogglingSpecialty(null);
     }
   };
 
@@ -329,124 +349,36 @@ export default function AdminSpecialties() {
       )}
 
       {/* Create/Edit Dialog */}
-      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>
-              {editingSpecialty ? "Editar Especialidad" : "Agregar Especialidad"}
-            </DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div>
-              <Label htmlFor="name">Nombre *</Label>
-              <Input
-                id="name"
-                value={formData.name}
-                onChange={(e) => setFormData((prev) => ({ ...prev, name: e.target.value }))}
-                placeholder="Nombre de la especialidad"
-              />
-            </div>
-            <div>
-              <Label htmlFor="description">Descripción corta</Label>
-              <Input
-                id="description"
-                value={formData.description}
-                onChange={(e) => setFormData((prev) => ({ ...prev, description: e.target.value }))}
-                placeholder="Descripción breve de la especialidad"
-              />
-            </div>
-            <div className="flex justify-end space-x-2">
-              <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
-                <X className="mr-2 h-4 w-4" />
-                Cancelar
-              </Button>
-              <Button onClick={handleSaveSpecialty}>
-                <Save className="mr-2 h-4 w-4" />
-                {editingSpecialty ? "Actualizar" : "Crear"}
-              </Button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
+      <EntityFormDialog
+        isOpen={isDialogOpen}
+        onClose={() => setIsDialogOpen(false)}
+        onSubmit={handleSaveSpecialty}
+        isEditing={!!editingSpecialty}
+        formData={formData}
+        onFormDataChange={setFormData}
+        entityName="Especialidad"
+        entityNamePlural="Especialidades"
+        useTextarea={false}
+      />
 
       {/* Delete Confirmation Dialog */}
-      <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Confirmar eliminación</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div className="flex items-start space-x-3">
-              <AlertTriangle className="h-5 w-5 text-red-600 mt-0.5" />
-              <p className="text-sm text-gray-700">
-                ¿Estás seguro de que quieres eliminar la especialidad
-                {" "}
-                <span className="font-semibold">{deletingSpecialty?.name}</span>? Esta acción no se puede deshacer.
-              </p>
-            </div>
-            <div className="flex justify-end space-x-2">
-              <Button variant="outline" onClick={() => setIsDeleteDialogOpen(false)}>
-                <X className="mr-2 h-4 w-4" />
-                Cancelar
-              </Button>
-              <Button onClick={handleConfirmDelete} className="text-red-600 hover:text-red-700 hover:bg-red-50">
-                <Trash2 className="mr-2 h-4 w-4" />
-                Eliminar
-              </Button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
+      <DeleteConfirmDialog
+        isOpen={isDeleteDialogOpen}
+        onClose={() => setIsDeleteDialogOpen(false)}
+        onConfirm={handleConfirmDelete}
+        entityName="especialidad"
+        entityDisplayName={deletingSpecialty?.name || ""}
+      />
 
       {/* Toggle Active Confirmation Dialog */}
-      <Dialog open={isToggleDialogOpen} onOpenChange={setIsToggleDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>
-              {togglingSpecialty?.is_active !== false ? "Confirmar deshabilitación" : "Confirmar habilitación"}
-            </DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div className="flex items-start space-x-3">
-              <AlertTriangle className="h-5 w-5 text-red-600 mt-0.5" />
-              <p className="text-sm text-gray-700">
-                {togglingSpecialty?.is_active !== false
-                  ? "¿Estás seguro de que quieres deshabilitar la especialidad "
-                  : "¿Estás seguro de que quieres habilitar la especialidad "}
-                <span className="font-semibold">{togglingSpecialty?.name}</span>?
-              </p>
-            </div>
-            <div className="flex justify-end space-x-2">
-              <Button variant="outline" onClick={() => setIsToggleDialogOpen(false)}>
-                <X className="mr-2 h-4 w-4" />
-                Cancelar
-              </Button>
-              <Button
-                onClick={async () => {
-                  if (!togglingSpecialty) return;
-                  try {
-                    await apiClient.updateSpecialty(togglingSpecialty.id, {
-                      is_active: !(togglingSpecialty.is_active !== false),
-                    });
-                    // Reload data from server since we're using server-side pagination
-                    const response = await apiClient.getAllSpecialtiesAdmin(currentPage, pageSize, appliedSearch);
-                    setSpecialties(response.items);
-                    setTotalItems(response.total);
-                  } catch (e) {
-                    console.error("Error toggling specialty status", e);
-                    setError("Error al actualizar el estado de la especialidad");
-                  } finally {
-                    setIsToggleDialogOpen(false);
-                    setTogglingSpecialty(null);
-                  }
-                }}
-              >
-                {togglingSpecialty?.is_active !== false ? "Deshabilitar" : "Habilitar"}
-              </Button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
+      <ToggleStatusDialog
+        isOpen={isToggleDialogOpen}
+        onClose={() => setIsToggleDialogOpen(false)}
+        onConfirm={handleConfirmToggle}
+        entityName="Especialidad"
+        entityDisplayName={togglingSpecialty?.name || ""}
+        isCurrentlyActive={togglingSpecialty?.is_active !== false}
+      />
     </div>
   );
 }

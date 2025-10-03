@@ -2,16 +2,19 @@
 Therapeutic approach endpoints.
 """
 
-from typing import List
+from typing import List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, status, Response
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
+from app.utils.auth import get_current_admin_user
 from app.schemas.therapeutic_approach import (
     TherapeuticApproachCreate,
     TherapeuticApproachResponse,
     TherapeuticApproachUpdate,
+    PaginatedTherapeuticApproachesResponse,
+    TherapeuticApproachWithCountResponse,
 )
 from app.services.therapeutic_approach_service import TherapeuticApproachService
 
@@ -50,6 +53,48 @@ def get_therapeutic_approach(approach_id: str, db: Session = Depends(get_db)):
     return approach
 
 
+@router.get("/admin/all", response_model=PaginatedTherapeuticApproachesResponse)
+def get_all_therapeutic_approaches_admin(
+    page: int = 1,
+    page_size: int = 10,
+    search: Optional[str] = None,
+    db: Session = Depends(get_db),
+    _admin_user=Depends(get_current_admin_user),
+):
+    """Get all therapeutic approaches for admin with pagination and search."""
+    service = TherapeuticApproachService(db)
+
+    # Calculate skip from page and page_size
+    skip = (page - 1) * page_size
+
+    # Get therapeutic approaches and total count with search filter
+    approaches = service.get_therapeutic_approaches_admin(skip=skip, limit=page_size, search=search)
+    total = service.get_therapeutic_approaches_count(search=search)
+
+    # Add professional count for each therapeutic approach
+    approaches_with_count = []
+    for approach in approaches:
+        professional_count = service.get_therapeutic_approach_professional_count(approach.id)
+        approach_with_count = TherapeuticApproachWithCountResponse(
+            id=approach.id,
+            name=approach.name,
+            description=approach.description,
+            category=approach.category,
+            is_active=approach.is_active,
+            created_at=approach.created_at.isoformat() if approach.created_at else None,
+            updated_at=approach.updated_at.isoformat() if approach.updated_at else None,
+            professional_count=professional_count,
+        )
+        approaches_with_count.append(approach_with_count)
+
+    # Calculate total pages
+    total_pages = (total + page_size - 1) // page_size
+
+    return PaginatedTherapeuticApproachesResponse(
+        items=approaches_with_count, total=total, page=page, page_size=page_size, total_pages=total_pages
+    )
+
+
 @router.post("/", response_model=TherapeuticApproachResponse, status_code=status.HTTP_201_CREATED)
 def create_therapeutic_approach(approach: TherapeuticApproachCreate, db: Session = Depends(get_db)):
     """Create a new therapeutic approach."""
@@ -57,7 +102,7 @@ def create_therapeutic_approach(approach: TherapeuticApproachCreate, db: Session
     return service.create_therapeutic_approach(approach)
 
 
-@router.put("/{approach_id}", response_model=TherapeuticApproachResponse)
+@router.patch("/{approach_id}", response_model=TherapeuticApproachResponse)
 def update_therapeutic_approach(
     approach_id: str,
     approach_update: TherapeuticApproachUpdate,

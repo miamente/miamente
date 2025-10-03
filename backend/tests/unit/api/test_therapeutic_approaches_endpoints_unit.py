@@ -3,6 +3,7 @@ Unit tests for therapeutic approaches endpoints.
 """
 
 import uuid
+from datetime import datetime
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -12,6 +13,7 @@ from sqlalchemy.orm import Session
 from app.api.v1.endpoints.therapeutic_approaches import (
     create_therapeutic_approach,
     delete_therapeutic_approach,
+    get_all_therapeutic_approaches_admin,
     get_therapeutic_approach,
     get_therapeutic_approaches,
     get_therapeutic_approaches_by_category,
@@ -40,6 +42,9 @@ def sample_therapeutic_approach():
     approach.name = "Cognitive Behavioral Therapy"
     approach.description = "A type of psychotherapy"
     approach.category = "Behavioral"
+    approach.is_active = True
+    approach.created_at = datetime(2023, 1, 1, 0, 0, 0)
+    approach.updated_at = datetime(2023, 1, 1, 0, 0, 0)
     return approach
 
 
@@ -247,3 +252,59 @@ class TestDeleteTherapeuticApproach:
 
         assert exc_info.value.status_code == status.HTTP_404_NOT_FOUND
         assert exc_info.value.detail == "Therapeutic approach not found"
+
+
+class TestGetAllTherapeuticApproachesAdmin:
+    """Test get_all_therapeutic_approaches_admin endpoint."""
+
+    @patch("app.api.v1.endpoints.therapeutic_approaches.TherapeuticApproachService")
+    def test_get_all_therapeutic_approaches_admin_success(self, mock_service_class, sample_therapeutic_approach, mock_db):
+        """Test successful retrieval of all therapeutic approaches for admin."""
+        mock_service = MagicMock()
+        mock_service_class.return_value = mock_service
+        mock_service.get_therapeutic_approaches_admin.return_value = [sample_therapeutic_approach]
+        mock_service.get_therapeutic_approaches_count.return_value = 1
+        mock_service.get_therapeutic_approach_professional_count.return_value = 5
+
+        result = get_all_therapeutic_approaches_admin(page=1, page_size=10, search=None, db=mock_db, _admin_user=None)
+
+        assert len(result.items) == 1
+        assert result.total == 1
+        assert result.page == 1
+        assert result.page_size == 10
+        assert result.total_pages == 1
+        assert result.items[0].professional_count == 5
+        mock_service_class.assert_called_once_with(mock_db)
+        mock_service.get_therapeutic_approaches_admin.assert_called_once_with(skip=0, limit=10, search=None)
+
+    @patch("app.api.v1.endpoints.therapeutic_approaches.TherapeuticApproachService")
+    def test_get_all_therapeutic_approaches_admin_with_search(self, mock_service_class, sample_therapeutic_approach, mock_db):
+        """Test retrieval with search parameter."""
+        mock_service = MagicMock()
+        mock_service_class.return_value = mock_service
+        mock_service.get_therapeutic_approaches_admin.return_value = [sample_therapeutic_approach]
+        mock_service.get_therapeutic_approaches_count.return_value = 1
+        mock_service.get_therapeutic_approach_professional_count.return_value = 3
+
+        result = get_all_therapeutic_approaches_admin(page=1, page_size=5, search="Cognitive", db=mock_db, _admin_user=None)
+
+        assert len(result.items) == 1
+        assert result.page_size == 5
+        mock_service.get_therapeutic_approaches_admin.assert_called_once_with(skip=0, limit=5, search="Cognitive")
+
+    @patch("app.api.v1.endpoints.therapeutic_approaches.TherapeuticApproachService")
+    def test_get_all_therapeutic_approaches_admin_pagination(self, mock_service_class, mock_db):
+        """Test pagination functionality."""
+        mock_service = MagicMock()
+        mock_service_class.return_value = mock_service
+        mock_service.get_therapeutic_approaches_admin.return_value = []
+        mock_service.get_therapeutic_approaches_count.return_value = 25
+        mock_service.get_therapeutic_approach_professional_count.return_value = 0
+
+        result = get_all_therapeutic_approaches_admin(page=2, page_size=10, search=None, db=mock_db, _admin_user=None)
+
+        assert result.page == 2
+        assert result.page_size == 10
+        assert result.total == 25
+        assert result.total_pages == 3
+        mock_service.get_therapeutic_approaches_admin.assert_called_once_with(skip=10, limit=10, search=None)

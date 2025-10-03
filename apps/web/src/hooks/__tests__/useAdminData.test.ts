@@ -9,7 +9,7 @@ describe("useAdminData", () => {
     vi.clearAllMocks();
   });
 
-  it("should initialize with loading state", () => {
+  it("should initialize with loading state", async () => {
     mockLoadFunction.mockResolvedValue([]);
 
     const { result } = renderHook(() =>
@@ -21,6 +21,11 @@ describe("useAdminData", () => {
     expect(result.current.loading).toBe(true);
     expect(result.current.data).toEqual([]);
     expect(result.current.error).toBe(null);
+
+    // Wait for the async effect to complete
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
   });
 
   it("should load data successfully", async () => {
@@ -132,7 +137,7 @@ describe("useAdminData", () => {
     expect(result.current.data).toEqual([{ id: "2", name: "Item 2" }]);
   });
 
-  it("should set error correctly", () => {
+  it("should set error correctly", async () => {
     mockLoadFunction.mockResolvedValue([]);
 
     const { result } = renderHook(() =>
@@ -140,6 +145,11 @@ describe("useAdminData", () => {
         loadFunction: mockLoadFunction,
       }),
     );
+
+    // Wait for initial load to complete
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
 
     act(() => {
       result.current.setError("Custom error message");

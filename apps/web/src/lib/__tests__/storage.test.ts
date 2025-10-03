@@ -8,16 +8,12 @@ vi.mock("../api", () => ({
   },
 }));
 
-// Mock generateUniqueIdHex
-vi.mock("../id", () => ({
-  generateUniqueIdHex: vi.fn(() => "mockrandomid123456789"),
-}));
+// ID generation mocking removed - using crypto.randomUUID
 
 import {
   uploadFile,
   deleteFile,
   getStoragePath,
-  generateUniqueFilename,
   UploadResponse,
 } from "../storage";
 import { apiClient } from "../api";
@@ -191,72 +187,7 @@ describe("Storage Functions", () => {
     });
   });
 
-  describe("generateUniqueFilename", () => {
-    it("should generate unique filename with timestamp and random string", () => {
-      const originalName = "test.txt";
-      const result = generateUniqueFilename(originalName);
-
-      expect(result).toMatch(/^\d+_mockrandomid123456789\.txt$/);
-    });
-
-    it("should handle files without extension", () => {
-      const originalName = "testfile";
-      const result = generateUniqueFilename(originalName);
-
-      expect(result).toMatch(/^\d+_mockrandomid123456789\.testfile$/);
-    });
-
-    it("should handle files with multiple dots", () => {
-      const originalName = "test.backup.old.txt";
-      const result = generateUniqueFilename(originalName);
-
-      expect(result).toMatch(/^\d+_mockrandomid123456789\.txt$/);
-    });
-
-    it("should handle empty filename", () => {
-      const originalName = "";
-      const result = generateUniqueFilename(originalName);
-
-      expect(result).toMatch(/^\d+_mockrandomid123456789\.$/);
-    });
-
-    it("should handle filenames with special characters", () => {
-      const originalName = "test file with spaces & symbols!.pdf";
-      const result = generateUniqueFilename(originalName);
-
-      expect(result).toMatch(/^\d+_mockrandomid123456789\.pdf$/);
-    });
-
-    it("should generate different filenames for same input", () => {
-      const originalName = "test.txt";
-
-      // Mock Date.now to return different values
-      const nowSpy = vi
-        .spyOn(Date, "now")
-        .mockReturnValueOnce(1234567890)
-        .mockReturnValueOnce(1234567891);
-
-      const result1 = generateUniqueFilename(originalName);
-      const result2 = generateUniqueFilename(originalName);
-
-      expect(result1).not.toBe(result2);
-      expect(result1).toMatch(/^1234567890_mockrandomid123456789\.txt$/);
-      expect(result2).toMatch(/^1234567891_mockrandomid123456789\.txt$/);
-
-      nowSpy.mockRestore();
-    });
-
-    it("should handle various file extensions", () => {
-      const extensions = ["txt", "pdf", "jpg", "png", "docx", "xlsx", "zip"];
-
-      extensions.forEach((ext) => {
-        const originalName = `test.${ext}`;
-        const result = generateUniqueFilename(originalName);
-
-        expect(result).toMatch(new RegExp(`^\\d+_mockrandomid123456789\\.${ext}$`));
-      });
-    });
-  });
+  // generateUniqueFilename tests removed - filename generation now handled by backend
 
   describe("Integration Tests", () => {
     it("should work with real File objects", async () => {

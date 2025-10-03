@@ -186,19 +186,19 @@ export interface SpecialtyUpdate {
 export interface TherapeuticApproach extends BaseEntity {
   name: string;
   description?: string;
-  category?: string;
+  is_active?: boolean;
+  professional_count?: number;
 }
 
 export interface TherapeuticApproachCreate {
   name: string;
   description?: string;
-  category?: string;
 }
 
 export interface TherapeuticApproachUpdate {
   name?: string;
   description?: string;
-  category?: string;
+  is_active?: boolean;
 }
 
 // ============================================================================
@@ -328,6 +328,14 @@ export interface PaginatedResponse<T> {
 
 export interface PaginatedSpecialtiesResponse {
   items: Specialty[];
+  total: number;
+  page: number;
+  page_size: number;
+  total_pages: number;
+}
+
+export interface PaginatedTherapeuticApproachesResponse {
+  items: TherapeuticApproach[];
   total: number;
   page: number;
   page_size: number;

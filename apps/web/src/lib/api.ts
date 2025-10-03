@@ -22,6 +22,7 @@ import type {
   ApiResponse,
   PaginatedResponse,
   PaginatedSpecialtiesResponse,
+  PaginatedTherapeuticApproachesResponse,
   ErrorResponse,
   AuthUser,
   UserUpdate,
@@ -434,6 +435,19 @@ class ApiClient {
 
   async deleteTherapeuticApproach(approachId: string): Promise<void> {
     return this.delete<void>(`/therapeutic-approaches/${approachId}`);
+  }
+
+  async getAllTherapeuticApproachesAdmin(page: number = 1, pageSize: number = 10, search?: string): Promise<PaginatedTherapeuticApproachesResponse> {
+    const params = new URLSearchParams({
+      page: page.toString(),
+      page_size: pageSize.toString(),
+    });
+    
+    if (search && search.trim()) {
+      params.append('search', search.trim());
+    }
+    
+    return this.get<PaginatedTherapeuticApproachesResponse>(`/therapeutic-approaches/admin/all?${params.toString()}`);
   }
 
   // Modality methods

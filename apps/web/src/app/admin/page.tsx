@@ -1,6 +1,6 @@
 "use client";
 import React from "react";
-import { Users, UserCheck, Shield, Stethoscope, Settings } from "lucide-react";
+import { Users, UserCheck, Shield, Stethoscope } from "lucide-react";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -41,12 +41,6 @@ export default function AdminDashboard() {
               <Link href="/admin/specialties">
                 <Stethoscope className="h-6 w-6" />
                 <span>Gestionar Especialidades</span>
-              </Link>
-            </Button>
-            <Button asChild variant="outline" className="h-20 flex-col space-y-2">
-              <Link href="/admin/modalities">
-                <Settings className="h-6 w-6" />
-                <span>Gestionar Modalidades</span>
               </Link>
             </Button>
           </div>

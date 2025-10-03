@@ -61,6 +61,48 @@ class TherapeuticApproachService:
         if not db_approach:
             return False
 
-        db_approach.is_active = False
+        # Actually delete the therapeutic approach from the database
+        self.db.delete(db_approach)
         self.db.commit()
         return True
+
+    def get_therapeutic_approaches_count(self, search: Optional[str] = None) -> int:
+        """Get total count of therapeutic approaches."""
+        query = self.db.query(TherapeuticApproach)
+
+        if search:
+            # Use ILIKE for case-insensitive search with proper escaping
+            search_term = f"%{search.strip()}%"
+            query = query.filter(TherapeuticApproach.name.ilike(search_term))
+
+        return query.count()
+
+    def get_therapeutic_approaches_admin(
+        self, skip: int = 0, limit: int = 100, search: Optional[str] = None
+    ) -> List[TherapeuticApproach]:
+        """Get all therapeutic approaches for admin (includes inactive)."""
+        query = self.db.query(TherapeuticApproach)
+
+        if search:
+            # Use ILIKE for case-insensitive search with proper escaping
+            search_term = f"%{search.strip()}%"
+            query = query.filter(TherapeuticApproach.name.ilike(search_term))
+
+        return query.order_by(TherapeuticApproach.name.asc()).offset(skip).limit(limit).all()
+
+    def get_therapeutic_approach_professional_count(self, approach_id: str) -> int:
+        """Get count of professionals using this therapeutic approach."""
+        from app.models.professional_therapeutic_approach import ProfessionalTherapeuticApproach
+        from app.models.professional import Professional
+
+        count = (
+            self.db.query(ProfessionalTherapeuticApproach)
+            .join(Professional, ProfessionalTherapeuticApproach.professional_id == Professional.id)
+            .filter(
+                ProfessionalTherapeuticApproach.therapeutic_approach_id == approach_id,
+                ProfessionalTherapeuticApproach.is_active,
+                Professional.is_active,
+            )
+            .count()
+        )
+        return count

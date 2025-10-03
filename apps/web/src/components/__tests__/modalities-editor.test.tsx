@@ -29,11 +29,7 @@ Object.defineProperty(global, "crypto", {
   },
 });
 
-// Mock generateUniqueId function
-vi.mock("@/lib/id", () => ({
-  generateUniqueId: vi.fn(() => "mock-unique-id-123"),
-  generateUniqueIdHex: vi.fn(() => "mock-hex-id-123"),
-}));
+// ID generation mocking removed - no longer needed
 
 const mockUseModalities = vi.mocked(useModalities);
 

@@ -40,6 +40,23 @@ export default function ProfessionalProfilePage() {
 
   const methods = useForm<ProfessionalProfileFormData>({
     resolver: zodResolver(professionalProfileSchema),
+    defaultValues: {
+      fullName: "",
+      email: "",
+      phoneCountryCode: "",
+      phoneNumber: "",
+      licenseNumber: "",
+      yearsExperience: 0,
+      bio: "",
+      academicExperience: [],
+      workExperience: [],
+      certifications: [],
+      languages: [],
+      therapyApproaches: [],
+      specialtyIds: [],
+      modalities: [],
+      timezone: "America/Bogota",
+    },
   });
 
   const {

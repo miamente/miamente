@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import { generateUniqueId } from "@/lib/id";
+// ID generation removed - will be handled by backend
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Collapsible, CollapsibleContent } from "@/components/ui/collapsible";
@@ -64,7 +64,7 @@ export function ModalitiesEditor({
 
   const addModality = () => {
     const newModality: ProfessionalModality = {
-      id: generateUniqueId(),
+      id: `temp-${Date.now()}`, // Temporary ID, will be replaced by backend
       modalityId: "",
       modalityName: "Modalidad",
       virtualPrice: 0,

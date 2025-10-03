@@ -1,108 +1,64 @@
 "use client";
 import React, { useEffect, useState } from "react";
-import { Search, Plus, Edit, Trash2, Save, X, Brain, BookOpen } from "lucide-react";
+import { Search, Plus, Edit, Trash2, X, Brain, Eye, EyeOff } from "lucide-react";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
+import { EntityFormDialog, EntityFormData } from "@/components/admin/EntityFormDialog";
+import { DeleteConfirmDialog } from "@/components/admin/DeleteConfirmDialog";
+import { ToggleStatusDialog } from "@/components/admin/ToggleStatusDialog";
+import { apiClient } from "@/lib/api";
+import type { TherapeuticApproach, TherapeuticApproachCreate, TherapeuticApproachUpdate } from "@/lib/types";
+import { Pagination } from "@/components/ui/pagination";
 
-interface TherapeuticApproach {
-  id: string;
-  name: string;
-  description?: string;
-  category?: string;
-  is_active: boolean;
-  created_at: string;
-  updated_at: string;
-  professional_count?: number;
-}
-
-export default function AdminApproaches() {
+export default function AdminTherapeuticApproaches() {
   const [approaches, setApproaches] = useState<TherapeuticApproach[]>([]);
+  const [totalItems, setTotalItems] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
+  const [appliedSearch, setAppliedSearch] = useState("");
+
+  const handleSearch = () => {
+    setAppliedSearch(searchTerm);
+    setCurrentPage(1); // Reset to first page when searching
+  };
+
+  const handleClearSearch = () => {
+    setSearchTerm("");
+    setAppliedSearch("");
+    setCurrentPage(1); // Reset to first page when clearing search
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      handleSearch();
+    }
+  };
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingApproach, setEditingApproach] = useState<TherapeuticApproach | null>(null);
-  const [formData, setFormData] = useState({
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [deletingApproach, setDeletingApproach] = useState<TherapeuticApproach | null>(null);
+  const [isToggleDialogOpen, setIsToggleDialogOpen] = useState(false);
+  const [togglingApproach, setTogglingApproach] = useState<TherapeuticApproach | null>(null);
+  const [formData, setFormData] = useState<EntityFormData>({
     name: "",
     description: "",
-    category: "",
-    is_active: true,
   });
-
-  const categories = [
-    "Cognitivo-Conductual",
-    "Psicoanalítica",
-    "Humanista",
-    "Sistémica",
-    "Gestalt",
-    "EMDR",
-    "Mindfulness",
-    "Otro",
-  ];
 
   useEffect(() => {
     const loadApproaches = async () => {
       try {
         setLoading(true);
         setError(null);
-        // TODO: Replace with actual API call
-        // const data = await getTherapeuticApproaches();
-        // setApproaches(data);
-
-        // Mock data for now
-        const mockApproaches: TherapeuticApproach[] = [
-          {
-            id: "1",
-            name: "Terapia Cognitivo-Conductual",
-            description:
-              "Enfoque terapéutico que se centra en identificar y cambiar patrones de pensamiento negativos",
-            category: "Cognitivo-Conductual",
-            is_active: true,
-            created_at: "2024-01-15T10:30:00Z",
-            updated_at: "2024-01-15T10:30:00Z",
-            professional_count: 25,
-          },
-          {
-            id: "2",
-            name: "EMDR",
-            description:
-              "Desensibilización y reprocesamiento por movimientos oculares para el tratamiento del trauma",
-            category: "EMDR",
-            is_active: true,
-            created_at: "2024-01-16T09:15:00Z",
-            updated_at: "2024-01-16T09:15:00Z",
-            professional_count: 12,
-          },
-          {
-            id: "3",
-            name: "Terapia Gestalt",
-            description: "Enfoque humanista que se centra en el aquí y ahora",
-            category: "Gestalt",
-            is_active: false,
-            created_at: "2024-01-17T14:20:00Z",
-            updated_at: "2024-01-17T14:20:00Z",
-            professional_count: 5,
-          },
-          {
-            id: "4",
-            name: "Mindfulness",
-            description: "Práctica de atención plena para el bienestar mental",
-            category: "Mindfulness",
-            is_active: true,
-            created_at: "2024-01-18T11:45:00Z",
-            updated_at: "2024-01-18T11:45:00Z",
-            professional_count: 18,
-          },
-        ];
-        setApproaches(mockApproaches);
+        const response = await apiClient.getAllTherapeuticApproachesAdmin(currentPage, pageSize, appliedSearch);
+        setApproaches(response.items);
+        setTotalItems(response.total);
       } catch (err) {
-        console.error("Error loading approaches:", err);
+        console.error("Error loading therapeutic approaches:", err);
         setError("Error al cargar los enfoques terapéuticos");
       } finally {
         setLoading(false);
@@ -110,22 +66,16 @@ export default function AdminApproaches() {
     };
 
     loadApproaches();
-  }, []);
+  }, [currentPage, pageSize, appliedSearch]);
 
-  const filteredApproaches = approaches.filter(
-    (approach) =>
-      approach.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      approach.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      approach.category?.toLowerCase().includes(searchTerm.toLowerCase()),
-  );
+  // Server-side pagination - no client-side filtering needed
+  const pagedApproaches = approaches;
 
   const handleCreateApproach = () => {
     setEditingApproach(null);
     setFormData({
       name: "",
       description: "",
-      category: "",
-      is_active: true,
     });
     setIsDialogOpen(true);
   };
@@ -135,8 +85,6 @@ export default function AdminApproaches() {
     setFormData({
       name: approach.name,
       description: approach.description || "",
-      category: approach.category || "",
-      is_active: approach.is_active,
     });
     setIsDialogOpen(true);
   };
@@ -144,65 +92,77 @@ export default function AdminApproaches() {
   const handleSaveApproach = async () => {
     try {
       if (editingApproach) {
-        // TODO: Implement API call to update approach
-        console.log("Update approach:", { id: editingApproach.id, ...formData });
-        setApproaches((prev) =>
-          prev.map((a) =>
-            a.id === editingApproach.id
-              ? { ...a, ...formData, updated_at: new Date().toISOString() }
-              : a,
-          ),
-        );
-      } else {
-        // TODO: Implement API call to create approach
-        console.log("Create approach:", formData);
-        const newApproach: TherapeuticApproach = {
-          id: Date.now().toString(),
-          ...formData,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-          professional_count: 0,
+        const updateData: TherapeuticApproachUpdate = {
+          name: formData.name,
+          description: formData.description || undefined,
         };
-        setApproaches((prev) => [...prev, newApproach]);
+        await apiClient.updateTherapeuticApproach(editingApproach.id, updateData);
+      } else {
+        const createData: TherapeuticApproachCreate = {
+          name: formData.name,
+          description: formData.description || undefined,
+        };
+        await apiClient.createTherapeuticApproach(createData);
       }
       setIsDialogOpen(false);
+      // Reload data
+      const response = await apiClient.getAllTherapeuticApproachesAdmin(currentPage, pageSize, appliedSearch);
+      setApproaches(response.items);
+      setTotalItems(response.total);
     } catch (err) {
-      console.error("Error saving approach:", err);
+      console.error("Error saving therapeutic approach:", err);
+      setError("Error al guardar el enfoque terapéutico");
     }
   };
 
-  const handleDeleteApproach = async (approachId: string) => {
-    if (confirm("¿Estás seguro de que quieres eliminar este enfoque terapéutico?")) {
-      try {
-        // TODO: Implement API call to delete approach
-        console.log("Delete approach:", approachId);
-        setApproaches((prev) => prev.filter((a) => a.id !== approachId));
-      } catch (err) {
-        console.error("Error deleting approach:", err);
-      }
-    }
+  const handleDeleteApproach = (approach: TherapeuticApproach) => {
+    setDeletingApproach(approach);
+    setIsDeleteDialogOpen(true);
   };
 
-  const handleToggleActive = async (approachId: string, currentStatus: boolean) => {
+  const confirmDeleteApproach = async () => {
+    if (!deletingApproach) return;
+    
     try {
-      // TODO: Implement API call to toggle approach status
-      console.log(`Toggle active status for approach ${approachId} to ${!currentStatus}`);
-      setApproaches((prev) =>
-        prev.map((a) =>
-          a.id === approachId
-            ? { ...a, is_active: !currentStatus, updated_at: new Date().toISOString() }
-            : a,
-        ),
-      );
-    } catch (err) {
-      console.error("Error updating approach status:", err);
+      await apiClient.deleteTherapeuticApproach(deletingApproach.id);
+      setIsDeleteDialogOpen(false);
+      setDeletingApproach(null);
+      // Reload data
+      const response = await apiClient.getAllTherapeuticApproachesAdmin(currentPage, pageSize, appliedSearch);
+      setApproaches(response.items);
+      setTotalItems(response.total);
+      } catch (err) {
+      console.error("Error deleting therapeutic approach:", err);
+      setError("Error al eliminar el enfoque terapéutico");
     }
   };
+
+
+  const confirmToggleApproach = async () => {
+    if (!togglingApproach) return;
+    
+    try {
+      const updateData: TherapeuticApproachUpdate = {
+        is_active: !togglingApproach.is_active,
+      };
+      await apiClient.updateTherapeuticApproach(togglingApproach.id, updateData);
+      setIsToggleDialogOpen(false);
+      setTogglingApproach(null);
+      // Reload data
+      const response = await apiClient.getAllTherapeuticApproachesAdmin(currentPage, pageSize, appliedSearch);
+      setApproaches(response.items);
+      setTotalItems(response.total);
+    } catch (err) {
+      console.error("Error toggling therapeutic approach:", err);
+      setError("Error al cambiar el estado del enfoque terapéutico");
+    }
+  };
+
 
   if (loading) {
     return (
       <div className="flex h-64 items-center justify-center">
-        <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-red-600"></div>
+        <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-red-600" data-testid="loading-spinner"></div>
       </div>
     );
   }
@@ -222,7 +182,17 @@ export default function AdminApproaches() {
       </div>
 
       {error && (
-        <div className="rounded-md border border-red-200 bg-red-50 p-4 text-red-600">{error}</div>
+        <div className="rounded-md border border-red-200 bg-red-50 p-4 text-red-600">
+          {error}
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setError(null)}
+            className="ml-2"
+          >
+            <X className="h-4 w-4" />
+          </Button>
+        </div>
       )}
 
       {/* Search */}
@@ -231,154 +201,218 @@ export default function AdminApproaches() {
           <CardTitle>Buscar Enfoques Terapéuticos</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="relative">
+          <div className="flex gap-2">
+            <div className="relative flex-1">
             <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-gray-400" />
             <Input
-              placeholder="Buscar por nombre, descripción o categoría..."
+                placeholder="Buscar por nombre o descripción..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
+                onKeyDown={handleKeyDown}
               className="pl-10"
             />
+            </div>
+            <Button onClick={handleSearch}>
+              <Search className="mr-2 h-4 w-4" />
+              Buscar
+            </Button>
+            {appliedSearch && (
+              <Button onClick={handleClearSearch} variant="outline">
+                <X className="mr-2 h-4 w-4" />
+                Limpiar
+              </Button>
+            )}
           </div>
         </CardContent>
       </Card>
 
-      {/* Approaches Grid */}
-      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-        {filteredApproaches.map((approach) => (
-          <Card key={approach.id}>
-            <CardHeader>
-              <div className="flex items-start justify-between">
-                <div className="flex items-center space-x-2">
-                  <Brain className="h-5 w-5 text-red-600" />
-                  <CardTitle className="text-lg">{approach.name}</CardTitle>
+      {/* Search Results Summary */}
+      {appliedSearch && (
+        <div className="flex items-center justify-between rounded-md border border-blue-200 bg-blue-50 p-4">
+          <div className="flex items-center">
+            <Search className="mr-2 h-4 w-4 text-blue-600" />
+            <span className="text-sm text-blue-700">
+              {pagedApproaches.length === 0
+                ? `No se encontraron enfoques terapéuticos que coincidan con "${appliedSearch}"`
+                : `Se encontraron ${totalItems} enfoque${totalItems === 1 ? '' : 's'} que coinciden con "${appliedSearch}"`
+              }
+            </span>
                 </div>
-                <Badge variant={approach.is_active ? "default" : "secondary"}>
-                  {approach.is_active ? "Activo" : "Inactivo"}
-                </Badge>
+          <Button variant="outline" size="sm" onClick={handleClearSearch}>
+            <X className="mr-1 h-3 w-3" />
+            Limpiar
+          </Button>
               </div>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {approach.category && (
-                  <Badge variant="outline" className="text-xs">
-                    {approach.category}
-                  </Badge>
-                )}
+      )}
 
-                {approach.description && (
-                  <p className="text-sm text-gray-600">{approach.description}</p>
-                )}
-
-                <div className="flex items-center justify-between text-sm text-gray-500">
-                  <span className="flex items-center space-x-1">
-                    <BookOpen className="h-4 w-4" />
-                    <span>Profesionales: {approach.professional_count || 0}</span>
+      {/* Approaches Table */}
+      <Card className="p-0">
+        <CardContent className="p-0">
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead className="border-b bg-gray-50">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Enfoque Terapéutico
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Descripción
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Profesionales
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Estado
+                  </th>
+                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Acciones
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {pagedApproaches.map((approach) => (
+                  <tr key={approach.id} className="hover:bg-gray-50 transition-colors">
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="flex items-center">
+                        <Brain className="h-5 w-5 text-red-600 mr-3 flex-shrink-0" />
+                        <div className="min-w-0">
+                          <div className="text-sm font-medium text-gray-900 truncate">
+                            {approach.name}
+                          </div>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 max-w-xs">
+                      <div className="truncate">
+                        {approach.description || "-"}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                        {approach.professional_count || 0}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm">
+                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                        approach.is_active !== false ? "bg-green-100 text-green-800" : "bg-gray-200 text-gray-700"
+                      }`}>
+                        {approach.is_active !== false ? "Activo" : "Inactivo"}
                   </span>
-                  <span>Creado: {new Date(approach.created_at).toLocaleDateString()}</span>
-                </div>
-
-                <div className="flex space-x-2">
-                  <Button size="sm" variant="outline" onClick={() => handleEditApproach(approach)}>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                      <div className="flex justify-end space-x-2">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => handleEditApproach(approach)}
+                          className="hover:bg-gray-50"
+                        >
                     <Edit className="h-4 w-4" />
                   </Button>
                   <Button
                     size="sm"
                     variant="outline"
-                    onClick={() => handleToggleActive(approach.id, approach.is_active)}
-                  >
-                    {approach.is_active ? "Desactivar" : "Activar"}
+                          aria-label={approach.is_active !== false ? "Deshabilitar enfoque terapéutico" : "Habilitar enfoque terapéutico"}
+                          onClick={() => {
+                            setTogglingApproach(approach);
+                            setIsToggleDialogOpen(true);
+                          }}
+                          className="hover:bg-gray-50"
+                        >
+                          {approach.is_active !== false ? (
+                            // Show current state icon (enabled)
+                            <Eye className="h-4 w-4" />
+                          ) : (
+                            // Show current state icon (disabled)
+                            <EyeOff className="h-4 w-4" />
+                          )}
                   </Button>
                   <Button
                     size="sm"
                     variant="outline"
-                    onClick={() => handleDeleteApproach(approach.id)}
-                    className="text-red-600 hover:text-red-700"
+                          onClick={() => handleDeleteApproach(approach)}
+                          className="text-red-600 hover:text-red-700 hover:bg-red-50"
                   >
                     <Trash2 className="h-4 w-4" />
                   </Button>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <Pagination
+            totalItems={totalItems}
+            currentPage={currentPage}
+            pageSize={pageSize}
+            onPageChange={(p) => setCurrentPage(p)}
+            onPageSizeChange={(s) => {
+              setPageSize(s);
+              setCurrentPage(1);
+            }}
+            compact
+          />
+        </CardContent>
+      </Card>
 
-      {filteredApproaches.length === 0 && (
+      {totalItems === 0 && !loading && (
         <Card>
-          <CardContent className="py-8 text-center text-gray-500">
-            No hay enfoques terapéuticos que coincidan con la búsqueda
+          <CardContent className="py-12 text-center text-gray-500">
+            <Brain className="mx-auto h-12 w-12 text-gray-400 mb-4" />
+            <h3 className="text-lg font-medium text-gray-900 mb-2">
+              {appliedSearch 
+                ? "No se encontraron enfoques terapéuticos"
+                : "No hay enfoques terapéuticos registrados"
+              }
+            </h3>
+            <p className="text-gray-500">
+              {appliedSearch 
+                ? `No hay enfoques terapéuticos que coincidan con "${appliedSearch}"`
+                : "Comienza agregando tu primer enfoque terapéutico"
+              }
+            </p>
+            {!appliedSearch && (
+              <Button onClick={handleCreateApproach} className="mt-4">
+                <Plus className="mr-2 h-4 w-4" />
+                Agregar Enfoque Terapéutico
+              </Button>
+            )}
           </CardContent>
         </Card>
       )}
 
       {/* Create/Edit Dialog */}
-      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle>
-              {editingApproach ? "Editar Enfoque Terapéutico" : "Agregar Enfoque Terapéutico"}
-            </DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div>
-              <Label htmlFor="name">Nombre *</Label>
-              <Input
-                id="name"
-                value={formData.name}
-                onChange={(e) => setFormData((prev) => ({ ...prev, name: e.target.value }))}
-                placeholder="Nombre del enfoque terapéutico"
-              />
-            </div>
-            <div>
-              <Label htmlFor="category">Categoría</Label>
-              <select
-                id="category"
-                value={formData.category}
-                onChange={(e) => setFormData((prev) => ({ ...prev, category: e.target.value }))}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500"
-              >
-                <option value="">Seleccionar categoría</option>
-                {categories.map((category) => (
-                  <option key={category} value={category}>
-                    {category}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <Label htmlFor="description">Descripción</Label>
-              <Textarea
-                id="description"
-                value={formData.description}
-                onChange={(e) => setFormData((prev) => ({ ...prev, description: e.target.value }))}
-                placeholder="Descripción del enfoque terapéutico"
-                rows={3}
-              />
-            </div>
-            <div className="flex items-center space-x-2">
-              <input
-                type="checkbox"
-                id="is_active"
-                checked={formData.is_active}
-                onChange={(e) => setFormData((prev) => ({ ...prev, is_active: e.target.checked }))}
-                className="rounded border-gray-300"
-              />
-              <Label htmlFor="is_active">Enfoque activo</Label>
-            </div>
-            <div className="flex justify-end space-x-2">
-              <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
-                <X className="mr-2 h-4 w-4" />
-                Cancelar
-              </Button>
-              <Button onClick={handleSaveApproach}>
-                <Save className="mr-2 h-4 w-4" />
-                {editingApproach ? "Actualizar" : "Crear"}
-              </Button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
+      <EntityFormDialog
+        isOpen={isDialogOpen}
+        onClose={() => setIsDialogOpen(false)}
+        onSubmit={handleSaveApproach}
+        isEditing={!!editingApproach}
+        formData={formData}
+        onFormDataChange={setFormData}
+        entityName="Enfoque Terapéutico"
+        entityNamePlural="Enfoques Terapéuticos"
+        useTextarea={true}
+      />
+
+      {/* Delete Confirmation Dialog */}
+      <DeleteConfirmDialog
+        isOpen={isDeleteDialogOpen}
+        onClose={() => setIsDeleteDialogOpen(false)}
+        onConfirm={confirmDeleteApproach}
+        entityName="enfoque terapéutico"
+        entityDisplayName={deletingApproach?.name || ""}
+      />
+
+      {/* Toggle Status Confirmation Dialog */}
+      <ToggleStatusDialog
+        isOpen={isToggleDialogOpen}
+        onClose={() => setIsToggleDialogOpen(false)}
+        onConfirm={confirmToggleApproach}
+        entityName="Enfoque Terapéutico"
+        entityDisplayName={togglingApproach?.name || ""}
+        isCurrentlyActive={togglingApproach?.is_active !== false}
+      />
     </div>
   );
 }

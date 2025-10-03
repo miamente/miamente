@@ -1,11 +1,21 @@
 import React from "react";
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor, act } from "@testing-library/react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import ProfessionalProfilePage from "../page";
+
+// Helper function to wrap render in act()
+const renderWithAct = (component: React.ReactElement) => {
+  let result: ReturnType<typeof render> | undefined;
+  act(() => {
+    result = render(component);
+  });
+  return result!;
+};
 
 // Mock Next.js components
 vi.mock("next/image", () => ({
   default: ({ src, alt, ...props }: { src: string; alt: string; [key: string]: unknown }) => (
+    // eslint-disable-next-line @next/next/no-img-element
     <img src={src} alt={alt} {...props} data-testid="professional-image" />
   ),
 }));
@@ -170,14 +180,17 @@ describe("ProfessionalProfilePage", () => {
     mockUseAuth.isLoading = false;
   });
 
-  it("should render loading state initially", () => {
-    render(<ProfessionalProfilePage />);
+  it("should render loading state initially", async () => {
+    renderWithAct(<ProfessionalProfilePage />);
 
-    expect(screen.getAllByTestId("skeleton")).toHaveLength(13); // Multiple skeleton elements
+    // Wait for the loading state to be rendered
+    await waitFor(() => {
+      expect(screen.getAllByTestId("skeleton")).toHaveLength(13); // Multiple skeleton elements
+    });
   });
 
   it("should render professional profile when data is loaded", async () => {
-    render(<ProfessionalProfilePage />);
+    renderWithAct(<ProfessionalProfilePage />);
 
     await waitFor(() => {
       expect(screen.getAllByText("Dr. John Doe")).toHaveLength(2); // Breadcrumb and main content
@@ -186,7 +199,7 @@ describe("ProfessionalProfilePage", () => {
   });
 
   it("should display professional information correctly", async () => {
-    render(<ProfessionalProfilePage />);
+    renderWithAct(<ProfessionalProfilePage />);
 
     await waitFor(() => {
       expect(screen.getAllByText("Dr. John Doe")).toHaveLength(2); // Breadcrumb and main content
@@ -198,7 +211,7 @@ describe("ProfessionalProfilePage", () => {
   });
 
   it("should show verification badge for verified professionals", async () => {
-    render(<ProfessionalProfilePage />);
+    renderWithAct(<ProfessionalProfilePage />);
 
     await waitFor(() => {
       expect(screen.getByText("Verificado")).toBeInTheDocument();
@@ -206,7 +219,7 @@ describe("ProfessionalProfilePage", () => {
   });
 
   it("should display specialties", async () => {
-    render(<ProfessionalProfilePage />);
+    renderWithAct(<ProfessionalProfilePage />);
 
     await waitFor(() => {
       expect(screen.getByText("Specialty specialty-1")).toBeInTheDocument();
@@ -215,7 +228,7 @@ describe("ProfessionalProfilePage", () => {
   });
 
   it("should display therapy approaches", async () => {
-    render(<ProfessionalProfilePage />);
+    renderWithAct(<ProfessionalProfilePage />);
 
     await waitFor(() => {
       expect(screen.getByText("Approach approach-1")).toBeInTheDocument();
@@ -224,7 +237,7 @@ describe("ProfessionalProfilePage", () => {
   });
 
   it("should display academic experience", async () => {
-    render(<ProfessionalProfilePage />);
+    renderWithAct(<ProfessionalProfilePage />);
 
     await waitFor(() => {
       expect(screen.getByText("PhD in Psychology")).toBeInTheDocument();
@@ -235,7 +248,7 @@ describe("ProfessionalProfilePage", () => {
   });
 
   it("should display certifications", async () => {
-    render(<ProfessionalProfilePage />);
+    renderWithAct(<ProfessionalProfilePage />);
 
     await waitFor(() => {
       expect(screen.getByText("Licensed Clinical Psychologist")).toBeInTheDocument();
@@ -244,7 +257,7 @@ describe("ProfessionalProfilePage", () => {
   });
 
   it("should display languages", async () => {
-    render(<ProfessionalProfilePage />);
+    renderWithAct(<ProfessionalProfilePage />);
 
     await waitFor(() => {
       expect(screen.getByText("English")).toBeInTheDocument();
@@ -254,7 +267,7 @@ describe("ProfessionalProfilePage", () => {
 
   it("should show edit profile button for own profile", async () => {
     mockUseAuth.user = { id: "professional-1", email: "test@example.com", role: "professional" };
-    render(<ProfessionalProfilePage />);
+    renderWithAct(<ProfessionalProfilePage />);
 
     await waitFor(() => {
       expect(screen.getByText("Editar Perfil")).toBeInTheDocument();
@@ -263,7 +276,7 @@ describe("ProfessionalProfilePage", () => {
 
   it("should not show edit profile button for other profiles", async () => {
     mockUseAuth.user = { id: "other-user", email: "other@example.com", role: "user" };
-    render(<ProfessionalProfilePage />);
+    renderWithAct(<ProfessionalProfilePage />);
 
     await waitFor(() => {
       expect(screen.queryByText("Editar Perfil")).not.toBeInTheDocument();
@@ -271,7 +284,7 @@ describe("ProfessionalProfilePage", () => {
   });
 
   it("should display action buttons", async () => {
-    render(<ProfessionalProfilePage />);
+    renderWithAct(<ProfessionalProfilePage />);
 
     await waitFor(() => {
       expect(screen.getByText("Agendar Cita")).toBeInTheDocument();
@@ -289,7 +302,7 @@ describe("ProfessionalProfilePage", () => {
     vi.clearAllMocks();
     mockGetProfessionalProfile.mockResolvedValue(professionalWithoutPicture);
 
-    render(<ProfessionalProfilePage />);
+    renderWithAct(<ProfessionalProfilePage />);
 
     await waitFor(() => {
       expect(screen.getByTestId("user-icon")).toBeInTheDocument();
@@ -303,7 +316,7 @@ describe("ProfessionalProfilePage", () => {
     };
     mockGetProfessionalProfile.mockResolvedValue(professionalWithExternalImage);
 
-    render(<ProfessionalProfilePage />);
+    renderWithAct(<ProfessionalProfilePage />);
 
     await waitFor(() => {
       const image = screen.getByTestId("professional-image");
@@ -314,7 +327,7 @@ describe("ProfessionalProfilePage", () => {
   it("should handle error state", async () => {
     mockGetProfessionalProfile.mockRejectedValue(new Error("Professional not found"));
 
-    render(<ProfessionalProfilePage />);
+    renderWithAct(<ProfessionalProfilePage />);
 
     await waitFor(() => {
       expect(screen.getAllByText("Profesional no encontrado")).toHaveLength(2);
@@ -323,7 +336,7 @@ describe("ProfessionalProfilePage", () => {
   });
 
   it("should show breadcrumbs", async () => {
-    render(<ProfessionalProfilePage />);
+    renderWithAct(<ProfessionalProfilePage />);
 
     await waitFor(() => {
       expect(screen.getByText("Profesionales")).toBeInTheDocument();
@@ -338,7 +351,7 @@ describe("ProfessionalProfilePage", () => {
     };
     mockGetProfessionalProfile.mockResolvedValue(professionalWithoutBio);
 
-    render(<ProfessionalProfilePage />);
+    renderWithAct(<ProfessionalProfilePage />);
 
     await waitFor(() => {
       expect(screen.queryByText("Sobre mí")).not.toBeInTheDocument();
@@ -352,7 +365,7 @@ describe("ProfessionalProfilePage", () => {
     };
     mockGetProfessionalProfile.mockResolvedValue(professionalWithoutEducation);
 
-    render(<ProfessionalProfilePage />);
+    renderWithAct(<ProfessionalProfilePage />);
 
     await waitFor(() => {
       expect(screen.queryByText("Formación Académica")).not.toBeInTheDocument();
@@ -366,7 +379,7 @@ describe("ProfessionalProfilePage", () => {
     };
     mockGetProfessionalProfile.mockResolvedValue(professionalWithoutCertifications);
 
-    render(<ProfessionalProfilePage />);
+    renderWithAct(<ProfessionalProfilePage />);
 
     await waitFor(() => {
       expect(screen.queryByText("Certificaciones")).not.toBeInTheDocument();
@@ -380,7 +393,7 @@ describe("ProfessionalProfilePage", () => {
     };
     mockGetProfessionalProfile.mockResolvedValue(professionalWithoutLanguages);
 
-    render(<ProfessionalProfilePage />);
+    renderWithAct(<ProfessionalProfilePage />);
 
     await waitFor(() => {
       expect(screen.queryByText("Idiomas")).not.toBeInTheDocument();
@@ -394,7 +407,7 @@ describe("ProfessionalProfilePage", () => {
     };
     mockGetProfessionalProfile.mockResolvedValue(professionalWithoutApproaches);
 
-    render(<ProfessionalProfilePage />);
+    renderWithAct(<ProfessionalProfilePage />);
 
     await waitFor(() => {
       expect(screen.queryByText("Enfoques Terapéuticos")).not.toBeInTheDocument();
@@ -402,7 +415,7 @@ describe("ProfessionalProfilePage", () => {
   });
 
   it("should format price correctly", async () => {
-    render(<ProfessionalProfilePage />);
+    renderWithAct(<ProfessionalProfilePage />);
 
     await waitFor(() => {
       expect(screen.getByText("500 / hora")).toBeInTheDocument();
@@ -411,7 +424,7 @@ describe("ProfessionalProfilePage", () => {
 
   it("should show specialty loading state", async () => {
     mockUseSpecialtyNames.loading = true;
-    render(<ProfessionalProfilePage />);
+    renderWithAct(<ProfessionalProfilePage />);
 
     await waitFor(() => {
       expect(screen.getByTestId("skeleton")).toBeInTheDocument();
@@ -420,7 +433,7 @@ describe("ProfessionalProfilePage", () => {
 
   it("should show therapy approaches loading state", async () => {
     mockUseTherapyApproachNames.loading = true;
-    render(<ProfessionalProfilePage />);
+    renderWithAct(<ProfessionalProfilePage />);
 
     await waitFor(() => {
       expect(screen.getAllByTestId("skeleton")).toHaveLength(3); // Loading skeletons for therapy approaches
