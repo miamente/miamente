@@ -1,5 +1,5 @@
 import React from "react";
-import { render, screen, waitFor, fireEvent } from "@testing-library/react";
+import { render, screen, waitFor, fireEvent, act } from "@testing-library/react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { useRouter } from "next/navigation";
 
@@ -473,12 +473,18 @@ describe("ProfessionalProfilePage", () => {
     });
 
     const submitButton = screen.getByText("Actualizar Perfil");
-    fireEvent.click(submitButton);
+    
+    // Wrap the click in act to handle state updates
+    await act(async () => {
+      fireEvent.click(submitButton);
+    });
 
-    // Test that form elements exist
-    expect(screen.getByTestId("academic-experience-editor")).toBeInTheDocument();
-    expect(screen.getByTestId("work-experience-editor")).toBeInTheDocument();
-    expect(screen.getByTestId("certifications-editor")).toBeInTheDocument();
-    expect(screen.getByTestId("modalities-editor")).toBeInTheDocument();
+    // Wait for the form elements to be rendered
+    await waitFor(() => {
+      expect(screen.getByTestId("academic-experience-editor")).toBeInTheDocument();
+      expect(screen.getByTestId("work-experience-editor")).toBeInTheDocument();
+      expect(screen.getByTestId("certifications-editor")).toBeInTheDocument();
+      expect(screen.getByTestId("modalities-editor")).toBeInTheDocument();
+    });
   });
 });

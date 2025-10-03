@@ -2,7 +2,7 @@
 import React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Users, UserCheck, Stethoscope, Settings, BarChart3, Shield } from "lucide-react";
+import { Users, UserCheck, Stethoscope, BarChart3, Shield } from "lucide-react";
 
 import { AdminAuthGuard } from "@/components/admin-auth-guard";
 import { cn } from "@/lib/utils";
@@ -32,11 +32,6 @@ const adminNavigation = [
     name: "Especialidades",
     href: "/admin/specialties",
     icon: Stethoscope,
-  },
-  {
-    name: "Modalidades",
-    href: "/admin/modalities",
-    icon: Settings,
   },
   {
     name: "Enfoques",

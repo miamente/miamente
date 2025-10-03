@@ -1,18 +1,18 @@
 import React from "react";
-import { render, screen, fireEvent, waitFor } from "@testing-library/react";
+import { render, screen, fireEvent, waitFor, act } from "@testing-library/react";
 import { ProfessionalInfoForm } from "../professional-info/ProfessionalInfoForm";
 import { describe, it, expect, beforeEach, vi } from "vitest";
 
 // Mock the hooks
 vi.mock("@/hooks/useProfessionalSpecialties", () => ({
   useProfessionalSpecialties: () => ({
-    updateSpecialties: vi.fn().mockResolvedValue(undefined),
+    updateSpecialties: vi.fn().mockImplementation(() => new Promise(resolve => setTimeout(resolve, 100))),
   }),
 }));
 
 vi.mock("@/hooks/useProfessionalTherapeuticApproaches", () => ({
   useProfessionalTherapeuticApproaches: () => ({
-    updateApproaches: vi.fn().mockResolvedValue(undefined),
+    updateApproaches: vi.fn().mockImplementation(() => new Promise(resolve => setTimeout(resolve, 100))),
   }),
 }));
 
@@ -188,10 +188,16 @@ describe("ProfessionalInfoForm", () => {
     render(<ProfessionalInfoForm {...defaultProps} />);
 
     const saveButton = screen.getByText("Guardar Información");
-    fireEvent.click(saveButton);
+    
+    await act(async () => {
+      fireEvent.click(saveButton);
+    });
 
-    expect(screen.getByText("Guardando...")).toBeInTheDocument();
-    expect(saveButton).toBeDisabled();
+    // Now we should see the loading state
+    await waitFor(() => {
+      expect(screen.getByText("Guardando...")).toBeInTheDocument();
+      expect(saveButton).toBeDisabled();
+    });
   });
 
   it("should handle disabled state", () => {

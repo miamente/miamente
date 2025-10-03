@@ -1,7 +1,16 @@
 import React from "react";
-import { render, screen, fireEvent, waitFor } from "@testing-library/react";
+import { render, screen, fireEvent, waitFor, act } from "@testing-library/react";
 import { vi } from "vitest";
 import ProfessionalsPage from "../page";
+
+// Helper function to wrap render in act()
+const renderWithAct = (component: React.ReactElement) => {
+  let result: ReturnType<typeof render> | undefined;
+  act(() => {
+    result = render(component);
+  });
+  return result!;
+};
 
 // Mock the queryProfessionals function
 const mockQueryProfessionals = vi.hoisted(() => vi.fn());
@@ -25,8 +34,7 @@ const mockSelect = vi.hoisted(() => vi.fn());
 const mockImage = vi.hoisted(() => vi.fn());
 const mockLink = vi.hoisted(() => vi.fn());
 
-// Mock the generateUniqueId function
-const mockGenerateUniqueId = vi.hoisted(() => vi.fn());
+// ID generation removed from frontend
 
 // Mock the lib/profiles module
 vi.mock("@/lib/profiles", () => ({
@@ -72,10 +80,7 @@ vi.mock("next/link", () => ({
   default: mockLink,
 }));
 
-// Mock the generateUniqueId function
-vi.mock("@/lib/id", () => ({
-  generateUniqueId: mockGenerateUniqueId,
-}));
+// ID generation mocking removed - no longer needed
 
 // Mock the lib/profiles module
 vi.mock("@/lib/profiles", () => ({
@@ -121,10 +126,7 @@ vi.mock("next/link", () => ({
   default: mockLink,
 }));
 
-// Mock the generateUniqueId function
-vi.mock("@/lib/id", () => ({
-  generateUniqueId: mockGenerateUniqueId,
-}));
+// ID generation mocking removed - no longer needed
 
 describe("ProfessionalsPage", () => {
   const mockProfessionals = [
@@ -154,6 +156,9 @@ describe("ProfessionalsPage", () => {
   beforeEach(() => {
     vi.clearAllMocks();
 
+    // Reset the mock to its default behavior
+    mockQueryProfessionals.mockReset();
+    
     // Setup default mocks
     mockQueryProfessionals.mockResolvedValue({
       professionals: mockProfessionals,
@@ -162,8 +167,6 @@ describe("ProfessionalsPage", () => {
 
     mockUseSpecialtyNames.mockReturnValue(mockSpecialtyNames);
     mockSpecialtyNames.getNames.mockReturnValue(["Specialty 1", "Specialty 2"]);
-
-    mockGenerateUniqueId.mockReturnValue("mock-id");
 
     // Mock UI components to render their children
     mockButton.mockImplementation(({ children, ...props }) => (
@@ -198,6 +201,7 @@ describe("ProfessionalsPage", () => {
       </select>
     ));
     mockImage.mockImplementation((props) => (
+      // eslint-disable-next-line @next/next/no-img-element
       <img data-testid="image" alt="" {...props} />
     ));
     mockLink.mockImplementation(({ children, ...props }) => (
@@ -209,28 +213,37 @@ describe("ProfessionalsPage", () => {
   });
 
   it("should render the page title", async () => {
-    render(<ProfessionalsPage />);
+    renderWithAct(<ProfessionalsPage />);
 
-    expect(screen.getByText("Profesionales")).toBeInTheDocument();
+    // Wait for the initial data to load to avoid act warnings
+    await waitFor(() => {
+      expect(screen.getByText("Profesionales")).toBeInTheDocument();
+    });
   });
 
   it("should render the filters form", async () => {
-    render(<ProfessionalsPage />);
+    renderWithAct(<ProfessionalsPage />);
 
-    expect(screen.getByLabelText("Filtros")).toBeInTheDocument();
-    expect(screen.getByLabelText("Especialidad")).toBeInTheDocument();
-    expect(screen.getByLabelText("Precio mínimo (COP)")).toBeInTheDocument();
-    expect(screen.getByLabelText("Precio máximo (COP)")).toBeInTheDocument();
+    // Wait for the initial data to load to avoid act warnings
+    await waitFor(() => {
+      expect(screen.getByLabelText("Filtros")).toBeInTheDocument();
+      expect(screen.getByLabelText("Especialidad")).toBeInTheDocument();
+      expect(screen.getByLabelText("Precio mínimo (COP)")).toBeInTheDocument();
+      expect(screen.getByLabelText("Precio máximo (COP)")).toBeInTheDocument();
+    });
   });
 
   it("should show loading state initially", async () => {
-    render(<ProfessionalsPage />);
+    renderWithAct(<ProfessionalsPage />);
 
-    expect(screen.getAllByTestId("professional-card-skeleton")).toHaveLength(6);
+    // Wait for the initial loading state to be set
+    await waitFor(() => {
+      expect(screen.getAllByTestId("professional-card-skeleton")).toHaveLength(6);
+    });
   });
 
   it("should render professionals after loading", async () => {
-    render(<ProfessionalsPage />);
+    renderWithAct(<ProfessionalsPage />);
 
     await waitFor(() => {
       expect(screen.getByText("Dr. John Doe")).toBeInTheDocument();
@@ -242,7 +255,7 @@ describe("ProfessionalsPage", () => {
   });
 
   it("should render professional cards with correct information", async () => {
-    render(<ProfessionalsPage />);
+    renderWithAct(<ProfessionalsPage />);
 
     await waitFor(() => {
       expect(screen.getByText("Dr. John Doe")).toBeInTheDocument();
@@ -258,7 +271,7 @@ describe("ProfessionalsPage", () => {
   });
 
   it("should handle professionals without profile pictures", async () => {
-    render(<ProfessionalsPage />);
+    renderWithAct(<ProfessionalsPage />);
 
     await waitFor(() => {
       expect(screen.getByText("Sin foto")).toBeInTheDocument();
@@ -266,15 +279,22 @@ describe("ProfessionalsPage", () => {
   });
 
   it("should handle filter changes", async () => {
-    render(<ProfessionalsPage />);
+    renderWithAct(<ProfessionalsPage />);
+
+    // Wait for initial load
+    await waitFor(() => {
+      expect(screen.getByTestId("select")).toBeInTheDocument();
+    });
 
     const specialtySelect = screen.getByTestId("select");
     const minPriceInput = screen.getByLabelText("Precio mínimo (COP)");
     const maxPriceInput = screen.getByLabelText("Precio máximo (COP)");
 
-    fireEvent.change(specialtySelect, { target: { value: "Psicología Clínica" } });
-    fireEvent.change(minPriceInput, { target: { value: "10000" } });
-    fireEvent.change(maxPriceInput, { target: { value: "100000" } });
+    await act(async () => {
+      fireEvent.change(specialtySelect, { target: { value: "Psicología Clínica" } });
+      fireEvent.change(minPriceInput, { target: { value: "10000" } });
+      fireEvent.change(maxPriceInput, { target: { value: "100000" } });
+    });
 
     expect(specialtySelect).toHaveValue("Psicología Clínica");
     expect(minPriceInput).toHaveValue(10000);
@@ -282,7 +302,7 @@ describe("ProfessionalsPage", () => {
   });
 
   it("should apply filters when form is submitted", async () => {
-    render(<ProfessionalsPage />);
+    renderWithAct(<ProfessionalsPage />);
 
     // Wait for initial load
     await waitFor(() => {
@@ -292,8 +312,10 @@ describe("ProfessionalsPage", () => {
     const specialtySelect = screen.getByTestId("select");
     const applyButton = screen.getByText("Aplicar filtros");
 
-    fireEvent.change(specialtySelect, { target: { value: "Psicología Clínica" } });
-    fireEvent.click(applyButton);
+    await act(async () => {
+      fireEvent.change(specialtySelect, { target: { value: "Psicología Clínica" } });
+      fireEvent.click(applyButton);
+    });
 
     await waitFor(() => {
       expect(mockQueryProfessionals).toHaveBeenCalledWith({
@@ -307,7 +329,7 @@ describe("ProfessionalsPage", () => {
   });
 
   it("should clear filters when clear button is clicked", async () => {
-    render(<ProfessionalsPage />);
+    renderWithAct(<ProfessionalsPage />);
 
     // Wait for initial load
     await waitFor(() => {
@@ -330,7 +352,9 @@ describe("ProfessionalsPage", () => {
     expect(maxPriceInput).toHaveValue(100000);
 
     // Clear filters - just verify the button can be clicked
-    fireEvent.click(clearButton);
+    await act(async () => {
+      fireEvent.click(clearButton);
+    });
 
     // The clear button should be clickable and not throw an error
     expect(clearButton).toBeInTheDocument();
@@ -339,7 +363,7 @@ describe("ProfessionalsPage", () => {
   it("should show error message when query fails", async () => {
     mockQueryProfessionals.mockRejectedValue(new Error("Network error"));
 
-    render(<ProfessionalsPage />);
+    renderWithAct(<ProfessionalsPage />);
 
     await waitFor(() => {
       expect(screen.getByText("Network error")).toBeInTheDocument();
@@ -352,7 +376,7 @@ describe("ProfessionalsPage", () => {
       lastSnapshot: null,
     });
 
-    render(<ProfessionalsPage />);
+    renderWithAct(<ProfessionalsPage />);
 
     await waitFor(() => {
       expect(screen.getByText("No encontramos profesionales con los filtros seleccionados.")).toBeInTheDocument();
@@ -360,7 +384,7 @@ describe("ProfessionalsPage", () => {
   });
 
   it("should show load more button when there are more results", async () => {
-    render(<ProfessionalsPage />);
+    renderWithAct(<ProfessionalsPage />);
 
     await waitFor(() => {
       expect(screen.getByText("Dr. John Doe")).toBeInTheDocument();
@@ -370,14 +394,40 @@ describe("ProfessionalsPage", () => {
   });
 
   it("should load more professionals when load more button is clicked", async () => {
-    render(<ProfessionalsPage />);
+    // Create different professionals for the load more call to avoid duplicate keys
+    const additionalProfessionals = [
+      {
+        id: "3",
+        full_name: "Dr. Additional Professional",
+        bio: "Additional professional for testing",
+        rate_cents: 60000,
+        specialty_ids: ["specialty-4"],
+        profile_picture: undefined,
+      },
+    ];
+
+    // First call returns initial professionals
+    mockQueryProfessionals.mockResolvedValueOnce({
+      professionals: mockProfessionals,
+      lastSnapshot: "mock-snapshot",
+    });
+
+    // Second call returns additional professionals
+    mockQueryProfessionals.mockResolvedValueOnce({
+      professionals: additionalProfessionals,
+      lastSnapshot: null,
+    });
+
+    renderWithAct(<ProfessionalsPage />);
 
     await waitFor(() => {
       expect(screen.getByText("Dr. John Doe")).toBeInTheDocument();
     });
 
     const loadMoreButton = screen.getByText("Cargar más");
-    fireEvent.click(loadMoreButton);
+    await act(async () => {
+      fireEvent.click(loadMoreButton);
+    });
 
     await waitFor(() => {
       expect(mockQueryProfessionals).toHaveBeenCalledWith({
@@ -396,7 +446,7 @@ describe("ProfessionalsPage", () => {
       lastSnapshot: null,
     });
 
-    render(<ProfessionalsPage />);
+    renderWithAct(<ProfessionalsPage />);
 
     await waitFor(() => {
       expect(screen.getByText("Dr. John Doe")).toBeInTheDocument();
@@ -406,20 +456,59 @@ describe("ProfessionalsPage", () => {
   });
 
   it("should show loading state on load more button when loading", async () => {
-    render(<ProfessionalsPage />);
+    // First, let the initial load complete
+    mockQueryProfessionals.mockResolvedValue({
+      professionals: mockProfessionals,
+      lastSnapshot: "mock-snapshot",
+    });
+
+    renderWithAct(<ProfessionalsPage />);
 
     await waitFor(() => {
       expect(screen.getByText("Dr. John Doe")).toBeInTheDocument();
     });
 
-    const loadMoreButton = screen.getByText("Cargar más");
-    fireEvent.click(loadMoreButton);
+    // Now mock the second call to return a pending promise
+    let resolvePromise: (value: unknown) => void;
+    const loadingPromise = new Promise((resolve) => {
+      resolvePromise = resolve;
+    });
+    mockQueryProfessionals.mockReturnValueOnce(loadingPromise);
 
-    expect(screen.getByText("Cargando...")).toBeInTheDocument();
+    const loadMoreButton = screen.getByText("Cargar más");
+    
+    await act(async () => {
+      fireEvent.click(loadMoreButton);
+    });
+
+    // Check that loading state is shown
+    await waitFor(() => {
+      expect(screen.getByText("Cargando...")).toBeInTheDocument();
+    });
+
+    // Resolve the promise with different professionals to avoid duplicate keys
+    resolvePromise!({
+      professionals: [
+        {
+          id: "3",
+          full_name: "Dr. Additional Professional",
+          bio: "Additional professional for testing",
+          rate_cents: 60000,
+          specialty_ids: ["specialty-4"],
+          profile_picture: undefined,
+        },
+      ],
+      lastSnapshot: "mock-snapshot",
+    });
+
+    // Wait for the loading to complete
+    await waitFor(() => {
+      expect(screen.queryByText("Cargando...")).not.toBeInTheDocument();
+    });
   });
 
   it("should render professional links correctly", async () => {
-    render(<ProfessionalsPage />);
+    renderWithAct(<ProfessionalsPage />);
 
     await waitFor(() => {
       expect(screen.getByText("Dr. John Doe")).toBeInTheDocument();
@@ -431,7 +520,7 @@ describe("ProfessionalsPage", () => {
   });
 
   it("should render professional images correctly", async () => {
-    render(<ProfessionalsPage />);
+    renderWithAct(<ProfessionalsPage />);
 
     await waitFor(() => {
       expect(screen.getByText("Dr. John Doe")).toBeInTheDocument();
@@ -448,7 +537,7 @@ describe("ProfessionalsPage", () => {
       loading: true,
     });
 
-    render(<ProfessionalsPage />);
+    renderWithAct(<ProfessionalsPage />);
 
     await waitFor(() => {
       expect(screen.getByText("Dr. John Doe")).toBeInTheDocument();
@@ -478,7 +567,7 @@ describe("ProfessionalsPage", () => {
       lastSnapshot: null,
     });
 
-    render(<ProfessionalsPage />);
+    renderWithAct(<ProfessionalsPage />);
 
     await waitFor(() => {
       expect(screen.getByText("Especialidad no especificada")).toBeInTheDocument();
@@ -502,7 +591,7 @@ describe("ProfessionalsPage", () => {
       lastSnapshot: null,
     });
 
-    render(<ProfessionalsPage />);
+    renderWithAct(<ProfessionalsPage />);
 
     await waitFor(() => {
       expect(screen.getByText("Dr. John Doe")).toBeInTheDocument();

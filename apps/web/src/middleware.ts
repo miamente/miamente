@@ -30,8 +30,6 @@ export function middleware(request: NextRequest) {
       adminUrl.pathname = `/admin/professionals${pathname.replace("/professionals", "")}`;
     } else if (pathname.startsWith("/specialties")) {
       adminUrl.pathname = `/admin/specialties${pathname.replace("/specialties", "")}`;
-    } else if (pathname.startsWith("/modalities")) {
-      adminUrl.pathname = `/admin/modalities${pathname.replace("/modalities", "")}`;
     } else if (pathname.startsWith("/approaches")) {
       adminUrl.pathname = `/admin/approaches${pathname.replace("/approaches", "")}`;
     } else {

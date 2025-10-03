@@ -21,7 +21,7 @@ describe("AdminDashboard", () => {
 
     // Check all quick action buttons
     const quickActionButtons = screen.getAllByRole("link");
-    expect(quickActionButtons).toHaveLength(4); // 4 in quick actions
+    expect(quickActionButtons).toHaveLength(3); // 3 in quick actions (removed modalities)
 
     // Verify quick action links
     expect(screen.getByRole("link", { name: /Gestionar Usuarios/i })).toBeInTheDocument();
@@ -29,10 +29,6 @@ describe("AdminDashboard", () => {
     expect(screen.getByRole("link", { name: /Gestionar Especialidades/i })).toHaveAttribute(
       "href",
       "/admin/specialties",
-    );
-    expect(screen.getByRole("link", { name: /Gestionar Modalidades/i })).toHaveAttribute(
-      "href",
-      "/admin/modalities",
     );
   });
 

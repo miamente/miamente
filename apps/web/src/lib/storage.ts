@@ -1,6 +1,6 @@
 // Simple file upload utility for the new backend
 import { apiClient } from "./api";
-import { generateUniqueIdHex } from "./id";
+// ID generation removed - using crypto.randomUUID for filenames
 
 export interface UploadResponse {
   url: string;
@@ -41,9 +41,4 @@ export function getStoragePath(filename: string): string {
   return `/uploads/${filename}`;
 }
 
-export function generateUniqueFilename(originalName: string): string {
-  const timestamp = Date.now();
-  const random = generateUniqueIdHex(32);
-  const extension = originalName.split(".").pop();
-  return `${timestamp}_${random}.${extension}`;
-}
+// generateUniqueFilename removed - filename generation now handled by backend during upload

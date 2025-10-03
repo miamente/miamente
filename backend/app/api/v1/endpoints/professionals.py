@@ -125,9 +125,19 @@ def _update_modalities(professional: Professional, update_data: dict, db: Sessio
     # Add new modalities
     for modality_data in update_data["modalities"]:
         print(f"DEBUG: Creating modality with data: {modality_data}")
+        # Handle modality_id - generate new UUID for temporary IDs
+        modality_id_str = modality_data["modalityId"]
+        if modality_id_str.startswith("temp-"):
+            # Generate new UUID for temporary IDs from frontend
+            modality_id = uuid.uuid4()
+            print(f"DEBUG: Generated new UUID for temporary ID: {modality_id_str} -> {modality_id}")
+        else:
+            # Use existing UUID
+            modality_id = uuid.UUID(modality_id_str)
+            print(f"DEBUG: Using existing UUID: {modality_id}")
         new_modality = ProfessionalModality(
             professional_id=professional.id,
-            modality_id=uuid.UUID(modality_data["modalityId"]),
+            modality_id=modality_id,
             modality_name=modality_data["modalityName"],
             virtual_price=modality_data["virtualPrice"],
             presencial_price=modality_data.get("presencialPrice", 0),
