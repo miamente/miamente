@@ -1,13 +1,15 @@
 "use client";
 import React, { useEffect, useState } from "react";
-import { Search, Plus, Edit, Trash2, X, Stethoscope, Eye, EyeOff } from "lucide-react";
+import { Plus, Edit, Trash2, Stethoscope, Eye, EyeOff } from "lucide-react";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+// Input import removed: using SearchCard component instead
 import { EntityFormDialog, EntityFormData } from "@/components/admin/EntityFormDialog";
 import { DeleteConfirmDialog } from "@/components/admin/DeleteConfirmDialog";
 import { ToggleStatusDialog } from "@/components/admin/ToggleStatusDialog";
+import { SearchResultsInfo } from "@/components/admin/SearchResultsInfo";
+import { SearchCard } from "@/components/admin/SearchCard";
 import { apiClient } from "@/lib/api";
 import type { Specialty, SpecialtyCreate, SpecialtyUpdate } from "@/lib/types";
 import { Pagination } from "@/components/ui/pagination";
@@ -31,11 +33,7 @@ export default function AdminSpecialties() {
     setCurrentPage(1); // Reset to first page when clearing search
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
-      handleSearch();
-    }
-  };
+  // keydown handler removed; SearchCard handles Enter
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -162,7 +160,7 @@ export default function AdminSpecialties() {
   if (loading) {
     return (
       <div className="flex h-64 items-center justify-center">
-        <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-red-600"></div>
+        <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-red-600" data-testid="loading-spinner"></div>
       </div>
     );
   }
@@ -186,48 +184,27 @@ export default function AdminSpecialties() {
       )}
 
       {/* Search */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Buscar Especialidades</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex gap-2">
-            <div className="relative flex-1">
-            <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-gray-400" />
-            <Input
-                placeholder="Buscar por nombre de especialidad..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-                onKeyDown={handleKeyDown}
-              className="pl-10"
-            />
-            </div>
-            <Button onClick={handleSearch} disabled={loading}>
-              <Search className="mr-2 h-4 w-4" />
-              Buscar
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+      <SearchCard
+        title="Buscar Especialidades"
+        placeholder="Buscar por nombre de especialidad..."
+        searchTerm={searchTerm}
+        onSearchTermChange={setSearchTerm}
+        onSearch={handleSearch}
+        onClearSearch={handleClearSearch}
+        showClearButton={true}
+        loading={loading}
+        entityName="especialidad"
+      />
 
       {/* Search Results Info */}
-      {appliedSearch && (
-        <div className="flex items-center justify-between rounded-md bg-blue-50 px-4 py-3">
-          <div className="flex items-center">
-            <Search className="mr-2 h-4 w-4 text-blue-600" />
-            <span className="text-sm text-blue-800">
-              {totalItems === 0 
-                ? `No se encontraron especialidades que coincidan con "${appliedSearch}"`
-                : `Se encontraron ${totalItems} especialidad${totalItems === 1 ? '' : 'es'} que coinciden con "${appliedSearch}"`
-              }
-            </span>
-                </div>
-          <Button variant="outline" size="sm" onClick={handleClearSearch}>
-            <X className="mr-1 h-3 w-3" />
-            Limpiar
-          </Button>
-              </div>
-      )}
+      <SearchResultsInfo
+        appliedSearch={appliedSearch}
+        totalItems={totalItems}
+        entityName="especialidad"
+        entityNamePlural="especialidades"
+        showClearButton={true}
+        onClearSearch={handleClearSearch}
+      />
 
       {/* Specialties Table */}
       <Card className="p-0">

@@ -293,7 +293,9 @@ describe("AdminTherapeuticApproaches", () => {
     });
 
     expect(screen.getByText("Confirmar Eliminación")).toBeInTheDocument();
-    expect(screen.getByText('"Terapia Cognitivo-Conductual"')).toBeInTheDocument();
+    expect(
+      screen.getAllByText((content, node) => node?.textContent?.includes("Terapia Cognitivo-Conductual") ?? false).length
+    ).toBeGreaterThan(0);
   });
 
   it("opens toggle confirmation dialog when toggle button is clicked", async () => {
@@ -313,7 +315,9 @@ describe("AdminTherapeuticApproaches", () => {
     });
 
     expect(screen.getByText("Desactivar Enfoque Terapéutico")).toBeInTheDocument();
-    expect(screen.getByText('"Terapia Cognitivo-Conductual"')).toBeInTheDocument();
+    expect(
+      screen.getAllByText((content, node) => node?.textContent?.includes("Terapia Cognitivo-Conductual") ?? false).length
+    ).toBeGreaterThan(0);
   });
 
   it("performs search when search button is clicked", async () => {

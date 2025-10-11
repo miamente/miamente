@@ -4,7 +4,7 @@ Professional model for the Miamente platform.
 
 import uuid
 
-from sqlalchemy import ARRAY, Boolean, Column, Integer, String, Text
+from sqlalchemy import ARRAY, Boolean, Column, DateTime, Integer, String, Text
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 
@@ -55,6 +55,7 @@ class Professional(Base, TimestampMixin):
     # Contact information
     emergency_contact = Column(String(255), nullable=True)
     emergency_phone = Column(String(20), nullable=True)
+    last_login = Column(DateTime, nullable=True)  # Last login timestamp
 
     # Relationships
     professional_specialties = relationship(

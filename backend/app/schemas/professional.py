@@ -149,6 +149,40 @@ class ProfessionalResponse(ProfessionalBase):
     model_config = ConfigDict(from_attributes=True)
 
 
+class ProfessionalWithCountResponse(BaseModel):
+    """Professional response with count for admin."""
+
+    id: uuid.UUID
+    email: EmailStr
+    full_name: str
+    phone_country_code: Optional[str] = None
+    phone_number: Optional[str] = None
+    is_active: bool
+    is_verified: bool
+    profile_picture: Optional[str] = None
+    created_at: datetime
+    updated_at: Optional[datetime] = None
+    license_number: Optional[str] = None
+    years_experience: int = 0
+    rate_cents: int = 50000
+    currency: str = "COP"
+    bio: Optional[str] = None
+    timezone: str = "America/Bogota"
+    last_login: Optional[datetime] = None
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class PaginatedProfessionalsResponse(BaseModel):
+    """Paginated professionals response schema."""
+
+    items: List[ProfessionalWithCountResponse]
+    total: int
+    page: int
+    page_size: int
+    total_pages: int
+
+
 class ProfessionalLogin(BaseModel):
     """Professional login schema."""
 

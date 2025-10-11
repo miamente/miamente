@@ -3,6 +3,7 @@ Authentication service.
 """
 
 import uuid
+from datetime import datetime
 from typing import Optional
 
 from fastapi import HTTPException, status
@@ -28,6 +29,12 @@ class AuthService:
             return None
         if not verify_password(password, user.hashed_password):
             return None
+
+        # Update last login timestamp
+        user.last_login = datetime.utcnow()
+        self.db.commit()
+        self.db.refresh(user)
+
         return user
 
     def authenticate_professional(self, email: str, password: str) -> Optional[Professional]:
@@ -37,6 +44,12 @@ class AuthService:
             return None
         if not verify_password(password, professional.hashed_password):
             return None
+
+        # Update last login timestamp
+        professional.last_login = datetime.utcnow()
+        self.db.commit()
+        self.db.refresh(professional)
+
         return professional
 
     def create_user(self, user_data: UserCreate) -> User:

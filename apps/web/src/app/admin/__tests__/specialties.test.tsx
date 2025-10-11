@@ -1,15 +1,16 @@
 import React from "react";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { vi } from "vitest";
-import AdminProfessionalsPage from "../professionals/page";
+import AdminSpecialties from "../specialties/page";
 import { apiClient } from "@/lib/api";
 
 // Mock the API client
 vi.mock("@/lib/api", () => ({
   apiClient: {
-    getAllProfessionalsAdmin: vi.fn(),
-    deleteProfessional: vi.fn(),
-    toggleProfessionalStatus: vi.fn(),
+    getAllSpecialtiesAdmin: vi.fn(),
+    createSpecialty: vi.fn(),
+    updateSpecialty: vi.fn(),
+    deleteSpecialty: vi.fn(),
   },
 }));
 
@@ -31,6 +32,17 @@ vi.mock("@/components/admin/SearchResultsInfo", () => ({
     <div data-testid="search-results-info">
       {appliedSearch && <span>Results: {totalItems}</span>}
     </div>
+  ),
+}));
+
+interface MockEntityFormDialogProps { isOpen: boolean; onSubmit: () => void }
+vi.mock("@/components/admin/EntityFormDialog", () => ({
+  EntityFormDialog: ({ isOpen, onSubmit }: MockEntityFormDialogProps) => (
+    isOpen ? (
+      <div data-testid="entity-form-dialog">
+        <button onClick={onSubmit} data-testid="submit-form">Submit</button>
+      </div>
+    ) : null
   ),
 }));
 
@@ -56,42 +68,30 @@ vi.mock("@/components/admin/ToggleStatusDialog", () => ({
   ),
 }));
 
-const mockProfessionals = [
+const mockSpecialties = [
   {
     id: "1",
-    full_name: "Dr. Juan Pérez",
-    email: "juan@example.com",
+    name: "Psicología Clínica",
+    description: "Especialidad en psicología clínica",
     is_active: true,
-    is_verified: true,
+    professional_count: 5,
     created_at: "2024-01-01T00:00:00Z",
-    updated_at: "2024-01-10T00:00:00Z",
-    license_number: "LIC-123",
-    years_experience: 5,
-    rate_cents: 5000,
-    currency: "USD",
-    timezone: "America/Argentina/Buenos_Aires",
-    last_login: "2024-01-15T10:00:00Z",
   },
   {
     id: "2",
-    full_name: "Dra. María García",
-    email: "maria@example.com",
+    name: "Terapia Familiar",
+    description: "Especialidad en terapia familiar",
     is_active: false,
-    is_verified: false,
+    professional_count: 3,
     created_at: "2024-01-02T00:00:00Z",
-    license_number: "LIC-456",
-    years_experience: 8,
-    rate_cents: 7500,
-    currency: "USD",
-    timezone: "America/Argentina/Buenos_Aires",
   },
 ];
 
-describe("AdminProfessionalsPage", () => {
+describe("AdminSpecialties", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(apiClient.getAllProfessionalsAdmin).mockResolvedValue({
-      items: mockProfessionals as unknown as import("@/lib/types").ProfessionalWithCountResponse[],
+    vi.mocked(apiClient.getAllSpecialtiesAdmin).mockResolvedValue({
+      items: mockSpecialties as unknown as import("@/lib/types").Specialty[],
       total: 2,
       page: 1,
       page_size: 10,
@@ -100,16 +100,16 @@ describe("AdminProfessionalsPage", () => {
   });
 
   it("renders the page title and header", async () => {
-    render(<AdminProfessionalsPage />);
+    render(<AdminSpecialties />);
     
     await waitFor(() => {
-      expect(screen.getByText("Gestión de Profesionales")).toBeInTheDocument();
-      expect(screen.getByText("Administrar profesionales registrados en la plataforma")).toBeInTheDocument();
+      expect(screen.getByText("Gestión de Especialidades")).toBeInTheDocument();
+      expect(screen.getByText("Administrar especialidades médicas y terapéuticas")).toBeInTheDocument();
     });
   });
 
   it("renders search components", async () => {
-    render(<AdminProfessionalsPage />);
+    render(<AdminSpecialties />);
     
     await waitFor(() => {
       expect(screen.getByTestId("search-card")).toBeInTheDocument();
@@ -117,39 +117,50 @@ describe("AdminProfessionalsPage", () => {
     });
   });
 
-  it("displays professionals in table", async () => {
-    render(<AdminProfessionalsPage />);
+  it("displays specialties in table", async () => {
+    render(<AdminSpecialties />);
     
     await waitFor(() => {
-      expect(screen.getByText("Dr. Juan Pérez")).toBeInTheDocument();
-      expect(screen.getByText("Dra. María García")).toBeInTheDocument();
-      expect(screen.getByText("juan@example.com")).toBeInTheDocument();
-      expect(screen.getByText("maria@example.com")).toBeInTheDocument();
+      expect(screen.getByText("Psicología Clínica")).toBeInTheDocument();
+      expect(screen.getByText("Terapia Familiar")).toBeInTheDocument();
+      expect(screen.getByText("Especialidad en psicología clínica")).toBeInTheDocument();
+      expect(screen.getByText("Especialidad en terapia familiar")).toBeInTheDocument();
     });
   });
 
   it("shows active status correctly", async () => {
-    render(<AdminProfessionalsPage />);
+    render(<AdminSpecialties />);
     
     await waitFor(() => {
-      expect(screen.getByText("Activo")).toBeInTheDocument();
-      expect(screen.getByText("Inactivo")).toBeInTheDocument();
+      expect(screen.getByText("Activa")).toBeInTheDocument();
+      expect(screen.getByText("Inactiva")).toBeInTheDocument();
     });
   });
 
-  it("shows action buttons for each professional", async () => {
-    render(<AdminProfessionalsPage />);
+  it("shows professional count", async () => {
+    render(<AdminSpecialties />);
     
     await waitFor(() => {
+      expect(screen.getByText("5")).toBeInTheDocument();
+      expect(screen.getByText("3")).toBeInTheDocument();
+    });
+  });
+
+  it("shows action buttons for each specialty", async () => {
+    render(<AdminSpecialties />);
+    
+    await waitFor(() => {
+      const editButtons = screen.getAllByRole("button", { name: "" });
       const toggleButtons = screen.getAllByRole("button", { name: "" });
       const deleteButtons = screen.getAllByRole("button", { name: "" });
+      expect(editButtons.length).toBeGreaterThan(0);
       expect(toggleButtons.length).toBeGreaterThan(0);
       expect(deleteButtons.length).toBeGreaterThan(0);
     });
   });
 
   it("handles search functionality", async () => {
-    render(<AdminProfessionalsPage />);
+    render(<AdminSpecialties />);
     
     await waitFor(() => {
       expect(screen.getByTestId("search-card")).toBeInTheDocument();
@@ -159,12 +170,12 @@ describe("AdminProfessionalsPage", () => {
     fireEvent.click(searchButton);
     
     await waitFor(() => {
-      expect(apiClient.getAllProfessionalsAdmin).toHaveBeenCalled();
+      expect(apiClient.getAllSpecialtiesAdmin).toHaveBeenCalled();
     });
   });
 
   it("handles clear search functionality", async () => {
-    render(<AdminProfessionalsPage />);
+    render(<AdminSpecialties />);
     
     await waitFor(() => {
       expect(screen.getByTestId("search-card")).toBeInTheDocument();
@@ -174,30 +185,30 @@ describe("AdminProfessionalsPage", () => {
     fireEvent.click(clearButton);
     
     await waitFor(() => {
-      expect(apiClient.getAllProfessionalsAdmin).toHaveBeenCalled();
+      expect(apiClient.getAllSpecialtiesAdmin).toHaveBeenCalled();
     });
   });
 
   it("shows loading state", () => {
-    vi.mocked(apiClient.getAllProfessionalsAdmin).mockImplementation(() => new Promise(() => {}));
+    vi.mocked(apiClient.getAllSpecialtiesAdmin).mockImplementation(() => new Promise(() => {}));
     
-    render(<AdminProfessionalsPage />);
+    render(<AdminSpecialties />);
     
     expect(screen.getByTestId("loading-spinner")).toBeInTheDocument();
   });
 
   it("shows error message when API fails", async () => {
-    vi.mocked(apiClient.getAllProfessionalsAdmin).mockRejectedValue(new Error("API Error"));
+    vi.mocked(apiClient.getAllSpecialtiesAdmin).mockRejectedValue(new Error("API Error"));
     
-    render(<AdminProfessionalsPage />);
+    render(<AdminSpecialties />);
     
     await waitFor(() => {
-      expect(screen.getByText("Error al cargar profesionales")).toBeInTheDocument();
+      expect(screen.getByText("Error al cargar las especialidades")).toBeInTheDocument();
     });
   });
 
-  it("shows no results message when no professionals", async () => {
-    vi.mocked(apiClient.getAllProfessionalsAdmin).mockResolvedValue({
+  it("shows no results message when no specialties", async () => {
+    vi.mocked(apiClient.getAllSpecialtiesAdmin).mockResolvedValue({
       items: [],
       total: 0,
       page: 1,
@@ -205,10 +216,18 @@ describe("AdminProfessionalsPage", () => {
       total_pages: 0,
     });
     
-    render(<AdminProfessionalsPage />);
+    render(<AdminSpecialties />);
     
     await waitFor(() => {
-      expect(screen.getByText("No hay profesionales registrados")).toBeInTheDocument();
+      expect(screen.getByText("No hay especialidades registradas")).toBeInTheDocument();
+    });
+  });
+
+  it("shows add specialty button", async () => {
+    render(<AdminSpecialties />);
+    
+    await waitFor(() => {
+      expect(screen.getByText("Agregar Especialidad")).toBeInTheDocument();
     });
   });
 });

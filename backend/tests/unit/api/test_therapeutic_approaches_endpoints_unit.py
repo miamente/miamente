@@ -308,3 +308,21 @@ class TestGetAllTherapeuticApproachesAdmin:
         assert result.total == 25
         assert result.total_pages == 3
         mock_service.get_therapeutic_approaches_admin.assert_called_once_with(skip=10, limit=10, search=None)
+
+    @patch("app.api.v1.endpoints.therapeutic_approaches.TherapeuticApproachService")
+    def test_get_all_therapeutic_approaches_admin_pagination_and_search(self, mock_service_class, mock_db, sample_therapeutic_approach):
+        """Test combined pagination and search for admin list."""
+        mock_service = MagicMock()
+        mock_service_class.return_value = mock_service
+        mock_service.get_therapeutic_approaches_admin.return_value = [sample_therapeutic_approach]
+        mock_service.get_therapeutic_approaches_count.return_value = 1
+        mock_service.get_therapeutic_approach_professional_count.return_value = 2
+
+        result = get_all_therapeutic_approaches_admin(page=3, page_size=5, search="cogn", db=mock_db, _admin_user=None)
+
+        assert result.page == 3
+        assert result.page_size == 5
+        assert result.total == 1
+        assert len(result.items) == 1
+        mock_service.get_therapeutic_approaches_admin.assert_called_once_with(skip=10, limit=5, search="cogn")
+        mock_service.get_therapeutic_approaches_count.assert_called_once_with(search="cogn")

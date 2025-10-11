@@ -157,6 +157,34 @@ export interface ProfessionalLogin {
   password: string;
 }
 
+export interface ProfessionalWithCountResponse {
+  id: string;
+  email: string;
+  full_name: string;
+  phone_country_code?: string;
+  phone_number?: string;
+  is_active: boolean;
+  is_verified: boolean;
+  profile_picture?: string;
+  created_at: string;
+  updated_at?: string;
+  license_number?: string;
+  years_experience: number;
+  rate_cents: number;
+  currency: string;
+  bio?: string;
+  timezone: string;
+  last_login?: string;
+}
+
+export interface PaginatedProfessionalsResponse {
+  items: ProfessionalWithCountResponse[];
+  total: number;
+  page: number;
+  page_size: number;
+  total_pages: number;
+}
+
 // ============================================================================
 // SPECIALTY TYPES
 // ============================================================================

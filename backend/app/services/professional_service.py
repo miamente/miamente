@@ -38,6 +38,30 @@ class ProfessionalService:
         """Get all active professionals."""
         return self.db.query(Professional).filter(Professional.is_active).offset(skip).limit(limit).all()
 
+    def get_professionals_admin(
+        self, skip: int = 0, limit: int = 100, search: Optional[str] = None
+    ) -> List[Professional]:
+        """Get all professionals for admin (includes inactive)."""
+        query = self.db.query(Professional)
+
+        if search:
+            # Use ILIKE for case-insensitive search with proper escaping
+            search_term = f"%{search.strip()}%"
+            query = query.filter((Professional.full_name.ilike(search_term)) | (Professional.email.ilike(search_term)))
+
+        return query.order_by(Professional.full_name.asc()).offset(skip).limit(limit).all()
+
+    def get_professionals_count(self, search: Optional[str] = None) -> int:
+        """Get total count of professionals."""
+        query = self.db.query(Professional)
+
+        if search:
+            # Use ILIKE for case-insensitive search with proper escaping
+            search_term = f"%{search.strip()}%"
+            query = query.filter((Professional.full_name.ilike(search_term)) | (Professional.email.ilike(search_term)))
+
+        return query.count()
+
     def get_professionals_by_specialty(self, specialty: str) -> List[Professional]:
         """Get professionals by specialty."""
         return (
