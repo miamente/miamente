@@ -23,6 +23,7 @@ import type {
   PaginatedResponse,
   PaginatedSpecialtiesResponse,
   PaginatedTherapeuticApproachesResponse,
+  PaginatedProfessionalsResponse,
   ErrorResponse,
   AuthUser,
   UserUpdate,
@@ -375,6 +376,17 @@ class ApiClient {
     return this.patch<Professional>(`/professionals/${professionalId}/status`, {
       is_active: isActive,
     });
+  }
+
+  async getAllProfessionalsAdmin(page: number = 1, pageSize: number = 10, search?: string): Promise<PaginatedProfessionalsResponse> {
+    const params = new URLSearchParams({
+      page: page.toString(),
+      page_size: pageSize.toString(),
+    });
+    if (search) {
+      params.set("search", search);
+    }
+    return this.get<PaginatedProfessionalsResponse>(`/professionals/admin/all?${params.toString()}`);
   }
 
   // Specialty methods

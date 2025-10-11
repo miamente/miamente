@@ -37,6 +37,7 @@ class User(Base, TimestampMixin):
     emergency_contact = Column(String(255), nullable=True)
     emergency_phone = Column(String(20), nullable=True)
     preferences = Column(Text, nullable=True)  # JSON string for user preferences
+    last_login = Column(DateTime, nullable=True)  # Last login timestamp
 
     # Relationships
 

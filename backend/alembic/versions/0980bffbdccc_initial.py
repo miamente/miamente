@@ -58,6 +58,7 @@ def upgrade() -> None:
     sa.Column('working_hours', sa.Text(), nullable=True),
     sa.Column('emergency_contact', sa.String(length=255), nullable=True),
     sa.Column('emergency_phone', sa.String(length=20), nullable=True),
+    sa.Column('last_login', sa.DateTime(), nullable=True),
     sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('CURRENT_TIMESTAMP'), nullable=False),
     sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('CURRENT_TIMESTAMP'), nullable=False),
     sa.PrimaryKeyConstraint('id')
@@ -99,6 +100,7 @@ def upgrade() -> None:
     sa.Column('emergency_contact', sa.String(length=255), nullable=True),
     sa.Column('emergency_phone', sa.String(length=20), nullable=True),
     sa.Column('preferences', sa.Text(), nullable=True),
+    sa.Column('last_login', sa.DateTime(), nullable=True),
     sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('CURRENT_TIMESTAMP'), nullable=False),
     sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('CURRENT_TIMESTAMP'), nullable=False),
     sa.PrimaryKeyConstraint('id')

@@ -52,6 +52,7 @@ describe("AdminProfessionals", () => {
       expect(screen.getByText("Gestión de Profesionales")).toBeInTheDocument();
     });
 
-    expect(screen.getByText("Administrar profesionales de la plataforma")).toBeInTheDocument();
+    // Description text changed in page: adjust expectation
+    expect(screen.getByText("Administrar profesionales registrados en la plataforma")).toBeInTheDocument();
   });
 });

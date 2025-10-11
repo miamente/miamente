@@ -1,127 +1,132 @@
 "use client";
 import React, { useEffect, useState } from "react";
-import {
-  Search,
-  MoreVertical,
-  Edit,
-  Trash2,
-  UserX,
-  UserCheck,
-  Mail,
-  Phone,
-  Calendar,
-  Stethoscope,
-} from "lucide-react";
+import { Plus, Trash2, User, Eye, EyeOff } from "lucide-react";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { formatBogotaDate } from "@/lib/timezone";
+// Input import removed: not used after refactor
+import { Pagination } from "@/components/ui/pagination";
+import { DeleteConfirmDialog } from "@/components/admin/DeleteConfirmDialog";
+import { ToggleStatusDialog } from "@/components/admin/ToggleStatusDialog";
+import { SearchResultsInfo } from "@/components/admin/SearchResultsInfo";
+import { SearchCard } from "@/components/admin/SearchCard";
+import { ProfessionalCreateDialog, ProfessionalCreateData } from "@/components/admin/ProfessionalCreateDialog";
 import { apiClient } from "@/lib/api";
-import type { Professional } from "@/lib/types";
+import type { ProfessionalWithCountResponse, PaginatedProfessionalsResponse } from "@/lib/types";
 
-// Extended Professional interface for admin with last_login
-interface AdminProfessional extends Professional {
-  last_login?: string;
-}
+export default function AdminProfessionalsPage() {
+  const [professionals, setProfessionals] = useState<ProfessionalWithCountResponse[]>([]);
+  const [totalItems, setTotalItems] = useState<number>(0);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string>("");
 
-export default function AdminProfessionals() {
-  const [professionals, setProfessionals] = useState<AdminProfessional[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [filterStatus, setFilterStatus] = useState<string>("all");
+  const [search, setSearch] = useState<string>("");
+  const [appliedSearch, setAppliedSearch] = useState<string>("");
 
-  useEffect(() => {
-    const loadProfessionals = async () => {
-      try {
-        setLoading(true);
-        setError(null);
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const [pageSize, setPageSize] = useState<number>(10);
 
-        // Load all professionals
-        const response = await apiClient.getProfessionals();
-        console.log("Professionals API response:", response);
+  const [deleting, setDeleting] = useState<ProfessionalWithCountResponse | null>(null);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState<boolean>(false);
 
-        // Backend returns array directly
-        if (Array.isArray(response)) {
-          setProfessionals(response);
-        } else {
-          console.error("Unexpected response format:", response);
-          setProfessionals([]);
-          setError("Formato de respuesta inesperado del servidor");
-        }
-      } catch (err) {
-        console.error("Error loading professionals:", err);
-        setError("Error al cargar los profesionales. Por favor, inténtalo de nuevo.");
-        setProfessionals([]); // Ensure professionals is always an array
+  const [toggling, setToggling] = useState<ProfessionalWithCountResponse | null>(null);
+  const [isToggleDialogOpen, setIsToggleDialogOpen] = useState<boolean>(false);
+
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState<boolean>(false);
+
+  const fetchProfessionals = async () => {
+    setLoading(true);
+    setError("");
+    try {
+      const response: PaginatedProfessionalsResponse = await apiClient.getAllProfessionalsAdmin(
+        currentPage,
+        pageSize,
+        appliedSearch || undefined
+      );
+      setProfessionals(response.items);
+      setTotalItems(response.total);
+    } catch (e) {
+      console.error("Error loading professionals", e);
+      setError("Error al cargar profesionales");
       } finally {
         setLoading(false);
       }
     };
 
-    loadProfessionals();
-  }, []);
+  useEffect(() => {
+    fetchProfessionals();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentPage, pageSize, appliedSearch]);
 
-  const filteredProfessionals = (professionals || []).filter((professional) => {
-    if (!professional) return false;
+  const handleSearch = () => {
+    setAppliedSearch(search.trim());
+    setCurrentPage(1);
+  };
 
-    const matchesSearch =
-      professional.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      professional.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      professional.bio?.toLowerCase().includes(searchTerm.toLowerCase());
+  const clearSearch = () => {
+    setSearch("");
+    setAppliedSearch("");
+    setCurrentPage(1);
+  };
 
-    const matchesStatus =
-      filterStatus === "all" ||
-      (filterStatus === "active" && professional.is_active) ||
-      (filterStatus === "inactive" && !professional.is_active) ||
-      (filterStatus === "verified" && professional.is_verified) ||
-      (filterStatus === "unverified" && !professional.is_verified);
+  const openDelete = (p: ProfessionalWithCountResponse) => {
+    setDeleting(p);
+    setIsDeleteDialogOpen(true);
+  };
 
-    return matchesSearch && matchesStatus;
-  });
-
-  const handleToggleActive = async (professionalId: string, currentStatus: boolean) => {
+  const confirmDelete = async () => {
+    if (!deleting) return;
     try {
-      const updatedProfessional = await apiClient.toggleProfessionalStatus(
-        professionalId,
-        !currentStatus,
-      );
-      setProfessionals((prev) =>
-        prev.map((professional) =>
-          professional.id === professionalId ? updatedProfessional : professional,
-        ),
-      );
-    } catch (err) {
-      console.error("Error updating professional status:", err);
-      setError("Error al actualizar el estado del profesional");
+      await apiClient.deleteProfessional(deleting.id);
+      await fetchProfessionals();
+    } catch (e) {
+      console.error("Error deleting professional", e);
+      setError("Error al eliminar el profesional");
+    } finally {
+      setIsDeleteDialogOpen(false);
+      setDeleting(null);
     }
   };
 
-  const handleDeleteProfessional = async (professionalId: string) => {
-    if (confirm("¿Estás seguro de que quieres eliminar este profesional?")) {
-      try {
-        await apiClient.deleteProfessional(professionalId);
-        setProfessionals((prev) =>
-          prev.filter((professional) => professional.id !== professionalId),
-        );
-      } catch (err) {
-        console.error("Error deleting professional:", err);
-        setError("Error al eliminar el profesional");
-      }
+  const openToggle = (p: ProfessionalWithCountResponse) => {
+    setToggling(p);
+    setIsToggleDialogOpen(true);
+  };
+
+  const confirmToggle = async () => {
+    if (!toggling) return;
+    try {
+      await apiClient.toggleProfessionalStatus(toggling.id, !toggling.is_active);
+      await fetchProfessionals();
+    } catch (e) {
+      console.error("Error toggling professional status", e);
+      setError("Error al actualizar el estado del profesional");
+    } finally {
+      setIsToggleDialogOpen(false);
+      setToggling(null);
+    }
+  };
+
+  const handleCreateProfessional = async (data: ProfessionalCreateData) => {
+    try {
+      await apiClient.registerProfessional({
+        email: data.email,
+        password: data.password,
+        full_name: `${data.first_name} ${data.last_name}`,
+        phone_number: data.phone || undefined,
+      });
+      await fetchProfessionals();
+      setCurrentPage(1);
+    } catch (e) {
+      console.error("Error creating professional", e);
+      throw new Error("Error al crear el profesional. Verifica que el email no esté en uso.");
     }
   };
 
   if (loading) {
     return (
       <div className="flex h-64 items-center justify-center">
-        <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-red-600"></div>
+        <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-red-600" data-testid="loading-spinner"></div>
       </div>
     );
   }
@@ -132,209 +137,187 @@ export default function AdminProfessionals() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-gray-900">Gestión de Profesionales</h1>
-          <p className="mt-2 text-gray-600">Administrar profesionales de la plataforma</p>
+          <p className="mt-2 text-gray-600">Administrar profesionales registrados en la plataforma</p>
         </div>
-        <Button>Agregar Profesional</Button>
-      </div>
+        <Button className="flex items-center gap-2" onClick={() => setIsCreateDialogOpen(true)}>
+          <Plus className="h-4 w-4" />
+          Agregar Profesional
+            </Button>
+          </div>
 
-      {error && (
+          {error && (
         <div className="rounded-md border border-red-200 bg-red-50 p-4 text-red-600">{error}</div>
       )}
 
-      {/* Filters */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Filtros</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <div>
-              <label
-                htmlFor="search-professionals"
-                className="block text-sm font-medium text-gray-700"
-              >
-                Buscar
-              </label>
-              <div className="relative mt-1">
-                <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-gray-400" />
-                <Input
-                  id="search-professionals"
-                  placeholder="Buscar por nombre, email o biografía..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10"
-                />
-              </div>
-            </div>
-            <div>
-              <label htmlFor="filter-status" className="block text-sm font-medium text-gray-700">
-                Estado
-              </label>
-              <select
-                id="filter-status"
-                value={filterStatus}
-                onChange={(e) => setFilterStatus(e.target.value)}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500"
-              >
-                <option value="all">Todos los estados</option>
-                <option value="active">Activos</option>
-                <option value="inactive">Inactivos</option>
-                <option value="verified">Verificados</option>
-                <option value="unverified">No verificados</option>
-              </select>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+      {/* Search */}
+      <SearchCard
+        title="Buscar Profesionales"
+        placeholder="Buscar por nombre o email..."
+        searchTerm={search}
+        onSearchTermChange={setSearch}
+        onSearch={handleSearch}
+        onClearSearch={clearSearch}
+        showClearButton={true}
+        loading={loading}
+        entityName="profesional"
+      />
+
+      {/* Search Results Info */}
+      <SearchResultsInfo
+        appliedSearch={appliedSearch}
+        totalItems={totalItems}
+        entityName="profesional"
+        entityNamePlural="profesionales"
+        showClearButton={true}
+        onClearSearch={clearSearch}
+      />
 
       {/* Professionals Table */}
-      <Card>
-        <CardHeader>
-          <CardTitle>
-            Profesionales ({filteredProfessionals.length} de {professionals.length})
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          {filteredProfessionals.length === 0 ? (
-            <div className="py-8 text-center text-gray-500">
-              No hay profesionales que coincidan con los filtros seleccionados
-            </div>
-          ) : (
+      <Card className="p-0">
+        <CardContent className="p-0">
             <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b">
-                    <th className="p-4 text-left font-medium">Profesional</th>
-                    <th className="p-4 text-left font-medium">Contacto</th>
-                    <th className="p-4 text-left font-medium">Especialidad</th>
-                    <th className="p-4 text-left font-medium">Estado</th>
-                    <th className="p-4 text-left font-medium">Registro</th>
-                    <th className="p-4 text-left font-medium">Último Acceso</th>
-                    <th className="p-4 text-left font-medium">Acciones</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredProfessionals.map((professional) => (
-                    <tr key={professional.id} className="border-b hover:bg-gray-50">
-                      <td className="p-4">
-                        <div className="font-medium">{professional.full_name}</div>
-                        <div className="text-sm text-gray-500">
-                          ID: {professional.id.slice(0, 8)}...
-                        </div>
-                        {professional.license_number && (
-                          <div className="text-sm text-gray-500">
-                            Licencia: {professional.license_number}
+            <table className="w-full">
+              <thead className="border-b bg-gray-50">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Profesional
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Email
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Estado
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Creado
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Última Visita
+                  </th>
+                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Acciones
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {professionals.map((p) => (
+                  <tr key={p.id} className="hover:bg-gray-50 transition-colors">
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="flex items-center">
+                        <User className="h-5 w-5 text-blue-600 mr-3 flex-shrink-0" />
+                        <div className="min-w-0">
+                          <div className="text-sm font-medium text-gray-900 truncate">
+                            {p.full_name}
                           </div>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      {p.email}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm">
+                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                        p.is_active === true ? "bg-green-100 text-green-800" : "bg-gray-200 text-gray-700"
+                      }`}>
+                        {p.is_active === true ? "Activo" : "Inactivo"}
+                          </span>
+                      </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {new Date(p.created_at).toLocaleDateString('es-ES', {
+                          year: 'numeric',
+                          month: 'short',
+                          day: 'numeric'
+                        })}
+                      </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {p.last_login ? (
+                          new Date(p.last_login).toLocaleDateString('es-ES', {
+                            year: 'numeric',
+                            month: 'short',
+                            day: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit'
+                          })
+                        ) : (
+                          <span className="text-gray-400">Nunca</span>
                         )}
                       </td>
-                      <td className="p-4">
-                        <div className="flex items-center space-x-2 text-sm">
-                          <Mail className="h-4 w-4 text-gray-400" />
-                          <span>{professional.email}</span>
+                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                      <div className="flex justify-end space-x-2">
+                          <Button 
+                          size="sm"
+                            variant="outline" 
+                            onClick={() => openToggle(p)}
+                          className="hover:bg-gray-50"
+                          >
+                            {p.is_active === true ? (
+                              <Eye className="h-4 w-4" />
+                            ) : (
+                              <EyeOff className="h-4 w-4" />
+                            )}
+                          </Button>
+                          <Button 
+                          size="sm"
+                            variant="outline" 
+                            onClick={() => openDelete(p)} 
+                          className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
                         </div>
-                        {professional.phone && (
-                          <div className="flex items-center space-x-2 text-sm text-gray-500">
-                            <Phone className="h-4 w-4 text-gray-400" />
-                            <span>{professional.phone}</span>
-                          </div>
-                        )}
-                      </td>
-                      <td className="p-4">
-                        <div className="flex items-center space-x-2">
-                          <Stethoscope className="h-4 w-4 text-gray-400" />
-                          <span className="text-sm">
-                            {professional.specialty_ids?.length > 0
-                              ? `${professional.specialty_ids.length} especialidad(es)`
-                              : "Sin especialidades"}
-                          </span>
-                        </div>
-                        <div className="text-sm text-gray-500">
-                          {professional.years_experience} años de experiencia
-                        </div>
-                      </td>
-                      <td className="p-4">
-                        <div className="space-y-1">
-                          <Badge variant={professional.is_active ? "default" : "secondary"}>
-                            {professional.is_active ? "Activo" : "Inactivo"}
-                          </Badge>
-                          <br />
-                          <Badge variant={professional.is_verified ? "default" : "outline"}>
-                            {professional.is_verified ? "Verificado" : "No verificado"}
-                          </Badge>
-                        </div>
-                      </td>
-                      <td className="p-4">
-                        <div className="flex items-center space-x-2 text-sm text-gray-500">
-                          <Calendar className="h-4 w-4" />
-                          <span>
-                            {formatBogotaDate(new Date(professional.created_at), {
-                              year: "numeric",
-                              month: "short",
-                              day: "numeric",
-                            })}
-                          </span>
-                        </div>
-                      </td>
-                      <td className="p-4">
-                        <div className="text-sm text-gray-500">
-                          {professional.last_login
-                            ? formatBogotaDate(new Date(professional.last_login), {
-                                year: "numeric",
-                                month: "short",
-                                day: "numeric",
-                                hour: "2-digit",
-                                minute: "2-digit",
-                              })
-                            : "Nunca"}
-                        </div>
-                      </td>
-                      <td className="p-4">
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="sm">
-                              <MoreVertical className="h-4 w-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuItem>
-                              <Edit className="mr-2 h-4 w-4" />
-                              Editar
-                            </DropdownMenuItem>
-                            <DropdownMenuItem
-                              onClick={() =>
-                                handleToggleActive(professional.id, professional.is_active)
-                              }
-                            >
-                              {professional.is_active ? (
-                                <>
-                                  <UserX className="mr-2 h-4 w-4" />
-                                  Desactivar
-                                </>
-                              ) : (
-                                <>
-                                  <UserCheck className="mr-2 h-4 w-4" />
-                                  Activar
-                                </>
-                              )}
-                            </DropdownMenuItem>
-                            <DropdownMenuItem
-                              onClick={() => handleDeleteProfessional(professional.id)}
-                              className="text-red-600"
-                            >
-                              <Trash2 className="mr-2 h-4 w-4" />
-                              Eliminar
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
                       </td>
                     </tr>
-                  ))}
+                ))}
                 </tbody>
               </table>
             </div>
-          )}
+            <Pagination
+              totalItems={totalItems}
+              currentPage={currentPage}
+              pageSize={pageSize}
+            onPageChange={(p) => setCurrentPage(p)}
+            onPageSizeChange={(s) => {
+              setPageSize(s);
+              setCurrentPage(1);
+            }}
+              compact
+            />
         </CardContent>
       </Card>
+
+      {totalItems === 0 && (
+        <Card>
+          <CardContent className="py-8 text-center text-gray-500">
+            {search ? "No hay profesionales que coincidan con la búsqueda" : "No hay profesionales registrados"}
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Delete dialog */}
+      <DeleteConfirmDialog
+        isOpen={isDeleteDialogOpen}
+        onClose={() => setIsDeleteDialogOpen(false)}
+        onConfirm={confirmDelete}
+        entityName="profesional"
+        entityDisplayName={deleting?.full_name || ""}
+      />
+
+      {/* Toggle dialog */}
+      <ToggleStatusDialog
+        isOpen={isToggleDialogOpen}
+        onClose={() => setIsToggleDialogOpen(false)}
+        onConfirm={confirmToggle}
+        entityName="Profesional"
+        entityDisplayName={toggling?.full_name || ""}
+        isCurrentlyActive={toggling?.is_active === true}
+      />
+
+      {/* Create dialog */}
+      <ProfessionalCreateDialog
+        isOpen={isCreateDialogOpen}
+        onClose={() => setIsCreateDialogOpen(false)}
+        onConfirm={handleCreateProfessional}
+      />
     </div>
   );
 }

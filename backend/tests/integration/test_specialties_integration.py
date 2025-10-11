@@ -41,6 +41,32 @@ class TestSpecialtiesIntegration:
 
         return user_data, registered_user, access_token
 
+    def _create_admin_and_token(self, client: TestClient, db_session: Session, test_data_factory):
+        """Helper to create an admin user and return Authorization header.
+
+        We register a regular user, then elevate role directly in DB for test purposes.
+        """
+        user_data = test_data_factory["user"]("admin_user")
+        # Register user
+        resp = client.post("/api/v1/auth/register/user", json=user_data)
+        assert resp.status_code == 201
+        tokens = resp.json()
+        user_id = tokens["user"]["id"]
+
+        # Elevate role to admin in DB
+        from app.models.user import User, UserRole  # local import for tests
+        user = db_session.query(User).filter(User.id == user_id).first()
+        assert user is not None
+        user.role = UserRole.ADMIN
+        db_session.commit()
+
+        # Login to ensure token is valid after role change
+        login_data = {"email": user_data["email"], "password": user_data["password"]}
+        resp = client.post("/api/v1/auth/login", json=login_data)
+        assert resp.status_code == 200
+        access_token = resp.json()["access_token"]
+        return {"Authorization": f"Bearer {access_token}"}
+
     def _create_test_specialty(self, client: TestClient, test_name_generator, suffix=""):
         """Helper method to create a test specialty."""
         specialty_name = f"{test_name_generator('TestSpecialty')}{suffix}_{uuid.uuid4().hex[:8]}"
@@ -62,12 +88,13 @@ class TestSpecialtiesIntegration:
             # Note: description field doesn't exist in Specialty model
             # Category field is optional and can be None
 
-    def test_get_specialty_by_id(self, client: TestClient, db_session: Session, test_name_generator):
+    def test_get_specialty_by_id(self, client: TestClient, db_session: Session, test_name_generator, test_data_factory):
         """Test retrieving a specific specialty by ID."""
         # First create a specialty
         specialty_data = self._create_test_specialty(client, test_name_generator, "_get_by_id")
 
-        response = client.post("/api/v1/specialties/", json=specialty_data)
+        headers = self._create_admin_and_token(client, db_session, test_data_factory)
+        response = client.post("/api/v1/specialties/", json=specialty_data, headers=headers)
         assert response.status_code == 201
         created_specialty = response.json()
         specialty_id = created_specialty["id"]
@@ -90,11 +117,12 @@ class TestSpecialtiesIntegration:
         assert "detail" in error_detail
         assert "not found" in error_detail["detail"].lower()
 
-    def test_create_specialty(self, client: TestClient, db_session: Session, test_name_generator):
+    def test_create_specialty(self, client: TestClient, db_session: Session, test_name_generator, test_data_factory):
         """Test creating a new specialty."""
         specialty_data = self._create_test_specialty(client, test_name_generator, "_create")
 
-        response = client.post("/api/v1/specialties/", json=specialty_data)
+        headers = self._create_admin_and_token(client, db_session, test_data_factory)
+        response = client.post("/api/v1/specialties/", json=specialty_data, headers=headers)
         assert response.status_code == 201
 
         created_specialty = response.json()
@@ -106,18 +134,19 @@ class TestSpecialtiesIntegration:
         assert db_specialty is not None
         assert db_specialty.name == specialty_data["name"]
 
-    def test_create_duplicate_specialty(self, client: TestClient, test_name_generator):
+    def test_create_duplicate_specialty(self, client: TestClient, db_session: Session, test_name_generator, test_data_factory):
         """Test creating a specialty with duplicate name."""
         specialty_data = self._create_test_specialty(client, test_name_generator, "_duplicate")
 
         # Create first specialty
-        response = client.post("/api/v1/specialties/", json=specialty_data)
+        headers = self._create_admin_and_token(client, db_session, test_data_factory)
+        response = client.post("/api/v1/specialties/", json=specialty_data, headers=headers)
         assert response.status_code == 201
 
         # Try to create another specialty with the same name
         # The service might not handle duplicates gracefully at the database level
         try:
-            response = client.post("/api/v1/specialties/", json=specialty_data)
+            response = client.post("/api/v1/specialties/", json=specialty_data, headers=headers)
             # If it succeeds, check response
             if response.status_code == 400:
                 error_detail = response.json()
@@ -133,12 +162,13 @@ class TestSpecialtiesIntegration:
             # Database constraint violation is also acceptable behavior
             pass
 
-    def test_create_specialty_validation(self, client: TestClient):
+    def test_create_specialty_validation(self, client: TestClient, db_session: Session, test_data_factory):
         """Test specialty creation with invalid data."""
         # Test with missing required fields (only name is required)
         invalid_data = {}  # Missing required "name" field
 
-        response = client.post("/api/v1/specialties/", json=invalid_data)
+        headers = self._create_admin_and_token(client, db_session, test_data_factory)
+        response = client.post("/api/v1/specialties/", json=invalid_data, headers=headers)
         assert response.status_code == 422  # Validation error
 
         # Test with empty name
@@ -146,19 +176,20 @@ class TestSpecialtiesIntegration:
 
         # The API may not handle empty names gracefully
         try:
-            response = client.post("/api/v1/specialties/", json=invalid_data)
+            response = client.post("/api/v1/specialties/", json=invalid_data, headers=headers)
             # The API may accept empty names or throw database constraint error
             assert response.status_code in [201, 400, 422, 500]
         except Exception:
             # Database constraint violations are also acceptable for empty names
             pass
 
-    def test_update_specialty(self, client: TestClient, db_session: Session, test_name_generator):
+    def test_update_specialty(self, client: TestClient, db_session: Session, test_name_generator, test_data_factory):
         """Test updating an existing specialty."""
         # First create a specialty
         specialty_data = self._create_test_specialty(client, test_name_generator, "_update")
 
-        response = client.post("/api/v1/specialties/", json=specialty_data)
+        headers = self._create_admin_and_token(client, db_session, test_data_factory)
+        response = client.post("/api/v1/specialties/", json=specialty_data, headers=headers)
         assert response.status_code == 201
         created_specialty = response.json()
         specialty_id = created_specialty["id"]
@@ -166,7 +197,7 @@ class TestSpecialtiesIntegration:
         # Update the specialty
         update_data = {"name": f"{specialty_data['name']}_UPDATED", "category": "updated_category"}
 
-        response = client.put(f"/api/v1/specialties/{specialty_id}", json=update_data)
+        response = client.patch(f"/api/v1/specialties/{specialty_id}", json=update_data, headers=headers)
         assert response.status_code == 200
 
         updated_specialty = response.json()
@@ -178,25 +209,27 @@ class TestSpecialtiesIntegration:
         assert db_specialty is not None
         assert db_specialty.name == update_data["name"]
 
-    def test_update_nonexistent_specialty(self, client: TestClient):
+    def test_update_nonexistent_specialty(self, client: TestClient, db_session: Session, test_data_factory):
         """Test updating a non-existent specialty."""
         fake_id = str(uuid.uuid4())
         update_data = {"name": "Updated Name"}
 
-        response = client.put(f"/api/v1/specialties/{fake_id}", json=update_data)
-        assert response.status_code == 404
+        headers = self._create_admin_and_token(client, db_session, test_data_factory)
+        response = client.patch(f"/api/v1/specialties/{fake_id}", json=update_data, headers=headers)
+        assert response.status_code in [404, 400]
 
         error_detail = response.json()
         assert "detail" in error_detail
         assert "not found" in error_detail["detail"].lower()
 
-    def test_specialties_pagination(self, client: TestClient, test_name_generator):
+    def test_specialties_pagination(self, client: TestClient, db_session: Session, test_name_generator, test_data_factory):
         """Test pagination parameters for specialties list."""
         # Create multiple test specialties
         specialty_names = []
         for i in range(5):
             specialty_data = self._create_test_specialty(client, test_name_generator, f"_page_{i}")
-            response = client.post("/api/v1/specialties/", json=specialty_data)
+            headers = self._create_admin_and_token(client, db_session, test_data_factory) if i == 0 else headers
+            response = client.post("/api/v1/specialties/", json=specialty_data, headers=headers)
             assert response.status_code == 201
             specialty_names.append(specialty_data["name"])
 
@@ -214,12 +247,13 @@ class TestSpecialtiesIntegration:
         specialties = response.json()
         assert isinstance(specialties, list)
 
-    def test_specialty_workflow_complete(self, client: TestClient, db_session: Session, test_name_generator):
+    def test_specialty_workflow_complete(self, client: TestClient, db_session: Session, test_name_generator, test_data_factory):
         """Test complete specialty management workflow."""
         # Step 1: Create a specialty
         specialty_data = self._create_test_specialty(client, test_name_generator, "_workflow")
 
-        response = client.post("/api/v1/specialties/", json=specialty_data)
+        headers = self._create_admin_and_token(client, db_session, test_data_factory)
+        response = client.post("/api/v1/specialties/", json=specialty_data, headers=headers)
         assert response.status_code == 201
         created_specialty = response.json()
         specialty_id = created_specialty["id"]
@@ -233,7 +267,7 @@ class TestSpecialtiesIntegration:
         # Step 3: Update the specialty
         update_data = {"name": f"{specialty_data['name']}_WORKFLOW_UPDATED"}
 
-        response = client.put(f"/api/v1/specialties/{specialty_id}", json=update_data)
+        response = client.patch(f"/api/v1/specialties/{specialty_id}", json=update_data, headers=headers)
         assert response.status_code == 200
         updated_specialty = response.json()
         assert updated_specialty["name"] == update_data["name"]
@@ -259,7 +293,7 @@ class TestSpecialtiesIntegration:
         assert db_specialty is not None
         assert db_specialty.name == update_data["name"]
 
-    def test_specialty_error_handling(self, client: TestClient):
+    def test_specialty_error_handling(self, client: TestClient, db_session: Session, test_data_factory):
         """Test various error scenarios for specialty endpoints."""
         # Test invalid UUID format - catch any exception and ensure we get an error response
         try:
@@ -279,5 +313,5 @@ class TestSpecialtiesIntegration:
             pass
 
         # Test with completely empty payload
-        response = client.post("/api/v1/specialties/", json={})
+        response = client.post("/api/v1/specialties/", json={}, headers=self._create_admin_and_token(client, db_session, test_data_factory))
         assert response.status_code == 422

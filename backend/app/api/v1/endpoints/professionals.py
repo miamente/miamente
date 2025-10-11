@@ -4,7 +4,7 @@ Professional endpoints.
 
 import json
 import uuid
-from typing import List
+from typing import List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
@@ -13,8 +13,9 @@ from app.utils.auth import get_current_user_id, get_current_admin_user
 from app.core.database import get_db
 from app.models.professional import Professional
 from app.models.professional_modality import ProfessionalModality
-from app.schemas.professional import ProfessionalResponse, ProfessionalUpdate
+from app.schemas.professional import ProfessionalResponse, ProfessionalUpdate, PaginatedProfessionalsResponse
 from app.services.auth_service import AuthService
+from app.services.professional_service import ProfessionalService
 from app.utils.parsers import parse_professional_data
 
 router = APIRouter()
@@ -48,6 +49,56 @@ async def get_professionals(
 
     # Parse JSON fields for each professional
     return [parse_professional_data(professional) for professional in professionals]
+
+
+@router.get("/admin/all", response_model=PaginatedProfessionalsResponse)
+def get_all_professionals_admin(
+    page: int = 1,
+    page_size: int = 10,
+    search: Optional[str] = None,
+    db: Session = Depends(get_db),
+    _admin_user=Depends(get_current_admin_user),
+):
+    """Get all professionals for admin with pagination and search."""
+    service = ProfessionalService(db)
+
+    # Calculate skip from page and page_size
+    skip = (page - 1) * page_size
+
+    # Get professionals and total count with search filter
+    professionals = service.get_professionals_admin(skip=skip, limit=page_size, search=search)
+    total = service.get_professionals_count(search=search)
+
+    # Convert to response format
+    professionals_with_count = []
+    for professional in professionals:
+        professional_dict = {
+            "id": professional.id,
+            "email": professional.email,
+            "full_name": professional.full_name,
+            "phone_country_code": professional.phone_country_code,
+            "phone_number": professional.phone_number,
+            "is_active": professional.is_active,
+            "is_verified": professional.is_verified,
+            "profile_picture": professional.profile_picture,
+            "created_at": professional.created_at,
+            "updated_at": professional.updated_at,
+            "license_number": professional.license_number,
+            "years_experience": professional.years_experience,
+            "rate_cents": professional.rate_cents,
+            "currency": professional.currency,
+            "bio": professional.bio,
+            "timezone": professional.timezone,
+            "last_login": professional.last_login,
+        }
+        professionals_with_count.append(professional_dict)
+
+    # Calculate total pages
+    total_pages = (total + page_size - 1) // page_size
+
+    return PaginatedProfessionalsResponse(
+        items=professionals_with_count, total=total, page=page, page_size=page_size, total_pages=total_pages
+    )
 
 
 def _apply_professional_filters(query, _specialty, min_rate_cents, max_rate_cents):
