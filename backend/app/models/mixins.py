@@ -55,10 +55,14 @@ class BaseJunctionModelMixin:
 
     This mixin adds common fields like id and professional_id that are shared
     across junction table model classes to avoid code duplication.
+
+    Note: professional_id now references accounts.id instead of professionals.id
+    to support the unified account system. The field name is kept as professional_id
+    for backward compatibility with existing junction tables.
     """
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    professional_id = Column(UUID(as_uuid=True), ForeignKey("professionals.id"), nullable=False)
+    professional_id = Column(UUID(as_uuid=True), ForeignKey("accounts.id", ondelete="CASCADE"), nullable=False)
 
 
 class DescriptionMixin:

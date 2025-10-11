@@ -60,6 +60,10 @@ def _build_app() -> FastAPI:
         allow_methods=["*"],
         allow_headers=["*"],
     )
+
+    # DO NOT add TrustedHostMiddleware for tests
+    # TestClient uses "testserver" as hostname which would be blocked
+
     app.include_router(api_router, prefix=settings.API_V1_STR)
 
     @app.get("/")
@@ -92,20 +96,6 @@ def _cleanup_test_data(session_factory):
     """Clean only test data with precise identification to avoid deleting production data (LOCAL mode)."""
     session = session_factory()
     try:
-        # First, clean up any orphaned records that might cause foreign key issues
-        session.execute(
-            text("DELETE FROM professional_specialties WHERE professional_id NOT IN (SELECT id FROM professionals)")
-        )
-        session.execute(
-            text("DELETE FROM professional_modalities WHERE professional_id NOT IN (SELECT id FROM professionals)")
-        )
-        session.execute(
-            text(
-                "DELETE FROM professional_therapeutic_approaches WHERE "
-                "professional_id NOT IN (SELECT id FROM professionals)"
-            )
-        )
-
         test_patterns = [
             f"email LIKE '{TEST_DATA_PREFIX}%'",
             "email LIKE '%@example.com'",
@@ -123,36 +113,70 @@ def _cleanup_test_data(session_factory):
         ]
         where_clause = " OR ".join(test_patterns)
 
-        # Pre-capture professional IDs (for relation cleanup)
-        test_professional_ids = session.execute(text(f"SELECT id FROM professionals WHERE {where_clause}")).fetchall()
+        # Clean up NEW unified accounts system
+        # Get test account IDs first
+        test_account_ids_result = session.execute(text(f"SELECT id FROM accounts WHERE {where_clause}")).fetchall()
+        deleted_accounts = 0
 
-        # Delete relations first to avoid foreign key constraints
-        if test_professional_ids:
-            professional_id_list = [str(row[0]) for row in test_professional_ids]
-            professional_ids_str = "', '".join(professional_id_list)
+        if test_account_ids_result:
+            account_id_list = [str(row[0]) for row in test_account_ids_result]
+            account_ids_str = "', '".join(account_id_list)
 
-            # Borra primero las relaciones hijas
+            # Delete junction tables first (they reference accounts now)
+            session.execute(text(f"DELETE FROM professional_modalities WHERE professional_id IN ('{account_ids_str}')"))
             session.execute(
-                text(f"DELETE FROM professional_modalities " f"WHERE professional_id IN ('{professional_ids_str}')")
+                text(f"DELETE FROM professional_specialties WHERE professional_id IN ('{account_ids_str}')")
             )
             session.execute(
-                text(f"DELETE FROM professional_specialties " f"WHERE professional_id IN ('{professional_ids_str}')")
+                text(f"DELETE FROM professional_therapeutic_approaches WHERE professional_id IN ('{account_ids_str}')")
             )
-            session.execute(
-                text(
-                    f"DELETE FROM professional_therapeutic_approaches "
-                    f"WHERE professional_id IN ('{professional_ids_str}')"
+
+            # Delete profiles (CASCADE should handle this, but explicit is safer)
+            session.execute(text(f"DELETE FROM user_profiles WHERE account_id IN ('{account_ids_str}')"))
+            session.execute(text(f"DELETE FROM professional_profiles WHERE account_id IN ('{account_ids_str}')"))
+
+            # Delete accounts
+            result = session.execute(text(f"DELETE FROM accounts WHERE {where_clause}"))
+            deleted_accounts = result.rowcount
+
+        # Clean up LEGACY tables (if they still exist)
+        deleted_users = 0
+        deleted_professionals = 0
+        try:
+            # Pre-capture professional IDs (for relation cleanup)
+            test_professional_ids = session.execute(
+                text(f"SELECT id FROM professionals WHERE {where_clause}")
+            ).fetchall()
+
+            # Delete relations first to avoid foreign key constraints
+            if test_professional_ids:
+                professional_id_list = [str(row[0]) for row in test_professional_ids]
+                professional_ids_str = "', '".join(professional_id_list)
+
+                # Only if still using legacy professionals table
+                session.execute(
+                    text(f"DELETE FROM professional_modalities WHERE professional_id IN ('{professional_ids_str}')")
                 )
-            )
+                session.execute(
+                    text(f"DELETE FROM professional_specialties WHERE professional_id IN ('{professional_ids_str}')")
+                )
+                session.execute(
+                    text(
+                        f"DELETE FROM professional_therapeutic_approaches "
+                        f"WHERE professional_id IN ('{professional_ids_str}')"
+                    )
+                )
 
-        # Now delete the main entities
-        # Users
-        result = session.execute(text(f"DELETE FROM users WHERE {where_clause}"))
-        deleted_users = result.rowcount
+            # Users
+            result = session.execute(text(f"DELETE FROM users WHERE {where_clause}"))
+            deleted_users = result.rowcount
 
-        # Professionals
-        result = session.execute(text(f"DELETE FROM professionals WHERE {where_clause}"))
-        deleted_professionals = result.rowcount
+            # Professionals
+            result = session.execute(text(f"DELETE FROM professionals WHERE {where_clause}"))
+            deleted_professionals = result.rowcount
+        except Exception:
+            # Tables might not exist, that's ok
+            pass
 
         # Reference tables (only test-ish data)
         # Delete in correct order to avoid foreign key constraints
@@ -186,8 +210,8 @@ def _cleanup_test_data(session_factory):
 
         session.commit()
         print(
-            f"✅ Test data cleanup completed (LOCAL): {deleted_users} users, "
-            f"{deleted_professionals} professionals removed"
+            f"✅ Test data cleanup completed (LOCAL): {deleted_accounts} accounts, "
+            f"{deleted_users} users, {deleted_professionals} professionals removed"
         )
     except Exception as e:  # pylint: disable=broad-exception-caught
         session.rollback()
@@ -209,6 +233,27 @@ def engine_and_session_factory():
     """
     engine, session_factory = _build_engine_and_session_factory()
     Base.metadata.create_all(bind=engine)
+
+    # Insert default roles for the unified accounts system
+    session = session_factory()
+    try:
+        from app.models.role import Role
+
+        # Check if roles already exist
+        existing_roles = session.query(Role).count()
+        if existing_roles == 0:
+            roles = [
+                Role(name="user", description="Regular user account"),
+                Role(name="professional", description="Professional/therapist account"),
+                Role(name="admin", description="Administrator account"),
+            ]
+            session.add_all(roles)
+            session.commit()
+    except Exception:
+        session.rollback()
+    finally:
+        session.close()
+
     yield engine, session_factory
 
 

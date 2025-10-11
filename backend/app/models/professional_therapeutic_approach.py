@@ -14,9 +14,13 @@ from app.models.mixins import BaseJunctionModelMixin, TimestampMixin
 
 
 class ProfessionalTherapeuticApproach(Base, BaseJunctionModelMixin, TimestampMixin):
-    """Professional Therapeutic Approach model - Many-to-many relationship between profe
-    ssionals and
-    therapeutic approaches."""
+    """
+    Professional Therapeutic Approach model - Many-to-many relationship between
+    accounts (professionals) and therapeutic approaches.
+
+    Note: professional_id now references accounts.id instead of professionals.id
+    to support the unified account system.
+    """
 
     __tablename__ = "professional_therapeutic_approaches"
 
@@ -25,10 +29,8 @@ class ProfessionalTherapeuticApproach(Base, BaseJunctionModelMixin, TimestampMix
     description = Column(Text, nullable=True)
 
     # Relationships
-    professional = relationship(
-        "app.models.professional.Professional",
-        back_populates="therapeutic_approaches",
-    )
+    # Changed to reference Account model instead of Professional
+    account = relationship("app.models.account.Account", foreign_keys="ProfessionalTherapeuticApproach.professional_id")
     therapeutic_approach = relationship(
         "app.models.therapeutic_approach.TherapeuticApproach",
         foreign_keys=[therapeutic_approach_id],

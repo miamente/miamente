@@ -26,14 +26,20 @@ class TestSpecialtiesIntegration:
         # Create user data
         user_data = test_data_factory["user"](user_name)
 
-        # Register user
-        response = client.post("/api/v1/auth/register/user", json=user_data)
+        # Register user using new accounts endpoint
+        register_data = {
+            "email": user_data["email"],
+            "password": user_data["password"],
+            "full_name": user_data["full_name"],
+            "phone": user_data.get("phone"),
+        }
+        response = client.post("/api/v1/accounts/register/user", params=register_data)
         assert response.status_code == 201
         registered_user = response.json()
 
-        # Login as user
+        # Login as user using new accounts endpoint
         login_data = {"email": user_data["email"], "password": user_data["password"]}
-        response = client.post("/api/v1/auth/login", json=login_data)
+        response = client.post("/api/v1/accounts/login", json=login_data)
         assert response.status_code == 200
 
         login_response = response.json()
@@ -46,23 +52,33 @@ class TestSpecialtiesIntegration:
 
         We register a regular user, then elevate role directly in DB for test purposes.
         """
+        from app.models.account import Account
+        from app.models.role import Role
+
         user_data = test_data_factory["user"]("admin_user")
-        # Register user
-        resp = client.post("/api/v1/auth/register/user", json=user_data)
+
+        # Register user using new accounts endpoint
+        register_data = {
+            "email": user_data["email"],
+            "password": user_data["password"],
+            "full_name": user_data["full_name"],
+            "phone": user_data.get("phone"),
+        }
+        resp = client.post("/api/v1/accounts/register/user", params=register_data)
         assert resp.status_code == 201
-        tokens = resp.json()
-        user_id = tokens["user"]["id"]
+        account_data = resp.json()
+        account_id = account_data["account"]["id"]
 
         # Elevate role to admin in DB
-        from app.models.user import User, UserRole  # local import for tests
-        user = db_session.query(User).filter(User.id == user_id).first()
-        assert user is not None
-        user.role = UserRole.ADMIN
+        admin_role = db_session.query(Role).filter(Role.name == "admin").first()
+        account = db_session.query(Account).filter(Account.id == account_id).first()
+        assert account is not None
+        account.role_id = admin_role.id
         db_session.commit()
 
         # Login to ensure token is valid after role change
         login_data = {"email": user_data["email"], "password": user_data["password"]}
-        resp = client.post("/api/v1/auth/login", json=login_data)
+        resp = client.post("/api/v1/accounts/login", json=login_data)
         assert resp.status_code == 200
         access_token = resp.json()["access_token"]
         return {"Authorization": f"Bearer {access_token}"}
@@ -134,7 +150,9 @@ class TestSpecialtiesIntegration:
         assert db_specialty is not None
         assert db_specialty.name == specialty_data["name"]
 
-    def test_create_duplicate_specialty(self, client: TestClient, db_session: Session, test_name_generator, test_data_factory):
+    def test_create_duplicate_specialty(
+        self, client: TestClient, db_session: Session, test_name_generator, test_data_factory
+    ):
         """Test creating a specialty with duplicate name."""
         specialty_data = self._create_test_specialty(client, test_name_generator, "_duplicate")
 
@@ -222,13 +240,15 @@ class TestSpecialtiesIntegration:
         assert "detail" in error_detail
         assert "not found" in error_detail["detail"].lower()
 
-    def test_specialties_pagination(self, client: TestClient, db_session: Session, test_name_generator, test_data_factory):
+    def test_specialties_pagination(
+        self, client: TestClient, db_session: Session, test_name_generator, test_data_factory
+    ):
         """Test pagination parameters for specialties list."""
         # Create multiple test specialties
         specialty_names = []
+        headers = self._create_admin_and_token(client, db_session, test_data_factory)
         for i in range(5):
             specialty_data = self._create_test_specialty(client, test_name_generator, f"_page_{i}")
-            headers = self._create_admin_and_token(client, db_session, test_data_factory) if i == 0 else headers
             response = client.post("/api/v1/specialties/", json=specialty_data, headers=headers)
             assert response.status_code == 201
             specialty_names.append(specialty_data["name"])
@@ -247,7 +267,9 @@ class TestSpecialtiesIntegration:
         specialties = response.json()
         assert isinstance(specialties, list)
 
-    def test_specialty_workflow_complete(self, client: TestClient, db_session: Session, test_name_generator, test_data_factory):
+    def test_specialty_workflow_complete(
+        self, client: TestClient, db_session: Session, test_name_generator, test_data_factory
+    ):
         """Test complete specialty management workflow."""
         # Step 1: Create a specialty
         specialty_data = self._create_test_specialty(client, test_name_generator, "_workflow")
@@ -313,5 +335,7 @@ class TestSpecialtiesIntegration:
             pass
 
         # Test with completely empty payload
-        response = client.post("/api/v1/specialties/", json={}, headers=self._create_admin_and_token(client, db_session, test_data_factory))
+        response = client.post(
+            "/api/v1/specialties/", json={}, headers=self._create_admin_and_token(client, db_session, test_data_factory)
+        )
         assert response.status_code == 422

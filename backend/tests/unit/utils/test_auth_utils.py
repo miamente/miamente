@@ -77,31 +77,32 @@ class TestGetCurrentAdminUser:
     """Test cases for get_current_admin_user function."""
 
     def test_get_current_admin_user_success(self):
-        """Test successful admin user retrieval."""
+        """Test successful admin account retrieval."""
         # Arrange
         mock_credentials = Mock(spec=HTTPAuthorizationCredentials)
         mock_credentials.credentials = "valid_token"
         mock_db = Mock()
-        mock_user = Mock()
-        mock_user.role.value = "admin"
-        expected_user_id = "admin123"
+        mock_account = Mock()
+        mock_account.role.name = "admin"
+        expected_account_id = "admin123"
 
         with (
-            patch("app.utils.auth.verify_token", return_value=expected_user_id),
-            patch("app.utils.auth.AuthService") as mock_auth_service_class,
+            patch("app.utils.auth.verify_token", return_value=expected_account_id),
+            patch("app.utils.auth.AccountService") as mock_account_service_class,
+            patch("app.utils.auth.uuid.UUID") as mock_uuid,
         ):
-
-            mock_auth_service = Mock()
-            mock_auth_service.get_user_by_id.return_value = mock_user
-            mock_auth_service_class.return_value = mock_auth_service
+            mock_uuid.return_value = expected_account_id
+            mock_account_service = Mock()
+            mock_account_service.get_account_by_id.return_value = mock_account
+            mock_account_service_class.return_value = mock_account_service
 
             # Act
             result = get_current_admin_user(mock_credentials, mock_db)
 
             # Assert
-            assert result == mock_user
-            mock_auth_service_class.assert_called_once_with(mock_db)
-            mock_auth_service.get_user_by_id.assert_called_once_with(expected_user_id)
+            assert result == mock_account
+            mock_account_service_class.assert_called_once_with(mock_db)
+            mock_account_service.get_account_by_id.assert_called_once()
 
     def test_get_current_admin_user_no_credentials(self):
         """Test HTTPException when no credentials provided."""
@@ -132,47 +133,49 @@ class TestGetCurrentAdminUser:
             assert exc_info.value.detail == INVALID_AUTH_CREDENTIALS_MESSAGE
 
     def test_get_current_admin_user_not_found(self):
-        """Test HTTPException when user is not found."""
+        """Test HTTPException when account is not found."""
         # Arrange
         mock_credentials = Mock(spec=HTTPAuthorizationCredentials)
         mock_credentials.credentials = "valid_token"
         mock_db = Mock()
-        expected_user_id = "user123"
+        expected_account_id = "account123"
 
         with (
-            patch("app.utils.auth.verify_token", return_value=expected_user_id),
-            patch("app.utils.auth.AuthService") as mock_auth_service_class,
+            patch("app.utils.auth.verify_token", return_value=expected_account_id),
+            patch("app.utils.auth.AccountService") as mock_account_service_class,
+            patch("app.utils.auth.uuid.UUID") as mock_uuid,
         ):
-
-            mock_auth_service = Mock()
-            mock_auth_service.get_user_by_id.return_value = None
-            mock_auth_service_class.return_value = mock_auth_service
+            mock_uuid.return_value = expected_account_id
+            mock_account_service = Mock()
+            mock_account_service.get_account_by_id.return_value = None
+            mock_account_service_class.return_value = mock_account_service
 
             # Act & Assert
             with pytest.raises(HTTPException) as exc_info:
                 get_current_admin_user(mock_credentials, mock_db)
 
             assert exc_info.value.status_code == status.HTTP_404_NOT_FOUND
-            assert exc_info.value.detail == "User not found"
+            assert exc_info.value.detail == "Account not found"
 
     def test_get_current_admin_user_not_admin(self):
-        """Test HTTPException when user is not admin."""
+        """Test HTTPException when account is not admin."""
         # Arrange
         mock_credentials = Mock(spec=HTTPAuthorizationCredentials)
         mock_credentials.credentials = "valid_token"
         mock_db = Mock()
-        mock_user = Mock()
-        mock_user.role.value = "user"  # Not admin
-        expected_user_id = "user123"
+        mock_account = Mock()
+        mock_account.role.name = "user"  # Not admin
+        expected_account_id = "account123"
 
         with (
-            patch("app.utils.auth.verify_token", return_value=expected_user_id),
-            patch("app.utils.auth.AuthService") as mock_auth_service_class,
+            patch("app.utils.auth.verify_token", return_value=expected_account_id),
+            patch("app.utils.auth.AccountService") as mock_account_service_class,
+            patch("app.utils.auth.uuid.UUID") as mock_uuid,
         ):
-
-            mock_auth_service = Mock()
-            mock_auth_service.get_user_by_id.return_value = mock_user
-            mock_auth_service_class.return_value = mock_auth_service
+            mock_uuid.return_value = expected_account_id
+            mock_account_service = Mock()
+            mock_account_service.get_account_by_id.return_value = mock_account
+            mock_account_service_class.return_value = mock_account_service
 
             # Act & Assert
             with pytest.raises(HTTPException) as exc_info:
@@ -182,23 +185,24 @@ class TestGetCurrentAdminUser:
             assert exc_info.value.detail == "Admin access required"
 
     def test_get_current_admin_user_none_role(self):
-        """Test HTTPException when user role is None."""
+        """Test HTTPException when account role is None."""
         # Arrange
         mock_credentials = Mock(spec=HTTPAuthorizationCredentials)
         mock_credentials.credentials = "valid_token"
         mock_db = Mock()
-        mock_user = Mock()
-        mock_user.role = None
-        expected_user_id = "user123"
+        mock_account = Mock()
+        mock_account.role = None
+        expected_account_id = "account123"
 
         with (
-            patch("app.utils.auth.verify_token", return_value=expected_user_id),
-            patch("app.utils.auth.AuthService") as mock_auth_service_class,
+            patch("app.utils.auth.verify_token", return_value=expected_account_id),
+            patch("app.utils.auth.AccountService") as mock_account_service_class,
+            patch("app.utils.auth.uuid.UUID") as mock_uuid,
         ):
-
-            mock_auth_service = Mock()
-            mock_auth_service.get_user_by_id.return_value = mock_user
-            mock_auth_service_class.return_value = mock_auth_service
+            mock_uuid.return_value = expected_account_id
+            mock_account_service = Mock()
+            mock_account_service.get_account_by_id.return_value = mock_account
+            mock_account_service_class.return_value = mock_account_service
 
             # Act & Assert
             with pytest.raises(AttributeError):

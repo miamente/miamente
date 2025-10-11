@@ -5,24 +5,26 @@ API v1 router configuration.
 from fastapi import APIRouter
 
 from app.api.v1.endpoints import (
-    auth,
+    accounts,  # Unified account system
+    auth,  # Token refresh only
     files,
     modalities,
     professional_modalities,
     professional_specialties,
     professional_therapeutic_approaches,
-    professionals,
     specialties,
     therapeutic_approaches,
-    users,
 )
 
 api_router = APIRouter()
 
-# Include all endpoint routers
+# Unified account system endpoints
+api_router.include_router(accounts.router, prefix="/accounts", tags=["accounts"])
+
+# Auth endpoints (token refresh only)
 api_router.include_router(auth.router, prefix="/auth", tags=["authentication"])
-api_router.include_router(users.router, prefix="/users", tags=["users"])
-api_router.include_router(professionals.router, prefix="/professionals", tags=["professionals"])
+
+# File management
 api_router.include_router(files.router, prefix="/files", tags=["files"])
 
 # Legacy endpoints (keep for backward compatibility)
