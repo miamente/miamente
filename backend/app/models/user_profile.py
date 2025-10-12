@@ -28,3 +28,4 @@ class UserProfile(Base):
 
     def __repr__(self):
         return f"<UserProfile(account_id={self.account_id})>"
+

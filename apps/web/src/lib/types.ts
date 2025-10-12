@@ -26,21 +26,117 @@ export interface BaseEntity {
 }
 
 // ============================================================================
-// USER TYPES
+// UNIFIED ACCOUNTS SYSTEM (NEW)
 // ============================================================================
 
-export interface User extends BaseEntity {
+export interface Role {
+  id: string;
+  name: string;
+  description?: string;
+  created_at: string;
+  updated_at?: string;
+}
+
+export interface Account {
+  id: string;
+  role_id: string;
   email: string;
   full_name: string;
   phone?: string;
+  phone_country_code?: string;
+  phone_number?: string;
   is_active: boolean;
   is_verified: boolean;
   profile_picture?: string;
-  date_of_birth?: string;
-  emergency_contact?: string;
-  emergency_phone?: string;
-  preferences?: string; // JSON string for user preferences
+  last_login?: string;
+  created_at: string;
+  updated_at?: string;
 }
+
+export interface AccountWithRole extends Account {
+  role_name: string;
+}
+
+export interface UserProfile {
+  account_id: string;
+  date_of_birth?: string;
+  emergency_contact_name?: string;
+  emergency_phone_country_code?: string;
+  emergency_phone_number?: string;
+}
+
+export interface ProfessionalProfile {
+  account_id: string;
+  license_number?: string;
+  years_experience: number;
+  rate_cents: number;
+  custom_rate_cents?: number;
+  currency: string;
+  short_description?: string;
+  academic_experience?: string; // JSON string
+  work_experience?: string; // JSON string
+  certifications?: string; // JSON string
+  languages?: string[];
+  timezone: string;
+  working_hours?: string; // JSON string
+  emergency_contact_name?: string;
+  emergency_phone_country_code?: string;
+  emergency_phone_number?: string;
+}
+
+export interface UnifiedAuthResponse {
+  access_token: string;
+  refresh_token: string;
+  token_type: string;
+  account: AccountWithRole;
+  role: string;
+  profile?: UserProfile | ProfessionalProfile | null;
+}
+
+export interface UnifiedLogin {
+  email: string;
+  password: string;
+}
+
+export interface AccountRegisterRequest {
+  email: string;
+  password: string;
+  full_name: string;
+  phone?: string;
+  phone_country_code?: string;
+  phone_number?: string;
+}
+
+export interface AccountUpdate {
+  full_name?: string;
+  phone?: string;
+  phone_country_code?: string;
+  phone_number?: string;
+  profile_picture?: string;
+  is_verified?: boolean;
+}
+
+export interface AccountStatusUpdate {
+  is_active: boolean;
+}
+
+export interface AccountWithProfile {
+  account: AccountWithRole;
+  role: string;
+  profile?: UserProfile | ProfessionalProfile | null;
+}
+
+export interface PaginatedAccountsResponse {
+  items: AccountWithRole[];
+  total: number;
+  page: number;
+  page_size: number;
+  total_pages: number;
+}
+
+// ============================================================================
+// USER CREATION TYPES (for registration)
+// ============================================================================
 
 export interface UserCreate {
   email: string;
@@ -52,60 +148,9 @@ export interface UserCreate {
   emergency_phone?: string;
 }
 
-export interface UserUpdate {
-  full_name?: string;
-  phone?: string;
-  date_of_birth?: string;
-  emergency_contact?: string;
-  emergency_phone?: string;
-  profile_picture?: string;
-  is_verified?: boolean;
-}
-
-export interface UserLogin {
-  email: string;
-  password: string;
-}
-
 // ============================================================================
-// PROFESSIONAL TYPES
+// PROFESSIONAL CREATION TYPES (for registration)
 // ============================================================================
-
-export interface Professional extends BaseEntity {
-  email: string;
-  full_name: string;
-  phone?: string;
-  phone_country_code?: string;
-  phone_number?: string;
-  is_active: boolean;
-  is_verified: boolean;
-  profile_picture?: string;
-
-  // Professional specific fields
-  license_number?: string;
-  years_experience: number;
-  rate_cents: number;
-  custom_rate_cents?: number;
-  currency: string;
-  bio?: string;
-
-  // Structured data (JSON strings from backend, parsed to objects)
-  academic_experience: AcademicExperience[];
-  work_experience: WorkExperience[];
-  certifications: Certification[];
-  languages: string[];
-  therapy_approaches_ids: string[];
-  specialty_ids: string[];
-  modalities: ProfessionalModality[];
-
-  // Availability settings
-  timezone: string;
-  working_hours?: string; // JSON string
-
-  // Contact information
-  emergency_contact?: string;
-  emergency_phone?: string;
-}
 
 export interface ProfessionalCreate {
   email: string;
@@ -113,48 +158,16 @@ export interface ProfessionalCreate {
   password: string;
   phone_country_code?: string;
   phone_number?: string;
-  specialty_ids?: string[];
-  modalities?: ProfessionalModality[];
   license_number?: string;
   years_experience?: number;
   rate_cents?: number;
   currency?: string;
-  bio?: string;
+  short_description?: string;
   academic_experience?: AcademicExperience[];
   work_experience?: WorkExperience[];
   certifications?: Certification[];
   languages?: string[];
-  therapy_approaches_ids?: string[];
   timezone?: string;
-}
-
-export interface ProfessionalUpdate {
-  full_name?: string;
-  phone_country_code?: string;
-  phone_number?: string;
-  specialty_ids?: string[];
-  modalities?: ProfessionalModality[];
-  license_number?: string;
-  years_experience?: number;
-  rate_cents?: number;
-  custom_rate_cents?: number;
-  currency?: string;
-  bio?: string;
-  academic_experience?: AcademicExperience[];
-  work_experience?: WorkExperience[];
-  certifications?: Certification[];
-  languages?: string[];
-  therapy_approaches_ids?: string[];
-  timezone?: string;
-  profile_picture?: string;
-  emergency_contact?: string;
-  emergency_phone?: string;
-  is_verified?: boolean;
-}
-
-export interface ProfessionalLogin {
-  email: string;
-  password: string;
 }
 
 export interface ProfessionalWithCountResponse {
@@ -264,16 +277,24 @@ export interface ModalityUpdate {
 // PROFESSIONAL MODALITY TYPES
 // ============================================================================
 
+// Type that matches backend schema (snake_case)
 export interface ProfessionalModality {
   id: string;
-  modalityId: string;
-  modalityName: string;
-  virtualPrice: number;
-  presencialPrice: number;
-  offersPresencial: boolean;
+  professional_id?: string;
+  modality_id: string;
+  modality_name: string;
+  virtual_price: number;
+  presencial_price: number;
+  offers_presencial: boolean;
   description?: string;
-  isDefault: boolean;
+  is_default: boolean;
+  is_active?: boolean;
+  created_at?: string;
+  updated_at?: string;
 }
+
+// Alias for clarity
+export type ProfessionalModalityBackend = ProfessionalModality;
 
 // ============================================================================
 // STRUCTURED DATA TYPES
@@ -311,22 +332,6 @@ export interface Certification {
 // ============================================================================
 // AUTH TYPES
 // ============================================================================
-
-export interface AuthUser {
-  type: UserRole;
-  data: User | Professional;
-}
-
-export interface LoginResponse {
-  access_token: string;
-  token_type: string;
-  user_type?: string;
-  user?: User;
-  professional?: Professional;
-  // For unified responses
-  user_data?: User;
-  professional_data?: Professional;
-}
 
 export interface RegisterRequest {
   email: string;
@@ -379,16 +384,7 @@ export interface ErrorResponse {
 // ============================================================================
 // ADDITIONAL TYPES
 // ============================================================================
-
-export interface UserProfile {
-  id: string;
-  role: UserRole;
-  full_name?: string;
-  email?: string;
-  phone?: string;
-  is_verified?: boolean;
-  created_at?: string;
-}
+// Note: UserProfile is now defined in the "UNIFIED ACCOUNTS SYSTEM" section above
 
 export interface ProfessionalSpecialty {
   id: string;

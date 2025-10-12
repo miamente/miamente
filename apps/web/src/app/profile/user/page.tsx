@@ -8,10 +8,10 @@ import { FileUpload } from "@/components/file-upload";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { useAuth, getUserUid, getUserEmail } from "@/hooks/useAuth";
-import { getUserProfile, updateUserProfile } from "@/lib/profiles";
+import { useUnifiedAuth, getAccountId, getAccountEmail, getAccountFullName } from "@/hooks/useAuth";
+import { apiClient } from "@/lib/api";
 import { uploadFile } from "@/lib/storage";
-import type { UserProfile } from "@/lib/types";
+import type { UserProfile, AccountUpdate } from "@/lib/types";
 import { userProfileSchema, type UserProfileFormData } from "@/lib/validations";
 
 export default function UserProfilePage() {
@@ -22,7 +22,7 @@ export default function UserProfilePage() {
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [currentPhotoUrl] = useState<string | null>(null);
 
-  const { user, isLoading } = useAuth();
+  const { account, isLoading, isAuthenticated } = useUnifiedAuth();
   const router = useRouter();
 
   const {
@@ -35,41 +35,39 @@ export default function UserProfilePage() {
   });
 
   const loadProfile = useCallback(async () => {
-    if (!user) return;
+    if (!account) return;
 
     try {
-      const userUid = getUserUid(user);
-      if (!userUid) return;
-      const userProfile = await getUserProfile(userUid);
-      if (userProfile) {
-        setProfile(userProfile as unknown as UserProfile);
-        setValue("fullName", (userProfile as { full_name?: string }).full_name || "");
-        setValue(
-          "phoneCountryCode",
-          (userProfile as { phone_country_code?: string }).phone_country_code || "",
-        );
-        setValue("phoneNumber", (userProfile as { phone_number?: string }).phone_number || "");
-        setValue("email", (userProfile as { email?: string }).email || getUserEmail(user) || "");
+      const accountId = getAccountId(account);
+      if (!accountId) return;
+      
+      const accountData = await apiClient.getAccountById(accountId);
+      if (accountData) {
+        setProfile(accountData.profile as UserProfile);
+        setValue("fullName", accountData.account.full_name || "");
+        setValue("phoneCountryCode", accountData.account.phone_country_code || "");
+        setValue("phoneNumber", accountData.account.phone_number || "");
+        setValue("email", accountData.account.email || "");
       }
     } catch (err) {
       console.error("Error loading profile:", err);
     }
-  }, [user, setValue]);
+  }, [account, setValue]);
 
   useEffect(() => {
     if (isLoading) return; // Wait for auth to finish loading
 
-    if (!user) {
+    if (!isAuthenticated || !account) {
       router.push("/login");
       return;
     }
 
     loadProfile();
-  }, [user, isLoading, router, loadProfile]);
+  }, [account, isLoading, isAuthenticated, router, loadProfile]);
 
   const onSubmit = async (data: UserProfileFormData) => {
     console.log("onSubmit called with data:", data);
-    if (!user) return;
+    if (!account) return;
 
     setIsSubmitting(true);
     setError(null);
@@ -81,16 +79,17 @@ export default function UserProfilePage() {
         await uploadFile(photoFile);
       }
 
-      // Update profile
-      const userUid = getUserUid(user);
-      if (!userUid) return;
-      await updateUserProfile(userUid, {
+      // Update account using new endpoint
+      const accountId = getAccountId(account);
+      if (!accountId) return;
+      
+      const accountUpdate: AccountUpdate = {
         full_name: data.fullName,
-        email: data.email,
         phone_country_code: data.phoneCountryCode,
         phone_number: data.phoneNumber,
-        updated_at: new Date(),
-      });
+      };
+      
+      await apiClient.updateAccount(accountId, accountUpdate);
 
       setSuccess(true);
       setPhotoFile(null);
@@ -114,7 +113,7 @@ export default function UserProfilePage() {
     );
   }
 
-  if (!user) {
+  if (!account) {
     return (
       <div className="flex min-h-[50vh] items-center justify-center">
         <div className="text-center">
@@ -216,7 +215,7 @@ export default function UserProfilePage() {
         </Card>
       </div>
 
-      {profile && (
+      {account && (
         <Card>
           <CardHeader>
             <CardTitle>Información Actual</CardTitle>
@@ -224,21 +223,23 @@ export default function UserProfilePage() {
           <CardContent>
             <div className="space-y-2">
               <p>
-                <strong>Email:</strong>{" "}
-                {getUserEmail(user) || (profile as { email?: string }).email || "No disponible"}
+                <strong>Email:</strong> {getAccountEmail(account) || "No disponible"}
               </p>
               <p>
-                <strong>Nombre:</strong> {(profile as { full_name?: string }).full_name}
+                <strong>Nombre:</strong> {getAccountFullName(account)}
               </p>
               <p>
-                <strong>Teléfono:</strong> {profile.phone || "No especificado"}
+                <strong>Teléfono:</strong>{" "}
+                {account.phone_country_code && account.phone_number
+                  ? `${account.phone_country_code} ${account.phone_number}`
+                  : "No especificado"}
               </p>
               <p>
-                <strong>Rol:</strong> {profile.role}
+                <strong>Rol:</strong> {account.role_name}
               </p>
               <p>
                 <strong>Miembro desde:</strong>{" "}
-                {profile.created_at ? new Date(profile.created_at).toLocaleDateString() : "N/A"}
+                {account.created_at ? new Date(account.created_at).toLocaleDateString() : "N/A"}
               </p>
             </div>
           </CardContent>

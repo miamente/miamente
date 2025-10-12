@@ -74,3 +74,4 @@ class RoleService:
             existing_role = self.get_role_by_name(role_data["name"])
             if not existing_role:
                 self.create_role(RoleCreate(**role_data))
+

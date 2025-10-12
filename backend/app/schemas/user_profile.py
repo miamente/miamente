@@ -39,3 +39,4 @@ class UserProfileResponse(UserProfileBase):
     account_id: uuid.UUID
 
     model_config = ConfigDict(from_attributes=True)
+

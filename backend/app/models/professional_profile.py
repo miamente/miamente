@@ -44,3 +44,4 @@ class ProfessionalProfile(Base):
 
     def __repr__(self):
         return f"<ProfessionalProfile(account_id={self.account_id})>"
+

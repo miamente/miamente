@@ -4,7 +4,7 @@ Account schemas for the Miamente platform.
 
 import uuid
 from datetime import datetime
-from typing import Optional
+from typing import Any, List, Optional
 
 from pydantic import BaseModel, ConfigDict, EmailStr, field_validator
 
@@ -45,6 +45,12 @@ class AccountUpdate(BaseModel):
     is_verified: Optional[bool] = None
 
 
+class AccountStatusUpdate(BaseModel):
+    """Account status update schema."""
+
+    is_active: bool
+
+
 class AccountResponse(AccountBase):
     """Account response schema."""
 
@@ -66,3 +72,24 @@ class AccountWithRole(AccountResponse):
     role_name: str
 
     model_config = ConfigDict(from_attributes=True)
+
+
+class AccountWithProfile(BaseModel):
+    """Account with role and profile information."""
+
+    account: AccountWithRole
+    role: str
+    profile: Optional[Any] = None
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class PaginatedAccountsResponse(BaseModel):
+    """Paginated accounts response schema for admin."""
+
+    items: List[AccountWithRole]
+    total: int
+    page: int
+    page_size: int
+    total_pages: int
+

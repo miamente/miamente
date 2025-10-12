@@ -8,14 +8,14 @@ import { useForm } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { useAuth } from "@/hooks/useAuth";
+import { useUnifiedAuth } from "@/hooks/useAuth";
 import { registerSchema, type RegisterFormData } from "@/lib/validations";
 
 export default function RegisterPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
-  const { user, registerUser } = useAuth();
+  const { account, isAuthenticated, registerUser } = useUnifiedAuth();
 
   const {
     register,
@@ -27,10 +27,10 @@ export default function RegisterPage() {
 
   // Redirect if already logged in
   React.useEffect(() => {
-    if (user) {
+    if (isAuthenticated && account) {
       router.push("/dashboard");
     }
-  }, [user, router]);
+  }, [account, isAuthenticated, router]);
 
   const onSubmit = async (data: RegisterFormData) => {
     setIsLoading(true);
@@ -51,7 +51,7 @@ export default function RegisterPage() {
     }
   };
 
-  if (user) {
+  if (account) {
     return <div className="flex min-h-[50vh] items-center justify-center">Redirigiendo...</div>;
   }
 

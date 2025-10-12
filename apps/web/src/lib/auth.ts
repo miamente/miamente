@@ -25,7 +25,7 @@ export interface RegisterRequest {
 
 export async function registerWithEmail(data: RegisterRequest): Promise<User> {
   try {
-    const response = await apiClient.post("/auth/register/user", data);
+    const response = await apiClient.post("/accounts/register/user", data);
     return response as User;
   } catch (error) {
     console.error("Registration error:", error);
@@ -35,7 +35,7 @@ export async function registerWithEmail(data: RegisterRequest): Promise<User> {
 
 export async function loginWithEmail(email: string, password: string): Promise<LoginResponse> {
   try {
-    const response = await apiClient.post("/auth/login", {
+    const response = await apiClient.post("/accounts/login", {
       email,
       password,
     });
@@ -74,7 +74,7 @@ export async function logout(): Promise<void> {
 
 export async function getUserProfile(): Promise<User | null> {
   try {
-    const response = await apiClient.get("/users/me");
+    const response = await apiClient.get("/accounts/me");
     return (response as { data: User }).data;
   } catch (error) {
     console.error("Get user profile error:", error);

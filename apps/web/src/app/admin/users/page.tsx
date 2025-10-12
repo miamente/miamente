@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { AdminDataTable, type Column, commonRenderers } from "@/components/admin/AdminDataTable";
 import { useAdminData } from "@/hooks/useAdminData";
 import { apiClient } from "@/lib/api";
-import type { User as UserType } from "@/lib/types";
+import type { User as UserType, AccountWithRole } from "@/lib/types";
 
 // Extended User interface for admin users with role and last_login
 interface AdminUser extends UserType {
@@ -23,11 +23,25 @@ export default function AdminUsers() {
     setError,
   } = useAdminData<AdminUser>({
     loadFunction: async () => {
-      const response = await apiClient.getUsers({ role: "user" });
+      // Use new unified endpoint
+      const response = await apiClient.getAllAccountsAdmin(1, 100, "user");
       console.log("Users API response:", response);
 
-      if (Array.isArray(response)) {
-        return response as AdminUser[];
+      // Convert AccountWithRole to AdminUser format
+      if (response.items) {
+        return response.items.map((account: AccountWithRole) => ({
+          id: account.id,
+          email: account.email,
+          full_name: account.full_name,
+          phone: account.phone,
+          is_active: account.is_active,
+          is_verified: account.is_verified,
+          profile_picture: account.profile_picture,
+          created_at: account.created_at,
+          updated_at: account.updated_at,
+          role: account.role_name,
+          last_login: account.last_login,
+        } as AdminUser));
       }
       return [];
     },
@@ -35,8 +49,13 @@ export default function AdminUsers() {
 
   const handleToggleActive = async (user: AdminUser) => {
     try {
-      const updatedUser = await apiClient.toggleUserStatus(user.id, !user.is_active);
-      updateItem(user.id, updatedUser as AdminUser);
+      const updatedAccount = await apiClient.toggleAccountStatus(user.id, !user.is_active);
+      // Convert back to AdminUser format
+      const updatedUser: AdminUser = {
+        ...user,
+        is_active: updatedAccount.is_active,
+      };
+      updateItem(user.id, updatedUser);
     } catch (err) {
       console.error("Error updating user status:", err);
       setError("Error al actualizar el estado del usuario");
@@ -46,7 +65,7 @@ export default function AdminUsers() {
   const handleDeleteUser = async (user: AdminUser) => {
     if (confirm("¿Estás seguro de que quieres eliminar este usuario?")) {
       try {
-        await apiClient.deleteUser(user.id);
+        await apiClient.deleteAccount(user.id);
         removeItem(user.id);
       } catch (err) {
         console.error("Error deleting user:", err);

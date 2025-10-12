@@ -9,6 +9,9 @@ from app.schemas.account import (
     AccountResponse,
     AccountUpdate,
     AccountWithRole,
+    AccountWithProfile,
+    AccountStatusUpdate,
+    PaginatedAccountsResponse,
 )
 from app.schemas.user_profile import (
     UserProfileCreate,
@@ -48,6 +51,9 @@ __all__ = [
     "AccountUpdate",
     "AccountResponse",
     "AccountWithRole",
+    "AccountWithProfile",
+    "AccountStatusUpdate",
+    "PaginatedAccountsResponse",
     "UserProfileCreate",
     "UserProfileUpdate",
     "UserProfileResponse",

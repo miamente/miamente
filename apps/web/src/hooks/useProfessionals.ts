@@ -1,12 +1,13 @@
 /**
- * Hook for managing professionals.
+ * Hook for managing professionals using unified accounts system.
  */
 import { useState, useCallback } from "react";
 
-import { apiClient, type Professional } from "@/lib/api";
+import { apiClient } from "@/lib/api";
+import type { AccountWithProfile, ProfessionalProfile } from "@/lib/types";
 
 export function useProfessionals() {
-  const [professionals, setProfessionals] = useState<Professional[]>([]);
+  const [professionals, setProfessionals] = useState<AccountWithProfile[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -15,8 +16,26 @@ export function useProfessionals() {
     setError(null);
 
     try {
-      const response = await apiClient.getProfessionals();
-      setProfessionals(response);
+      // Use new unified accounts endpoint
+      const response = await apiClient.getAllAccountsAdmin(1, 100, "professional");
+      
+      // Fetch full profiles for all professionals
+      const professionalsWithProfiles = await Promise.all(
+        response.items.map(async (account) => {
+          try {
+            return await apiClient.getAccountById(account.id);
+          } catch {
+            // Fallback without profile if fetch fails
+            return {
+              account,
+              role: "professional",
+              profile: null,
+            };
+          }
+        })
+      );
+      
+      setProfessionals(professionalsWithProfiles);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to fetch professionals");
     } finally {
@@ -33,7 +52,7 @@ export function useProfessionals() {
 }
 
 export function useProfessional(professionalId: string) {
-  const [professional, setProfessional] = useState<Professional | null>(null);
+  const [professional, setProfessional] = useState<AccountWithProfile | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -44,7 +63,7 @@ export function useProfessional(professionalId: string) {
     setError(null);
 
     try {
-      const data = await apiClient.getProfessional(professionalId);
+      const data = await apiClient.getAccountById(professionalId);
       setProfessional(data);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to fetch professional");

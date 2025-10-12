@@ -102,3 +102,9 @@ coverage.xml
 .pytest_cache/
 test-results/
 playwright-report/
+
+# Documentation - ignore root markdown files except specific ones
+/*.md
+!README.md
+# Keep docs folder with all its content
+!docs/
