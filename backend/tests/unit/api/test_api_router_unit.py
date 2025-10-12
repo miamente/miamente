@@ -15,23 +15,17 @@ class TestApiRouter:
         """Test that api_router is an APIRouter instance."""
         assert isinstance(api_router, APIRouter)
 
+    def test_api_router_has_accounts_routes(self):
+        """Test that accounts routes are included."""
+        routes = [route.path for route in api_router.routes]
+        accounts_routes = [route for route in routes if route.startswith("/accounts")]
+        assert len(accounts_routes) > 0
+
     def test_api_router_has_auth_routes(self):
         """Test that auth routes are included."""
         routes = [route.path for route in api_router.routes]
         auth_routes = [route for route in routes if route.startswith("/auth")]
         assert len(auth_routes) > 0
-
-    def test_api_router_has_users_routes(self):
-        """Test that users routes are included."""
-        routes = [route.path for route in api_router.routes]
-        users_routes = [route for route in routes if route.startswith("/users")]
-        assert len(users_routes) > 0
-
-    def test_api_router_has_professionals_routes(self):
-        """Test that professionals routes are included."""
-        routes = [route.path for route in api_router.routes]
-        professionals_routes = [route for route in routes if route.startswith("/professionals")]
-        assert len(professionals_routes) > 0
 
     def test_api_router_has_files_routes(self):
         """Test that files routes are included."""
@@ -39,14 +33,14 @@ class TestApiRouter:
         files_routes = [route for route in routes if route.startswith("/files")]
         assert len(files_routes) > 0
 
-    def test_api_router_has_legacy_specialties_routes(self):
-        """Test that legacy specialties routes are included."""
+    def test_api_router_has_specialties_routes(self):
+        """Test that specialties routes are included."""
         routes = [route.path for route in api_router.routes]
         specialties_routes = [route for route in routes if route.startswith("/specialties")]
         assert len(specialties_routes) > 0
 
-    def test_api_router_has_legacy_professional_specialties_routes(self):
-        """Test that legacy professional specialties routes are included."""
+    def test_api_router_has_professional_specialties_routes(self):
+        """Test that professional specialties routes are included."""
         routes = [route.path for route in api_router.routes]
         professional_specialties_routes = [route for route in routes if route.startswith("/professional-specialties")]
         assert len(professional_specialties_routes) > 0
@@ -86,9 +80,8 @@ class TestApiRouter:
                 tags.update(route.tags)
 
         expected_tags = {
+            "accounts",
             "authentication",
-            "users",
-            "professionals",
             "files",
             "specialties",
             "professional-specialties",
@@ -116,9 +109,8 @@ class TestApiRouter:
                         prefixes.add(prefix)
 
         expected_prefixes = {
+            "/accounts",
             "/auth",
-            "/users",
-            "/professionals",
             "/files",
             "/specialties",
             "/professional-specialties",
@@ -137,9 +129,8 @@ class TestApiRouter:
         # Should have routes from at least the main routers
         assert len(routes) > 0
 
+    @patch("app.api.v1.api.accounts")
     @patch("app.api.v1.api.auth")
-    @patch("app.api.v1.api.users")
-    @patch("app.api.v1.api.professionals")
     @patch("app.api.v1.api.files")
     @patch("app.api.v1.api.specialties")
     @patch("app.api.v1.api.professional_specialties")
@@ -156,16 +147,14 @@ class TestApiRouter:
         mock_professional_specialties,
         mock_specialties,
         mock_files,
-        mock_professionals,
-        mock_users,
         mock_auth,
+        mock_accounts,
     ):
         """Test that all endpoint modules are properly imported and used."""
         # This test verifies that all the endpoint modules are imported
         # and that their routers are accessible
+        assert mock_accounts is not None
         assert mock_auth is not None
-        assert mock_users is not None
-        assert mock_professionals is not None
         assert mock_files is not None
         assert mock_specialties is not None
         assert mock_professional_specialties is not None
@@ -186,13 +175,14 @@ class TestApiRouter:
             assert hasattr(route, "methods") or hasattr(route, "endpoint")
 
     def test_router_backward_compatibility(self):
-        """Test that legacy routes are maintained for backward compatibility."""
+        """Test that important routes are maintained."""
         routes = [route.path for route in api_router.routes]
 
-        # Check that legacy routes are still present
+        # Check that important routes are still present
         assert any("/specialties" in route for route in routes)
         assert any("/professional-specialties" in route for route in routes)
 
-        # Check that new routes are also present
+        # Check that new account routes are present
+        assert any("/accounts" in route for route in routes)
         assert any("/modalities" in route for route in routes)
         assert any("/therapeutic-approaches" in route for route in routes)

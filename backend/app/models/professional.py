@@ -6,7 +6,6 @@ import uuid
 
 from sqlalchemy import ARRAY, Boolean, Column, DateTime, Integer, String, Text
 from sqlalchemy.dialects.postgresql import UUID
-from sqlalchemy.orm import relationship
 
 from app.core.database import Base
 from app.models.mixins import TimestampMixin
@@ -58,18 +57,18 @@ class Professional(Base, TimestampMixin):
     last_login = Column(DateTime, nullable=True)  # Last login timestamp
 
     # Relationships
-    professional_specialties = relationship(
-        "app.models.professional_specialty.ProfessionalSpecialty",
-        back_populates="professional",
-    )
-    therapeutic_approaches = relationship(
-        "app.models.professional_therapeutic_approach.ProfessionalTherapeuticApproach",
-        back_populates="professional",
-    )
-    professional_modalities = relationship(
-        "app.models.professional_modality.ProfessionalModality",
-        back_populates="professional",
-    )
+    # NOTE: Relationships with junction tables (professional_specialties,
+    # professional_therapeutic_approaches, professional_modalities) are now
+    # handled through the Account model in the unified account system.
+    # These relationships are commented out because the junction tables now
+    # reference accounts.id instead of professionals.id
+    #
+    # If you need to access these relationships for legacy code, use:
+    # - ProfessionalSpecialty.query.filter_by(professional_id=professional.id)
+    # - ProfessionalTherapeuticApproach.query.filter_by(professional_id=professional.id)
+    # - ProfessionalModality.query.filter_by(professional_id=professional.id)
+    #
+    # For new code, use the Account model instead.
 
     def __repr__(self):
         return (

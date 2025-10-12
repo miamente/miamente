@@ -1,18 +1,19 @@
 "use client";
 import React, { useEffect } from "react";
-import { useAuth, getUserEmail, getUserFullName } from "@/hooks/useAuth";
+import { useUnifiedAuth, getAccountEmail, getAccountFullName } from "@/hooks/useAuth";
 import { useRouter } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { UserRole } from "@/lib/types";
 
 export default function DashboardPage() {
-  const { user, isLoading } = useAuth();
+  const { account, role, isLoading, isAuthenticated } = useUnifiedAuth();
   const router = useRouter();
 
   useEffect(() => {
     if (!isLoading) {
-      if (!user) {
+      if (!isAuthenticated || !account) {
         // User not authenticated, redirect to login
         router.push("/login");
         return;
@@ -20,7 +21,7 @@ export default function DashboardPage() {
 
       // User is authenticated, show unified dashboard
     }
-  }, [user, isLoading, router]);
+  }, [account, isLoading, isAuthenticated, router]);
 
   if (isLoading) {
     return (
@@ -33,7 +34,7 @@ export default function DashboardPage() {
     );
   }
 
-  if (!user) {
+  if (!account) {
     return (
       <div className="flex min-h-screen items-center justify-center">
         <div className="text-center">
@@ -43,10 +44,8 @@ export default function DashboardPage() {
     );
   }
 
-  // Email verification is no longer required
-
   // Check user role
-  const isProfessional = user.type === "professional";
+  const isProfessional = role === UserRole.PROFESSIONAL;
 
   return (
     <div className="space-y-6">
@@ -54,9 +53,9 @@ export default function DashboardPage() {
         <h1 className="text-3xl font-bold">
           {isProfessional ? "Dashboard Profesional" : "Dashboard Usuario"}
         </h1>
-        <p className="text-neutral-600">Bienvenido, {getUserFullName(user)}</p>
+        <p className="text-neutral-600">Bienvenido, {getAccountFullName(account)}</p>
         <p className="text-sm text-neutral-500">
-          Rol: {user.type === "professional" ? "Profesional" : "Usuario"}
+          Rol: {isProfessional ? "Profesional" : "Usuario"}
         </p>
       </div>
 
@@ -69,16 +68,16 @@ export default function DashboardPage() {
           <CardContent>
             <div className="space-y-2">
               <p>
-                <strong>Email:</strong> {getUserEmail(user)}
+                <strong>Email:</strong> {getAccountEmail(account)}
               </p>
               <p>
-                <strong>Rol:</strong> {user.type === "professional" ? "Profesional" : "Usuario"}
+                <strong>Rol:</strong> {isProfessional ? "Profesional" : "Usuario"}
               </p>
               <p>
-                <strong>Email Verificado:</strong> Sí
+                <strong>Email Verificado:</strong> {account.is_verified ? "Sí" : "No"}
               </p>
               <p>
-                <strong>Nombre:</strong> {getUserFullName(user)}
+                <strong>Nombre:</strong> {getAccountFullName(account)}
               </p>
             </div>
           </CardContent>

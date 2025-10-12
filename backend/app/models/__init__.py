@@ -2,26 +2,41 @@
 Database models for the Miamente platform.
 """
 
-from app.models.modality import Modality  # New: intervention modalities
-from app.models.professional import Professional
-from app.models.professional_modality import ProfessionalModality
-from app.models.professional_specialty import (  # Keep for backward compatibility
-    ProfessionalSpecialty,
-)
-from app.models.professional_therapeutic_approach import ProfessionalTherapeuticApproach
-from app.models.specialty import Specialty  # Keep for backward compatibility
-from app.models.therapeutic_approach import (  # New: therapeutic approaches
-    TherapeuticApproach,
-)
+# New unified account system models
+from app.models.role import Role
+from app.models.account import Account
+from app.models.user_profile import UserProfile
+from app.models.professional_profile import ProfessionalProfile
+
+# Legacy models (to be deprecated)
 from app.models.user import User
+from app.models.professional import Professional
+
+# Supporting models
+from app.models.modality import Modality
+from app.models.specialty import Specialty
+from app.models.therapeutic_approach import TherapeuticApproach
+
+# Junction table models (updated to use accounts)
+from app.models.professional_modality import ProfessionalModality
+from app.models.professional_specialty import ProfessionalSpecialty
+from app.models.professional_therapeutic_approach import ProfessionalTherapeuticApproach
 
 __all__ = [
+    # New unified system
+    "Role",
+    "Account",
+    "UserProfile",
+    "ProfessionalProfile",
+    # Legacy (to be deprecated)
     "User",
     "Professional",
+    # Supporting models
     "Specialty",
-    "ProfessionalSpecialty",
     "Modality",
     "TherapeuticApproach",
+    # Junction tables
+    "ProfessionalSpecialty",
     "ProfessionalTherapeuticApproach",
     "ProfessionalModality",
 ]

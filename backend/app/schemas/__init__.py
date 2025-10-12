@@ -2,7 +2,39 @@
 Pydantic schemas for request/response validation.
 """
 
-from app.schemas.auth import Token, TokenData
+# New unified account system schemas
+from app.schemas.role import RoleCreate, RoleResponse, RoleUpdate
+from app.schemas.account import (
+    AccountCreate,
+    AccountResponse,
+    AccountUpdate,
+    AccountWithRole,
+    AccountWithProfile,
+    AccountStatusUpdate,
+    PaginatedAccountsResponse,
+)
+from app.schemas.user_profile import (
+    UserProfileCreate,
+    UserProfileResponse,
+    UserProfileUpdate,
+)
+from app.schemas.professional_profile import (
+    ProfessionalProfileCreate,
+    ProfessionalProfileResponse,
+    ProfessionalProfileUpdate,
+)
+
+# Authentication schemas
+from app.schemas.auth import (
+    Token,
+    TokenData,
+    UnifiedLogin,
+    UnifiedAuthResponse,
+    AccountRegisterRequest,
+    RefreshToken,
+)
+
+# Legacy schemas (to be deprecated)
 from app.schemas.professional import (
     ProfessionalCreate,
     ProfessionalResponse,
@@ -11,6 +43,31 @@ from app.schemas.professional import (
 from app.schemas.user import UserCreate, UserLogin, UserResponse, UserUpdate
 
 __all__ = [
+    # New unified system
+    "RoleCreate",
+    "RoleUpdate",
+    "RoleResponse",
+    "AccountCreate",
+    "AccountUpdate",
+    "AccountResponse",
+    "AccountWithRole",
+    "AccountWithProfile",
+    "AccountStatusUpdate",
+    "PaginatedAccountsResponse",
+    "UserProfileCreate",
+    "UserProfileUpdate",
+    "UserProfileResponse",
+    "ProfessionalProfileCreate",
+    "ProfessionalProfileUpdate",
+    "ProfessionalProfileResponse",
+    # Authentication
+    "Token",
+    "TokenData",
+    "UnifiedLogin",
+    "UnifiedAuthResponse",
+    "AccountRegisterRequest",
+    "RefreshToken",
+    # Legacy (to be deprecated)
     "UserCreate",
     "UserUpdate",
     "UserResponse",
@@ -18,6 +75,4 @@ __all__ = [
     "ProfessionalCreate",
     "ProfessionalUpdate",
     "ProfessionalResponse",
-    "Token",
-    "TokenData",
 ]

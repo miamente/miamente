@@ -258,7 +258,9 @@ class TestGetAllTherapeuticApproachesAdmin:
     """Test get_all_therapeutic_approaches_admin endpoint."""
 
     @patch("app.api.v1.endpoints.therapeutic_approaches.TherapeuticApproachService")
-    def test_get_all_therapeutic_approaches_admin_success(self, mock_service_class, sample_therapeutic_approach, mock_db):
+    def test_get_all_therapeutic_approaches_admin_success(
+        self, mock_service_class, sample_therapeutic_approach, mock_db
+    ):
         """Test successful retrieval of all therapeutic approaches for admin."""
         mock_service = MagicMock()
         mock_service_class.return_value = mock_service
@@ -278,7 +280,9 @@ class TestGetAllTherapeuticApproachesAdmin:
         mock_service.get_therapeutic_approaches_admin.assert_called_once_with(skip=0, limit=10, search=None)
 
     @patch("app.api.v1.endpoints.therapeutic_approaches.TherapeuticApproachService")
-    def test_get_all_therapeutic_approaches_admin_with_search(self, mock_service_class, sample_therapeutic_approach, mock_db):
+    def test_get_all_therapeutic_approaches_admin_with_search(
+        self, mock_service_class, sample_therapeutic_approach, mock_db
+    ):
         """Test retrieval with search parameter."""
         mock_service = MagicMock()
         mock_service_class.return_value = mock_service
@@ -286,7 +290,9 @@ class TestGetAllTherapeuticApproachesAdmin:
         mock_service.get_therapeutic_approaches_count.return_value = 1
         mock_service.get_therapeutic_approach_professional_count.return_value = 3
 
-        result = get_all_therapeutic_approaches_admin(page=1, page_size=5, search="Cognitive", db=mock_db, _admin_user=None)
+        result = get_all_therapeutic_approaches_admin(
+            page=1, page_size=5, search="Cognitive", db=mock_db, _admin_user=None
+        )
 
         assert len(result.items) == 1
         assert result.page_size == 5
@@ -310,7 +316,9 @@ class TestGetAllTherapeuticApproachesAdmin:
         mock_service.get_therapeutic_approaches_admin.assert_called_once_with(skip=10, limit=10, search=None)
 
     @patch("app.api.v1.endpoints.therapeutic_approaches.TherapeuticApproachService")
-    def test_get_all_therapeutic_approaches_admin_pagination_and_search(self, mock_service_class, mock_db, sample_therapeutic_approach):
+    def test_get_all_therapeutic_approaches_admin_pagination_and_search(
+        self, mock_service_class, mock_db, sample_therapeutic_approach
+    ):
         """Test combined pagination and search for admin list."""
         mock_service = MagicMock()
         mock_service_class.return_value = mock_service

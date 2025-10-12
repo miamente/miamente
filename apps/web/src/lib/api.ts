@@ -3,8 +3,6 @@
  */
 
 import type {
-  User,
-  Professional,
   Specialty,
   TherapeuticApproach,
   Modality,
@@ -12,7 +10,6 @@ import type {
   ProfessionalTherapeuticApproach,
   ProfessionalModality,
   Review,
-  LoginResponse,
   UserCreate,
   ProfessionalCreate,
   SpecialtyCreate,
@@ -24,15 +21,20 @@ import type {
   PaginatedSpecialtiesResponse,
   PaginatedTherapeuticApproachesResponse,
   PaginatedProfessionalsResponse,
+  PaginatedAccountsResponse,
   ErrorResponse,
-  AuthUser,
-  UserUpdate,
-  ProfessionalUpdate,
   SpecialtyUpdate,
   TherapeuticApproachUpdate,
   ModalityUpdate,
   ReviewStats,
   UploadResponse,
+  UnifiedAuthResponse,
+  AccountWithRole,
+  AccountWithProfile,
+  AccountUpdate,
+  AccountStatusUpdate,
+  UserProfile,
+  ProfessionalProfile,
 } from "./types";
 
 // API Configuration
@@ -40,15 +42,12 @@ import type {
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "";
 const API_VERSION = "/api/v1";
 
-// Re-export types for backward compatibility
+// Re-export types
 export type {
-  User,
-  Professional,
   Specialty,
   TherapeuticApproach,
   Modality,
   Review,
-  LoginResponse,
   UserCreate,
   ProfessionalCreate,
   SpecialtyCreate,
@@ -58,14 +57,15 @@ export type {
   ApiResponse,
   PaginatedResponse,
   ErrorResponse,
-  AuthUser,
-  UserUpdate,
-  ProfessionalUpdate,
   SpecialtyUpdate,
   TherapeuticApproachUpdate,
   ModalityUpdate,
   ReviewStats,
   UploadResponse,
+  UnifiedAuthResponse,
+  AccountWithRole,
+  AccountWithProfile,
+  AccountUpdate,
 };
 
 // Legacy type aliases for backward compatibility
@@ -232,74 +232,57 @@ class ApiClient {
     return this.handleResponse<T>(response);
   }
 
-  // Auth methods
-  async login(email: string, password: string): Promise<LoginResponse> {
-    const response = await this.post<LoginResponse>("/auth/login", { email, password });
+  // Auth methods (Unified accounts system)
+  async login(email: string, password: string): Promise<UnifiedAuthResponse> {
+    const response = await this.post<UnifiedAuthResponse>("/accounts/login", { email, password });
 
     // Store the token
-    const { access_token } = response;
-    this.setToken(access_token);
+    this.setToken(response.access_token);
 
     return response;
   }
 
-  async loginUser(credentials: LoginRequest): Promise<LoginResponse> {
-    const response = await this.post<LoginResponse>("/auth/login/user", credentials);
+  async registerUser(userData: UserCreate): Promise<UnifiedAuthResponse> {
+    // Convert to query params format expected by new endpoint
+    const params = new URLSearchParams({
+      email: userData.email,
+      password: userData.password,
+      full_name: userData.full_name,
+    });
+    if (userData.phone) params.set("phone", userData.phone);
 
-    // Store the token
-    const { access_token } = response;
-    this.setToken(access_token);
-
-    return response;
-  }
-
-  async loginProfessional(credentials: LoginRequest): Promise<LoginResponse> {
-    const response = await this.post<LoginResponse>("/auth/login/professional", credentials);
-
-    // Store the token
-    const { access_token } = response;
-    this.setToken(access_token);
-
-    return response;
-  }
-
-  async registerUser(userData: UserCreate): Promise<LoginResponse> {
-    const response = await this.post<LoginResponse>("/auth/register/user", userData);
+    const response = await this.post<UnifiedAuthResponse>(`/accounts/register/user?${params.toString()}`);
 
     // Store the token from registration response
-    const { access_token } = response;
-    this.setToken(access_token);
+    this.setToken(response.access_token);
 
     return response;
   }
 
-  async registerProfessional(professionalData: ProfessionalCreate): Promise<LoginResponse> {
-    const response = await this.post<LoginResponse>(
-      "/auth/register/professional",
-      professionalData,
-    );
+  async registerProfessional(professionalData: ProfessionalCreate): Promise<UnifiedAuthResponse> {
+    // Convert to query params format expected by new endpoint
+    const params = new URLSearchParams({
+      email: professionalData.email,
+      password: professionalData.password,
+      full_name: professionalData.full_name,
+      rate_cents: (professionalData.rate_cents || 100000).toString(),
+    });
+    if (professionalData.phone_country_code) params.set("phone_country_code", professionalData.phone_country_code);
+    if (professionalData.phone_number) params.set("phone_number", professionalData.phone_number);
+
+    const response = await this.post<UnifiedAuthResponse>(`/accounts/register/professional?${params.toString()}`);
 
     // Store the token from registration response
-    const { access_token } = response;
-    this.setToken(access_token);
+    this.setToken(response.access_token);
 
     return response;
   }
 
-  async registerUnified(registerData: { email: string; password: string }): Promise<LoginResponse> {
-    const response = await this.post<LoginResponse>("/auth/register", registerData);
-
-    // Store the token from registration response
-    const { access_token } = response;
-    this.setToken(access_token);
-
-    return response;
-  }
-
-  async getCurrentUser(): Promise<AuthUser> {
+  async getCurrentUser(): Promise<AccountWithProfile> {
     // Ensure we have the latest token from localStorage
     this.token = this.getStoredToken();
-    const result = await this.get<AuthUser>("/auth/me");
+    const result = await this.get<AccountWithProfile>("/accounts/me");
+    
     return result;
   }
 
@@ -307,87 +290,58 @@ class ApiClient {
     this.clearToken();
   }
 
-  // User methods
-  async getUsers(params?: { skip?: number; limit?: number; role?: string }): Promise<User[]> {
-    const searchParams = new URLSearchParams();
-    if (params?.skip) searchParams.set("skip", params.skip.toString());
-    if (params?.limit) searchParams.set("limit", params.limit.toString());
-    if (params?.role) searchParams.set("role", params.role);
-
-    const queryString = searchParams.toString();
-    const endpoint = queryString ? `/users?${queryString}` : "/users";
-    return this.get<User[]>(endpoint);
-  }
-
-  async getUser(userId: string): Promise<User> {
-    return this.get<User>(`/users/${userId}`);
-  }
-
-  async updateUser(userId: string, userData: UserUpdate): Promise<User> {
-    return this.patch<User>(`/users/${userId}`, userData);
-  }
-
-  async deleteUser(userId: string): Promise<void> {
-    return this.delete<void>(`/users/${userId}`);
-  }
-
-  async toggleUserStatus(userId: string, isActive: boolean): Promise<User> {
-    return this.patch<User>(`/users/${userId}/status`, { is_active: isActive });
-  }
-
-  // Professional methods
-  async getProfessional(professionalId: string): Promise<Professional> {
-    return this.get<Professional>(`/professionals/${professionalId}`);
-  }
-
-  async getProfessionals(params?: {
-    skip?: number;
-    limit?: number;
-    specialty?: string;
-    min_rate_cents?: number;
-    max_rate_cents?: number;
-  }): Promise<Professional[]> {
-    const searchParams = new URLSearchParams();
-    if (params?.skip) searchParams.set("skip", params.skip.toString());
-    if (params?.limit) searchParams.set("limit", params.limit.toString());
-    if (params?.specialty) searchParams.set("specialty", params.specialty);
-    if (params?.min_rate_cents !== undefined)
-      searchParams.set("min_rate_cents", params.min_rate_cents.toString());
-    if (params?.max_rate_cents !== undefined)
-      searchParams.set("max_rate_cents", params.max_rate_cents.toString());
-
-    const queryString = searchParams.toString();
-    const endpoint = queryString ? `/professionals?${queryString}` : "/professionals";
-    return this.get<Professional[]>(endpoint);
-  }
-
-  async updateProfessional(
-    professionalId: string,
-    professionalData: ProfessionalUpdate,
-  ): Promise<Professional> {
-    return this.patch<Professional>(`/professionals/${professionalId}`, professionalData);
-  }
-
-  async deleteProfessional(professionalId: string): Promise<void> {
-    return this.delete<void>(`/professionals/${professionalId}`);
-  }
-
-  async toggleProfessionalStatus(professionalId: string, isActive: boolean): Promise<Professional> {
-    return this.patch<Professional>(`/professionals/${professionalId}/status`, {
-      is_active: isActive,
-    });
-  }
-
-  async getAllProfessionalsAdmin(page: number = 1, pageSize: number = 10, search?: string): Promise<PaginatedProfessionalsResponse> {
+  // Account methods (NEW - replaces User and Professional methods)
+  
+  /**
+   * Get all accounts with pagination and filtering (admin only)
+   */
+  async getAllAccountsAdmin(
+    page: number = 1,
+    pageSize: number = 10,
+    role?: string,
+    search?: string
+  ): Promise<PaginatedAccountsResponse> {
     const params = new URLSearchParams({
       page: page.toString(),
       page_size: pageSize.toString(),
     });
-    if (search) {
-      params.set("search", search);
-    }
-    return this.get<PaginatedProfessionalsResponse>(`/professionals/admin/all?${params.toString()}`);
+    if (role) params.set("role", role);
+    if (search) params.set("search", search);
+    
+    return this.get<PaginatedAccountsResponse>(`/accounts/admin/all?${params.toString()}`);
   }
+
+  /**
+   * Get account by ID with profile
+   */
+  async getAccountById(accountId: string): Promise<AccountWithProfile> {
+    return this.get<AccountWithProfile>(`/accounts/${accountId}`);
+  }
+
+  /**
+   * Update account information
+   */
+  async updateAccount(accountId: string, accountData: AccountUpdate): Promise<AccountWithProfile> {
+    return this.patch<AccountWithProfile>(`/accounts/${accountId}`, accountData);
+  }
+
+  /**
+   * Delete account (admin only)
+   */
+  async deleteAccount(accountId: string): Promise<void> {
+    return this.delete<void>(`/accounts/${accountId}`);
+  }
+
+  /**
+   * Toggle account active status (admin only)
+   */
+  async toggleAccountStatus(accountId: string, isActive: boolean): Promise<AccountWithRole> {
+    return this.patch<AccountWithRole>(`/accounts/${accountId}/status`, { is_active: isActive });
+  }
+
+  // User and Professional methods removed - use Account methods instead
+
+  // Professional methods removed - use Account methods instead
 
   // Specialty methods
   async getSpecialties(): Promise<Specialty[]> {
@@ -615,7 +569,7 @@ class ApiClient {
 
   async createProfessionalModality(
     professionalId: string,
-    modalityData: Omit<ProfessionalModality, "id" | "professional_id">,
+    modalityData: Omit<ProfessionalModality, "id">,
   ): Promise<ProfessionalModality> {
     return this.post<ProfessionalModality>(`/professional-modalities`, {
       professional_id: professionalId,

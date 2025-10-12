@@ -6,11 +6,10 @@ import logging
 from functools import lru_cache
 from typing import Generator, Optional
 
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, orm
 from sqlalchemy.engine import Engine
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session, declarative_base, sessionmaker
-import sqlalchemy.orm as orm
 
 from app.core.config import get_settings
 
@@ -46,8 +45,33 @@ def get_engine() -> Optional[Engine]:
         return None
 
 
-_SESSION_FACTORY_CACHE: Optional[orm.sessionmaker] = None
-_SESSION_FACTORY_ENGINE_ID: Optional[int] = None
+class _SessionFactoryCache:
+    """Cache for session factory to avoid global variables."""
+
+    def __init__(self):
+        self.factory: Optional[orm.sessionmaker] = None
+        self.engine_id: Optional[int] = None
+
+    def get(self, engine: Engine) -> Optional[orm.sessionmaker]:
+        """Get or create session factory for the given engine."""
+        engine_id = id(engine)
+        if self.factory is not None and self.engine_id == engine_id:
+            return self.factory
+
+        logger.info("DATABASE: Creating session factory")
+        factory = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+        self.factory = factory
+        self.engine_id = engine_id
+        return factory
+
+    def clear(self) -> None:
+        """Clear the cache."""
+        self.factory = None
+        self.engine_id = None
+
+
+# Create a singleton instance
+_session_factory_cache = _SessionFactoryCache()
 
 
 def get_session_factory() -> Optional[orm.sessionmaker]:
@@ -56,35 +80,20 @@ def get_session_factory() -> Optional[orm.sessionmaker]:
     Implements our own cache so tests can patch `sessionmaker` and use
     `get_session_factory.cache_clear()` reliably across test cases.
     """
-    global _SESSION_FACTORY_CACHE, _SESSION_FACTORY_ENGINE_ID
     try:
         engine = get_engine()
         if engine is None:
             logger.error("DATABASE: Cannot create session factory - engine is None")
             return None
 
-        engine_id = id(engine)
-        if _SESSION_FACTORY_CACHE is not None and _SESSION_FACTORY_ENGINE_ID == engine_id:
-            return _SESSION_FACTORY_CACHE
-
-        logger.info("DATABASE: Creating session factory")
-        factory = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-        _SESSION_FACTORY_CACHE = factory
-        _SESSION_FACTORY_ENGINE_ID = engine_id
-        return factory
+        return _session_factory_cache.get(engine)
     except (SQLAlchemyError, ConnectionError, TimeoutError) as exc:
         logger.error("DATABASE: Failed to create session factory: %s", exc)
         return None
 
 
-def _clear_session_factory_cache() -> None:
-    global _SESSION_FACTORY_CACHE, _SESSION_FACTORY_ENGINE_ID
-    _SESSION_FACTORY_CACHE = None
-    _SESSION_FACTORY_ENGINE_ID = None
-
-
 # Expose a cache_clear method compatible with tests
-setattr(get_session_factory, "cache_clear", _clear_session_factory_cache)
+get_session_factory.cache_clear = _session_factory_cache.clear
 
 
 def get_db() -> Generator[Optional[Session], None, None]:

@@ -38,20 +38,43 @@ export default function AdminProfessionalsPage() {
     setLoading(true);
     setError("");
     try {
-      const response: PaginatedProfessionalsResponse = await apiClient.getAllProfessionalsAdmin(
+      // Use new unified accounts endpoint
+      const response = await apiClient.getAllAccountsAdmin(
         currentPage,
         pageSize,
+        "professional",
         appliedSearch || undefined
       );
-      setProfessionals(response.items);
+      
+      // Convert AccountWithRole to ProfessionalWithCountResponse format
+      const convertedProfessionals: ProfessionalWithCountResponse[] = response.items.map((account) => ({
+        id: account.id,
+        email: account.email,
+        full_name: account.full_name,
+        phone_country_code: account.phone_country_code,
+        phone_number: account.phone_number,
+        is_active: account.is_active,
+        is_verified: account.is_verified,
+        profile_picture: account.profile_picture,
+        created_at: account.created_at,
+        updated_at: account.updated_at,
+        license_number: "",
+        years_experience: 0,
+        rate_cents: 0,
+        currency: "COP",
+        timezone: "America/Bogota",
+        last_login: account.last_login,
+      }));
+      
+      setProfessionals(convertedProfessionals);
       setTotalItems(response.total);
     } catch (e) {
       console.error("Error loading professionals", e);
       setError("Error al cargar profesionales");
-      } finally {
-        setLoading(false);
-      }
-    };
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
     fetchProfessionals();
@@ -77,7 +100,8 @@ export default function AdminProfessionalsPage() {
   const confirmDelete = async () => {
     if (!deleting) return;
     try {
-      await apiClient.deleteProfessional(deleting.id);
+      // Use new unified account endpoint
+      await apiClient.deleteAccount(deleting.id);
       await fetchProfessionals();
     } catch (e) {
       console.error("Error deleting professional", e);
@@ -96,7 +120,8 @@ export default function AdminProfessionalsPage() {
   const confirmToggle = async () => {
     if (!toggling) return;
     try {
-      await apiClient.toggleProfessionalStatus(toggling.id, !toggling.is_active);
+      // Use new unified account endpoint
+      await apiClient.toggleAccountStatus(toggling.id, !toggling.is_active);
       await fetchProfessionals();
     } catch (e) {
       console.error("Error toggling professional status", e);
