@@ -49,10 +49,26 @@ const mockUseAuth = {
   isLoading: false,
 };
 
+const mockUseUnifiedAuth = {
+  account: null as any,
+  profile: null as any,
+  role: null as string | null,
+  isLoading: false,
+  isAuthenticated: false,
+  loginUnified: vi.fn(),
+  registerUser: vi.fn(),
+  registerProfessional: vi.fn(),
+  logout: vi.fn(),
+  refreshUser: vi.fn(),
+};
+
 vi.mock("@/hooks/useAuth", () => ({
   useAuth: vi.fn(() => mockUseAuth),
-  useUnifiedAuth: vi.fn(() => mockUseAuth),
+  useUnifiedAuth: vi.fn(() => mockUseUnifiedAuth),
   getUserUid: vi.fn((user) => user?.id),
+  getAccountEmail: vi.fn((account) => account?.email),
+  getAccountId: vi.fn((account) => account?.id),
+  getAccountFullName: vi.fn((account) => account?.full_name),
 }));
 
 // Mock specialty and therapy approach hooks
