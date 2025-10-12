@@ -31,6 +31,10 @@ const mockIsUserVerified = vi.mocked(isUserVerified);
 const mockRegisterWithEmail = vi.mocked(registerWithEmail);
 const mockUseRouter = vi.mocked(useRouter);
 
+// Import and mock useUnifiedAuth
+import { useUnifiedAuth } from "@/hooks/useAuth";
+const mockUseUnifiedAuth = vi.mocked(useUnifiedAuth);
+
 describe("RegisterPage", () => {
   const mockPush = vi.fn();
 
@@ -44,6 +48,20 @@ describe("RegisterPage", () => {
       forward: vi.fn(),
       refresh: vi.fn(),
       prefetch: vi.fn(),
+    });
+
+    // Default mock for useUnifiedAuth
+    mockUseUnifiedAuth.mockReturnValue({
+      account: null,
+      profile: null,
+      role: null,
+      isLoading: false,
+      isAuthenticated: false,
+      loginUnified: vi.fn(),
+      registerUser: vi.fn(),
+      registerProfessional: vi.fn(),
+      logout: vi.fn(),
+      refreshUser: vi.fn(),
     });
   });
 
@@ -80,33 +98,28 @@ describe("RegisterPage", () => {
   });
 
   it("should show redirecting message when user is authenticated", () => {
-    const mockUser = {
-      type: UserRole.USER,
-      data: {
-        id: "user-123",
-        email: "test@example.com",
-        full_name: "Test User",
-        is_verified: false,
-        is_active: true,
-        phone: "+1234567890",
-        created_at: "2023-01-01T00:00:00Z",
-        updated_at: "2023-01-01T00:00:00Z",
-      },
+    const mockAccount = {
+      id: "user-123",
+      email: "test@example.com",
+      full_name: "Test User",
+      is_verified: false,
+      is_active: true,
+      phone: "+1234567890",
+      created_at: "2023-01-01T00:00:00Z",
+      updated_at: "2023-01-01T00:00:00Z",
     };
 
-    mockUseAuth.mockReturnValue({
-      user: mockUser,
+    mockUseUnifiedAuth.mockReturnValue({
+      account: mockAccount,
+      profile: null,
+      role: "user",
       isLoading: false,
       isAuthenticated: true,
-      loginUser: vi.fn(),
-      loginProfessional: vi.fn(),
       loginUnified: vi.fn(),
       registerUser: vi.fn(),
       registerProfessional: vi.fn(),
-      registerUnified: vi.fn(),
       logout: vi.fn(),
       refreshUser: vi.fn(),
-      getAuthHeaders: vi.fn(),
     });
 
     render(<RegisterPage />);
@@ -115,34 +128,29 @@ describe("RegisterPage", () => {
   });
 
   it("should redirect to dashboard when user is verified", () => {
-    const mockUser = {
-      type: UserRole.USER,
-      data: {
-        id: "user-123",
-        email: "test@example.com",
-        full_name: "Test User",
-        is_verified: true,
-        is_active: true,
-        phone: "+1234567890",
-        created_at: "2023-01-01T00:00:00Z",
-        updated_at: "2023-01-01T00:00:00Z",
-      },
+    const mockAccount = {
+      id: "user-123",
+      email: "test@example.com",
+      full_name: "Test User",
+      is_verified: true,
+      is_active: true,
+      phone: "+1234567890",
+      created_at: "2023-01-01T00:00:00Z",
+      updated_at: "2023-01-01T00:00:00Z",
     };
 
     mockIsUserVerified.mockReturnValue(true);
-    mockUseAuth.mockReturnValue({
-      user: mockUser,
+    mockUseUnifiedAuth.mockReturnValue({
+      account: mockAccount,
+      profile: null,
+      role: "user",
       isLoading: false,
       isAuthenticated: true,
-      loginUser: vi.fn(),
-      loginProfessional: vi.fn(),
       loginUnified: vi.fn(),
       registerUser: vi.fn(),
       registerProfessional: vi.fn(),
-      registerUnified: vi.fn(),
       logout: vi.fn(),
       refreshUser: vi.fn(),
-      getAuthHeaders: vi.fn(),
     });
 
     render(<RegisterPage />);

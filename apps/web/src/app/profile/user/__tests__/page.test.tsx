@@ -16,6 +16,9 @@ vi.mock("@/hooks/useAuth", () => ({
   useUnifiedAuth: vi.fn(),
   getUserUid: vi.fn(),
   getUserEmail: vi.fn(),
+  getAccountEmail: vi.fn(),
+  getAccountId: vi.fn(),
+  getAccountFullName: vi.fn(),
 }));
 
 // Mock the profiles utilities
@@ -71,6 +74,10 @@ const mockUpdateUserProfile = vi.mocked(updateUserProfile);
 const mockUploadFile = vi.mocked(uploadFile);
 const mockUseRouter = vi.mocked(useRouter);
 
+// Import and mock useUnifiedAuth
+import { useUnifiedAuth } from "@/hooks/useAuth";
+const mockUseUnifiedAuth = vi.mocked(useUnifiedAuth);
+
 describe("UserProfilePage", () => {
   const mockPush = vi.fn();
   const mockUser: AuthUser = {
@@ -122,6 +129,19 @@ describe("UserProfilePage", () => {
       isAuthenticated: true,
     });
 
+    mockUseUnifiedAuth.mockReturnValue({
+      account: mockUser.data,
+      profile: mockProfile,
+      role: "user",
+      isLoading: false,
+      isAuthenticated: true,
+      loginUnified: vi.fn(),
+      registerUser: vi.fn(),
+      registerProfessional: vi.fn(),
+      logout: vi.fn(),
+      refreshUser: vi.fn(),
+    });
+
     mockGetUserUid.mockImplementation(() => "user-1");
     mockGetUserEmail.mockReturnValue("test@example.com");
     mockGetUserProfile.mockImplementation(() =>
@@ -152,6 +172,19 @@ describe("UserProfilePage", () => {
       refreshUser: vi.fn(),
       getAuthHeaders: vi.fn(),
       isAuthenticated: false,
+    });
+
+    mockUseUnifiedAuth.mockReturnValue({
+      account: null,
+      profile: null,
+      role: null,
+      isLoading: true,
+      isAuthenticated: false,
+      loginUnified: vi.fn(),
+      registerUser: vi.fn(),
+      registerProfessional: vi.fn(),
+      logout: vi.fn(),
+      refreshUser: vi.fn(),
     });
 
     render(<UserProfilePage />);

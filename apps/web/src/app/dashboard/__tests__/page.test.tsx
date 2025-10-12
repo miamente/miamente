@@ -17,6 +17,10 @@ vi.mock("@/hooks/useAuth", () => ({
   isUserVerified: vi.fn(),
   getUserEmail: vi.fn(),
   getUserFullName: vi.fn(),
+  getAccountEmail: vi.fn(),
+  getAccountId: vi.fn(),
+  getAccountFullName: vi.fn(),
+  getAccountRole: vi.fn(),
 }));
 
 const mockUseRouter = vi.mocked(useRouter);
