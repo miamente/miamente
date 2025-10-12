@@ -48,6 +48,20 @@ describe("DashboardPage", () => {
     });
     mockGetUserEmail.mockReturnValue("test@example.com");
     mockGetUserFullName.mockReturnValue("Test User");
+    
+    // Default mock for useUnifiedAuth (can be overridden in individual tests)
+    mockUseUnifiedAuth.mockReturnValue({
+      account: null,
+      profile: null,
+      role: null,
+      isLoading: false,
+      isAuthenticated: false,
+      loginUnified: vi.fn(),
+      registerUser: vi.fn(),
+      registerProfessional: vi.fn(),
+      logout: vi.fn(),
+      refreshUser: vi.fn(),
+    });
   });
 
   it("should show loading state when isLoading is true", () => {
@@ -352,6 +366,20 @@ describe("DashboardPage", () => {
       refreshUser: vi.fn(),
       getAuthHeaders: vi.fn(),
     });
+    
+    mockUseUnifiedAuth.mockReturnValue({
+      account: mockUser.data,
+      profile: null,
+      role: "user",
+      isLoading: false,
+      isAuthenticated: true,
+      loginUnified: vi.fn(),
+      registerUser: vi.fn(),
+      registerProfessional: vi.fn(),
+      logout: vi.fn(),
+      refreshUser: vi.fn(),
+    });
+    
     mockIsUserVerified.mockReturnValue(true);
 
     render(<DashboardPage />);
