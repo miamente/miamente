@@ -138,6 +138,20 @@ describe("DashboardPage", () => {
       refreshUser: vi.fn(),
       getAuthHeaders: vi.fn(),
     });
+    
+    mockUseUnifiedAuth.mockReturnValue({
+      account: mockUser.data,
+      profile: null,
+      role: "user",
+      isLoading: false,
+      isAuthenticated: true,
+      loginUnified: vi.fn(),
+      registerUser: vi.fn(),
+      registerProfessional: vi.fn(),
+      logout: vi.fn(),
+      refreshUser: vi.fn(),
+    });
+    
     mockIsUserVerified.mockReturnValue(true); // Always true now
 
     render(<DashboardPage />);
@@ -175,6 +189,20 @@ describe("DashboardPage", () => {
       refreshUser: vi.fn(),
       getAuthHeaders: vi.fn(),
     });
+    
+    mockUseUnifiedAuth.mockReturnValue({
+      account: mockUser.data,
+      profile: null,
+      role: "user",
+      isLoading: false,
+      isAuthenticated: true,
+      loginUnified: vi.fn(),
+      registerUser: vi.fn(),
+      registerProfessional: vi.fn(),
+      logout: vi.fn(),
+      refreshUser: vi.fn(),
+    });
+    
     mockIsUserVerified.mockReturnValue(true);
 
     render(<DashboardPage />);
