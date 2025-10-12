@@ -54,9 +54,9 @@ interface MockDropdownItemProps extends MockComponentProps {
 // Mock the API client
 vi.mock("@/lib/api", () => ({
   apiClient: {
-    getUsers: vi.fn(),
-    toggleUserStatus: vi.fn(),
-    deleteUser: vi.fn(),
+    getAllAccountsAdmin: vi.fn(),
+    toggleAccountStatus: vi.fn(),
+    deleteAccount: vi.fn(),
   },
 }));
 

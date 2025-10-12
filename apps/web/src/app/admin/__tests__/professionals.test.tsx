@@ -7,9 +7,9 @@ import { apiClient } from "@/lib/api";
 // Mock the API client
 vi.mock("@/lib/api", () => ({
   apiClient: {
-    getAllProfessionalsAdmin: vi.fn(),
-    deleteProfessional: vi.fn(),
-    toggleProfessionalStatus: vi.fn(),
+    getAllAccountsAdmin: vi.fn(),
+    deleteAccount: vi.fn(),
+    toggleAccountStatus: vi.fn(),
   },
 }));
 
@@ -90,7 +90,7 @@ const mockProfessionals = [
 describe("AdminProfessionalsPage", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(apiClient.getAllProfessionalsAdmin).mockResolvedValue({
+    vi.mocked(apiClient.getAllAccountsAdmin).mockResolvedValue({
       items: mockProfessionals as unknown as import("@/lib/types").ProfessionalWithCountResponse[],
       total: 2,
       page: 1,

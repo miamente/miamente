@@ -6,8 +6,8 @@ import { apiClient } from "@/lib/api";
 // Mock the API client
 vi.mock("@/lib/api", () => ({
   apiClient: {
-    getProfessionals: vi.fn(),
-    getProfessional: vi.fn(),
+    getAllAccountsAdmin: vi.fn(),
+    getAccountById: vi.fn(),
   },
 }));
 
@@ -75,7 +75,29 @@ describe("useProfessionals", () => {
       },
     ];
 
-    vi.mocked(apiClient.getProfessionals).mockResolvedValue(mockProfessionals);
+    const mockResponse = {
+      items: mockProfessionals.map((prof) => ({
+        id: prof.id,
+        email: prof.email,
+        full_name: prof.full_name,
+      })),
+      total: mockProfessionals.length,
+      page: 1,
+      page_size: 100,
+      total_pages: 1,
+    };
+
+    vi.mocked(apiClient.getAllAccountsAdmin).mockResolvedValue(mockResponse);
+    
+    // Mock getAccountById to return full professional data
+    vi.mocked(apiClient.getAccountById).mockImplementation(async (id) => {
+      const prof = mockProfessionals.find((p) => p.id === id);
+      return {
+        account: prof!,
+        role: "professional",
+        profile: prof as any,
+      };
+    });
 
     const { result } = renderHook(() => useProfessionals());
 
@@ -83,14 +105,14 @@ describe("useProfessionals", () => {
       await result.current.fetchProfessionals();
     });
 
-    expect(result.current.professionals).toEqual(mockProfessionals);
+    expect(result.current.professionals).toHaveLength(mockProfessionals.length);
     expect(result.current.isLoading).toBe(false);
     expect(result.current.error).toBe(null);
-    expect(apiClient.getProfessionals).toHaveBeenCalledTimes(1);
+    expect(apiClient.getAllAccountsAdmin).toHaveBeenCalledTimes(1);
   });
 
   it("should handle fetch professionals error", async () => {
-    vi.mocked(apiClient.getProfessionals).mockRejectedValue(new Error("API Error"));
+    vi.mocked(apiClient.getAllAccountsAdmin).mockRejectedValue(new Error("API Error"));
 
     const { result } = renderHook(() => useProfessionals());
 
@@ -143,7 +165,13 @@ describe("useProfessional", () => {
       timezone: "America/Bogota",
     };
 
-    vi.mocked(apiClient.getProfessional).mockResolvedValue(mockProfessional);
+    const mockResponseData = {
+      account: mockProfessional,
+      role: "professional",
+      profile: mockProfessional as any,
+    };
+
+    vi.mocked(apiClient.getAccountById).mockResolvedValue(mockResponseData);
 
     const { result } = renderHook(() => useProfessional("prof-1"));
 
@@ -151,14 +179,14 @@ describe("useProfessional", () => {
       await result.current.fetchProfessional();
     });
 
-    expect(result.current.professional).toEqual(mockProfessional);
+    expect(result.current.professional).toEqual(mockResponseData);
     expect(result.current.isLoading).toBe(false);
     expect(result.current.error).toBe(null);
-    expect(apiClient.getProfessional).toHaveBeenCalledWith("prof-1");
+    expect(apiClient.getAccountById).toHaveBeenCalledWith("prof-1");
   });
 
   it("should handle fetch single professional error", async () => {
-    vi.mocked(apiClient.getProfessional).mockRejectedValue(new Error("Professional not found"));
+    vi.mocked(apiClient.getAccountById).mockRejectedValue(new Error("Professional not found"));
 
     const { result } = renderHook(() => useProfessional("prof-1"));
 

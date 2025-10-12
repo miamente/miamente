@@ -243,15 +243,7 @@ class ApiClient {
   }
 
   async registerUser(userData: UserCreate): Promise<UnifiedAuthResponse> {
-    // Convert to query params format expected by new endpoint
-    const params = new URLSearchParams({
-      email: userData.email,
-      password: userData.password,
-      full_name: userData.full_name,
-    });
-    if (userData.phone) params.set("phone", userData.phone);
-
-    const response = await this.post<UnifiedAuthResponse>(`/accounts/register/user?${params.toString()}`);
+    const response = await this.post<UnifiedAuthResponse>("/accounts/register/user", userData);
 
     // Store the token from registration response
     this.setToken(response.access_token);
@@ -260,17 +252,7 @@ class ApiClient {
   }
 
   async registerProfessional(professionalData: ProfessionalCreate): Promise<UnifiedAuthResponse> {
-    // Convert to query params format expected by new endpoint
-    const params = new URLSearchParams({
-      email: professionalData.email,
-      password: professionalData.password,
-      full_name: professionalData.full_name,
-      rate_cents: (professionalData.rate_cents || 100000).toString(),
-    });
-    if (professionalData.phone_country_code) params.set("phone_country_code", professionalData.phone_country_code);
-    if (professionalData.phone_number) params.set("phone_number", professionalData.phone_number);
-
-    const response = await this.post<UnifiedAuthResponse>(`/accounts/register/professional?${params.toString()}`);
+    const response = await this.post<UnifiedAuthResponse>("/accounts/register/professional", professionalData);
 
     // Store the token from registration response
     this.setToken(response.access_token);

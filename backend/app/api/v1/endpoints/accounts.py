@@ -172,11 +172,7 @@ async def get_all_accounts_admin(
         # Count all accounts if no role filter
         total = (
             db.query(Account)
-            .filter(
-                (Account.full_name.ilike(f"%{search}%")) | (Account.email.ilike(f"%{search}%"))
-                if search
-                else True
-            )
+            .filter((Account.full_name.ilike(f"%{search}%")) | (Account.email.ilike(f"%{search}%")) if search else True)
             .count()
         )
 
@@ -266,7 +262,9 @@ async def get_account_by_id(
         "role_name": account_data["role"],
     }
 
-    return AccountWithProfile(account=account_with_role_dict, role=account_data["role"], profile=account_data["profile"])
+    return AccountWithProfile(
+        account=account_with_role_dict, role=account_data["role"], profile=account_data["profile"]
+    )
 
 
 @router.patch("/{account_id}", response_model=AccountWithProfile)
@@ -333,7 +331,9 @@ async def update_account_by_id(
         "role_name": account_data["role"],
     }
 
-    return AccountWithProfile(account=account_with_role_dict, role=account_data["role"], profile=account_data["profile"])
+    return AccountWithProfile(
+        account=account_with_role_dict, role=account_data["role"], profile=account_data["profile"]
+    )
 
 
 @router.delete("/{account_id}", status_code=status.HTTP_204_NO_CONTENT)

@@ -7,6 +7,7 @@ import { vi, describe, it, expect, beforeEach } from "vitest";
 const mockUseAuth = vi.fn();
 vi.mock("@/hooks/useAuth", () => ({
   useAuth: () => mockUseAuth(),
+  useUnifiedAuth: () => mockUseAuth(),
 }));
 
 // Mock React Hook Form

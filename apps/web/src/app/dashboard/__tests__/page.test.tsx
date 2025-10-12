@@ -13,6 +13,7 @@ vi.mock("next/navigation", () => ({
 }));
 vi.mock("@/hooks/useAuth", () => ({
   useAuth: vi.fn(),
+  useUnifiedAuth: vi.fn(),
   isUserVerified: vi.fn(),
   getUserEmail: vi.fn(),
   getUserFullName: vi.fn(),
@@ -23,6 +24,10 @@ const mockUseAuth = vi.mocked(useAuth);
 const mockIsUserVerified = vi.mocked(isUserVerified);
 const mockGetUserEmail = vi.mocked(getUserEmail);
 const mockGetUserFullName = vi.mocked(getUserFullName);
+
+// Create a mock for useUnifiedAuth
+import { useUnifiedAuth } from "@/hooks/useAuth";
+const mockUseUnifiedAuth = vi.mocked(useUnifiedAuth);
 
 describe("DashboardPage", () => {
   const mockPush = vi.fn();
@@ -55,6 +60,19 @@ describe("DashboardPage", () => {
       logout: vi.fn(),
       refreshUser: vi.fn(),
       getAuthHeaders: vi.fn(),
+    });
+
+    mockUseUnifiedAuth.mockReturnValue({
+      account: null,
+      profile: null,
+      role: null,
+      isLoading: true,
+      isAuthenticated: false,
+      loginUnified: vi.fn(),
+      registerUser: vi.fn(),
+      registerProfessional: vi.fn(),
+      logout: vi.fn(),
+      refreshUser: vi.fn(),
     });
 
     render(<DashboardPage />);

@@ -13,6 +13,7 @@ import { UserRole } from "@/lib/types";
 // Mock the useAuth hook
 vi.mock("@/hooks/useAuth", () => ({
   useAuth: vi.fn(),
+  useUnifiedAuth: vi.fn(),
   getUserUid: vi.fn(),
   getUserEmail: vi.fn(),
 }));

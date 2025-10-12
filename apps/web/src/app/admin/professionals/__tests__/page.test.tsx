@@ -7,9 +7,9 @@ import AdminProfessionals from "../page";
 // Mock the API client
 vi.mock("@/lib/api", () => ({
   apiClient: {
-    getProfessionals: vi.fn(),
-    toggleProfessionalStatus: vi.fn(),
-    deleteProfessional: vi.fn(),
+    getAllAccountsAdmin: vi.fn(),
+    toggleAccountStatus: vi.fn(),
+    deleteAccount: vi.fn(),
   },
 }));
 
@@ -25,24 +25,30 @@ describe("AdminProfessionals", () => {
     // Mock successful API response
     const { apiClient } = await import("@/lib/api");
     (
-      apiClient.getProfessionals as unknown as { mockResolvedValue: (value: unknown) => void }
-    ).mockResolvedValue([
-      {
-        id: "1",
-        email: "professional@example.com",
-        full_name: "Test Professional",
-        phone: "+1234567890",
-        is_active: true,
-        is_verified: true,
-        license_number: "PSI-12345",
-        years_experience: 5,
-        specialty_ids: [],
-        modality_ids: [],
-        therapeutic_approach_ids: [],
-        created_at: "2024-01-01T00:00:00Z",
-        last_login: "2024-01-15T10:30:00Z",
-      },
-    ]);
+      apiClient.getAllAccountsAdmin as unknown as { mockResolvedValue: (value: unknown) => void }
+    ).mockResolvedValue({
+      items: [
+        {
+          id: "1",
+          email: "professional@example.com",
+          full_name: "Test Professional",
+          phone: "+1234567890",
+          is_active: true,
+          is_verified: true,
+          license_number: "PSI-12345",
+          years_experience: 5,
+          specialty_ids: [],
+          modality_ids: [],
+          therapeutic_approach_ids: [],
+          created_at: "2024-01-01T00:00:00Z",
+          last_login: "2024-01-15T10:30:00Z",
+        },
+      ],
+      total: 1,
+      page: 1,
+      page_size: 10,
+      total_pages: 1,
+    });
   });
 
   it("renders admin professionals page", async () => {

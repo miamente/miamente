@@ -18,6 +18,10 @@ vi.mock("../api", () => ({
     patch: vi.fn(),
     put: vi.fn(),
     post: vi.fn(),
+    getAccountById: vi.fn(),
+    updateAccount: vi.fn(),
+    getCurrentUser: vi.fn(),
+    getAllAccountsAdmin: vi.fn(),
   },
 }));
 

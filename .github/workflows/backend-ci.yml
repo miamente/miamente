@@ -26,14 +26,14 @@ jobs:
           python-version: "3.13"
           working-directory: "backend"
 
-      - name: Run Black (Formatter)
-        run: black app --check
-
-      - name: Run Pylint (Linter)
-        run: pylint app --output-format=text --fail-under=9 > pylint-report.txt || true
+      - name: Run Black (Formatter Check)
+        run: black app --check --line-length 120
 
       - name: Run Flake8 (Linter)
-        run: flake8 app --output-file=flake8-report.txt || true
+        run: flake8 app --max-line-length=120 --output-file=flake8-report.txt
+
+      - name: Run Pylint (Linter)
+        run: pylint app --output-format=text --fail-under=9.0 --max-line-length=120 | tee pylint-report.txt
 
       - name: Upload Lint Artifacts
         uses: actions/upload-artifact@v4
@@ -47,6 +47,7 @@ jobs:
   unit-tests:
     name: Unit Tests
     runs-on: ubuntu-latest
+    needs: [lint]
     steps:
       - uses: actions/checkout@v4
 
@@ -79,7 +80,7 @@ jobs:
   docker-build-validate:
     name: Docker build (validate, no push)
     runs-on: ubuntu-latest
-    needs: [lint, unit-tests]
+    needs: [unit-tests]
     steps:
       - uses: actions/checkout@v4
 

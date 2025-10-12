@@ -52,6 +52,8 @@ vi.mock("@/contexts/AuthContext", () => ({
 
 // Mock auth hooks
 vi.mock("@/hooks/useAuth", () => ({
+  useAuth: vi.fn(),
+  useUnifiedAuth: vi.fn(),
   getUserEmail: vi.fn((user) => user?.data?.email || ""),
   getUserFullName: vi.fn((user) => user?.data?.full_name || ""),
 }));

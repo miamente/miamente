@@ -20,6 +20,7 @@ import { UserRole } from "@/lib/types";
 const mockUseAuth = vi.fn();
 vi.mock("@/hooks/useAuth", () => ({
   useAuth: () => mockUseAuth(),
+  useUnifiedAuth: () => mockUseAuth(),
   getUserEmail: vi.fn((user) => user?.data?.email),
   getUserFullName: vi.fn((user) => user?.data?.full_name),
   isUserVerified: vi.fn(() => true),

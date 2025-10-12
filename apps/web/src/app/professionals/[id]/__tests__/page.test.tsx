@@ -51,6 +51,7 @@ const mockUseAuth = {
 
 vi.mock("@/hooks/useAuth", () => ({
   useAuth: vi.fn(() => mockUseAuth),
+  useUnifiedAuth: vi.fn(() => mockUseAuth),
   getUserUid: vi.fn((user) => user?.id),
 }));
 
