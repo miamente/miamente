@@ -420,6 +420,20 @@ describe("DashboardPage", () => {
       refreshUser: vi.fn(),
       getAuthHeaders: vi.fn(),
     });
+    
+    mockUseUnifiedAuth.mockReturnValue({
+      account: mockProfessional.data,
+      profile: null,
+      role: "professional",
+      isLoading: false,
+      isAuthenticated: true,
+      loginUnified: vi.fn(),
+      registerUser: vi.fn(),
+      registerProfessional: vi.fn(),
+      logout: vi.fn(),
+      refreshUser: vi.fn(),
+    });
+    
     mockIsUserVerified.mockReturnValue(true);
     mockGetUserFullName.mockReturnValue("Dr. Test Professional");
 
@@ -461,6 +475,20 @@ describe("DashboardPage", () => {
       refreshUser: vi.fn(),
       getAuthHeaders: vi.fn(),
     });
+    
+    mockUseUnifiedAuth.mockReturnValue({
+      account: mockUser.data,
+      profile: null,
+      role: "user",
+      isLoading: false,
+      isAuthenticated: true,
+      loginUnified: vi.fn(),
+      registerUser: vi.fn(),
+      registerProfessional: vi.fn(),
+      logout: vi.fn(),
+      refreshUser: vi.fn(),
+    });
+    
     mockIsUserVerified.mockReturnValue(true);
 
     render(<DashboardPage />);
@@ -502,6 +530,20 @@ describe("DashboardPage", () => {
       refreshUser: vi.fn(),
       getAuthHeaders: vi.fn(),
     });
+    
+    mockUseUnifiedAuth.mockReturnValue({
+      account: mockUser.data,
+      profile: null,
+      role: "user",
+      isLoading: false,
+      isAuthenticated: true,
+      loginUnified: vi.fn(),
+      registerUser: vi.fn(),
+      registerProfessional: vi.fn(),
+      logout: vi.fn(),
+      refreshUser: vi.fn(),
+    });
+    
     mockIsUserVerified.mockReturnValue(true);
 
     render(<DashboardPage />);
@@ -538,6 +580,20 @@ describe("DashboardPage", () => {
       refreshUser: vi.fn(),
       getAuthHeaders: vi.fn(),
     });
+    
+    mockUseUnifiedAuth.mockReturnValue({
+      account: mockProfessional.data,
+      profile: null,
+      role: "professional",
+      isLoading: false,
+      isAuthenticated: true,
+      loginUnified: vi.fn(),
+      registerUser: vi.fn(),
+      registerProfessional: vi.fn(),
+      logout: vi.fn(),
+      refreshUser: vi.fn(),
+    });
+    
     mockIsUserVerified.mockReturnValue(true);
     mockGetUserFullName.mockReturnValue("Dr. Test Professional");
 
@@ -577,6 +633,20 @@ describe("DashboardPage", () => {
       refreshUser: vi.fn(),
       getAuthHeaders: vi.fn(),
     });
+    
+    mockUseUnifiedAuth.mockReturnValue({
+      account: mockUser.data,
+      profile: null,
+      role: "user",
+      isLoading: false,
+      isAuthenticated: true,
+      loginUnified: vi.fn(),
+      registerUser: vi.fn(),
+      registerProfessional: vi.fn(),
+      logout: vi.fn(),
+      refreshUser: vi.fn(),
+    });
+    
     mockIsUserVerified.mockReturnValue(true);
 
     render(<DashboardPage />);
@@ -613,6 +683,20 @@ describe("DashboardPage", () => {
       refreshUser: vi.fn(),
       getAuthHeaders: vi.fn(),
     });
+    
+    mockUseUnifiedAuth.mockReturnValue({
+      account: mockProfessional.data,
+      profile: null,
+      role: "professional",
+      isLoading: false,
+      isAuthenticated: true,
+      loginUnified: vi.fn(),
+      registerUser: vi.fn(),
+      registerProfessional: vi.fn(),
+      logout: vi.fn(),
+      refreshUser: vi.fn(),
+    });
+    
     mockIsUserVerified.mockReturnValue(true);
     mockGetUserFullName.mockReturnValue("Dr. Test Professional");
 
@@ -650,6 +734,20 @@ describe("DashboardPage", () => {
       refreshUser: vi.fn(),
       getAuthHeaders: vi.fn(),
     });
+    
+    mockUseUnifiedAuth.mockReturnValue({
+      account: mockUser.data,
+      profile: null,
+      role: "user",
+      isLoading: false,
+      isAuthenticated: true,
+      loginUnified: vi.fn(),
+      registerUser: vi.fn(),
+      registerProfessional: vi.fn(),
+      logout: vi.fn(),
+      refreshUser: vi.fn(),
+    });
+    
     mockIsUserVerified.mockReturnValue(true);
 
     render(<DashboardPage />);
