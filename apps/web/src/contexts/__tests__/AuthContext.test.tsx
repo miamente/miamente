@@ -97,16 +97,18 @@ describe("AuthContext", () => {
     it("should include helper functions in context", () => {
       const TestComponent = () => {
         const auth = useAuthContext();
+        // Helper functions are imported separately, not part of context
+        // Context only includes auth state and methods
         return (
           <div>
-            <div data-testid="has-getEmail">
-              {typeof auth.getUserEmail === "function" ? "yes" : "no"}
+            <div data-testid="has-account">
+              {typeof auth.account !== "undefined" ? "yes" : "no"}
             </div>
-            <div data-testid="has-getFullName">
-              {typeof auth.getUserFullName === "function" ? "yes" : "no"}
+            <div data-testid="has-logout">
+              {typeof auth.logout === "function" ? "yes" : "no"}
             </div>
-            <div data-testid="has-isVerified">
-              {typeof auth.isUserVerified === "function" ? "yes" : "no"}
+            <div data-testid="has-refreshUser">
+              {typeof auth.refreshUser === "function" ? "yes" : "no"}
             </div>
           </div>
         );
@@ -118,9 +120,9 @@ describe("AuthContext", () => {
         </AuthProvider>,
       );
 
-      expect(screen.getByTestId("has-getEmail")).toHaveTextContent("yes");
-      expect(screen.getByTestId("has-getFullName")).toHaveTextContent("yes");
-      expect(screen.getByTestId("has-isVerified")).toHaveTextContent("yes");
+      expect(screen.getByTestId("has-account")).toHaveTextContent("yes");
+      expect(screen.getByTestId("has-logout")).toHaveTextContent("yes");
+      expect(screen.getByTestId("has-refreshUser")).toHaveTextContent("yes");
     });
   });
 
@@ -132,7 +134,7 @@ describe("AuthContext", () => {
       };
 
       expect(() => render(<TestComponent />)).toThrow(
-        "useAuthContext must be used within an AuthProvider",
+        "useUnifiedAuthContext must be used within an AuthProvider",
       );
     });
 
