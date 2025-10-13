@@ -2,7 +2,7 @@ import React from "react";
 import { render, screen, waitFor } from "@testing-library/react";
 import { useParams, useRouter } from "next/navigation";
 import ProfessionalProfilePage from "./page";
-import { getProfessionalProfile } from "@/lib/profiles";
+import { apiClient } from "@/lib/api";
 import { vi } from "vitest";
 
 // Mock Next.js hooks
@@ -11,9 +11,11 @@ vi.mock("next/navigation", () => ({
   useRouter: vi.fn(),
 }));
 
-// Mock the profiles API
-vi.mock("@/lib/profiles", () => ({
-  getProfessionalProfile: vi.fn(),
+// Mock the API client
+vi.mock("@/lib/api", () => ({
+  apiClient: {
+    getAccountById: vi.fn(),
+  },
 }));
 
 // Mock the therapy approach names hook
@@ -59,7 +61,7 @@ vi.mock("next/image", () => ({
 
 const mockUseParams = vi.mocked(useParams);
 const mockUseRouter = vi.mocked(useRouter);
-const mockGetProfessionalProfile = vi.mocked(getProfessionalProfile);
+const mockApiClient = vi.mocked(apiClient);
 
 const mockPush = vi.fn();
 const mockBack = vi.fn();
@@ -164,13 +166,13 @@ describe("ProfessionalProfilePage", () => {
       replace: vi.fn(),
       prefetch: vi.fn(),
     });
-    mockGetProfessionalProfile.mockClear();
+    mockApiClient.getAccountById.mockClear();
     mockPush.mockClear();
     mockBack.mockClear();
   });
 
   it("renders loading state initially", () => {
-    mockGetProfessionalProfile.mockImplementation(() => new Promise(() => {})); // Never resolves
+    mockApiClient.getAccountById.mockImplementation(() => new Promise(() => {})); // Never resolves
 
     render(<ProfessionalProfilePage />);
 
@@ -182,7 +184,7 @@ describe("ProfessionalProfilePage", () => {
   });
 
   it("renders professional profile successfully", async () => {
-    mockGetProfessionalProfile.mockResolvedValue(mockProfessional);
+    mockApiClient.getAccountById.mockResolvedValue(mockProfessional);
 
     render(<ProfessionalProfilePage />);
 
@@ -214,7 +216,7 @@ describe("ProfessionalProfilePage", () => {
   });
 
   it("renders error state when professional not found", async () => {
-    mockGetProfessionalProfile.mockRejectedValue(new Error("Professional not found"));
+    mockApiClient.getAccountById.mockRejectedValue(new Error("Professional not found"));
 
     render(<ProfessionalProfilePage />);
 
@@ -227,7 +229,7 @@ describe("ProfessionalProfilePage", () => {
   });
 
   it("handles breadcrumb navigation", async () => {
-    mockGetProfessionalProfile.mockResolvedValue(mockProfessional);
+    mockApiClient.getAccountById.mockResolvedValue(mockProfessional);
 
     render(<ProfessionalProfilePage />);
 
@@ -245,7 +247,7 @@ describe("ProfessionalProfilePage", () => {
   });
 
   it("handles navigation to all professionals", async () => {
-    mockGetProfessionalProfile.mockRejectedValue(new Error("Professional not found"));
+    mockApiClient.getAccountById.mockRejectedValue(new Error("Professional not found"));
 
     render(<ProfessionalProfilePage />);
 
@@ -270,7 +272,7 @@ describe("ProfessionalProfilePage", () => {
       profile_picture: undefined,
     };
 
-    mockGetProfessionalProfile.mockResolvedValue(professionalWithoutOptional);
+    mockApiClient.getAccountById.mockResolvedValue(professionalWithoutOptional);
 
     render(<ProfessionalProfilePage />);
 
@@ -287,7 +289,7 @@ describe("ProfessionalProfilePage", () => {
   });
 
   it("formats price correctly", async () => {
-    mockGetProfessionalProfile.mockResolvedValue(mockProfessional);
+    mockApiClient.getAccountById.mockResolvedValue(mockProfessional);
 
     render(<ProfessionalProfilePage />);
 
@@ -297,7 +299,7 @@ describe("ProfessionalProfilePage", () => {
   });
 
   it("shows verification badge for verified professionals", async () => {
-    mockGetProfessionalProfile.mockResolvedValue(mockProfessional);
+    mockApiClient.getAccountById.mockResolvedValue(mockProfessional);
 
     render(<ProfessionalProfilePage />);
 
@@ -312,7 +314,7 @@ describe("ProfessionalProfilePage", () => {
       is_verified: false,
     };
 
-    mockGetProfessionalProfile.mockResolvedValue(unverifiedProfessional);
+    mockApiClient.getAccountById.mockResolvedValue(unverifiedProfessional);
 
     render(<ProfessionalProfilePage />);
 
@@ -324,7 +326,7 @@ describe("ProfessionalProfilePage", () => {
   });
 
   it("renders academic experience section when available", async () => {
-    mockGetProfessionalProfile.mockResolvedValue(mockProfessional);
+    mockApiClient.getAccountById.mockResolvedValue(mockProfessional);
 
     render(<ProfessionalProfilePage />);
 
@@ -338,7 +340,7 @@ describe("ProfessionalProfilePage", () => {
   });
 
   it("renders work experience section when available", async () => {
-    mockGetProfessionalProfile.mockResolvedValue(mockProfessional);
+    mockApiClient.getAccountById.mockResolvedValue(mockProfessional);
 
     render(<ProfessionalProfilePage />);
 
@@ -355,7 +357,7 @@ describe("ProfessionalProfilePage", () => {
       ...mockProfessional,
       academic_experience: [],
     };
-    mockGetProfessionalProfile.mockResolvedValue(professionalWithoutAcademic);
+    mockApiClient.getAccountById.mockResolvedValue(professionalWithoutAcademic);
 
     render(<ProfessionalProfilePage />);
 
@@ -371,7 +373,7 @@ describe("ProfessionalProfilePage", () => {
       ...mockProfessional,
       work_experience: [],
     };
-    mockGetProfessionalProfile.mockResolvedValue(professionalWithoutWork);
+    mockApiClient.getAccountById.mockResolvedValue(professionalWithoutWork);
 
     render(<ProfessionalProfilePage />);
 
@@ -388,7 +390,7 @@ describe("ProfessionalProfilePage", () => {
       academic_experience: [],
       work_experience: [],
     };
-    mockGetProfessionalProfile.mockResolvedValue(professionalWithNullExperience);
+    mockApiClient.getAccountById.mockResolvedValue(professionalWithNullExperience);
 
     render(<ProfessionalProfilePage />);
 
