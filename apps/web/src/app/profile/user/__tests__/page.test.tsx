@@ -277,7 +277,7 @@ describe("UserProfilePage", () => {
     render(<UserProfilePage />);
 
     await waitFor(() => {
-      expect(mockGetUserProfile).toHaveBeenCalledWith("user-1");
+      expect(mockApiClient.getAccountById).toHaveBeenCalledWith("user-1");
     });
 
     await waitFor(() => {
