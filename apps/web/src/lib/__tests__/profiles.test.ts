@@ -81,16 +81,41 @@ describe("profiles", () => {
 
   describe("getProfessionalProfile", () => {
     it("should get professional profile successfully", async () => {
-      mockApiClient.get.mockResolvedValue(mockProfessional);
+      // Mock AccountWithProfile response
+      mockApiClient.getAccountById.mockResolvedValue({
+        account: {
+          id: "prof-123",
+          role_id: "prof-role",
+          email: mockProfessional.email,
+          full_name: mockProfessional.full_name,
+          phone: mockProfessional.phone,
+          is_active: true,
+          is_verified: true,
+          created_at: mockProfessional.created_at,
+          updated_at: mockProfessional.updated_at,
+          role_name: "professional",
+        },
+        role: "professional",
+        profile: {
+          account_id: "prof-123",
+          license_number: mockProfessional.license_number,
+          years_experience: mockProfessional.years_experience,
+          rate_cents: 50000,
+          currency: "COP",
+          short_description: mockProfessional.bio,
+          timezone: "America/Bogota",
+        },
+      });
 
       const result = await getProfessionalProfile("prof-123");
 
-      expect(mockApiClient.get).toHaveBeenCalledWith("/professionals/prof-123");
-      expect(result).toEqual(mockProfessional);
+      expect(mockApiClient.getAccountById).toHaveBeenCalledWith("prof-123");
+      expect(result.id).toBe("prof-123");
+      expect(result.full_name).toBe(mockProfessional.full_name);
     });
 
     it("should handle API errors", async () => {
-      mockApiClient.get.mockRejectedValue(new Error("Professional not found"));
+      mockApiClient.getAccountById.mockRejectedValue(new Error("Professional not found"));
 
       await expect(getProfessionalProfile("prof-123")).rejects.toThrow("Professional not found");
     });
@@ -197,16 +222,52 @@ describe("profiles", () => {
 
   describe("queryProfessionals", () => {
     it("should query professionals successfully without filters", async () => {
-      const professionals = [mockProfessional];
-      mockApiClient.get.mockResolvedValue(professionals);
+      mockApiClient.getAllAccountsAdmin.mockResolvedValue({
+        items: [{
+          id: "prof-123",
+          role_id: "prof-role",
+          email: mockProfessional.email,
+          full_name: mockProfessional.full_name,
+          phone: mockProfessional.phone,
+          is_active: true,
+          is_verified: true,
+          created_at: mockProfessional.created_at,
+          role_name: "professional",
+        }],
+        total: 1,
+        page: 1,
+        page_size: 100,
+        total_pages: 1,
+      });
+      
+      mockApiClient.getAccountById.mockResolvedValue({
+        account: {
+          id: "prof-123",
+          role_id: "prof-role",
+          email: mockProfessional.email,
+          full_name: mockProfessional.full_name,
+          phone: mockProfessional.phone,
+          is_active: true,
+          is_verified: true,
+          created_at: mockProfessional.created_at,
+          role_name: "professional",
+        },
+        role: "professional",
+        profile: {
+          account_id: "prof-123",
+          years_experience: 10,
+          rate_cents: 50000,
+          currency: "COP",
+          short_description: mockProfessional.bio,
+          timezone: "America/Bogota",
+        },
+      });
 
       const result = await queryProfessionals();
 
-      expect(mockApiClient.get).toHaveBeenCalledWith("/professionals");
-      expect(result).toEqual({
-        professionals,
-        lastSnapshot: null,
-      });
+      expect(mockApiClient.getAllAccountsAdmin).toHaveBeenCalled();
+      expect(result.professionals).toHaveLength(1);
+      expect(result.lastSnapshot).toBeNull();
     });
 
     it("should query professionals with filters", async () => {

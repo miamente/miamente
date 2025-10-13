@@ -137,10 +137,10 @@ export async function updateProfessionalProfileById(
       profile_picture: data.profile_picture,
     };
     
-    const response = await apiClient.updateAccount(professionalId, accountUpdate);
+    await apiClient.updateAccount(professionalId, accountUpdate);
     
-    // Convert to legacy Professional format
-    return apiClient.getProfessional(professionalId);
+    // Get updated professional profile
+    return getProfessionalProfile(professionalId);
   } catch (error) {
     console.error("Update professional profile error:", error);
     throw error;
@@ -154,11 +154,13 @@ export async function getMyProfessionalProfile(): Promise<ProfessionalProfile | 
   try {
     const response = await apiClient.getCurrentUser();
     
-    if (response.type !== "professional") {
+    // Response is AccountWithProfile, check role
+    if (response.role !== "professional") {
       return null;
     }
     
-    return response.data as Professional;
+    // Convert to Professional format
+    return getProfessionalProfile(response.account.id);
   } catch (error) {
     console.error("Get my professional profile error:", error);
     return null;
@@ -175,7 +177,7 @@ export async function updateProfessionalProfile(
 ): Promise<ProfessionalProfile> {
   try {
     const currentUser = await apiClient.getCurrentUser();
-    const userId = currentUser.data.id;
+    const userId = currentUser.account.id;
     return updateProfessionalProfileById(userId, data);
   } catch (error) {
     console.error("Update professional profile error:", error);
