@@ -19,6 +19,7 @@ vi.mock("@/hooks/useAuth", () => ({
   getAccountEmail: vi.fn(),
   getAccountId: vi.fn(),
   getAccountFullName: vi.fn(),
+  getAccountRole: vi.fn(),
 }));
 
 // Mock the profiles utilities
@@ -30,6 +31,14 @@ vi.mock("@/lib/profiles", () => ({
 // Mock the storage utilities
 vi.mock("@/lib/storage", () => ({
   uploadFile: vi.fn(),
+}));
+
+// Mock the API client
+vi.mock("@/lib/api", () => ({
+  apiClient: {
+    getAccountById: vi.fn(),
+    updateAccount: vi.fn(),
+  },
 }));
 
 // Mock next/navigation
@@ -66,6 +75,8 @@ vi.mock("@/components/file-upload", () => ({
   ),
 }));
 
+import { apiClient } from "@/lib/api";
+
 const mockUseAuth = vi.mocked(useAuth);
 const mockGetUserUid = vi.mocked(getUserUid);
 const mockGetUserEmail = vi.mocked(getUserEmail);
@@ -73,10 +84,14 @@ const mockGetUserProfile = vi.mocked(getUserProfile);
 const mockUpdateUserProfile = vi.mocked(updateUserProfile);
 const mockUploadFile = vi.mocked(uploadFile);
 const mockUseRouter = vi.mocked(useRouter);
+const mockApiClient = vi.mocked(apiClient);
 
 // Import and mock useUnifiedAuth
-import { useUnifiedAuth } from "@/hooks/useAuth";
+import { useUnifiedAuth, getAccountId, getAccountEmail as getAccEmail, getAccountFullName as getAccFullName } from "@/hooks/useAuth";
 const mockUseUnifiedAuth = vi.mocked(useUnifiedAuth);
+const mockGetAccountId = vi.mocked(getAccountId);
+const mockGetAccountEmail = vi.mocked(getAccEmail);
+const mockGetAccountFullName = vi.mocked(getAccFullName);
 
 describe("UserProfilePage", () => {
   const mockPush = vi.fn();
@@ -142,6 +157,23 @@ describe("UserProfilePage", () => {
       refreshUser: vi.fn(),
     });
 
+    // Mock account helper functions
+    mockGetAccountId.mockImplementation((account) => account?.id || "");
+    mockGetAccountEmail.mockImplementation((account) => account?.email || "");
+    mockGetAccountFullName.mockImplementation((account) => account?.full_name || "");
+    
+    // Mock apiClient methods
+    mockApiClient.getAccountById.mockResolvedValue({
+      account: mockUser.data,
+      role: "user",
+      profile: mockProfile,
+    });
+    mockApiClient.updateAccount.mockResolvedValue({
+      account: mockUser.data,
+      role: "user",
+      profile: mockProfile,
+    });
+    
     mockGetUserUid.mockImplementation(() => "user-1");
     mockGetUserEmail.mockReturnValue("test@example.com");
     mockGetUserProfile.mockImplementation(() =>
@@ -192,7 +224,7 @@ describe("UserProfilePage", () => {
     expect(screen.getByText("Cargando...")).toBeInTheDocument();
   });
 
-  it("should redirect to login when user is not authenticated", () => {
+  it("should redirect to login when user is not authenticated", async () => {
     mockUseAuth.mockReturnValue({
       user: null,
       isLoading: false,
@@ -208,9 +240,24 @@ describe("UserProfilePage", () => {
       isAuthenticated: false,
     });
 
+    mockUseUnifiedAuth.mockReturnValue({
+      account: null,
+      profile: null,
+      role: null,
+      isLoading: false,
+      isAuthenticated: false,
+      loginUnified: vi.fn(),
+      registerUser: vi.fn(),
+      registerProfessional: vi.fn(),
+      logout: vi.fn(),
+      refreshUser: vi.fn(),
+    });
+
     render(<UserProfilePage />);
 
-    expect(mockPush).toHaveBeenCalledWith("/login");
+    await waitFor(() => {
+      expect(mockPush).toHaveBeenCalledWith("/login");
+    });
   });
 
   it("should render user profile form when authenticated", async () => {
