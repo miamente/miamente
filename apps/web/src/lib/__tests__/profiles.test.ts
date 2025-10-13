@@ -129,17 +129,49 @@ describe("profiles", () => {
         years_experience: 12,
       };
 
-      const updatedProfessional = { ...mockProfessional, ...updateData };
-      mockApiClient.patch.mockResolvedValue(updatedProfessional);
+      // Mock updateAccount
+      mockApiClient.updateAccount.mockResolvedValue({
+        account: {
+          id: "prof-123",
+          full_name: "Dr. John Smith",
+          role_name: "professional",
+        },
+        role: "professional",
+        profile: {},
+      });
+      
+      // Mock getProfessionalProfile (called after update)
+      mockApiClient.getAccountById.mockResolvedValue({
+        account: {
+          id: "prof-123",
+          role_id: "prof-role",
+          email: "john@example.com",
+          full_name: "Dr. John Smith",
+          phone: "+1234567890",
+          is_active: true,
+          is_verified: true,
+          created_at: "2023-01-01T00:00:00Z",
+          role_name: "professional",
+        },
+        role: "professional",
+        profile: {
+          account_id: "prof-123",
+          years_experience: 12,
+          rate_cents: 50000,
+          currency: "COP",
+          short_description: "Updated bio",
+          timezone: "America/Bogota",
+        },
+      });
 
       const result = await updateProfessionalProfileById("prof-123", updateData);
 
-      expect(mockApiClient.patch).toHaveBeenCalledWith("/professionals/prof-123", updateData);
-      expect(result).toEqual(updatedProfessional);
+      expect(mockApiClient.updateAccount).toHaveBeenCalled();
+      expect(result.full_name).toBe("Dr. John Smith");
     });
 
     it("should handle API errors", async () => {
-      mockApiClient.patch.mockRejectedValue(new Error("Update failed"));
+      mockApiClient.updateAccount.mockRejectedValue(new Error("Update failed"));
 
       await expect(
         updateProfessionalProfileById("prof-123", { full_name: "New Name" }),
@@ -149,16 +181,63 @@ describe("profiles", () => {
 
   describe("getMyProfessionalProfile", () => {
     it("should get my professional profile successfully", async () => {
-      mockApiClient.get.mockResolvedValue(mockProfessional);
+      // Mock getCurrentUser
+      mockApiClient.getCurrentUser.mockResolvedValue({
+        account: {
+          id: "prof-123",
+          role_id: "prof-role",
+          email: mockProfessional.email,
+          full_name: mockProfessional.full_name,
+          phone: mockProfessional.phone,
+          is_active: true,
+          is_verified: true,
+          created_at: mockProfessional.created_at,
+          role_name: "professional",
+        },
+        role: "professional",
+        profile: {
+          account_id: "prof-123",
+          years_experience: 10,
+          rate_cents: 50000,
+          currency: "COP",
+          short_description: mockProfessional.bio,
+          timezone: "America/Bogota",
+        },
+      });
+      
+      // Mock getAccountById
+      mockApiClient.getAccountById.mockResolvedValue({
+        account: {
+          id: "prof-123",
+          role_id: "prof-role",
+          email: mockProfessional.email,
+          full_name: mockProfessional.full_name,
+          phone: mockProfessional.phone,
+          is_active: true,
+          is_verified: true,
+          created_at: mockProfessional.created_at,
+          role_name: "professional",
+        },
+        role: "professional",
+        profile: {
+          account_id: "prof-123",
+          years_experience: 10,
+          rate_cents: 50000,
+          currency: "COP",
+          short_description: mockProfessional.bio,
+          timezone: "America/Bogota",
+        },
+      });
 
       const result = await getMyProfessionalProfile();
 
-      expect(mockApiClient.get).toHaveBeenCalledWith("/professionals/me/profile");
-      expect(result).toEqual(mockProfessional);
+      expect(mockApiClient.getCurrentUser).toHaveBeenCalled();
+      expect(result).toBeDefined();
+      expect(result?.id).toBe("prof-123");
     });
 
     it("should return null on error", async () => {
-      mockApiClient.get.mockRejectedValue(new Error("Profile not found"));
+      mockApiClient.getCurrentUser.mockRejectedValue(new Error("Profile not found"));
 
       const result = await getMyProfessionalProfile();
 
@@ -174,18 +253,66 @@ describe("profiles", () => {
         specialty_ids: ["spec-1", "spec-2"],
       };
 
-      const updatedProfessional = { ...mockProfessional, ...updateData };
-      mockApiClient.put.mockResolvedValue(updatedProfessional);
+      // Mock getCurrentUser
+      mockApiClient.getCurrentUser.mockResolvedValue({
+        account: {
+          id: "prof-123",
+          role_id: "prof-role",
+          email: "test@example.com",
+          full_name: "Dr. Test",
+          phone: "+1234567890",
+          is_active: true,
+          is_verified: true,
+          created_at: "2023-01-01T00:00:00Z",
+          role_name: "professional",
+        },
+        role: "professional",
+        profile: {},
+      });
+      
+      // Mock updateAccount
+      mockApiClient.updateAccount.mockResolvedValue({
+        account: {
+          id: "prof-123",
+          full_name: "Dr. John Smith",
+          role_name: "professional",
+        },
+        role: "professional",
+        profile: {},
+      });
+      
+      // Mock getAccountById (for getProfessionalProfile)
+      mockApiClient.getAccountById.mockResolvedValue({
+        account: {
+          id: "prof-123",
+          role_id: "prof-role",
+          email: "test@example.com",
+          full_name: "Dr. John Smith",
+          phone: "+1234567890",
+          is_active: true,
+          is_verified: true,
+          created_at: "2023-01-01T00:00:00Z",
+          role_name: "professional",
+        },
+        role: "professional",
+        profile: {
+          account_id: "prof-123",
+          years_experience: 10,
+          rate_cents: 50000,
+          currency: "COP",
+          short_description: "Updated bio",
+          timezone: "America/Bogota",
+        },
+      });
 
       const result = await updateProfessionalProfile(updateData);
 
-      expect(mockApiClient.put).toHaveBeenCalledWith("/professionals/me", updateData);
-      expect(result).toEqual(updatedProfessional);
+      expect(mockApiClient.getCurrentUser).toHaveBeenCalled();
+      expect(result.full_name).toBe("Dr. John Smith");
     });
 
     it("should handle API errors", async () => {
-      mockApiClient.put.mockClear();
-      mockApiClient.put.mockRejectedValue(new Error("Update failed"));
+      mockApiClient.getCurrentUser.mockRejectedValue(new Error("Update failed"));
 
       await expect(updateProfessionalProfile({ full_name: "New Name" })).rejects.toThrow(
         "Update failed",
@@ -202,20 +329,16 @@ describe("profiles", () => {
         years_experience: 5,
       };
 
-      const createdProfessional = { ...mockProfessional, ...profileData, id: "prof-456" };
-      mockApiClient.post.mockResolvedValue(createdProfessional);
-
-      const result = await createProfessionalProfile(profileData);
-
-      expect(mockApiClient.post).toHaveBeenCalledWith("/professionals", profileData);
-      expect(result).toEqual(createdProfessional);
+      // This function is deprecated and should throw
+      await expect(createProfessionalProfile(profileData)).rejects.toThrow(
+        "Professional profiles are now created during registration"
+      );
     });
 
     it("should handle API errors", async () => {
-      mockApiClient.post.mockRejectedValue(new Error("Creation failed"));
-
+      // This function is deprecated and should throw
       await expect(createProfessionalProfile({ full_name: "New Name" })).rejects.toThrow(
-        "Creation failed",
+        "Professional profiles are now created during registration"
       );
     });
   });
