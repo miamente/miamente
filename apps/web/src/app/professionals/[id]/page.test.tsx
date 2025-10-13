@@ -11,6 +11,26 @@ vi.mock("next/navigation", () => ({
   useRouter: vi.fn(),
 }));
 
+// Mock auth hooks
+vi.mock("@/hooks/useAuth", () => ({
+  useAuth: vi.fn(),
+  useUnifiedAuth: vi.fn(() => ({
+    account: null,
+    profile: null,
+    role: null,
+    isLoading: false,
+    isAuthenticated: false,
+    loginUnified: vi.fn(),
+    registerUser: vi.fn(),
+    registerProfessional: vi.fn(),
+    logout: vi.fn(),
+    refreshUser: vi.fn(),
+  })),
+  getAccountId: vi.fn((account) => account?.id),
+  getAccountEmail: vi.fn((account) => account?.email),
+  getAccountFullName: vi.fn((account) => account?.full_name),
+}));
+
 // Mock the API client
 vi.mock("@/lib/api", () => ({
   apiClient: {
@@ -66,7 +86,45 @@ const mockApiClient = vi.mocked(apiClient);
 const mockPush = vi.fn();
 const mockBack = vi.fn();
 
-const mockProfessional = {
+// Helper to wrap professional data in AccountWithProfile structure
+const wrapProfessionalData = (professionalData: any) => ({
+  account: {
+    id: professionalData.id,
+    role_id: "professional-role-id",
+    email: professionalData.email,
+    full_name: professionalData.full_name,
+    phone: professionalData.phone,
+    phone_country_code: professionalData.phone?.split(" ")[0],
+    phone_number: professionalData.phone?.split(" ")[1],
+    is_active: professionalData.is_active,
+    is_verified: professionalData.is_verified,
+    profile_picture: professionalData.profile_picture,
+    last_login: professionalData.last_login,
+    created_at: professionalData.created_at,
+    updated_at: professionalData.updated_at,
+    role_name: "professional",
+  },
+  role: "professional",
+  profile: {
+    account_id: professionalData.id,
+    license_number: professionalData.license_number,
+    years_experience: professionalData.years_experience,
+    rate_cents: professionalData.rate_cents,
+    custom_rate_cents: professionalData.rate_cents,
+    currency: professionalData.currency,
+    short_description: professionalData.bio,
+    academic_experience: JSON.stringify(professionalData.academic_experience || []),
+    work_experience: JSON.stringify(professionalData.work_experience || []),
+    certifications: JSON.stringify(professionalData.certifications || []),
+    languages: professionalData.languages,
+    timezone: professionalData.timezone,
+    emergency_contact_name: professionalData.emergency_contact,
+    emergency_phone_country_code: "+57",
+    emergency_phone_number: professionalData.emergency_phone?.replace("+57", ""),
+  },
+});
+
+const mockProfessionalData = {
   id: "123e4567-e89b-12d3-a456-426614174000",
   email: "test@example.com",
   full_name: "Dr. Test Professional",
@@ -154,6 +212,9 @@ const mockProfessional = {
   created_at: "2024-01-01T00:00:00Z",
   updated_at: "2024-01-01T00:00:00Z",
 };
+
+// Wrapped version for AccountWithProfile structure
+const mockProfessional = wrapProfessionalData(mockProfessionalData);
 
 describe("ProfessionalProfilePage", () => {
   beforeEach(() => {
@@ -262,8 +323,8 @@ describe("ProfessionalProfilePage", () => {
   });
 
   it("renders professional without optional fields", async () => {
-    const professionalWithoutOptional = {
-      ...mockProfessional,
+    const professionalDataWithoutOptional = {
+      ...mockProfessionalData,
       bio: undefined,
       education: undefined,
       certifications: [],
@@ -272,7 +333,7 @@ describe("ProfessionalProfilePage", () => {
       profile_picture: undefined,
     };
 
-    mockApiClient.getAccountById.mockResolvedValue(professionalWithoutOptional);
+    mockApiClient.getAccountById.mockResolvedValue(wrapProfessionalData(professionalDataWithoutOptional));
 
     render(<ProfessionalProfilePage />);
 
@@ -309,12 +370,12 @@ describe("ProfessionalProfilePage", () => {
   });
 
   it("does not show verification badge for unverified professionals", async () => {
-    const unverifiedProfessional = {
-      ...mockProfessional,
+    const unverifiedProfessionalData = {
+      ...mockProfessionalData,
       is_verified: false,
     };
 
-    mockApiClient.getAccountById.mockResolvedValue(unverifiedProfessional);
+    mockApiClient.getAccountById.mockResolvedValue(wrapProfessionalData(unverifiedProfessionalData));
 
     render(<ProfessionalProfilePage />);
 
@@ -353,11 +414,11 @@ describe("ProfessionalProfilePage", () => {
   });
 
   it("does not render academic experience section when empty", async () => {
-    const professionalWithoutAcademic = {
-      ...mockProfessional,
+    const professionalDataWithoutAcademic = {
+      ...mockProfessionalData,
       academic_experience: [],
     };
-    mockApiClient.getAccountById.mockResolvedValue(professionalWithoutAcademic);
+    mockApiClient.getAccountById.mockResolvedValue(wrapProfessionalData(professionalDataWithoutAcademic));
 
     render(<ProfessionalProfilePage />);
 
@@ -369,11 +430,11 @@ describe("ProfessionalProfilePage", () => {
   });
 
   it("does not render work experience section when empty", async () => {
-    const professionalWithoutWork = {
-      ...mockProfessional,
+    const professionalDataWithoutWork = {
+      ...mockProfessionalData,
       work_experience: [],
     };
-    mockApiClient.getAccountById.mockResolvedValue(professionalWithoutWork);
+    mockApiClient.getAccountById.mockResolvedValue(wrapProfessionalData(professionalDataWithoutWork));
 
     render(<ProfessionalProfilePage />);
 
@@ -385,12 +446,12 @@ describe("ProfessionalProfilePage", () => {
   });
 
   it("does not render experience sections when null", async () => {
-    const professionalWithNullExperience = {
-      ...mockProfessional,
+    const professionalDataWithNullExperience = {
+      ...mockProfessionalData,
       academic_experience: [],
       work_experience: [],
     };
-    mockApiClient.getAccountById.mockResolvedValue(professionalWithNullExperience);
+    mockApiClient.getAccountById.mockResolvedValue(wrapProfessionalData(professionalDataWithNullExperience));
 
     render(<ProfessionalProfilePage />);
 
