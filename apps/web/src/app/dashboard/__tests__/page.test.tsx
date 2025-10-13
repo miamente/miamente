@@ -30,8 +30,11 @@ const mockGetUserEmail = vi.mocked(getUserEmail);
 const mockGetUserFullName = vi.mocked(getUserFullName);
 
 // Create a mock for useUnifiedAuth
-import { useUnifiedAuth } from "@/hooks/useAuth";
+import { useUnifiedAuth, getAccountEmail, getAccountFullName, getAccountRole } from "@/hooks/useAuth";
 const mockUseUnifiedAuth = vi.mocked(useUnifiedAuth);
+const mockGetAccountEmail = vi.mocked(getAccountEmail);
+const mockGetAccountFullName = vi.mocked(getAccountFullName);
+const mockGetAccountRole = vi.mocked(getAccountRole);
 
 describe("DashboardPage", () => {
   const mockPush = vi.fn();
@@ -48,6 +51,11 @@ describe("DashboardPage", () => {
     });
     mockGetUserEmail.mockReturnValue("test@example.com");
     mockGetUserFullName.mockReturnValue("Test User");
+    
+    // Default mocks for account helper functions
+    mockGetAccountEmail.mockImplementation((account) => account?.email || "");
+    mockGetAccountFullName.mockImplementation((account) => account?.full_name || "");
+    mockGetAccountRole.mockImplementation((account) => account?.role_name || "");
     
     // Default mock for useUnifiedAuth (can be overridden in individual tests)
     mockUseUnifiedAuth.mockReturnValue({
