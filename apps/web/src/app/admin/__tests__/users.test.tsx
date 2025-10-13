@@ -399,24 +399,30 @@ describe("AdminUsers (Regular Users)", () => {
     vi.clearAllMocks();
     mockConfirm.mockReturnValue(true);
 
-    // Mock successful API responses
+    // Mock successful API responses with new unified endpoints
     const { apiClient } = await import("@/lib/api");
     (
-      apiClient.getUsers as unknown as {
+      apiClient.getAllAccountsAdmin as unknown as {
         mockResolvedValue: (value: unknown) => void;
         mockRejectedValue: (value: unknown) => void;
         mockImplementation: (value: unknown) => void;
       }
-    ).mockResolvedValue(mockUsers);
+    ).mockResolvedValue({
+      items: mockUsers,
+      total: mockUsers.length,
+      page: 1,
+      page_size: 100,
+      total_pages: 1,
+    });
     (
-      apiClient.toggleUserStatus as unknown as {
+      apiClient.toggleAccountStatus as unknown as {
         mockResolvedValue: (value: unknown) => void;
         mockRejectedValue: (value: unknown) => void;
         mockImplementation: (value: unknown) => void;
       }
     ).mockResolvedValue({ ...mockUsers[0], is_active: false });
     (
-      apiClient.deleteUser as unknown as {
+      apiClient.deleteAccount as unknown as {
         mockResolvedValue: (value: unknown) => void;
         mockRejectedValue: (value: unknown) => void;
         mockImplementation: (value: unknown) => void;
@@ -425,15 +431,6 @@ describe("AdminUsers (Regular Users)", () => {
   });
 
   it("should render the page title for regular users", async () => {
-    const { apiClient } = await import("@/lib/api");
-    (
-      apiClient.getUsers as unknown as {
-        mockResolvedValue: (value: unknown) => void;
-        mockRejectedValue: (value: unknown) => void;
-        mockImplementation: (value: unknown) => void;
-      }
-    ).mockResolvedValue(mockUsers);
-
     render(<AdminUsers />);
 
     await waitFor(() => {
@@ -449,7 +446,7 @@ describe("AdminUsers (Regular Users)", () => {
     render(<AdminUsers />);
 
     await waitFor(() => {
-      expect(apiClient.getUsers).toHaveBeenCalledWith({ role: "user" });
+      expect(apiClient.getAllAccountsAdmin).toHaveBeenCalledWith(1, 100, "user");
     });
   });
 
@@ -485,13 +482,6 @@ describe("AdminUsers (Regular Users)", () => {
 
   it("should handle toggle user status", async () => {
     const { apiClient } = await import("@/lib/api");
-    (
-      apiClient.getUsers as unknown as {
-        mockResolvedValue: (value: unknown) => void;
-        mockRejectedValue: (value: unknown) => void;
-        mockImplementation: (value: unknown) => void;
-      }
-    ).mockResolvedValue(mockUsers);
 
     render(<AdminUsers />);
 
@@ -503,19 +493,12 @@ describe("AdminUsers (Regular Users)", () => {
     fireEvent.click(toggleButton);
 
     await waitFor(() => {
-      expect(apiClient.toggleUserStatus).toHaveBeenCalledWith("1", false);
+      expect(apiClient.toggleAccountStatus).toHaveBeenCalledWith("1", false);
     });
   });
 
   it("should handle delete user", async () => {
     const { apiClient } = await import("@/lib/api");
-    (
-      apiClient.getUsers as unknown as {
-        mockResolvedValue: (value: unknown) => void;
-        mockRejectedValue: (value: unknown) => void;
-        mockImplementation: (value: unknown) => void;
-      }
-    ).mockResolvedValue(mockUsers);
 
     render(<AdminUsers />);
 
@@ -530,14 +513,14 @@ describe("AdminUsers (Regular Users)", () => {
       expect(mockConfirm).toHaveBeenCalledWith(
         "¿Estás seguro de que quieres eliminar este usuario?",
       );
-      expect(apiClient.deleteUser).toHaveBeenCalledWith("1");
+      expect(apiClient.deleteAccount).toHaveBeenCalledWith("1");
     });
   });
 
   it("should display error message when API fails", async () => {
     const { apiClient } = await import("@/lib/api");
     (
-      apiClient.getUsers as unknown as {
+      apiClient.getAllAccountsAdmin as unknown as {
         mockResolvedValue: (value: unknown) => void;
         mockRejectedValue: (value: unknown) => void;
         mockImplementation: (value: unknown) => void;
@@ -556,12 +539,18 @@ describe("AdminUsers (Regular Users)", () => {
   it("should show no users message when no regular users exist", async () => {
     const { apiClient } = await import("@/lib/api");
     (
-      apiClient.getUsers as unknown as {
+      apiClient.getAllAccountsAdmin as unknown as {
         mockResolvedValue: (value: unknown) => void;
         mockRejectedValue: (value: unknown) => void;
         mockImplementation: (value: unknown) => void;
       }
-    ).mockResolvedValue([]);
+    ).mockResolvedValue({
+      items: [],
+      total: 0,
+      page: 1,
+      page_size: 100,
+      total_pages: 0,
+    });
 
     render(<AdminUsers />);
 
