@@ -206,7 +206,7 @@ describe("useProfessional", () => {
       await result.current.fetchProfessional();
     });
 
-    expect(apiClient.getProfessional).not.toHaveBeenCalled();
+    expect(apiClient.getAccountById).not.toHaveBeenCalled();
     expect(result.current.professional).toBe(null);
   });
 });
