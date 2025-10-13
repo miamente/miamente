@@ -2,6 +2,7 @@ import React from "react";
 import { render, screen, waitFor, act } from "@testing-library/react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import ProfessionalProfilePage from "../page";
+import { apiClient } from "@/lib/api";
 
 // Helper function to wrap render in act()
 const renderWithAct = (component: React.ReactElement) => {
@@ -37,10 +38,11 @@ vi.mock("next/navigation", () => ({
   })),
 }));
 
-// Mock the profile functions
-const mockGetProfessionalProfile = vi.hoisted(() => vi.fn());
-vi.mock("@/lib/profiles", () => ({
-  getProfessionalProfile: mockGetProfessionalProfile,
+// Mock the API client
+vi.mock("@/lib/api", () => ({
+  apiClient: {
+    getAccountById: vi.fn(),
+  },
 }));
 
 // Mock auth hooks
@@ -190,9 +192,43 @@ describe("ProfessionalProfilePage", () => {
     languages: ["English", "Spanish"],
   };
 
-  beforeEach(() => {
+  beforeEach(async () => {
     vi.clearAllMocks();
-    mockGetProfessionalProfile.mockResolvedValue(mockProfessional);
+    const { apiClient } = await import("@/lib/api");
+    
+    // Wrap professional data in AccountWithProfile structure
+    const wrappedProfessional = {
+      account: {
+        id: mockProfessional.id,
+        role_id: "professional-role-id",
+        email: "test@example.com",
+        full_name: mockProfessional.full_name,
+        phone: mockProfessional.phone,
+        phone_country_code: "+1",
+        phone_number: mockProfessional.phone?.replace("+1", ""),
+        is_active: true,
+        is_verified: mockProfessional.is_verified,
+        profile_picture: mockProfessional.profile_picture,
+        created_at: "2024-01-01T00:00:00Z",
+        updated_at: "2024-01-01T00:00:00Z",
+        role_name: "professional",
+      },
+      role: "professional",
+      profile: {
+        account_id: mockProfessional.id,
+        years_experience: mockProfessional.years_experience,
+        rate_cents: mockProfessional.rate_cents,
+        custom_rate_cents: mockProfessional.rate_cents,
+        currency: "COP",
+        short_description: mockProfessional.bio,
+        academic_experience: JSON.stringify(mockProfessional.academic_experience),
+        certifications: JSON.stringify(mockProfessional.certifications),
+        languages: mockProfessional.languages,
+        timezone: mockProfessional.timezone,
+      },
+    };
+    
+    vi.mocked(apiClient.getAccountById).mockResolvedValue(wrappedProfessional);
     mockUseAuth.user = null;
     mockUseAuth.isLoading = false;
   });
