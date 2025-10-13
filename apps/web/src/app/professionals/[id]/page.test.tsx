@@ -54,6 +54,18 @@ vi.mock("@/hooks/useTherapyApproachNames", () => ({
   })),
 }));
 
+// Mock the professional specialties hook
+vi.mock("@/hooks/useProfessionalSpecialties", () => ({
+  useProfessionalSpecialties: vi.fn(() => ({
+    specialties: [
+      { id: "spec-1", name: "Psicología Clínica", professional_id: "123e4567-e89b-12d3-a456-426614174000", specialty_id: "psicologia-clinica" },
+    ],
+    loading: false,
+    error: null,
+    updateSpecialties: vi.fn(),
+  })),
+}));
+
 // Mock the specialty names hook
 vi.mock("@/hooks/useSpecialtyNames", () => ({
   useSpecialtyNames: vi.fn(() => ({

@@ -92,6 +92,19 @@ vi.mock("@/hooks/useTherapyApproachNames", () => ({
   useTherapyApproachNames: vi.fn(() => mockUseTherapyApproachNames),
 }));
 
+// Mock professional specialties hook
+vi.mock("@/hooks/useProfessionalSpecialties", () => ({
+  useProfessionalSpecialties: vi.fn(() => ({
+    specialties: [
+      { id: "spec-1", name: "Specialty specialty-1", professional_id: "professional-1", specialty_id: "specialty-1" },
+      { id: "spec-2", name: "Specialty specialty-2", professional_id: "professional-1", specialty_id: "specialty-2" },
+    ],
+    loading: false,
+    error: null,
+    updateSpecialties: vi.fn(),
+  })),
+}));
+
 // Mock UI components
 vi.mock("@/components/ui/button", () => ({
   Button: ({ children, onClick, asChild, ...props }: { children: React.ReactNode; onClick?: () => void; asChild?: boolean; [key: string]: unknown }) => {

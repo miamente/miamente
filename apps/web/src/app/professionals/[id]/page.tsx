@@ -23,6 +23,7 @@ import { apiClient } from "@/lib/api";
 import { useUnifiedAuth, getAccountId } from "@/hooks/useAuth";
 import { useTherapyApproachNames } from "@/hooks/useTherapyApproachNames";
 import { useSpecialtyNames } from "@/hooks/useSpecialtyNames";
+import { useProfessionalSpecialties } from "@/hooks/useProfessionalSpecialties";
 import type { AccountWithProfile, ProfessionalProfile } from "@/lib/types";
 
 // Helper function to construct full image URLs
@@ -55,6 +56,9 @@ export default function ProfessionalProfilePage() {
 
   // Get specialty names
   const { getNames: getSpecialtyNames, loading: specialtiesLoading } = useSpecialtyNames();
+  
+  // Get professional specialties
+  const { specialties: professionalSpecialties, loading: specialtiesDataLoading } = useProfessionalSpecialties(professionalId);
 
   // Check if the logged-in user is the same as the professional being viewed
   const isOwnProfile = account && professionalAccount && getAccountId(account) === professionalAccount.account.id;
@@ -159,12 +163,26 @@ export default function ProfessionalProfilePage() {
   const professionalProfile = professionalAccount.profile as ProfessionalProfile | null;
 
   const renderSpecialtyInfo = () => {
-    if (specialtiesLoading) {
+    if (specialtiesLoading || specialtiesDataLoading) {
       return <Skeleton className="h-4 w-32" />;
     }
 
-    // TODO: Fetch specialties from junction table
-    return "Especialidades disponibles próximamente";
+    if (professionalSpecialties && professionalSpecialties.length > 0) {
+      return (
+        <div className="flex flex-wrap gap-1">
+          {professionalSpecialties.map((specialty) => (
+            <span
+              key={specialty.id}
+              className="rounded-full bg-blue-100 px-2 py-1 text-xs text-blue-800"
+            >
+              {specialty.name}
+            </span>
+          ))}
+        </div>
+      );
+    }
+
+    return "Especialidad no especificada";
   };
 
   return (
