@@ -88,12 +88,14 @@ console.error = (...args) => {
   originalConsoleError(...args);
 };
 
-// Mock useAuth hook globally
+// Mock useAuth hook globally - only for tests that don't override it
 vi.mock("@/hooks/useAuth", () => ({
   useAuth: vi.fn(() => ({
+    account: null,
     user: null,
     isLoading: false,
     isAuthenticated: false,
+    role: null,
     loginUser: vi.fn(),
     loginProfessional: vi.fn(),
     loginUnified: vi.fn(),
@@ -114,6 +116,8 @@ vi.mock("@/hooks/useAuth", () => ({
   getUserEmail: vi.fn(),
   getUserFullName: vi.fn(),
 }));
+
+// Note: useRole is not mocked globally to allow individual tests to mock it properly
 
 // Mock AuthContext globally
 vi.mock("@/contexts/AuthContext", () => ({

@@ -10,6 +10,7 @@ import {
   updateUserProfile,
 } from "../profiles";
 import { apiClient } from "../api";
+import type { PaginatedAccountsResponse } from "../types";
 
 // Mock the API client
 vi.mock("../api", () => ({
@@ -133,11 +134,20 @@ describe("profiles", () => {
       mockApiClient.updateAccount.mockResolvedValue({
         account: {
           id: "prof-123",
+          email: "prof@example.com",
           full_name: "Dr. John Smith",
+          phone: "+1234567890",
+          phone_country_code: "+1",
+          phone_number: "234567890",
+          is_active: true,
+          is_verified: true,
+          created_at: "2023-01-01T00:00:00Z",
+          updated_at: "2023-01-01T00:00:00Z",
+          role_id: "role-2",
           role_name: "professional",
         },
         role: "professional",
-        profile: {},
+        profile: null,
       });
       
       // Mock getProfessionalProfile (called after update)
@@ -261,24 +271,36 @@ describe("profiles", () => {
           email: "test@example.com",
           full_name: "Dr. Test",
           phone: "+1234567890",
+          phone_country_code: "+1",
+          phone_number: "234567890",
           is_active: true,
           is_verified: true,
           created_at: "2023-01-01T00:00:00Z",
+          updated_at: "2023-01-01T00:00:00Z",
           role_name: "professional",
         },
         role: "professional",
-        profile: {},
+        profile: null,
       });
       
       // Mock updateAccount
       mockApiClient.updateAccount.mockResolvedValue({
         account: {
           id: "prof-123",
+          email: "prof@example.com",
           full_name: "Dr. John Smith",
+          phone: "+1234567890",
+          phone_country_code: "+1",
+          phone_number: "234567890",
+          is_active: true,
+          is_verified: true,
+          created_at: "2023-01-01T00:00:00Z",
+          updated_at: "2023-01-01T00:00:00Z",
+          role_id: "role-2",
           role_name: "professional",
         },
         role: "professional",
-        profile: {},
+        profile: null,
       });
       
       // Mock getAccountById (for getProfessionalProfile)
@@ -515,7 +537,7 @@ describe("profiles", () => {
     });
 
     it("should handle non-array response", async () => {
-      mockApiClient.getAllAccountsAdmin.mockResolvedValue({ error: "Invalid response" } as any);
+      mockApiClient.getAllAccountsAdmin.mockResolvedValue({ error: "Invalid response" } as unknown as PaginatedAccountsResponse);
 
       const result = await queryProfessionals();
 

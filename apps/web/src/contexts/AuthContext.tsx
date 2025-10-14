@@ -21,6 +21,7 @@ import {
   getAccountFullName,
   getAccountRole,
 } from "@/hooks/useAuth";
+import type { UserCreate, ProfessionalCreate } from "@/lib/types";
 
 interface AuthProviderProps {
   readonly children: ReactNode;
@@ -46,8 +47,8 @@ export {
 
 const UnifiedAuthContext = createContext<UnifiedAuthState & {
   loginUnified: (credentials: { email: string; password: string }) => Promise<void>;
-  registerUser: (userData: any) => Promise<void>;
-  registerProfessional: (professionalData: any) => Promise<void>;
+  registerUser: (userData: UserCreate) => Promise<void>;
+  registerProfessional: (professionalData: ProfessionalCreate) => Promise<void>;
   logout: () => void;
   refreshUser: () => Promise<void>;
 } | undefined>(undefined);
@@ -83,6 +84,38 @@ export function useUnifiedAuthContext() {
     throw new Error("useUnifiedAuthContext must be used within a UnifiedAuthProvider");
   }
   return context;
+}
+
+// ============================================================================
+// Legacy hooks for backward compatibility
+// ============================================================================
+
+/**
+ * @deprecated Use useUnifiedAuthContext with role checking instead
+ */
+export function useUser() {
+  const context = useUnifiedAuthContext();
+  const isUser = context.role === 'user';
+  
+  return {
+    isUser,
+    user: isUser && context.profile ? context.account : null,
+    ...context,
+  };
+}
+
+/**
+ * @deprecated Use useUnifiedAuthContext with role checking instead
+ */
+export function useProfessional() {
+  const context = useUnifiedAuthContext();
+  const isProfessional = context.role === 'professional';
+  
+  return {
+    isProfessional,
+    professional: isProfessional && context.profile ? context.account : null,
+    ...context,
+  };
 }
 
 // Aliases for backward compatibility

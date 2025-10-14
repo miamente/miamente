@@ -47,16 +47,16 @@ vi.mock("../AuthContext", async (importOriginal) => {
 
 describe("AuthContext", () => {
   const mockAuthData = {
-    user: null,
+    account: null,
+    profile: null,
+    role: null,
     isLoading: false,
     isAuthenticated: false,
-    loginUser: vi.fn(),
-    loginProfessional: vi.fn(),
+    loginUnified: vi.fn(),
     registerUser: vi.fn(),
     registerProfessional: vi.fn(),
     logout: vi.fn(),
     refreshUser: vi.fn(),
-    getAuthHeaders: vi.fn(),
   };
 
   beforeEach(() => {
@@ -101,14 +101,14 @@ describe("AuthContext", () => {
         // Context only includes auth state and methods
         return (
           <div>
-            <div data-testid="has-account">
-              {typeof auth.account !== "undefined" ? "yes" : "no"}
-            </div>
             <div data-testid="has-logout">
               {typeof auth.logout === "function" ? "yes" : "no"}
             </div>
             <div data-testid="has-refreshUser">
               {typeof auth.refreshUser === "function" ? "yes" : "no"}
+            </div>
+            <div data-testid="has-loginUnified">
+              {typeof auth.loginUnified === "function" ? "yes" : "no"}
             </div>
           </div>
         );
@@ -120,23 +120,23 @@ describe("AuthContext", () => {
         </AuthProvider>,
       );
 
-      expect(screen.getByTestId("has-account")).toHaveTextContent("yes");
       expect(screen.getByTestId("has-logout")).toHaveTextContent("yes");
       expect(screen.getByTestId("has-refreshUser")).toHaveTextContent("yes");
+      expect(screen.getByTestId("has-loginUnified")).toHaveTextContent("yes");
     });
   });
 
   describe("useAuthContext", () => {
-    it("should throw error when used outside provider", () => {
-      const TestComponent = () => {
-        useAuthContext();
-        return null;
-      };
+  it("should throw error when used outside provider", () => {
+    const TestComponent = () => {
+      useAuthContext();
+      return null;
+    };
 
-      expect(() => render(<TestComponent />)).toThrow(
-        "useUnifiedAuthContext must be used within an AuthProvider",
-      );
-    });
+    expect(() => render(<TestComponent />)).toThrow(
+      /useUnifiedAuthContext must be used within a UnifiedAuthProvider/,
+    );
+  });
 
     it("should return context value when used within provider", () => {
       const TestComponent = () => {
@@ -158,26 +158,22 @@ describe("AuthContext", () => {
     it("should return user data when user type is user", () => {
       const mockUserData = {
         user: {
-          type: UserRole.USER,
-          data: {
-            id: "user-123",
-            email: "user@example.com",
-            full_name: "Test User",
-            is_verified: true,
-            is_active: true,
-            phone: "+1234567890",
-            created_at: "2023-01-01T00:00:00Z",
-            updated_at: "2023-01-01T00:00:00Z",
-          },
+          id: "user-123",
+          email: "user@example.com",
+          full_name: "Test User",
+          is_verified: true,
+          is_active: true,
+          phone: "+1234567890",
+          created_at: "2023-01-01T00:00:00Z",
+          updated_at: "2023-01-01T00:00:00Z",
+          role_id: "role-1",
+          role_name: "user",
         },
         isLoading: false,
         isAuthenticated: true,
-        loginUser: vi.fn(),
-        loginProfessional: vi.fn(),
         loginUnified: vi.fn(),
         registerUser: vi.fn(),
         registerProfessional: vi.fn(),
-        registerUnified: vi.fn(),
         logout: vi.fn(),
         refreshUser: vi.fn(),
         getAuthHeaders: vi.fn(),
@@ -185,24 +181,18 @@ describe("AuthContext", () => {
 
       mockUseAuth.mockReturnValue(mockUserData);
       vi.mocked(useUser).mockReturnValue({
+        account: mockUserData.user,
+        profile: null,
+        role: "user" as UserRole,
         isUser: true,
-        user: mockUserData.user.data,
+        user: mockUserData.user,
         isLoading: false,
         isAuthenticated: true,
-        loginUser: vi.fn(),
-        loginProfessional: vi.fn(),
         loginUnified: vi.fn(),
         registerUser: vi.fn(),
         registerProfessional: vi.fn(),
-        registerUnified: vi.fn(),
         logout: vi.fn(),
         refreshUser: vi.fn(),
-        getUserEmail: vi.fn(),
-        getUserFullName: vi.fn(),
-        isUserVerified: vi.fn(),
-        isEmailVerified: vi.fn(),
-        getUserId: vi.fn(),
-        getUserUid: vi.fn(),
       });
 
       const { result } = renderHook(() => useUser(), {
@@ -210,7 +200,7 @@ describe("AuthContext", () => {
       });
 
       expect(result.current.isUser).toBe(true);
-      expect(result.current.user).toEqual(mockUserData.user.data);
+      expect(result.current.user).toEqual(mockUserData.user);
     });
 
     it("should return null when user type is not user", () => {
@@ -246,24 +236,18 @@ describe("AuthContext", () => {
 
       mockUseAuth.mockReturnValue(mockProfessionalData);
       vi.mocked(useUser).mockReturnValue({
+        account: null,
+        profile: null,
+        role: null,
         isUser: false,
         user: null,
         isLoading: false,
         isAuthenticated: true,
-        loginUser: vi.fn(),
-        loginProfessional: vi.fn(),
         loginUnified: vi.fn(),
         registerUser: vi.fn(),
         registerProfessional: vi.fn(),
-        registerUnified: vi.fn(),
         logout: vi.fn(),
         refreshUser: vi.fn(),
-        getUserEmail: vi.fn(),
-        getUserFullName: vi.fn(),
-        isUserVerified: vi.fn(),
-        isEmailVerified: vi.fn(),
-        getUserId: vi.fn(),
-        getUserUid: vi.fn(),
       });
 
       const { result } = renderHook(() => useUser(), {
@@ -279,39 +263,35 @@ describe("AuthContext", () => {
     it("should return professional data when user type is professional", () => {
       const mockProfessionalData = {
         user: {
-          type: UserRole.PROFESSIONAL,
-          data: {
-            id: "prof-123",
-            email: "prof@example.com",
-            full_name: "Test Professional",
-            is_verified: true,
-            is_active: true,
-            phone: "+1234567890",
-            created_at: "2023-01-01T00:00:00Z",
-            updated_at: "2023-01-01T00:00:00Z",
-            license_number: "LIC123",
-            years_experience: 5,
-            rate_cents: 50000,
-            currency: "COP",
-            bio: "Test bio",
-            academic_experience: [],
-            work_experience: [],
-            certifications: [],
-            languages: [],
-            therapy_approaches_ids: [],
-            specialty_ids: [],
-            modalities: [],
-            timezone: "America/Bogota",
-          },
+          id: "prof-123",
+          email: "prof@example.com",
+          full_name: "Test Professional",
+          is_verified: true,
+          is_active: true,
+          phone: "+1234567890",
+          created_at: "2023-01-01T00:00:00Z",
+          updated_at: "2023-01-01T00:00:00Z",
+          role_id: "role-2",
+          role_name: "professional",
+          license_number: "LIC123",
+          years_experience: 5,
+          rate_cents: 50000,
+          currency: "COP",
+          bio: "Test bio",
+          academic_experience: [],
+          work_experience: [],
+          certifications: [],
+          languages: [],
+          therapy_approaches_ids: [],
+          specialty_ids: [],
+          modalities: [],
+          timezone: "America/Bogota",
         },
         isLoading: false,
         isAuthenticated: true,
-        loginUser: vi.fn(),
-        loginProfessional: vi.fn(),
         loginUnified: vi.fn(),
         registerUser: vi.fn(),
         registerProfessional: vi.fn(),
-        registerUnified: vi.fn(),
         logout: vi.fn(),
         refreshUser: vi.fn(),
         getAuthHeaders: vi.fn(),
@@ -319,24 +299,18 @@ describe("AuthContext", () => {
 
       mockUseAuth.mockReturnValue(mockProfessionalData);
       vi.mocked(useProfessional).mockReturnValue({
+        account: mockProfessionalData.user,
+        profile: null,
+        role: "professional" as UserRole,
         isProfessional: true,
-        professional: mockProfessionalData.user.data,
+        professional: mockProfessionalData.user,
         isLoading: false,
         isAuthenticated: true,
-        loginUser: vi.fn(),
-        loginProfessional: vi.fn(),
         loginUnified: vi.fn(),
         registerUser: vi.fn(),
         registerProfessional: vi.fn(),
-        registerUnified: vi.fn(),
         logout: vi.fn(),
         refreshUser: vi.fn(),
-        getUserEmail: vi.fn(),
-        getUserFullName: vi.fn(),
-        isUserVerified: vi.fn(),
-        isEmailVerified: vi.fn(),
-        getUserId: vi.fn(),
-        getUserUid: vi.fn(),
       });
 
       const { result } = renderHook(() => useProfessional(), {
@@ -344,7 +318,7 @@ describe("AuthContext", () => {
       });
 
       expect(result.current.isProfessional).toBe(true);
-      expect(result.current.professional).toEqual(mockProfessionalData.user.data);
+      expect(result.current.professional).toEqual(mockProfessionalData.user);
     });
 
     it("should return null when user type is not professional", () => {
@@ -364,12 +338,9 @@ describe("AuthContext", () => {
         },
         isLoading: false,
         isAuthenticated: true,
-        loginUser: vi.fn(),
-        loginProfessional: vi.fn(),
         loginUnified: vi.fn(),
         registerUser: vi.fn(),
         registerProfessional: vi.fn(),
-        registerUnified: vi.fn(),
         logout: vi.fn(),
         refreshUser: vi.fn(),
         getAuthHeaders: vi.fn(),
@@ -377,24 +348,18 @@ describe("AuthContext", () => {
 
       mockUseAuth.mockReturnValue(mockUserData);
       vi.mocked(useProfessional).mockReturnValue({
+        account: null,
+        profile: null,
+        role: null,
         isProfessional: false,
         professional: null,
         isLoading: false,
         isAuthenticated: true,
-        loginUser: vi.fn(),
-        loginProfessional: vi.fn(),
         loginUnified: vi.fn(),
         registerUser: vi.fn(),
         registerProfessional: vi.fn(),
-        registerUnified: vi.fn(),
         logout: vi.fn(),
         refreshUser: vi.fn(),
-        getUserEmail: vi.fn(),
-        getUserFullName: vi.fn(),
-        isUserVerified: vi.fn(),
-        isEmailVerified: vi.fn(),
-        getUserId: vi.fn(),
-        getUserUid: vi.fn(),
       });
 
       const { result } = renderHook(() => useProfessional(), {

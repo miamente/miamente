@@ -98,14 +98,14 @@ export function useUnifiedAuth() {
       }
 
       // Get current user using new /accounts/me endpoint
-      const response = await apiClient.get<any>("/accounts/me");
+      const response = await apiClient.get<{ account: AccountWithRole; role: string; profile?: UserProfile | ProfessionalProfile | null }>("/accounts/me");
       
       // Parse response from new unified format
       const { account, role: roleName, profile } = response;
 
       setAuthState({
         account,
-        profile,
+        profile: profile || null,
         role: roleName as UserRole,
         isLoading: false,
         isAuthenticated: true,

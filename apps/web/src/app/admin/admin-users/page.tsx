@@ -39,7 +39,10 @@ export default function AdminUsers() {
   const handleToggleActive = async (user: AdminUser) => {
     try {
       const updatedUser = await apiClient.toggleUserStatus(user.id, !user.is_active);
-      updateItem(user.id, updatedUser as AdminUser);
+      updateItem(user.id, {
+        ...updatedUser,
+        role: updatedUser.role_name,
+      } as AdminUser);
     } catch (err) {
       console.error("Error updating user status:", err);
       setError("Error al actualizar el estado del usuario");
@@ -70,7 +73,7 @@ export default function AdminUsers() {
     const label =
       user.role === "admin"
         ? "Administrador"
-        : user.role.charAt(0).toUpperCase() + user.role.slice(1);
+        : user.role ? user.role.charAt(0).toUpperCase() + user.role.slice(1) : "Usuario";
     return { variant, label };
   };
 

@@ -63,7 +63,7 @@ describe("useAuth", () => {
 
     // Should start with correct initial values
     expect(result.current.isAuthenticated).toBe(false);
-    expect(result.current.user).toBe(null);
+    expect(result.current.account).toBe(null);
 
     // Wait for the initial auth check to complete
     await waitFor(
@@ -87,6 +87,6 @@ describe("useAuth", () => {
     );
 
     expect(result.current.isAuthenticated).toBe(false);
-    expect(result.current.user).toBe(null);
+    expect(result.current.account).toBe(null);
   });
 });

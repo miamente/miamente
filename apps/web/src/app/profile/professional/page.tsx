@@ -24,7 +24,7 @@ import {
   updateProfessionalProfile,
 } from "@/lib/profiles";
 import { apiClient } from "@/lib/api";
-import type { ProfessionalProfile } from "@/lib/profiles";
+import type { Professional } from "@/lib/types";
 import { professionalProfileSchema, type ProfessionalProfileFormData } from "@/lib/validations";
 import type { Certification } from "@/lib/types";
 
@@ -32,10 +32,10 @@ export default function ProfessionalProfilePage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
-  const [profile, setProfile] = useState<ProfessionalProfile | null>(null);
+  const [profile, setProfile] = useState<Professional | null>(null);
   const [photoFile, setPhotoFile] = useState<File | null>(null);
 
-  const { user, isLoading } = useAuth();
+  const { account, isLoading } = useAuth();
   const router = useRouter();
 
   const methods = useForm<ProfessionalProfileFormData>({
@@ -69,7 +69,7 @@ export default function ProfessionalProfilePage() {
   } = methods;
 
   const loadProfile = useCallback(async () => {
-    if (!user) {
+    if (!account) {
       return;
     }
 
@@ -87,8 +87,16 @@ export default function ProfessionalProfilePage() {
           licenseNumber: proProfile.license_number || "",
           yearsExperience: proProfile.years_experience || 0,
           bio: proProfile.bio || "",
-          academicExperience: proProfile.academic_experience || [],
-          workExperience: proProfile.work_experience || [],
+          academicExperience: Array.isArray(proProfile.academic_experience) 
+            ? proProfile.academic_experience 
+            : (typeof proProfile.academic_experience === 'string' 
+                ? JSON.parse(proProfile.academic_experience) 
+                : []),
+          workExperience: Array.isArray(proProfile.work_experience) 
+            ? proProfile.work_experience 
+            : (typeof proProfile.work_experience === 'string' 
+                ? JSON.parse(proProfile.work_experience) 
+                : []),
           certifications:
             proProfile.certifications?.map((cert: Certification) => {
               const documentUrl = cert.document_url || "";
@@ -114,7 +122,7 @@ export default function ProfessionalProfilePage() {
     } catch (err) {
       console.error("Error loading profile:", err);
     }
-  }, [user, reset]);
+  }, [account, reset]);
 
   useEffect(() => {
     // Don't redirect if still loading
@@ -122,23 +130,23 @@ export default function ProfessionalProfilePage() {
       return;
     }
 
-    if (!user) {
+    if (!account) {
       router.push("/login");
       return;
     }
 
     loadProfile();
-  }, [user, isLoading, router, loadProfile]);
+  }, [account, isLoading, router, loadProfile]);
 
   const uploadProfilePicture = async (file: File): Promise<string> => {
     // Delete old profile picture if it exists
     if (profile?.profile_picture) {
       try {
         const urlParts = profile.profile_picture.split("/");
-        const userId = urlParts[urlParts.length - 2];
+        const accountId = urlParts[urlParts.length - 2];
         const filename = urlParts[urlParts.length - 1];
 
-        await apiClient.deleteProfilePicture(userId, filename);
+        await apiClient.deleteProfilePicture(accountId, filename);
         console.log("Old profile picture deleted successfully");
       } catch (deleteError) {
         console.warn("Error deleting old profile picture:", deleteError);
@@ -196,7 +204,7 @@ export default function ProfessionalProfilePage() {
   };
 
   const onSubmit = async (data: ProfessionalProfileFormData) => {
-    if (!user) return;
+    if (!account) return;
 
     setIsSubmitting(true);
     setError(null);
@@ -246,7 +254,7 @@ export default function ProfessionalProfilePage() {
     );
   }
 
-  if (!user) {
+  if (!account) {
     return <div className="flex min-h-[50vh] items-center justify-center">Cargando...</div>;
   }
 

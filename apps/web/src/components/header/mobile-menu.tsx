@@ -65,15 +65,19 @@ export function MobileMenu({
           {/* User Info */}
           {isAuthenticated && (
             <div className="border-b p-4">
-              <div className="px-3 py-2 text-sm font-medium text-neutral-900">
+              <div className="px-3 py-2 text-sm font-medium text-neutral-900" data-testid="mobile-user-name">
                 {userName || "Usuario"}
               </div>
+              <div className="px-3 py-1 text-xs text-gray-500" data-testid="mobile-user-role">
+                {userRole || "user"}
+              </div>
+              <div className="hidden" data-testid="mobile-authenticated">{isAuthenticated.toString()}</div>
             </div>
           )}
 
           {/* Navigation Items */}
           <div className="border-b p-4">
-            <nav className="space-y-2">
+            <nav className="space-y-2" data-testid="mobile-nav-items">
               {filteredNavItems.map((item) => (
                 <Link
                   key={item.href}

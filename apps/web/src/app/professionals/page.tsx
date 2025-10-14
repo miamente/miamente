@@ -12,8 +12,8 @@ import { ProfessionalCardSkeleton } from "@/components/professional-card-skeleto
 import {
   queryProfessionals,
   type ProfessionalsQueryResult,
-  type ProfessionalProfile,
 } from "@/lib/profiles";
+import type { Professional } from "@/lib/types";
 import { useSpecialtyNames } from "@/hooks/useSpecialtyNames";
 
 // Helper function to construct full image URLs
@@ -117,7 +117,7 @@ export default function ProfessionalsPage() {
     fetchPage(false);
   };
 
-  const renderSpecialtyInfo = (pro: ProfessionalProfile) => {
+  const renderSpecialtyInfo = (pro: Professional) => {
     if (specialtiesLoading) {
       return <div className="h-4 w-32 animate-pulse rounded bg-neutral-200"></div>;
     }

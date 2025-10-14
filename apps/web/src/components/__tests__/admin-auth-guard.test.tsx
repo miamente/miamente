@@ -3,7 +3,7 @@ import { render, screen, waitFor } from "@testing-library/react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
 import { AdminAuthGuard } from "../admin-auth-guard";
-import { UserRole, type AuthUser, type UserProfile } from "@/lib/types";
+import { UserRole, type UserProfile } from "@/lib/types";
 
 // Mock Next.js router
 const mockPush = vi.fn();
@@ -15,8 +15,9 @@ vi.mock("next/navigation", () => ({
 
 // Mock hooks
 const mockUseAuth = {
-  user: null as AuthUser | null,
+  account: null as any,
   isLoading: false,
+  isAuthenticated: false,
 };
 
 const mockUseRole = {
@@ -37,30 +38,33 @@ vi.mock("@/hooks/useRole", () => ({
 describe("AdminAuthGuard", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mockUseAuth.user = null;
+    mockUseAuth.account = null;
     mockUseAuth.isLoading = false;
+    mockUseAuth.isAuthenticated = false;
     mockUseRole.userProfile = null;
     mockUseRole.loading = false;
     mockUseRole.hasAnyRole.mockReturnValue(false);
   });
 
   it("should render children when user is authenticated and has admin role", () => {
-    mockUseAuth.user = {
-      type: UserRole.ADMIN,
-      data: {
-        id: "1",
-        email: "admin@example.com",
-        full_name: "Admin User",
-        phone: "+1234567890",
-        is_active: true,
-        is_verified: true,
-        created_at: "2024-01-01T00:00:00Z",
-        updated_at: "2024-01-01T00:00:00Z",
-      },
-    };
-    mockUseRole.userProfile = {
+    mockUseAuth.account = {
       id: "1",
-      role: UserRole.ADMIN,
+      email: "admin@example.com",
+      full_name: "Admin User",
+      phone: "+1234567890",
+      is_active: true,
+      is_verified: true,
+      created_at: "2024-01-01T00:00:00Z",
+      updated_at: "2024-01-01T00:00:00Z",
+      role_name: "admin",
+    };
+    mockUseAuth.isAuthenticated = true;
+    mockUseRole.userProfile = {
+      account_id: "1",
+      date_of_birth: "1990-01-01",
+      emergency_contact_name: "Emergency Contact",
+      emergency_phone_country_code: "+1",
+      emergency_phone_number: "1234567890",
     };
     mockUseRole.hasAnyRole.mockReturnValue(true);
 
@@ -100,7 +104,7 @@ describe("AdminAuthGuard", () => {
   });
 
   it("should redirect to admin login when no user is authenticated", async () => {
-    mockUseAuth.user = null;
+    mockUseAuth.account = null;
 
     render(
       <AdminAuthGuard>
@@ -117,7 +121,7 @@ describe("AdminAuthGuard", () => {
   });
 
   it("should redirect to admin login when user doesn't have admin role", async () => {
-    mockUseAuth.user = {
+    mockUseAuth.account = {
       type: UserRole.USER,
       data: {
         id: "1",
@@ -131,8 +135,11 @@ describe("AdminAuthGuard", () => {
       },
     };
     mockUseRole.userProfile = {
-      id: "1",
-      role: UserRole.USER,
+      account_id: "1",
+      date_of_birth: "1990-01-01",
+      emergency_contact_name: "Emergency Contact",
+      emergency_phone_country_code: "+1",
+      emergency_phone_number: "1234567890",
     };
     mockUseRole.hasAnyRole.mockReturnValue(false);
 
@@ -151,7 +158,7 @@ describe("AdminAuthGuard", () => {
   });
 
   it("should show loading when user exists but userProfile is not loaded", () => {
-    mockUseAuth.user = {
+    mockUseAuth.account = {
       type: UserRole.ADMIN,
       data: {
         id: "1",
@@ -201,23 +208,26 @@ describe("AdminAuthGuard", () => {
   });
 
   it("should call hasAnyRole with correct parameters", () => {
-    mockUseAuth.user = {
-      type: UserRole.ADMIN,
-      data: {
-        id: "1",
-        email: "admin@example.com",
-        full_name: "Admin User",
-        phone: "+1234567890",
-        is_active: true,
-        is_verified: true,
-        created_at: "2024-01-01T00:00:00Z",
-        updated_at: "2024-01-01T00:00:00Z",
-      },
-    };
-    mockUseRole.userProfile = {
+    mockUseAuth.account = {
       id: "1",
-      role: UserRole.ADMIN,
+      email: "admin@example.com",
+      full_name: "Admin User",
+      phone: "+1234567890",
+      is_active: true,
+      is_verified: true,
+      created_at: "2024-01-01T00:00:00Z",
+      updated_at: "2024-01-01T00:00:00Z",
+      role_name: "admin",
     };
+    mockUseAuth.isAuthenticated = true;
+    mockUseRole.userProfile = {
+      account_id: "1",
+      date_of_birth: "1990-01-01",
+      emergency_contact_name: "Emergency Contact",
+      emergency_phone_country_code: "+1",
+      emergency_phone_number: "1234567890",
+    };
+    mockUseRole.hasAnyRole.mockReturnValue(true);
 
     render(
       <AdminAuthGuard>
@@ -249,22 +259,24 @@ describe("AdminAuthGuard", () => {
   });
 
   it("should handle multiple role checks correctly", () => {
-    mockUseAuth.user = {
-      type: UserRole.ADMIN,
-      data: {
-        id: "1",
-        email: "admin@example.com",
-        full_name: "Admin User",
-        phone: "+1234567890",
-        is_active: true,
-        is_verified: true,
-        created_at: "2024-01-01T00:00:00Z",
-        updated_at: "2024-01-01T00:00:00Z",
-      },
-    };
-    mockUseRole.userProfile = {
+    mockUseAuth.account = {
       id: "1",
-      role: UserRole.ADMIN,
+      email: "admin@example.com",
+      full_name: "Admin User",
+      phone: "+1234567890",
+      is_active: true,
+      is_verified: true,
+      created_at: "2024-01-01T00:00:00Z",
+      updated_at: "2024-01-01T00:00:00Z",
+      role_name: "admin",
+    };
+    mockUseAuth.isAuthenticated = true;
+    mockUseRole.userProfile = {
+      account_id: "1",
+      date_of_birth: "1990-01-01",
+      emergency_contact_name: "Emergency Contact",
+      emergency_phone_country_code: "+1",
+      emergency_phone_number: "1234567890",
     };
     mockUseRole.hasAnyRole.mockReturnValue(true);
 
@@ -289,22 +301,24 @@ describe("AdminAuthGuard", () => {
     expect(mockPush).toHaveBeenCalledWith("/admin/login");
 
     // User becomes authenticated with admin role
-    mockUseAuth.user = {
-      type: UserRole.ADMIN,
-      data: {
-        id: "1",
-        email: "admin@example.com",
-        full_name: "Admin User",
-        phone: "+1234567890",
-        is_active: true,
-        is_verified: true,
-        created_at: "2024-01-01T00:00:00Z",
-        updated_at: "2024-01-01T00:00:00Z",
-      },
-    };
-    mockUseRole.userProfile = {
+    mockUseAuth.account = {
       id: "1",
-      role: UserRole.ADMIN,
+      email: "admin@example.com",
+      full_name: "Admin User",
+      phone: "+1234567890",
+      is_active: true,
+      is_verified: true,
+      created_at: "2024-01-01T00:00:00Z",
+      updated_at: "2024-01-01T00:00:00Z",
+      role_name: "admin",
+    };
+    mockUseAuth.isAuthenticated = true;
+    mockUseRole.userProfile = {
+      account_id: "1",
+      date_of_birth: "1990-01-01",
+      emergency_contact_name: "Emergency Contact",
+      emergency_phone_country_code: "+1",
+      emergency_phone_number: "1234567890",
     };
     mockUseRole.hasAnyRole.mockReturnValue(true);
 
@@ -320,19 +334,18 @@ describe("AdminAuthGuard", () => {
   });
 
   it("should handle edge case where user exists but has no profile", () => {
-    mockUseAuth.user = {
-      type: UserRole.USER,
-      data: {
-        id: "1",
-        email: "user@example.com",
-        full_name: "User Name",
-        phone: "+1234567890",
-        is_active: true,
-        is_verified: true,
-        created_at: "2024-01-01T00:00:00Z",
-        updated_at: "2024-01-01T00:00:00Z",
-      },
+    mockUseAuth.account = {
+      id: "1",
+      email: "user@example.com",
+      full_name: "User Name",
+      phone: "+1234567890",
+      is_active: true,
+      is_verified: true,
+      created_at: "2024-01-01T00:00:00Z",
+      updated_at: "2024-01-01T00:00:00Z",
+      role_name: "user",
     };
+    mockUseAuth.isAuthenticated = true;
     mockUseRole.userProfile = null;
 
     render(

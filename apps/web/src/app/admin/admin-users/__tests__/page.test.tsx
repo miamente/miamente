@@ -174,7 +174,7 @@ describe("AdminUsers (Admin Users)", () => {
     };
 
     mockUseAdminData.data = [mockUser];
-    mockApiClient.toggleUserStatus.mockResolvedValue({ ...mockUser, is_active: false });
+    mockApiClient.toggleUserStatus.mockResolvedValue({ ...mockUser, is_active: false, role_name: "admin" });
 
     render(<AdminUsers />);
 
@@ -183,7 +183,7 @@ describe("AdminUsers (Admin Users)", () => {
 
     await waitFor(() => {
       expect(mockApiClient.toggleUserStatus).toHaveBeenCalledWith("admin-1", false);
-      expect(mockUseAdminData.updateItem).toHaveBeenCalledWith("admin-1", { ...mockUser, is_active: false });
+      expect(mockUseAdminData.updateItem).toHaveBeenCalledWith("admin-1", { ...mockUser, is_active: false, role_name: "admin" });
     });
   });
 

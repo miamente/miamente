@@ -89,16 +89,14 @@ describe("Type Definitions", () => {
           is_active: true,
           is_verified: true,
           phone: "+1234567890",
-          profile_picture: "https://example.com/avatar.jpg",
           date_of_birth: "1990-01-01",
           emergency_contact: "Emergency Contact",
           emergency_phone: "+0987654321",
-          preferences: '{"theme": "dark"}',
         };
 
         expect(user.phone).toBe("+1234567890");
-        expect(user.profile_picture).toBe("https://example.com/avatar.jpg");
-        expect(user.preferences).toBe('{"theme": "dark"}');
+        expect(user.date_of_birth).toBe("1990-01-01");
+        expect(user.emergency_contact).toBe("Emergency Contact");
       });
     });
   });
@@ -156,7 +154,6 @@ describe("Type Definitions", () => {
           license_number: "LIC123",
           custom_rate_cents: 80000,
           bio: "Experienced therapist",
-          working_hours: '{"monday": {"start": "09:00", "end": "17:00"}}',
         };
 
         expect(professional.phone_country_code).toBe("+1");
@@ -308,12 +305,21 @@ describe("Type Definitions", () => {
         const response: LoginResponse = {
           access_token: "jwt-token",
           token_type: "bearer",
-          user_type: "user",
+          user: {
+            id: "user-123",
+            email: "test@example.com",
+            full_name: "Test User",
+            is_verified: true,
+            is_active: true,
+            phone: "+1234567890",
+            created_at: "2023-01-01T00:00:00Z",
+            updated_at: "2023-01-01T00:00:00Z",
+          } as User,
         };
 
         expect(response.access_token).toBe("jwt-token");
         expect(response.token_type).toBe("bearer");
-        expect(response.user_type).toBe("user");
+        expect(response.access_token).toBe("jwt-token");
       });
 
       it("should allow user data", () => {
@@ -329,7 +335,6 @@ describe("Type Definitions", () => {
         const response: LoginResponse = {
           access_token: "jwt-token",
           token_type: "bearer",
-          user_type: "user",
           user,
         };
 

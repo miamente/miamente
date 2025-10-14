@@ -3,7 +3,7 @@ import { render, screen, fireEvent } from "@testing-library/react";
 import { ModalitiesEditor } from "../professional-info/ModalitiesEditor";
 import { useModalities } from "@/hooks/useModalities";
 import { vi, describe, it, expect, beforeEach } from "vitest";
-import { ProfessionalModality } from "@/lib/types";
+import { ProfessionalModalityFrontend } from "@/lib/types";
 
 // Mock external modules and hooks
 vi.mock("@/hooks/useModalities");
@@ -129,7 +129,7 @@ describe("ModalitiesEditor", () => {
   });
 
   it("should render with initial modalities", () => {
-    const initialModalities: ProfessionalModality[] = [
+    const initialModalities: ProfessionalModalityFrontend[] = [
       {
         id: "prof-mod-1",
         modalityId: "mod-1",
@@ -189,7 +189,7 @@ describe("ModalitiesEditor", () => {
   });
 
   it("should remove modality", () => {
-    const initialModalities: ProfessionalModality[] = [
+    const initialModalities: ProfessionalModalityFrontend[] = [
       {
         id: "prof-mod-1",
         modalityId: "mod-1",
@@ -219,7 +219,7 @@ describe("ModalitiesEditor", () => {
   });
 
   it("should set default modality", () => {
-    const initialModalities: ProfessionalModality[] = [
+    const initialModalities: ProfessionalModalityFrontend[] = [
       {
         id: "prof-mod-1",
         modalityId: "mod-1",
@@ -272,7 +272,7 @@ describe("ModalitiesEditor", () => {
   });
 
   it("should update modality field", () => {
-    const initialModalities: ProfessionalModality[] = [
+    const initialModalities: ProfessionalModalityFrontend[] = [
       {
         id: "prof-mod-1",
         modalityId: "mod-1",
@@ -304,7 +304,7 @@ describe("ModalitiesEditor", () => {
   });
 
   it("should update presencial price when offersPresencial is checked", () => {
-    const initialModalities: ProfessionalModality[] = [
+    const initialModalities: ProfessionalModalityFrontend[] = [
       {
         id: "prof-mod-1",
         modalityId: "mod-1",
@@ -336,7 +336,7 @@ describe("ModalitiesEditor", () => {
   });
 
   it("should update description", () => {
-    const initialModalities: ProfessionalModality[] = [
+    const initialModalities: ProfessionalModalityFrontend[] = [
       {
         id: "prof-mod-1",
         modalityId: "mod-1",
@@ -368,7 +368,7 @@ describe("ModalitiesEditor", () => {
   });
 
   it("should disable add button when all modalities are used", () => {
-    const initialModalities: ProfessionalModality[] = [
+    const initialModalities: ProfessionalModalityFrontend[] = [
       {
         id: "prof-mod-1",
         modalityId: "mod-1",
@@ -412,7 +412,7 @@ describe("ModalitiesEditor", () => {
   });
 
   it("should handle disabled state", () => {
-    const initialModalities: ProfessionalModality[] = [
+    const initialModalities: ProfessionalModalityFrontend[] = [
       {
         id: "prof-mod-1",
         modalityId: "mod-1",
@@ -441,7 +441,7 @@ describe("ModalitiesEditor", () => {
   });
 
   it("should handle modality change", () => {
-    const initialModalities: ProfessionalModality[] = [
+    const initialModalities: ProfessionalModalityFrontend[] = [
       {
         id: "prof-mod-1",
         modalityId: "mod-1",
@@ -474,7 +474,7 @@ describe("ModalitiesEditor", () => {
   });
 
   it("should handle multiple modalities", () => {
-    const initialModalities: ProfessionalModality[] = [
+    const initialModalities: ProfessionalModalityFrontend[] = [
       {
         id: "prof-mod-1",
         modalityId: "mod-1",
@@ -538,7 +538,7 @@ describe("ModalitiesEditor", () => {
   });
 
   it("should handle presencial price field visibility", () => {
-    const initialModalities: ProfessionalModality[] = [
+    const initialModalities: ProfessionalModalityFrontend[] = [
       {
         id: "prof-mod-1",
         modalityId: "mod-1",
@@ -564,7 +564,7 @@ describe("ModalitiesEditor", () => {
   });
 
   it("should handle presencial price update", () => {
-    const initialModalities: ProfessionalModality[] = [
+    const initialModalities: ProfessionalModalityFrontend[] = [
       {
         id: "prof-mod-1",
         modalityId: "mod-1",
@@ -596,7 +596,7 @@ describe("ModalitiesEditor", () => {
   });
 
   it("should handle remove default modality and set new default", () => {
-    const initialModalities: ProfessionalModality[] = [
+    const initialModalities: ProfessionalModalityFrontend[] = [
       {
         id: "prof-mod-1",
         modalityId: "mod-1",
@@ -641,7 +641,7 @@ describe("ModalitiesEditor", () => {
   });
 
   it("should handle remove last modality", () => {
-    const initialModalities: ProfessionalModality[] = [
+    const initialModalities: ProfessionalModalityFrontend[] = [
       {
         id: "prof-mod-1",
         modalityId: "mod-1",

@@ -24,7 +24,7 @@ import { useUnifiedAuth, getAccountId } from "@/hooks/useAuth";
 import { useTherapyApproachNames } from "@/hooks/useTherapyApproachNames";
 import { useSpecialtyNames } from "@/hooks/useSpecialtyNames";
 import { useProfessionalSpecialties } from "@/hooks/useProfessionalSpecialties";
-import type { AccountWithProfile, ProfessionalProfile } from "@/lib/types";
+import type { AccountWithProfile, ProfessionalProfile, AcademicExperience, Certification } from "@/lib/types";
 
 // Helper function to construct full image URLs
 const getImageUrl = (imagePath: string | undefined): string | undefined => {
@@ -51,11 +51,10 @@ export default function ProfessionalProfilePage() {
   const professionalId = params.id as string;
 
   // Get therapy approach names (will fetch them separately)
-  const { getNames: getTherapyApproachNames, loading: therapyApproachesLoading } =
-    useTherapyApproachNames([]);
+  useTherapyApproachNames([]);
 
   // Get specialty names
-  const { getNames: getSpecialtyNames, loading: specialtiesLoading } = useSpecialtyNames();
+  const { loading: specialtiesLoading } = useSpecialtyNames();
   
   // Get professional specialties
   const { specialties: professionalSpecialties, loading: specialtiesDataLoading } = useProfessionalSpecialties(professionalId);
@@ -298,7 +297,7 @@ export default function ProfessionalProfilePage() {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
-                    {academicExp.map((education: any) => (
+                    {academicExp.map((education: AcademicExperience) => (
                       <div
                         key={`${education.degree}-${education.institution}`}
                         className="border-l-4 border-blue-200 pl-4"
@@ -336,7 +335,7 @@ export default function ProfessionalProfilePage() {
                 </CardHeader>
                 <CardContent>
                   <ul className="space-y-2">
-                    {certs.map((cert: any) => (
+                    {certs.map((cert: Certification) => (
                       <li key={cert.name} className="flex items-center">
                         <span className="mr-3 h-2 w-2 rounded-full bg-blue-500"></span>
                         <span className="text-gray-700">{cert.name}</span>

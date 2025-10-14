@@ -12,7 +12,7 @@ import { SearchResultsInfo } from "@/components/admin/SearchResultsInfo";
 import { SearchCard } from "@/components/admin/SearchCard";
 import { ProfessionalCreateDialog, ProfessionalCreateData } from "@/components/admin/ProfessionalCreateDialog";
 import { apiClient } from "@/lib/api";
-import type { ProfessionalWithCountResponse, PaginatedProfessionalsResponse } from "@/lib/types";
+import type { ProfessionalWithCountResponse } from "@/lib/types";
 
 export default function AdminProfessionalsPage() {
   const [professionals, setProfessionals] = useState<ProfessionalWithCountResponse[]>([]);

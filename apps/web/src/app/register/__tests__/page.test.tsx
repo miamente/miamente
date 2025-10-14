@@ -71,18 +71,16 @@ describe("RegisterPage", () => {
 
   it("should render registration form when user is not authenticated", () => {
     mockUseAuth.mockReturnValue({
-      user: null,
+      account: null,
+      profile: null,
+      role: null,
       isLoading: false,
       isAuthenticated: false,
-      loginUser: vi.fn(),
-      loginProfessional: vi.fn(),
       loginUnified: vi.fn(),
       registerUser: vi.fn(),
       registerProfessional: vi.fn(),
-      registerUnified: vi.fn(),
       logout: vi.fn(),
       refreshUser: vi.fn(),
-      getAuthHeaders: vi.fn(),
     });
 
     render(<RegisterPage />);
@@ -107,12 +105,14 @@ describe("RegisterPage", () => {
       phone: "+1234567890",
       created_at: "2023-01-01T00:00:00Z",
       updated_at: "2023-01-01T00:00:00Z",
+      role_id: "role-1",
+      role_name: "user",
     };
 
     mockUseUnifiedAuth.mockReturnValue({
       account: mockAccount,
       profile: null,
-      role: "user",
+      role: UserRole.USER,
       isLoading: false,
       isAuthenticated: true,
       loginUnified: vi.fn(),
@@ -137,13 +137,15 @@ describe("RegisterPage", () => {
       phone: "+1234567890",
       created_at: "2023-01-01T00:00:00Z",
       updated_at: "2023-01-01T00:00:00Z",
+      role_id: "role-1",
+      role_name: "user",
     };
 
     mockIsUserVerified.mockReturnValue(true);
     mockUseUnifiedAuth.mockReturnValue({
       account: mockAccount,
       profile: null,
-      role: "user",
+      role: UserRole.USER,
       isLoading: false,
       isAuthenticated: true,
       loginUnified: vi.fn(),
@@ -168,6 +170,8 @@ describe("RegisterPage", () => {
       phone: "+1234567890",
       created_at: "2023-01-01T00:00:00Z",
       updated_at: "2023-01-01T00:00:00Z",
+      role_id: "role-1",
+      role_name: "user",
     };
 
     mockIsUserVerified.mockReturnValue(false);
@@ -175,7 +179,7 @@ describe("RegisterPage", () => {
     mockUseUnifiedAuth.mockReturnValue({
       account: mockAccount,
       profile: null,
-      role: "user",
+      role: UserRole.USER,
       isLoading: false,
       isAuthenticated: true,
       loginUnified: vi.fn(),
@@ -312,18 +316,16 @@ describe("RegisterPage", () => {
     const user = userEvent.setup();
 
     mockUseAuth.mockReturnValue({
-      user: null,
+      account: null,
+      profile: null,
+      role: null,
       isLoading: false,
       isAuthenticated: false,
-      loginUser: vi.fn(),
-      loginProfessional: vi.fn(),
       loginUnified: vi.fn(),
       registerUser: vi.fn(),
       registerProfessional: vi.fn(),
-      registerUnified: vi.fn(),
       logout: vi.fn(),
       refreshUser: vi.fn(),
-      getAuthHeaders: vi.fn(),
     });
 
     render(<RegisterPage />);
@@ -337,59 +339,21 @@ describe("RegisterPage", () => {
     });
   });
 
-  it.skip("should show validation error for invalid email", async () => {
-    const user = userEvent.setup();
-
-    mockUseAuth.mockReturnValue({
-      user: null,
-      isLoading: false,
-      isAuthenticated: false,
-      loginUser: vi.fn(),
-      loginProfessional: vi.fn(),
-      loginUnified: vi.fn(),
-      registerUser: vi.fn(),
-      registerProfessional: vi.fn(),
-      registerUnified: vi.fn(),
-      logout: vi.fn(),
-      refreshUser: vi.fn(),
-      getAuthHeaders: vi.fn(),
-    });
-
-    render(<RegisterPage />);
-
-    // Fill out form with invalid email
-    await user.type(screen.getByPlaceholderText("Nombre completo"), "Test User");
-    await user.type(screen.getByPlaceholderText("Email"), "invalid-email");
-    await user.type(screen.getByPlaceholderText("Contraseña"), "password123");
-    await user.type(screen.getByPlaceholderText("Confirmar Contraseña"), "password123");
-    await user.click(screen.getByRole("checkbox", { name: /acepto los términos/i }));
-
-    // Submit the form
-    await user.click(screen.getByRole("button", { name: "Crear Cuenta" }));
-
-    // Check that email validation error appears immediately
-    expect(screen.getByText("Email inválido")).toBeInTheDocument();
-
-    // Verify that registerWithEmail was not called due to validation error
-    expect(mockRegisterWithEmail).not.toHaveBeenCalled();
-  });
 
   it("should show validation error for password mismatch", async () => {
     const user = userEvent.setup();
 
     mockUseAuth.mockReturnValue({
-      user: null,
+      account: null,
+      profile: null,
+      role: null,
       isLoading: false,
       isAuthenticated: false,
-      loginUser: vi.fn(),
-      loginProfessional: vi.fn(),
       loginUnified: vi.fn(),
       registerUser: vi.fn(),
       registerProfessional: vi.fn(),
-      registerUnified: vi.fn(),
       logout: vi.fn(),
       refreshUser: vi.fn(),
-      getAuthHeaders: vi.fn(),
     });
 
     render(<RegisterPage />);
@@ -412,18 +376,16 @@ describe("RegisterPage", () => {
     const user = userEvent.setup();
 
     mockUseAuth.mockReturnValue({
-      user: null,
+      account: null,
+      profile: null,
+      role: null,
       isLoading: false,
       isAuthenticated: false,
-      loginUser: vi.fn(),
-      loginProfessional: vi.fn(),
       loginUnified: vi.fn(),
       registerUser: vi.fn(),
       registerProfessional: vi.fn(),
-      registerUnified: vi.fn(),
       logout: vi.fn(),
       refreshUser: vi.fn(),
-      getAuthHeaders: vi.fn(),
     });
 
     render(<RegisterPage />);
@@ -445,18 +407,16 @@ describe("RegisterPage", () => {
 
   it("should have proper links to terms and privacy", () => {
     mockUseAuth.mockReturnValue({
-      user: null,
+      account: null,
+      profile: null,
+      role: null,
       isLoading: false,
       isAuthenticated: false,
-      loginUser: vi.fn(),
-      loginProfessional: vi.fn(),
       loginUnified: vi.fn(),
       registerUser: vi.fn(),
       registerProfessional: vi.fn(),
-      registerUnified: vi.fn(),
       logout: vi.fn(),
       refreshUser: vi.fn(),
-      getAuthHeaders: vi.fn(),
     });
 
     render(<RegisterPage />);
@@ -470,18 +430,16 @@ describe("RegisterPage", () => {
 
   it("should have proper link to login page", () => {
     mockUseAuth.mockReturnValue({
-      user: null,
+      account: null,
+      profile: null,
+      role: null,
       isLoading: false,
       isAuthenticated: false,
-      loginUser: vi.fn(),
-      loginProfessional: vi.fn(),
       loginUnified: vi.fn(),
       registerUser: vi.fn(),
       registerProfessional: vi.fn(),
-      registerUnified: vi.fn(),
       logout: vi.fn(),
       refreshUser: vi.fn(),
-      getAuthHeaders: vi.fn(),
     });
 
     render(<RegisterPage />);

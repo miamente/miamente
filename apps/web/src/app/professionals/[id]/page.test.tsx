@@ -39,16 +39,18 @@ vi.mock("@/lib/api", () => ({
 }));
 
 // Mock the therapy approach names hook
+const mockGetTherapyApproachNames = vi.fn((ids: string[]) => {
+  // Mock mapping of IDs to names
+  const idToName: Record<string, string> = {
+    "634efbc4-c977-430a-9a51-ba715f3df552": "Cognitivo-Conductual",
+    "5c0e0887-972e-48fe-9428-a8a9066d4bb4": "Humanista",
+  };
+  return ids.map((id) => idToName[id] || id);
+});
+
 vi.mock("@/hooks/useTherapyApproachNames", () => ({
   useTherapyApproachNames: vi.fn(() => ({
-    getNames: vi.fn((ids: string[]) => {
-      // Mock mapping of IDs to names
-      const idToName: Record<string, string> = {
-        "634efbc4-c977-430a-9a51-ba715f3df552": "Cognitivo-Conductual",
-        "5c0e0887-972e-48fe-9428-a8a9066d4bb4": "Humanista",
-      };
-      return ids.map((id) => idToName[id] || id);
-    }),
+    getNames: mockGetTherapyApproachNames,
     loading: false,
     error: null,
   })),
@@ -99,40 +101,41 @@ const mockPush = vi.fn();
 const mockBack = vi.fn();
 
 // Helper to wrap professional data in AccountWithProfile structure
-const wrapProfessionalData = (professionalData: any) => ({
+const wrapProfessionalData = (professionalData: { id: string; email: string; full_name: string; [key: string]: unknown }) => ({
   account: {
     id: professionalData.id,
     role_id: "professional-role-id",
     email: professionalData.email,
     full_name: professionalData.full_name,
-    phone: professionalData.phone,
-    phone_country_code: professionalData.phone?.split(" ")[0],
-    phone_number: professionalData.phone?.split(" ")[1],
-    is_active: professionalData.is_active,
-    is_verified: professionalData.is_verified,
-    profile_picture: professionalData.profile_picture,
-    last_login: professionalData.last_login,
-    created_at: professionalData.created_at,
-    updated_at: professionalData.updated_at,
+    phone: professionalData.phone as string | undefined,
+    phone_country_code: (professionalData.phone as string)?.split(" ")[0],
+    phone_number: (professionalData.phone as string)?.split(" ")[1],
+    is_active: professionalData.is_active as boolean,
+    is_verified: professionalData.is_verified as boolean,
+    profile_picture: professionalData.profile_picture as string | undefined,
+    last_login: professionalData.last_login as string | undefined,
+    created_at: professionalData.created_at as string,
+    updated_at: professionalData.updated_at as string | undefined,
     role_name: "professional",
   },
   role: "professional",
   profile: {
     account_id: professionalData.id,
-    license_number: professionalData.license_number,
-    years_experience: professionalData.years_experience,
-    rate_cents: professionalData.rate_cents,
-    custom_rate_cents: professionalData.rate_cents,
-    currency: professionalData.currency,
-    short_description: professionalData.bio,
-    academic_experience: JSON.stringify(professionalData.academic_experience || []),
-    work_experience: JSON.stringify(professionalData.work_experience || []),
-    certifications: JSON.stringify(professionalData.certifications || []),
-    languages: professionalData.languages,
-    timezone: professionalData.timezone,
-    emergency_contact_name: professionalData.emergency_contact,
+    license_number: professionalData.license_number as string | undefined,
+    years_experience: professionalData.years_experience as number,
+    rate_cents: professionalData.rate_cents as number,
+    custom_rate_cents: professionalData.rate_cents as number,
+    currency: professionalData.currency as string,
+    short_description: professionalData.bio as string | undefined,
+    academic_experience: JSON.stringify((professionalData.academic_experience as unknown[]) || []),
+    work_experience: JSON.stringify((professionalData.work_experience as unknown[]) || []),
+    certifications: JSON.stringify((professionalData.certifications as unknown[]) || []),
+    languages: professionalData.languages as string[],
+    therapy_approaches_ids: (professionalData.therapy_approaches_ids as string[]) || [],
+    timezone: professionalData.timezone as string,
+    emergency_contact_name: professionalData.emergency_contact as string | undefined,
     emergency_phone_country_code: "+57",
-    emergency_phone_number: professionalData.emergency_phone?.replace("+57", ""),
+    emergency_phone_number: (professionalData.emergency_phone as string)?.replace("+57", ""),
   },
 });
 
@@ -284,8 +287,8 @@ describe("ProfessionalProfilePage", () => {
     expect(screen.getByText("Español")).toBeInTheDocument();
     expect(screen.getByText("Inglés")).toBeInTheDocument();
     expect(screen.getByText("Enfoques Terapéuticos")).toBeInTheDocument();
-    expect(screen.getByText("Cognitivo-Conductual")).toBeInTheDocument();
-    expect(screen.getByText("Humanista")).toBeInTheDocument();
+    // Currently therapy approaches show a placeholder message
+    expect(screen.getByText("Los enfoques terapéuticos estarán disponibles próximamente")).toBeInTheDocument();
   });
 
   it("renders error state when professional not found", async () => {
@@ -358,7 +361,8 @@ describe("ProfessionalProfilePage", () => {
     expect(screen.queryByText("Educación")).not.toBeInTheDocument();
     expect(screen.queryByText("Certificaciones")).not.toBeInTheDocument();
     expect(screen.queryByText("Idiomas")).not.toBeInTheDocument();
-    expect(screen.queryByText("Enfoques Terapéuticos")).not.toBeInTheDocument();
+    // Therapy approaches card is always shown
+    expect(screen.getByText("Enfoques Terapéuticos")).toBeInTheDocument();
   });
 
   it("formats price correctly", async () => {

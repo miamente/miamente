@@ -93,6 +93,67 @@ export interface UnifiedAuthResponse {
   profile?: UserProfile | ProfessionalProfile | null;
 }
 
+// ============================================================================
+// LEGACY TYPES (for backward compatibility)
+// ============================================================================
+
+/**
+ * @deprecated Use AccountWithRole and UserProfile instead
+ */
+export interface User {
+  id: string;
+  email: string;
+  full_name: string;
+  phone?: string;
+  is_active: boolean;
+  is_verified: boolean;
+  created_at: string;
+  updated_at?: string;
+  date_of_birth?: string;
+  emergency_contact?: string;
+  emergency_phone?: string;
+}
+
+/**
+ * @deprecated Use AccountWithRole and ProfessionalProfile instead
+ */
+export interface Professional extends User {
+  license_number?: string;
+  years_experience: number;
+  rate_cents: number;
+  custom_rate_cents?: number;
+  currency: string;
+  bio?: string;
+  academic_experience?: AcademicExperience[];
+  work_experience?: WorkExperience[];
+  certifications?: Certification[];
+  languages?: string[];
+  timezone: string;
+  specialty_ids?: string[];
+  therapy_approaches_ids?: string[];
+  profile_picture?: string;
+  phone_country_code?: string;
+  phone_number?: string;
+  modalities?: ProfessionalModalityFrontend[];
+}
+
+/**
+ * @deprecated Use UnifiedAuthResponse instead
+ */
+export interface LoginResponse {
+  access_token: string;
+  token_type: string;
+  user: User | Professional;
+}
+
+/**
+ * @deprecated Use AccountWithProfile instead  
+ */
+export interface AuthUser {
+  type: UserRole;
+  data: User | Professional;
+}
+
 export interface UnifiedLogin {
   email: string;
   password: string;
@@ -293,6 +354,18 @@ export interface ProfessionalModality {
   updated_at?: string;
 }
 
+// Frontend-friendly version with camelCase (for forms and tests)
+export interface ProfessionalModalityFrontend {
+  id: string;
+  modalityId: string;
+  modalityName: string;
+  virtualPrice: number;
+  presencialPrice: number;
+  offersPresencial: boolean;
+  description?: string;
+  isDefault: boolean;
+}
+
 // Alias for clarity
 export type ProfessionalModalityBackend = ProfessionalModality;
 
@@ -435,7 +508,7 @@ export interface ProfessionalProfileFormData {
   languages: string[];
   therapy_approaches_ids: string[];
   specialty_ids: string[];
-  modalities: ProfessionalModality[];
+  modalities: ProfessionalModalityFrontend[];
   timezone: string;
 }
 

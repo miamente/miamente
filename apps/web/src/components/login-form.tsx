@@ -20,7 +20,7 @@ export function LoginForm({ isAdminLogin = false, redirectPath }: LoginFormProps
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
-  const { user, loginUser, loginUnified } = useAuthContext();
+  const { account, loginUnified } = useAuthContext();
 
   const {
     register,
@@ -32,19 +32,19 @@ export function LoginForm({ isAdminLogin = false, redirectPath }: LoginFormProps
 
   // Redirect if already logged in
   React.useEffect(() => {
-    if (user) {
+    if (account) {
       if (isUserVerified()) {
         // Redirect based on login type
         if (isAdminLogin) {
-          // Check if user has admin role
-          if (user.type === "admin") {
+          // Check if account has admin role
+          if (account.role_name === "admin") {
             router.push(redirectPath || "/admin");
           } else {
             setError("No tienes permisos de administrador");
             return;
           }
         } else {
-          // Redirect to unified dashboard for regular users
+          // Redirect to unified dashboard for regular accounts
           router.push(redirectPath || "/dashboard");
         }
       } else {
@@ -52,7 +52,7 @@ export function LoginForm({ isAdminLogin = false, redirectPath }: LoginFormProps
         router.push(redirectPath || "/dashboard");
       }
     }
-  }, [user, router, isAdminLogin, redirectPath]);
+  }, [account, router, isAdminLogin, redirectPath]);
 
   const onSubmit = async (data: LoginFormData) => {
     setIsLoading(true);
@@ -60,10 +60,10 @@ export function LoginForm({ isAdminLogin = false, redirectPath }: LoginFormProps
 
     try {
       if (isAdminLogin) {
-        // For admin login, only try as user (admin is a special user role)
-        await loginUser(data);
+        // For admin login, only try as account (admin is a special account role)
+        await loginUnified(data);
       } else {
-        // Use the unified login approach - single endpoint handles both user types
+        // Use the unified login approach - single endpoint handles both account types
         await loginUnified(data);
       }
     } catch (err) {
@@ -75,7 +75,7 @@ export function LoginForm({ isAdminLogin = false, redirectPath }: LoginFormProps
     }
   };
 
-  if (user) {
+  if (account) {
     return <div className="flex min-h-[50vh] items-center justify-center">Redirigiendo...</div>;
   }
 

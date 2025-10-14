@@ -2,6 +2,7 @@ import { renderHook, act } from "@testing-library/react";
 import { vi, describe, it, expect, beforeEach } from "vitest";
 import { useProfessionals, useProfessional } from "../useProfessionals";
 import { apiClient } from "@/lib/api";
+import type { ProfessionalProfile, AccountWithRole } from "@/lib/types";
 
 // Mock the API client
 vi.mock("@/lib/api", () => ({
@@ -36,6 +37,8 @@ describe("useProfessionals", () => {
         phone: "+1234567890",
         created_at: "2023-01-01T00:00:00Z",
         updated_at: "2023-01-01T00:00:00Z",
+        role_id: "role-2",
+        role_name: "professional",
         license_number: "LIC123",
         years_experience: 5,
         rate_cents: 50000,
@@ -59,6 +62,8 @@ describe("useProfessionals", () => {
         phone: "+1234567891",
         created_at: "2023-01-01T00:00:00Z",
         updated_at: "2023-01-01T00:00:00Z",
+        role_id: "role-2",
+        role_name: "professional",
         license_number: "LIC456",
         years_experience: 10,
         rate_cents: 75000,
@@ -80,6 +85,11 @@ describe("useProfessionals", () => {
         id: prof.id,
         email: prof.email,
         full_name: prof.full_name,
+        is_active: prof.is_active,
+        is_verified: prof.is_verified,
+        created_at: prof.created_at,
+        role_id: prof.role_id,
+        role_name: prof.role_name,
       })),
       total: mockProfessionals.length,
       page: 1,
@@ -92,10 +102,47 @@ describe("useProfessionals", () => {
     // Mock getAccountById to return full professional data
     vi.mocked(apiClient.getAccountById).mockImplementation(async (id) => {
       const prof = mockProfessionals.find((p) => p.id === id);
+      if (!prof) throw new Error("Professional not found");
+      
+      // Extract account data (AccountWithRole)
+      const account: AccountWithRole = {
+        id: prof.id,
+        email: prof.email,
+        full_name: prof.full_name,
+        phone: prof.phone,
+        phone_country_code: undefined,
+        phone_number: undefined,
+        is_active: prof.is_active,
+        is_verified: prof.is_verified,
+        created_at: prof.created_at,
+        updated_at: prof.updated_at,
+        role_id: prof.role_id,
+        role_name: prof.role_name,
+      };
+      
+      // Create profile data (ProfessionalProfile)
+      const profile: ProfessionalProfile = {
+        account_id: prof.id,
+        license_number: prof.license_number,
+        years_experience: prof.years_experience,
+        rate_cents: prof.rate_cents,
+        custom_rate_cents: prof.rate_cents,
+        currency: prof.currency,
+        short_description: prof.bio,
+        academic_experience: JSON.stringify(prof.academic_experience),
+        work_experience: JSON.stringify(prof.work_experience),
+        certifications: JSON.stringify(prof.certifications),
+        languages: prof.languages,
+        timezone: prof.timezone,
+        emergency_contact_name: undefined,
+        emergency_phone_country_code: undefined,
+        emergency_phone_number: undefined,
+      };
+      
       return {
-        account: prof!,
+        account,
         role: "professional",
-        profile: prof as any,
+        profile,
       };
     });
 
@@ -150,6 +197,8 @@ describe("useProfessional", () => {
       phone: "+1234567890",
       created_at: "2023-01-01T00:00:00Z",
       updated_at: "2023-01-01T00:00:00Z",
+      role_id: "role-2",
+      role_name: "professional",
       license_number: "LIC123",
       years_experience: 5,
       rate_cents: 50000,
@@ -165,10 +214,45 @@ describe("useProfessional", () => {
       timezone: "America/Bogota",
     };
 
+    // Extract account data (AccountWithRole)
+    const account: AccountWithRole = {
+      id: mockProfessional.id,
+      email: mockProfessional.email,
+      full_name: mockProfessional.full_name,
+      phone: mockProfessional.phone,
+      phone_country_code: undefined,
+      phone_number: undefined,
+      is_active: mockProfessional.is_active,
+      is_verified: mockProfessional.is_verified,
+      created_at: mockProfessional.created_at,
+      updated_at: mockProfessional.updated_at,
+      role_id: mockProfessional.role_id,
+      role_name: mockProfessional.role_name,
+    };
+    
+    // Create profile data (ProfessionalProfile)
+    const profile: ProfessionalProfile = {
+      account_id: mockProfessional.id,
+      license_number: mockProfessional.license_number,
+      years_experience: mockProfessional.years_experience,
+      rate_cents: mockProfessional.rate_cents,
+      custom_rate_cents: mockProfessional.rate_cents,
+      currency: mockProfessional.currency,
+      short_description: mockProfessional.bio,
+      academic_experience: JSON.stringify(mockProfessional.academic_experience),
+      work_experience: JSON.stringify(mockProfessional.work_experience),
+      certifications: JSON.stringify(mockProfessional.certifications),
+      languages: mockProfessional.languages,
+      timezone: mockProfessional.timezone,
+      emergency_contact_name: undefined,
+      emergency_phone_country_code: undefined,
+      emergency_phone_number: undefined,
+    };
+
     const mockResponseData = {
-      account: mockProfessional,
+      account,
       role: "professional",
-      profile: mockProfessional as any,
+      profile,
     };
 
     vi.mocked(apiClient.getAccountById).mockResolvedValue(mockResponseData);

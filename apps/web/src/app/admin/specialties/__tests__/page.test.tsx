@@ -68,18 +68,20 @@ interface MockInputProps {
   placeholder?: string;
   value?: string;
   onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onKeyDown?: (e: React.KeyboardEvent<HTMLInputElement>) => void;
   className?: string;
   type?: string;
   id?: string;
 }
 
 vi.mock("@/components/ui/input", () => ({
-  Input: ({ placeholder, value, onChange, className, type, id }: MockInputProps) => (
+  Input: ({ placeholder, value, onChange, onKeyDown, className, type, id }: MockInputProps) => (
     <input
       data-testid="input"
       placeholder={placeholder}
       value={value}
       onChange={onChange}
+      onKeyDown={onKeyDown}
       className={className}
       type={type}
       id={id}
@@ -332,9 +334,8 @@ describe("AdminSpecialties", () => {
     });
   });
 
-  it.skip("should trigger search when pressing Enter key", async () => {
-    // This test is skipped due to complex timing issues with React state updates
-    // The Enter key functionality is already covered by the button click test
+  it("should trigger search when pressing Enter key", async () => {
+    // Test the Enter key functionality for search input
     render(<AdminSpecialties />);
 
     await waitFor(() => {
@@ -534,7 +535,11 @@ describe("AdminSpecialties", () => {
       total_pages: 0,
     });
 
-    // Simulate a CRUD operation (like creating a specialty)
+    // Wait for loading to complete and then simulate a CRUD operation (like creating a specialty)
+    await waitFor(() => {
+      expect(screen.queryByTestId("loading-spinner")).not.toBeInTheDocument();
+    });
+    
     const addButton = screen.getAllByText("Agregar Especialidad")[0];
     fireEvent.click(addButton);
 

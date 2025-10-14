@@ -38,18 +38,16 @@ describe("useAuthGuard", () => {
 
   it("should redirect to login when user is not authenticated", () => {
     mockUseAuth.mockReturnValue({
-      user: null,
+      account: null,
+      profile: null,
+      role: null,
       isLoading: false,
       isAuthenticated: false,
-      loginUser: vi.fn(),
-      loginProfessional: vi.fn(),
       loginUnified: vi.fn(),
       registerUser: vi.fn(),
       registerProfessional: vi.fn(),
-      registerUnified: vi.fn(),
       logout: vi.fn(),
       refreshUser: vi.fn(),
-      getAuthHeaders: vi.fn(),
     });
 
     renderHook(() => useAuthGuard());
@@ -59,18 +57,16 @@ describe("useAuthGuard", () => {
 
   it("should redirect to custom redirect path when user is not authenticated", () => {
     mockUseAuth.mockReturnValue({
-      user: null,
+      account: null,
+      profile: null,
+      role: null,
       isLoading: false,
       isAuthenticated: false,
-      loginUser: vi.fn(),
-      loginProfessional: vi.fn(),
       loginUnified: vi.fn(),
       registerUser: vi.fn(),
       registerProfessional: vi.fn(),
-      registerUnified: vi.fn(),
       logout: vi.fn(),
       refreshUser: vi.fn(),
-      getAuthHeaders: vi.fn(),
     });
 
     renderHook(() => useAuthGuard({ redirectTo: "/custom-login" }));
@@ -80,18 +76,16 @@ describe("useAuthGuard", () => {
 
   it("should not redirect when loading", () => {
     mockUseAuth.mockReturnValue({
-      user: null,
+      account: null,
+      profile: null,
+      role: null,
       isLoading: true,
       isAuthenticated: false,
-      loginUser: vi.fn(),
-      loginProfessional: vi.fn(),
       loginUnified: vi.fn(),
       registerUser: vi.fn(),
       registerProfessional: vi.fn(),
-      registerUnified: vi.fn(),
       logout: vi.fn(),
       refreshUser: vi.fn(),
-      getAuthHeaders: vi.fn(),
     });
 
     renderHook(() => useAuthGuard());
@@ -100,33 +94,30 @@ describe("useAuthGuard", () => {
   });
 
   it("should not redirect when role matches required role", () => {
-    const mockUser = {
-      type: "user" as UserRole as UserRole,
-      data: {
-        id: "user-123",
-        email: "test@example.com",
-        full_name: "Test User",
-        is_verified: true,
-        is_active: true,
-        phone: "+1234567890",
-        created_at: "2023-01-01T00:00:00Z",
-        updated_at: "2023-01-01T00:00:00Z",
-      },
+    const mockAccount = {
+      id: "user-123",
+      email: "test@example.com",
+      full_name: "Test User",
+      is_verified: true,
+      is_active: true,
+      phone: "+1234567890",
+      created_at: "2023-01-01T00:00:00Z",
+      updated_at: "2023-01-01T00:00:00Z",
+      role_name: "user",
+      role_id: "role-1",
     };
 
     mockUseAuth.mockReturnValue({
-      user: mockUser,
+      account: mockAccount,
+      profile: null,
+      role: "user" as UserRole,
       isLoading: false,
       isAuthenticated: true,
-      loginUser: vi.fn(),
-      loginProfessional: vi.fn(),
       loginUnified: vi.fn(),
       registerUser: vi.fn(),
       registerProfessional: vi.fn(),
-      registerUnified: vi.fn(),
       logout: vi.fn(),
       refreshUser: vi.fn(),
-      getAuthHeaders: vi.fn(),
     });
 
     const { result } = renderHook(() => useAuthGuard({ requiredRole: "user" as UserRole }));
@@ -136,33 +127,30 @@ describe("useAuthGuard", () => {
   });
 
   it("should not be authorized when role does not match required role", () => {
-    const mockUser = {
-      type: "user" as UserRole as UserRole,
-      data: {
-        id: "user-123",
-        email: "test@example.com",
-        full_name: "Test User",
-        is_verified: true,
-        is_active: true,
-        phone: "+1234567890",
-        created_at: "2023-01-01T00:00:00Z",
-        updated_at: "2023-01-01T00:00:00Z",
-      },
+    const mockAccount = {
+      id: "user-123",
+      email: "test@example.com",
+      full_name: "Test User",
+      is_verified: true,
+      is_active: true,
+      phone: "+1234567890",
+      created_at: "2023-01-01T00:00:00Z",
+      updated_at: "2023-01-01T00:00:00Z",
+      role_name: "user",
+      role_id: "role-1",
     };
 
     mockUseAuth.mockReturnValue({
-      user: mockUser,
+      account: mockAccount,
+      profile: null,
+      role: "user" as UserRole,
       isLoading: false,
       isAuthenticated: true,
-      loginUser: vi.fn(),
-      loginProfessional: vi.fn(),
       loginUnified: vi.fn(),
       registerUser: vi.fn(),
       registerProfessional: vi.fn(),
-      registerUnified: vi.fn(),
       logout: vi.fn(),
       refreshUser: vi.fn(),
-      getAuthHeaders: vi.fn(),
     });
 
     const { result } = renderHook(() => useAuthGuard({ requiredRole: "admin" as UserRole }));
@@ -172,56 +160,51 @@ describe("useAuthGuard", () => {
   });
 
   it("should return correct authorization state when user is authenticated and verified", () => {
-    const mockUser = {
-      type: "user" as UserRole as UserRole,
-      data: {
-        id: "user-123",
-        email: "test@example.com",
-        full_name: "Test User",
-        is_verified: true,
-        is_active: true,
-        phone: "+1234567890",
-        created_at: "2023-01-01T00:00:00Z",
-        updated_at: "2023-01-01T00:00:00Z",
-      },
+    const mockAccount = {
+      id: "user-123",
+      email: "test@example.com",
+      full_name: "Test User",
+      is_verified: true,
+      is_active: true,
+      phone: "+1234567890",
+      created_at: "2023-01-01T00:00:00Z",
+      updated_at: "2023-01-01T00:00:00Z",
+      role_name: "user",
+      role_id: "role-1",
     };
 
     mockUseAuth.mockReturnValue({
-      user: mockUser,
+      account: mockAccount,
+      profile: null,
+      role: "user" as UserRole,
       isLoading: false,
       isAuthenticated: true,
-      loginUser: vi.fn(),
-      loginProfessional: vi.fn(),
       loginUnified: vi.fn(),
       registerUser: vi.fn(),
       registerProfessional: vi.fn(),
-      registerUnified: vi.fn(),
       logout: vi.fn(),
       refreshUser: vi.fn(),
-      getAuthHeaders: vi.fn(),
     });
 
     const { result } = renderHook(() => useAuthGuard());
 
-    expect(result.current.user).toEqual(mockUser);
+    expect(result.current.user).toEqual(mockAccount);
     expect(result.current.isLoading).toBe(false);
     expect(result.current.isAuthorized).toBe(true);
   });
 
   it("should return false authorization when user is not authenticated", () => {
     mockUseAuth.mockReturnValue({
-      user: null,
+      account: null,
+      profile: null,
+      role: null,
       isLoading: false,
       isAuthenticated: false,
-      loginUser: vi.fn(),
-      loginProfessional: vi.fn(),
       loginUnified: vi.fn(),
       registerUser: vi.fn(),
       registerProfessional: vi.fn(),
-      registerUnified: vi.fn(),
       logout: vi.fn(),
       refreshUser: vi.fn(),
-      getAuthHeaders: vi.fn(),
     });
 
     const { result } = renderHook(() => useAuthGuard());
@@ -233,18 +216,16 @@ describe("useAuthGuard", () => {
 
   it("should return false authorization when loading", () => {
     mockUseAuth.mockReturnValue({
-      user: null,
+      account: null,
+      profile: null,
+      role: null,
       isLoading: true,
       isAuthenticated: false,
-      loginUser: vi.fn(),
-      loginProfessional: vi.fn(),
       loginUnified: vi.fn(),
       registerUser: vi.fn(),
       registerProfessional: vi.fn(),
-      registerUnified: vi.fn(),
       logout: vi.fn(),
       refreshUser: vi.fn(),
-      getAuthHeaders: vi.fn(),
     });
 
     const { result } = renderHook(() => useAuthGuard());

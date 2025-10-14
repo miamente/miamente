@@ -4,7 +4,7 @@ import userEvent from "@testing-library/user-event";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
 import { LoginForm } from "../login-form";
-import { type AuthUser, UserRole } from "@/lib/types";
+// Removed unused imports
 
 // Mock Next.js router
 const mockPush = vi.fn();
@@ -16,31 +16,25 @@ vi.mock("next/navigation", () => ({
 
 // Mock AuthContext
 const mockLoginUser = vi.fn();
-const mockLoginProfessional = vi.fn();
+// Removed unused variable
 const mockLoginUnified = vi.fn();
 const mockAuthContext = {
-  user: null as AuthUser | null,
-  loginUser: mockLoginUser,
-  loginProfessional: mockLoginProfessional,
-  loginUnified: mockLoginUnified,
-  logout: vi.fn(),
+  account: null as any,
+  profile: null,
+  role: null as any,
   isLoading: false,
   isAuthenticated: false,
+  loginUnified: mockLoginUnified,
   registerUser: vi.fn(),
   registerProfessional: vi.fn(),
-  registerUnified: vi.fn(),
+  logout: vi.fn(),
   refreshUser: vi.fn(),
-  getUserEmail: vi.fn(),
-  getUserFullName: vi.fn(),
-  isUserVerified: vi.fn(),
-  isEmailVerified: vi.fn(),
-  getUserId: vi.fn(),
-  getUserUid: vi.fn(),
 };
 
 vi.mock("@/contexts/AuthContext", () => ({
   useAuthContext: vi.fn(() => mockAuthContext),
-  isUserVerified: vi.fn((user) => user?.email_verified || false),
+  useUnifiedAuthContext: vi.fn(() => mockAuthContext),
+  isUserVerified: vi.fn((user) => user?.is_verified || false),
 }));
 
 describe("LoginForm", () => {
@@ -48,7 +42,11 @@ describe("LoginForm", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    mockAuthContext.user = null;
+    mockAuthContext.account = null;
+    mockAuthContext.profile = null;
+    mockAuthContext.role = null;
+    mockAuthContext.isLoading = false;
+    mockAuthContext.isAuthenticated = false;
   });
 
   it("should render login form with default props", () => {
@@ -98,7 +96,7 @@ describe("LoginForm", () => {
     await user.click(screen.getByRole("button", { name: "Iniciar Sesión" }));
 
     await waitFor(() => {
-      expect(mockLoginUser).toHaveBeenCalledWith({
+      expect(mockLoginUnified).toHaveBeenCalledWith({
         email: "admin@example.com",
         password: "admin123",
       });
@@ -150,19 +148,22 @@ describe("LoginForm", () => {
   });
 
   it("should redirect authenticated user to dashboard", () => {
-    mockAuthContext.user = {
-      type: UserRole.USER,
-      data: {
-        id: "1",
-        email: "test@example.com",
-        full_name: "Test User",
-        phone: "+1234567890",
-        is_active: true,
-        is_verified: true,
-        created_at: "2024-01-01T00:00:00Z",
-        updated_at: "2024-01-01T00:00:00Z",
-      },
+    mockAuthContext.account = {
+      id: "1",
+      email: "test@example.com",
+      full_name: "Test User",
+      phone: "+1234567890",
+      phone_country_code: "+1",
+      phone_number: "234567890",
+      is_active: true,
+      is_verified: true,
+      created_at: "2024-01-01T00:00:00Z",
+      updated_at: "2024-01-01T00:00:00Z",
+      role_id: "role-1",
+      role_name: "user",
     };
+    mockAuthContext.role = "user";
+    mockAuthContext.isAuthenticated = true;
 
     render(<LoginForm />);
 
@@ -170,19 +171,22 @@ describe("LoginForm", () => {
   });
 
   it("should redirect authenticated admin user to admin dashboard", () => {
-    mockAuthContext.user = {
-      type: UserRole.ADMIN,
-      data: {
-        id: "1",
-        email: "admin@example.com",
-        full_name: "Admin User",
-        phone: "+1234567890",
-        is_active: true,
-        is_verified: true,
-        created_at: "2024-01-01T00:00:00Z",
-        updated_at: "2024-01-01T00:00:00Z",
-      },
+    mockAuthContext.account = {
+      id: "1",
+      email: "admin@example.com",
+      full_name: "Admin User",
+      phone: "+1234567890",
+      phone_country_code: "+1",
+      phone_number: "234567890",
+      is_active: true,
+      is_verified: true,
+      created_at: "2024-01-01T00:00:00Z",
+      updated_at: "2024-01-01T00:00:00Z",
+      role_id: "role-admin",
+      role_name: "admin",
     };
+    mockAuthContext.role = "admin";
+    mockAuthContext.isAuthenticated = true;
 
     render(<LoginForm isAdminLogin={true} />);
 
@@ -190,19 +194,22 @@ describe("LoginForm", () => {
   });
 
   it("should redirect unverified user to verify page", () => {
-    mockAuthContext.user = {
-      type: UserRole.USER,
-      data: {
-        id: "1",
-        email: "test@example.com",
-        full_name: "Test User",
-        phone: "+1234567890",
-        is_active: true,
-        is_verified: false,
-        created_at: "2024-01-01T00:00:00Z",
-        updated_at: "2024-01-01T00:00:00Z",
-      },
+    mockAuthContext.account = {
+      id: "1",
+      email: "test@example.com",
+      full_name: "Test User",
+      phone: "+1234567890",
+      phone_country_code: "+1",
+      phone_number: "234567890",
+      is_active: true,
+      is_verified: false,
+      created_at: "2024-01-01T00:00:00Z",
+      updated_at: "2024-01-01T00:00:00Z",
+      role_id: "role-1",
+      role_name: "user",
     };
+    mockAuthContext.role = "user";
+    mockAuthContext.isAuthenticated = true;
 
     render(<LoginForm />);
 
@@ -210,19 +217,22 @@ describe("LoginForm", () => {
   });
 
   it("should show error for non-admin user trying to access admin login", async () => {
-    mockAuthContext.user = {
-      type: UserRole.USER,
-      data: {
-        id: "1",
-        email: "user@example.com",
-        full_name: "User Name",
-        phone: "+1234567890",
-        is_active: true,
-        is_verified: true,
-        created_at: "2024-01-01T00:00:00Z",
-        updated_at: "2024-01-01T00:00:00Z",
-      },
+    mockAuthContext.account = {
+      id: "1",
+      email: "user@example.com",
+      full_name: "User Name",
+      phone: "+1234567890",
+      phone_country_code: "+1",
+      phone_number: "234567890",
+      is_active: true,
+      is_verified: true,
+      created_at: "2024-01-01T00:00:00Z",
+      updated_at: "2024-01-01T00:00:00Z",
+      role_id: "role-1",
+      role_name: "user",
     };
+    mockAuthContext.role = "user";
+    mockAuthContext.isAuthenticated = true;
 
     render(<LoginForm isAdminLogin={true} />);
 
@@ -231,19 +241,22 @@ describe("LoginForm", () => {
   });
 
   it("should use custom redirect path when provided", () => {
-    mockAuthContext.user = {
-      type: UserRole.USER,
-      data: {
-        id: "1",
-        email: "test@example.com",
-        full_name: "Test User",
-        phone: "+1234567890",
-        is_active: true,
-        is_verified: true,
-        created_at: "2024-01-01T00:00:00Z",
-        updated_at: "2024-01-01T00:00:00Z",
-      },
+    mockAuthContext.account = {
+      id: "1",
+      email: "test@example.com",
+      full_name: "Test User",
+      phone: "+1234567890",
+      phone_country_code: "+1",
+      phone_number: "234567890",
+      is_active: true,
+      is_verified: true,
+      created_at: "2024-01-01T00:00:00Z",
+      updated_at: "2024-01-01T00:00:00Z",
+      role_id: "role-1",
+      role_name: "user",
     };
+    mockAuthContext.role = "user";
+    mockAuthContext.isAuthenticated = true;
 
     render(<LoginForm redirectPath="/custom-dashboard" />);
 

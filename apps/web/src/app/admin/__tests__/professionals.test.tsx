@@ -65,6 +65,8 @@ const mockProfessionals = [
     is_verified: true,
     created_at: "2024-01-01T00:00:00Z",
     updated_at: "2024-01-10T00:00:00Z",
+    role_id: "role-1",
+    role_name: "professional",
     license_number: "LIC-123",
     years_experience: 5,
     rate_cents: 5000,
@@ -79,6 +81,8 @@ const mockProfessionals = [
     is_active: false,
     is_verified: false,
     created_at: "2024-01-02T00:00:00Z",
+    role_id: "role-1",
+    role_name: "professional",
     license_number: "LIC-456",
     years_experience: 8,
     rate_cents: 7500,
@@ -91,7 +95,7 @@ describe("AdminProfessionalsPage", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.mocked(apiClient.getAllAccountsAdmin).mockResolvedValue({
-      items: mockProfessionals as unknown as import("@/lib/types").ProfessionalWithCountResponse[],
+      items: mockProfessionals,
       total: 2,
       page: 1,
       page_size: 10,

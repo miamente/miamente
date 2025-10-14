@@ -1,8 +1,8 @@
 import { apiClient } from "./api";
-import type { AcademicExperience, WorkExperience, Certification, Professional } from "./types";
+import type { AcademicExperience, WorkExperience, Certification, Professional, ProfessionalProfile } from "./types";
 
 // Re-export types for backward compatibility
-export type { AcademicExperience, WorkExperience, Certification };
+export type { AcademicExperience, WorkExperience, Certification, ProfessionalProfile };
 
 // Legacy Modality interface for backward compatibility
 export interface Modality {
@@ -16,8 +16,7 @@ export interface Modality {
   isDefault: boolean;
 }
 
-// Use the comprehensive Professional type from types.ts
-export type ProfessionalProfile = Professional;
+// ProfessionalProfile is imported from types.ts
 
 export interface UpdateProfessionalProfileRequest {
   // Basic info
@@ -69,14 +68,14 @@ export interface UpdateProfessionalProfileRequest {
  * @param professionalId - Professional account ID
  * @returns Professional profile data
  */
-export async function getProfessionalProfile(professionalId: string): Promise<ProfessionalProfile> {
+export async function getProfessionalProfile(professionalId: string): Promise<Professional> {
   try {
     // Use new unified endpoint
     const response = await apiClient.getAccountById(professionalId);
     
     // Convert AccountWithProfile to Professional (legacy format)
     const account = response.account;
-    const profile = response.profile as any;
+    const profile = response.profile as ProfessionalProfile;
     
     return {
       id: account.id,
@@ -108,7 +107,6 @@ export async function getProfessionalProfile(professionalId: string): Promise<Pr
       modalities: [],
       
       timezone: profile?.timezone || "America/Bogota",
-      working_hours: profile?.working_hours,
       emergency_contact: profile?.emergency_contact_name,
       emergency_phone:
         profile?.emergency_phone_country_code && profile?.emergency_phone_number
@@ -127,7 +125,7 @@ export async function getProfessionalProfile(professionalId: string): Promise<Pr
 export async function updateProfessionalProfileById(
   professionalId: string,
   data: UpdateProfessionalProfileRequest,
-): Promise<ProfessionalProfile> {
+): Promise<Professional> {
   try {
     // Convert to AccountUpdate format
     const accountUpdate = {
@@ -150,7 +148,7 @@ export async function updateProfessionalProfileById(
 /**
  * Get current user's professional profile (uses new unified system)
  */
-export async function getMyProfessionalProfile(): Promise<ProfessionalProfile | null> {
+export async function getMyProfessionalProfile(): Promise<Professional | null> {
   try {
     const response = await apiClient.getCurrentUser();
     
@@ -159,8 +157,39 @@ export async function getMyProfessionalProfile(): Promise<ProfessionalProfile | 
       return null;
     }
     
-    // Convert to Professional format
-    return getProfessionalProfile(response.account.id);
+    // Convert to Professional format (combining account and profile data)
+    const account = response.account;
+    const profile = response.profile as ProfessionalProfile;
+    
+    return {
+      id: account.id,
+      email: account.email,
+      full_name: account.full_name,
+      phone: account.phone,
+      phone_country_code: account.phone_country_code,
+      phone_number: account.phone_number,
+      is_active: account.is_active,
+      is_verified: account.is_verified,
+      created_at: account.created_at,
+      updated_at: account.updated_at,
+      profile_picture: account.profile_picture,
+      
+      license_number: profile?.license_number,
+      years_experience: profile?.years_experience || 0,
+      rate_cents: profile?.rate_cents || 0,
+      custom_rate_cents: profile?.custom_rate_cents,
+      currency: profile?.currency || "COP",
+      bio: profile?.short_description,
+      timezone: profile?.timezone || "UTC",
+      
+      academic_experience: profile?.academic_experience ? JSON.parse(profile.academic_experience) : [],
+      work_experience: profile?.work_experience ? JSON.parse(profile.work_experience) : [],
+      certifications: profile?.certifications ? JSON.parse(profile.certifications) : [],
+      languages: profile?.languages || [],
+      specialty_ids: [],
+      therapy_approaches_ids: [],
+      modalities: [],
+    };
   } catch (error) {
     console.error("Get my professional profile error:", error);
     return null;
@@ -174,7 +203,7 @@ export async function getMyProfessionalProfile(): Promise<ProfessionalProfile | 
  */
 export async function updateProfessionalProfile(
   data: UpdateProfessionalProfileRequest,
-): Promise<ProfessionalProfile> {
+): Promise<Professional> {
   try {
     const currentUser = await apiClient.getCurrentUser();
     const userId = currentUser.account.id;
@@ -189,7 +218,8 @@ export async function updateProfessionalProfile(
  * @deprecated Professional profiles are created during registration
  */
 export async function createProfessionalProfile(
-  data: UpdateProfessionalProfileRequest,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  _data: UpdateProfessionalProfileRequest,
 ): Promise<ProfessionalProfile> {
   try {
     throw new Error("Professional profiles are now created during registration. Use registerProfessional instead.");
@@ -201,7 +231,7 @@ export async function createProfessionalProfile(
 
 // Legacy functions for compatibility
 export interface ProfessionalsQueryResult {
-  professionals: ProfessionalProfile[];
+  professionals: Professional[];
   lastSnapshot: string | null;
 }
 
@@ -223,11 +253,11 @@ export async function queryProfessionals(
     const response = await apiClient.getAllAccountsAdmin(page, pageSize, "professional", search);
     
     // Convert accounts to Professional format
-    const professionals: ProfessionalProfile[] = await Promise.all(
+    const professionals: Professional[] = await Promise.all(
       response.items.map(async (account) => {
         try {
           const fullProfile = await apiClient.getAccountById(account.id);
-          const profile = fullProfile.profile as any;
+          const profile = fullProfile.profile as ProfessionalProfile;
           
           return {
             id: account.id,
@@ -258,7 +288,6 @@ export async function queryProfessionals(
             modalities: [],
             
             timezone: profile?.timezone || "America/Bogota",
-            working_hours: profile?.working_hours,
             emergency_contact: profile?.emergency_contact_name,
             emergency_phone:
               profile?.emergency_phone_country_code && profile?.emergency_phone_number

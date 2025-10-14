@@ -5,14 +5,14 @@ import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { DollarSign } from "lucide-react";
-import type { ProfessionalModality } from "@/lib/types";
+import type { ProfessionalModalityFrontend } from "@/lib/types";
 
 interface ModalityFormFieldsProps {
   readonly index: number;
-  readonly value: ProfessionalModality;
+  readonly value: ProfessionalModalityFrontend;
   readonly disabled?: boolean;
   readonly availableModalities: Array<{ id: string; name: string }>;
-  readonly onChange?: (field: keyof ProfessionalModality, value: unknown) => void;
+  readonly onChange?: (field: keyof ProfessionalModalityFrontend, value: unknown) => void;
   readonly onModalityChange?: (value: string) => void;
 }
 

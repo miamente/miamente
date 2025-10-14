@@ -20,7 +20,6 @@ import type {
   PaginatedResponse,
   PaginatedSpecialtiesResponse,
   PaginatedTherapeuticApproachesResponse,
-  PaginatedProfessionalsResponse,
   PaginatedAccountsResponse,
   ErrorResponse,
   SpecialtyUpdate,
@@ -32,9 +31,6 @@ import type {
   AccountWithRole,
   AccountWithProfile,
   AccountUpdate,
-  AccountStatusUpdate,
-  UserProfile,
-  ProfessionalProfile,
 } from "./types";
 
 // API Configuration
@@ -568,6 +564,19 @@ class ApiClient {
 
   async deleteProfessionalModality(modalityId: string): Promise<void> {
     return this.delete<void>(`/professional-modalities/${modalityId}`);
+  }
+
+  // Admin user management methods
+  async getUsers(page: number = 1, pageSize: number = 10): Promise<PaginatedAccountsResponse> {
+    return this.get<PaginatedAccountsResponse>(`/admin/users?page=${page}&page_size=${pageSize}`);
+  }
+
+  async toggleUserStatus(userId: string, isActive: boolean): Promise<AccountWithRole> {
+    return this.put<AccountWithRole>(`/admin/users/${userId}/status`, { is_active: isActive });
+  }
+
+  async deleteUser(userId: string): Promise<void> {
+    return this.delete<void>(`/admin/users/${userId}`);
   }
 
   // Health check

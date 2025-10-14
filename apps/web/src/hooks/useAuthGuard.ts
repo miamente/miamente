@@ -12,7 +12,7 @@ interface AuthGuardOptions {
 }
 
 export function useAuthGuard(options: AuthGuardOptions = {}) {
-  const { user, isLoading } = useAuth();
+  const { account, role, isLoading, isAuthenticated } = useAuth();
   const router = useRouter();
 
   const { requiredRole, redirectTo = "/login" } = options;
@@ -21,22 +21,22 @@ export function useAuthGuard(options: AuthGuardOptions = {}) {
     if (isLoading) return;
 
     // Not logged in
-    if (!user) {
+    if (!isAuthenticated || !account) {
       router.push(redirectTo);
       return;
     }
 
     // Role-based access control
-    if (requiredRole && user?.type !== requiredRole) {
+    if (requiredRole && role !== requiredRole) {
       // Don't redirect automatically, let the component handle it
       // This prevents infinite redirect loops
       return;
     }
-  }, [user, isLoading, requiredRole, redirectTo, router]);
+  }, [account, role, isAuthenticated, isLoading, requiredRole, redirectTo, router]);
 
   return {
-    user,
+    user: account, // For backward compatibility
     isLoading,
-    isAuthorized: !isLoading && !!user && (!requiredRole || user?.type === requiredRole),
+    isAuthorized: !isLoading && isAuthenticated && !!account && (!requiredRole || role === requiredRole),
   };
 }

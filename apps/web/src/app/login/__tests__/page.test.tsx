@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 
 import LoginPage from "../page";
 import { useAuthContext, isUserVerified } from "@/contexts/AuthContext";
-import { UserRole } from "@/lib/types";
+// import { UserRole } from "@/lib/types"; // Unused import removed
 
 // Mock the auth context
 vi.mock("@/contexts/AuthContext", () => ({
@@ -41,23 +41,16 @@ describe("LoginPage", () => {
 
   it("should render login form when user is not authenticated", () => {
     mockUseAuthContext.mockReturnValue({
-      user: null,
+      account: null,
+      profile: null,
+      role: null,
       isLoading: false,
       isAuthenticated: false,
-      loginUser: vi.fn(),
-      loginProfessional: vi.fn(),
       loginUnified: vi.fn(),
       registerUser: vi.fn(),
       registerProfessional: vi.fn(),
-      registerUnified: vi.fn(),
       logout: vi.fn(),
       refreshUser: vi.fn(),
-      getUserEmail: vi.fn(),
-      getUserFullName: vi.fn(),
-      isUserVerified: vi.fn(),
-      isEmailVerified: vi.fn(),
-      getUserId: vi.fn(),
-      getUserUid: vi.fn(),
     });
 
     render(<LoginPage />);
@@ -72,37 +65,29 @@ describe("LoginPage", () => {
 
   it("should show redirecting message when user is authenticated but not verified", () => {
     const mockUser = {
-      type: UserRole.USER,
-      data: {
-        id: "user-123",
-        email: "test@example.com",
-        full_name: "Test User",
-        is_verified: false,
-        is_active: true,
-        phone: "+1234567890",
-        created_at: "2023-01-01T00:00:00Z",
-        updated_at: "2023-01-01T00:00:00Z",
-      },
+      id: "user-123",
+      email: "test@example.com",
+      full_name: "Test User",
+      is_verified: false,
+      is_active: true,
+      phone: "+1234567890",
+      created_at: "2023-01-01T00:00:00Z",
+      updated_at: "2023-01-01T00:00:00Z",
+      role_id: "role-1",
+      role_name: "user",
     };
 
     mockUseAuthContext.mockReturnValue({
-      user: mockUser,
+      account: mockUser,
+      profile: null,
+      role: null,
       isLoading: false,
       isAuthenticated: true,
-      loginUser: vi.fn(),
-      loginProfessional: vi.fn(),
       loginUnified: vi.fn(),
       registerUser: vi.fn(),
       registerProfessional: vi.fn(),
-      registerUnified: vi.fn(),
       logout: vi.fn(),
       refreshUser: vi.fn(),
-      getUserEmail: vi.fn(),
-      getUserFullName: vi.fn(),
-      isUserVerified: vi.fn(),
-      isEmailVerified: vi.fn(),
-      getUserId: vi.fn(),
-      getUserUid: vi.fn(),
     });
     mockIsUserVerified.mockReturnValue(false);
 
@@ -113,37 +98,29 @@ describe("LoginPage", () => {
 
   it("should redirect to verify page when user is authenticated but not verified", async () => {
     const mockUser = {
-      type: UserRole.USER,
-      data: {
-        id: "user-123",
-        email: "test@example.com",
-        full_name: "Test User",
-        is_verified: false,
-        is_active: true,
-        phone: "+1234567890",
-        created_at: "2023-01-01T00:00:00Z",
-        updated_at: "2023-01-01T00:00:00Z",
-      },
+      id: "user-123",
+      email: "test@example.com",
+      full_name: "Test User",
+      is_verified: false,
+      is_active: true,
+      phone: "+1234567890",
+      created_at: "2023-01-01T00:00:00Z",
+      updated_at: "2023-01-01T00:00:00Z",
+      role_id: "role-1",
+      role_name: "user",
     };
 
     mockUseAuthContext.mockReturnValue({
-      user: mockUser,
+      account: mockUser,
+      profile: null,
+      role: null,
       isLoading: false,
       isAuthenticated: true,
-      loginUser: vi.fn(),
-      loginProfessional: vi.fn(),
       loginUnified: vi.fn(),
       registerUser: vi.fn(),
       registerProfessional: vi.fn(),
-      registerUnified: vi.fn(),
       logout: vi.fn(),
       refreshUser: vi.fn(),
-      getUserEmail: vi.fn(),
-      getUserFullName: vi.fn(),
-      isUserVerified: vi.fn(),
-      isEmailVerified: vi.fn(),
-      getUserId: vi.fn(),
-      getUserUid: vi.fn(),
     });
     mockIsUserVerified.mockReturnValue(false);
 
@@ -156,37 +133,29 @@ describe("LoginPage", () => {
 
   it("should redirect to dashboard when user is authenticated and verified", async () => {
     const mockUser = {
-      type: UserRole.USER,
-      data: {
-        id: "user-123",
-        email: "test@example.com",
-        full_name: "Test User",
-        is_verified: true,
-        is_active: true,
-        phone: "+1234567890",
-        created_at: "2023-01-01T00:00:00Z",
-        updated_at: "2023-01-01T00:00:00Z",
-      },
+      id: "user-123",
+      email: "test@example.com",
+      full_name: "Test User",
+      is_verified: true,
+      is_active: true,
+      phone: "+1234567890",
+      created_at: "2023-01-01T00:00:00Z",
+      updated_at: "2023-01-01T00:00:00Z",
+      role_id: "role-1",
+      role_name: "user",
     };
 
     mockUseAuthContext.mockReturnValue({
-      user: mockUser,
+      account: mockUser,
+      profile: null,
+      role: null,
       isLoading: false,
       isAuthenticated: true,
-      loginUser: vi.fn(),
-      loginProfessional: vi.fn(),
       loginUnified: vi.fn(),
       registerUser: vi.fn(),
       registerProfessional: vi.fn(),
-      registerUnified: vi.fn(),
       logout: vi.fn(),
       refreshUser: vi.fn(),
-      getUserEmail: vi.fn(),
-      getUserFullName: vi.fn(),
-      isUserVerified: vi.fn(),
-      isEmailVerified: vi.fn(),
-      getUserId: vi.fn(),
-      getUserUid: vi.fn(),
     });
     mockIsUserVerified.mockReturnValue(true);
 
@@ -202,23 +171,16 @@ describe("LoginPage", () => {
     const mockLoginUnified = vi.fn().mockResolvedValue(undefined);
 
     mockUseAuthContext.mockReturnValue({
-      user: null,
+      account: null,
+      profile: null,
+      role: null,
       isLoading: false,
       isAuthenticated: false,
-      loginUser: vi.fn(),
-      loginProfessional: vi.fn(),
       loginUnified: mockLoginUnified,
       registerUser: vi.fn(),
       registerProfessional: vi.fn(),
-      registerUnified: vi.fn(),
       logout: vi.fn(),
       refreshUser: vi.fn(),
-      getUserEmail: vi.fn(),
-      getUserFullName: vi.fn(),
-      isUserVerified: vi.fn(),
-      isEmailVerified: vi.fn(),
-      getUserId: vi.fn(),
-      getUserUid: vi.fn(),
     });
 
     render(<LoginPage />);
@@ -240,23 +202,16 @@ describe("LoginPage", () => {
     const mockLoginUnified = vi.fn().mockRejectedValue(new Error("Login failed"));
 
     mockUseAuthContext.mockReturnValue({
-      user: null,
+      account: null,
+      profile: null,
+      role: null,
       isLoading: false,
       isAuthenticated: false,
-      loginUser: vi.fn(),
-      loginProfessional: vi.fn(),
       loginUnified: mockLoginUnified,
       registerUser: vi.fn(),
       registerProfessional: vi.fn(),
-      registerUnified: vi.fn(),
       logout: vi.fn(),
       refreshUser: vi.fn(),
-      getUserEmail: vi.fn(),
-      getUserFullName: vi.fn(),
-      isUserVerified: vi.fn(),
-      isEmailVerified: vi.fn(),
-      getUserId: vi.fn(),
-      getUserUid: vi.fn(),
     });
 
     render(<LoginPage />);
@@ -278,23 +233,16 @@ describe("LoginPage", () => {
     const mockLoginUnified = vi.fn().mockRejectedValue(new Error("Login failed"));
 
     mockUseAuthContext.mockReturnValue({
-      user: null,
+      account: null,
+      profile: null,
+      role: null,
       isLoading: false,
       isAuthenticated: false,
-      loginUser: vi.fn(),
-      loginProfessional: vi.fn(),
       loginUnified: mockLoginUnified,
       registerUser: vi.fn(),
       registerProfessional: vi.fn(),
-      registerUnified: vi.fn(),
       logout: vi.fn(),
       refreshUser: vi.fn(),
-      getUserEmail: vi.fn(),
-      getUserFullName: vi.fn(),
-      isUserVerified: vi.fn(),
-      isEmailVerified: vi.fn(),
-      getUserId: vi.fn(),
-      getUserUid: vi.fn(),
     });
 
     render(<LoginPage />);
@@ -313,23 +261,16 @@ describe("LoginPage", () => {
     const mockLoginUnified = vi.fn().mockImplementation(() => new Promise(() => {})); // Never resolves
 
     mockUseAuthContext.mockReturnValue({
-      user: null,
+      account: null,
+      profile: null,
+      role: null,
       isLoading: false,
       isAuthenticated: false,
-      loginUser: vi.fn(),
-      loginProfessional: vi.fn(),
       loginUnified: mockLoginUnified,
       registerUser: vi.fn(),
       registerProfessional: vi.fn(),
-      registerUnified: vi.fn(),
       logout: vi.fn(),
       refreshUser: vi.fn(),
-      getUserEmail: vi.fn(),
-      getUserFullName: vi.fn(),
-      isUserVerified: vi.fn(),
-      isEmailVerified: vi.fn(),
-      getUserId: vi.fn(),
-      getUserUid: vi.fn(),
     });
 
     render(<LoginPage />);
@@ -352,23 +293,16 @@ describe("LoginPage", () => {
     const mockLoginUnified = vi.fn().mockResolvedValue(undefined);
 
     mockUseAuthContext.mockReturnValue({
-      user: null,
+      account: null,
+      profile: null,
+      role: null,
       isLoading: false,
       isAuthenticated: false,
-      loginUser: vi.fn(),
-      loginProfessional: vi.fn(),
       loginUnified: mockLoginUnified,
       registerUser: vi.fn(),
       registerProfessional: vi.fn(),
-      registerUnified: vi.fn(),
       logout: vi.fn(),
       refreshUser: vi.fn(),
-      getUserEmail: vi.fn(),
-      getUserFullName: vi.fn(),
-      isUserVerified: vi.fn(),
-      isEmailVerified: vi.fn(),
-      getUserId: vi.fn(),
-      getUserUid: vi.fn(),
     });
 
     render(<LoginPage />);
@@ -387,23 +321,16 @@ describe("LoginPage", () => {
 
   it("should have proper form structure and accessibility", () => {
     mockUseAuthContext.mockReturnValue({
-      user: null,
+      account: null,
+      profile: null,
+      role: null,
       isLoading: false,
       isAuthenticated: false,
-      loginUser: vi.fn(),
-      loginProfessional: vi.fn(),
       loginUnified: vi.fn(),
       registerUser: vi.fn(),
       registerProfessional: vi.fn(),
-      registerUnified: vi.fn(),
       logout: vi.fn(),
       refreshUser: vi.fn(),
-      getUserEmail: vi.fn(),
-      getUserFullName: vi.fn(),
-      isUserVerified: vi.fn(),
-      isEmailVerified: vi.fn(),
-      getUserId: vi.fn(),
-      getUserUid: vi.fn(),
     });
 
     render(<LoginPage />);
@@ -424,23 +351,16 @@ describe("LoginPage", () => {
 
   it("should have proper styling classes", () => {
     mockUseAuthContext.mockReturnValue({
-      user: null,
+      account: null,
+      profile: null,
+      role: null,
       isLoading: false,
       isAuthenticated: false,
-      loginUser: vi.fn(),
-      loginProfessional: vi.fn(),
       loginUnified: vi.fn(),
       registerUser: vi.fn(),
       registerProfessional: vi.fn(),
-      registerUnified: vi.fn(),
       logout: vi.fn(),
       refreshUser: vi.fn(),
-      getUserEmail: vi.fn(),
-      getUserFullName: vi.fn(),
-      isUserVerified: vi.fn(),
-      isEmailVerified: vi.fn(),
-      getUserId: vi.fn(),
-      getUserUid: vi.fn(),
     });
 
     const { container } = render(<LoginPage />);
@@ -463,23 +383,16 @@ describe("LoginPage", () => {
     const mockLoginUnified = vi.fn().mockRejectedValue("String error");
 
     mockUseAuthContext.mockReturnValue({
-      user: null,
+      account: null,
+      profile: null,
+      role: null,
       isLoading: false,
       isAuthenticated: false,
-      loginUser: vi.fn(),
-      loginProfessional: vi.fn(),
       loginUnified: mockLoginUnified,
       registerUser: vi.fn(),
       registerProfessional: vi.fn(),
-      registerUnified: vi.fn(),
       logout: vi.fn(),
       refreshUser: vi.fn(),
-      getUserEmail: vi.fn(),
-      getUserFullName: vi.fn(),
-      isUserVerified: vi.fn(),
-      isEmailVerified: vi.fn(),
-      getUserId: vi.fn(),
-      getUserUid: vi.fn(),
     });
 
     render(<LoginPage />);
