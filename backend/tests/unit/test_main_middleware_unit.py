@@ -4,8 +4,6 @@ from unittest.mock import MagicMock, patch
 import pytest
 from fastapi.testclient import TestClient
 
-from app.main import app
-
 """
 Unit tests for app.main middleware functionality.
 """
@@ -41,6 +39,7 @@ def mock_app_with_middleware():
         mock_clear_cache.return_value = None
 
         # Import app after mocking
+        from app.main import app
 
         yield app
 
