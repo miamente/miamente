@@ -7,15 +7,15 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Collapsible, CollapsibleContent } from "@/components/ui/collapsible";
 import { Plus, Star } from "lucide-react";
 import { useModalities } from "@/hooks/useModalities";
-import type { ProfessionalModality } from "@/lib/types";
+import type { ProfessionalModalityFrontend } from "@/lib/types";
 import { ModalityCardTrigger } from "./shared/ModalityCardTrigger";
 import { ModalityCardHeader } from "./shared/ModalityCardHeader";
 import { ModalityFormFields, PresencialPriceField } from "./shared/ModalityFormFields";
 
 interface ModalitiesEditorProps {
   readonly disabled?: boolean;
-  readonly value?: readonly ProfessionalModality[];
-  readonly onChange?: (modalities: readonly ProfessionalModality[]) => void;
+  readonly value?: readonly ProfessionalModalityFrontend[];
+  readonly onChange?: (modalities: readonly ProfessionalModalityFrontend[]) => void;
 }
 
 export function ModalitiesEditor({
@@ -29,9 +29,9 @@ export function ModalitiesEditor({
     error: modalitiesError,
   } = useModalities();
   const [isOpen, setIsOpen] = React.useState(false);
-  const [modalities, setModalities] = useState<ProfessionalModality[]>([...value]);
+  const [modalities, setModalities] = useState<ProfessionalModalityFrontend[]>([...value]);
   const isInternalUpdate = useRef(false);
-  const previousValue = useRef<ProfessionalModality[]>([...value]);
+  const previousValue = useRef<ProfessionalModalityFrontend[]>([...value]);
 
   // Update local state when value prop changes (but not from internal updates)
   useEffect(() => {
@@ -53,7 +53,7 @@ export function ModalitiesEditor({
 
   // Notify parent of changes
   const notifyParent = useCallback(
-    (newModalities: ProfessionalModality[]) => {
+    (newModalities: ProfessionalModalityFrontend[]) => {
       if (onChange) {
         isInternalUpdate.current = true;
         onChange(newModalities);
@@ -63,7 +63,7 @@ export function ModalitiesEditor({
   );
 
   const addModality = () => {
-    const newModality: ProfessionalModality = {
+    const newModality: ProfessionalModalityFrontend = {
       id: `temp-${Date.now()}`, // Temporary ID, will be replaced by backend
       modalityId: "",
       modalityName: "Modalidad",
@@ -100,7 +100,7 @@ export function ModalitiesEditor({
     notifyParent(newModalities);
   };
 
-  const updateModality = (index: number, field: keyof ProfessionalModality, value: unknown) => {
+  const updateModality = (index: number, field: keyof ProfessionalModalityFrontend, value: unknown) => {
     const newModalities = modalities.map((modality, idx) =>
       idx === index ? { ...modality, [field]: value } : modality,
     );
@@ -178,7 +178,7 @@ export function ModalitiesEditor({
                   value={modality}
                   disabled={disabled}
                   availableModalities={getAvailableModalities(index)}
-                  onChange={(field: keyof ProfessionalModality, value: unknown) =>
+                  onChange={(field: keyof ProfessionalModalityFrontend, value: unknown) =>
                     updateModality(index, field, value)
                   }
                   onModalityChange={(value: string) => {

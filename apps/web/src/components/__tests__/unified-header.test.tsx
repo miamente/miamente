@@ -4,7 +4,7 @@ import userEvent from "@testing-library/user-event";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
 import { UnifiedHeader } from "../header/unified-header";
-import { type AuthUser, UserRole } from "@/lib/types";
+// Removed unused imports
 
 // Mock interfaces for components
 interface MockMobileMenuProps {
@@ -41,19 +41,29 @@ vi.mock("next/navigation", () => ({
 
 // Mock AuthContext
 const mockAuthContext = {
-  user: null as AuthUser | null,
+  account: null as any,
+  profile: null,
+  role: null as any,
   isLoading: false,
+  isAuthenticated: false,
+  loginUnified: vi.fn(),
+  registerUser: vi.fn(),
+  registerProfessional: vi.fn(),
   logout: vi.fn(),
+  refreshUser: vi.fn(),
 };
 
 vi.mock("@/contexts/AuthContext", () => ({
   useAuthContext: vi.fn(() => mockAuthContext),
+  useUnifiedAuthContext: vi.fn(() => mockAuthContext),
 }));
 
 // Mock auth hooks
 vi.mock("@/hooks/useAuth", () => ({
-  getUserEmail: vi.fn((user) => user?.data?.email || ""),
-  getUserFullName: vi.fn((user) => user?.data?.full_name || ""),
+  useAuth: vi.fn(),
+  useUnifiedAuth: vi.fn(),
+  getUserEmail: vi.fn((user) => user?.email || ""),
+  getUserFullName: vi.fn((user) => user?.full_name || ""),
 }));
 
 // Mock child components
@@ -97,6 +107,9 @@ vi.mock("../header/user-menu", () => ({
     isAuthenticated,
   }: MockUserMenuProps) => (
     <div data-testid="user-menu">
+      <button>
+        {userName || userEmail || "Usuario"}
+      </button>
       <div data-testid="user-role">{userRole}</div>
       <div data-testid="user-name">{userName}</div>
       <div data-testid="user-email">{userEmail}</div>
@@ -112,7 +125,7 @@ describe("UnifiedHeader", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    mockAuthContext.user = null;
+    mockAuthContext.account = null;
     mockAuthContext.isLoading = false;
     mockPathname = "/";
   });
@@ -200,22 +213,31 @@ describe("UnifiedHeader", () => {
     expect(screen.getByTestId("nav-items")).toHaveTextContent("2 items"); // ADMIN_NAVIGATION_ITEMS length
   });
 
-  it("should pass correct props to UserMenu component", () => {
-    mockAuthContext.user = {
-      type: UserRole.USER,
-      data: {
-        id: "1",
-        email: "test@example.com",
-        full_name: "Test User",
-        phone: "+1234567890",
-        is_active: true,
-        is_verified: true,
-        created_at: "2024-01-01T00:00:00Z",
-        updated_at: "2024-01-01T00:00:00Z",
-      },
+  it("should pass correct props to UserMenu component", async () => {
+    const user = userEvent.setup();
+    
+    mockAuthContext.account = {
+      id: "1",
+      email: "test@example.com",
+      full_name: "Test User",
+      phone: "+1234567890",
+      phone_country_code: "+1",
+      phone_number: "234567890",
+      is_active: true,
+      is_verified: true,
+      created_at: "2024-01-01T00:00:00Z",
+      updated_at: "2024-01-01T00:00:00Z",
+      role_id: "role-1",
+      role_name: "user",
     };
+    mockAuthContext.role = "user";
+    mockAuthContext.isAuthenticated = true;
 
     render(<UnifiedHeader />);
+
+    // Click on the user menu button to open it
+    const userMenuButton = screen.getByRole("button", { name: "Test User" });
+    await user.click(userMenuButton);
 
     expect(screen.getByTestId("user-role")).toHaveTextContent("user");
     expect(screen.getByTestId("user-name")).toHaveTextContent("Test User");
@@ -223,22 +245,31 @@ describe("UnifiedHeader", () => {
     expect(screen.getByTestId("user-authenticated")).toHaveTextContent("true");
   });
 
-  it("should pass correct props to UserMenu component for admin variant", () => {
-    mockAuthContext.user = {
-      type: UserRole.ADMIN,
-      data: {
-        id: "1",
-        email: "admin@example.com",
-        full_name: "Admin User",
-        phone: "+1234567890",
-        is_active: true,
-        is_verified: true,
-        created_at: "2024-01-01T00:00:00Z",
-        updated_at: "2024-01-01T00:00:00Z",
-      },
+  it("should pass correct props to UserMenu component for admin variant", async () => {
+    const user = userEvent.setup();
+    
+    mockAuthContext.account = {
+      id: "1",
+      email: "admin@example.com",
+      full_name: "Admin User",
+      phone: "+1234567890",
+      phone_country_code: "+1",
+      phone_number: "234567890",
+      is_active: true,
+      is_verified: true,
+      created_at: "2024-01-01T00:00:00Z",
+      updated_at: "2024-01-01T00:00:00Z",
+      role_id: "role-admin",
+      role_name: "admin",
     };
+    mockAuthContext.role = "admin";
+    mockAuthContext.isAuthenticated = true;
 
     render(<UnifiedHeader variant="admin" />);
+
+    // Click on the user menu button to open it
+    const userMenuButton = screen.getByRole("button", { name: "Admin User" });
+    await user.click(userMenuButton);
 
     expect(screen.getByTestId("user-role")).toHaveTextContent("admin");
     expect(screen.getByTestId("user-name")).toHaveTextContent("Admin User");
@@ -278,19 +309,22 @@ describe("UnifiedHeader", () => {
   });
 
   it("should pass correct props to MobileMenu component", async () => {
-    mockAuthContext.user = {
-      type: UserRole.USER,
-      data: {
-        id: "1",
-        email: "test@example.com",
-        full_name: "Test User",
-        phone: "+1234567890",
-        is_active: true,
-        is_verified: true,
-        created_at: "2024-01-01T00:00:00Z",
-        updated_at: "2024-01-01T00:00:00Z",
-      },
+    mockAuthContext.account = {
+      id: "1",
+      email: "test@example.com",
+      full_name: "Test User",
+      phone: "+1234567890",
+      phone_country_code: "+1",
+      phone_number: "234567890",
+      is_active: true,
+      is_verified: true,
+      created_at: "2024-01-01T00:00:00Z",
+      updated_at: "2024-01-01T00:00:00Z",
+      role_id: "role-1",
+      role_name: "user",
     };
+    mockAuthContext.role = "user";
+    mockAuthContext.isAuthenticated = true;
 
     render(<UnifiedHeader />);
 
@@ -333,7 +367,9 @@ describe("UnifiedHeader", () => {
   });
 
   it("should handle unauthenticated user", () => {
-    mockAuthContext.user = null;
+    mockAuthContext.account = null;
+    mockAuthContext.role = null;
+    mockAuthContext.isAuthenticated = false;
     render(<UnifiedHeader />);
 
     expect(screen.getByTestId("user-authenticated")).toHaveTextContent("false");

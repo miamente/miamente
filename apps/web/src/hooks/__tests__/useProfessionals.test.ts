@@ -2,12 +2,13 @@ import { renderHook, act } from "@testing-library/react";
 import { vi, describe, it, expect, beforeEach } from "vitest";
 import { useProfessionals, useProfessional } from "../useProfessionals";
 import { apiClient } from "@/lib/api";
+import type { ProfessionalProfile, AccountWithRole } from "@/lib/types";
 
 // Mock the API client
 vi.mock("@/lib/api", () => ({
   apiClient: {
-    getProfessionals: vi.fn(),
-    getProfessional: vi.fn(),
+    getAllAccountsAdmin: vi.fn(),
+    getAccountById: vi.fn(),
   },
 }));
 
@@ -36,6 +37,8 @@ describe("useProfessionals", () => {
         phone: "+1234567890",
         created_at: "2023-01-01T00:00:00Z",
         updated_at: "2023-01-01T00:00:00Z",
+        role_id: "role-2",
+        role_name: "professional",
         license_number: "LIC123",
         years_experience: 5,
         rate_cents: 50000,
@@ -59,6 +62,8 @@ describe("useProfessionals", () => {
         phone: "+1234567891",
         created_at: "2023-01-01T00:00:00Z",
         updated_at: "2023-01-01T00:00:00Z",
+        role_id: "role-2",
+        role_name: "professional",
         license_number: "LIC456",
         years_experience: 10,
         rate_cents: 75000,
@@ -75,7 +80,71 @@ describe("useProfessionals", () => {
       },
     ];
 
-    vi.mocked(apiClient.getProfessionals).mockResolvedValue(mockProfessionals);
+    const mockResponse = {
+      items: mockProfessionals.map((prof) => ({
+        id: prof.id,
+        email: prof.email,
+        full_name: prof.full_name,
+        is_active: prof.is_active,
+        is_verified: prof.is_verified,
+        created_at: prof.created_at,
+        role_id: prof.role_id,
+        role_name: prof.role_name,
+      })),
+      total: mockProfessionals.length,
+      page: 1,
+      page_size: 100,
+      total_pages: 1,
+    };
+
+    vi.mocked(apiClient.getAllAccountsAdmin).mockResolvedValue(mockResponse);
+    
+    // Mock getAccountById to return full professional data
+    vi.mocked(apiClient.getAccountById).mockImplementation(async (id) => {
+      const prof = mockProfessionals.find((p) => p.id === id);
+      if (!prof) throw new Error("Professional not found");
+      
+      // Extract account data (AccountWithRole)
+      const account: AccountWithRole = {
+        id: prof.id,
+        email: prof.email,
+        full_name: prof.full_name,
+        phone: prof.phone,
+        phone_country_code: undefined,
+        phone_number: undefined,
+        is_active: prof.is_active,
+        is_verified: prof.is_verified,
+        created_at: prof.created_at,
+        updated_at: prof.updated_at,
+        role_id: prof.role_id,
+        role_name: prof.role_name,
+      };
+      
+      // Create profile data (ProfessionalProfile)
+      const profile: ProfessionalProfile = {
+        account_id: prof.id,
+        license_number: prof.license_number,
+        years_experience: prof.years_experience,
+        rate_cents: prof.rate_cents,
+        custom_rate_cents: prof.rate_cents,
+        currency: prof.currency,
+        short_description: prof.bio,
+        academic_experience: prof.academic_experience,
+        work_experience: prof.work_experience,
+        certifications: prof.certifications,
+        languages: prof.languages,
+        timezone: prof.timezone,
+        emergency_contact_name: undefined,
+        emergency_phone_country_code: undefined,
+        emergency_phone_number: undefined,
+      };
+      
+      return {
+        account,
+        role: "professional",
+        profile,
+      };
+    });
 
     const { result } = renderHook(() => useProfessionals());
 
@@ -83,14 +152,14 @@ describe("useProfessionals", () => {
       await result.current.fetchProfessionals();
     });
 
-    expect(result.current.professionals).toEqual(mockProfessionals);
+    expect(result.current.professionals).toHaveLength(mockProfessionals.length);
     expect(result.current.isLoading).toBe(false);
     expect(result.current.error).toBe(null);
-    expect(apiClient.getProfessionals).toHaveBeenCalledTimes(1);
+    expect(apiClient.getAllAccountsAdmin).toHaveBeenCalledTimes(1);
   });
 
   it("should handle fetch professionals error", async () => {
-    vi.mocked(apiClient.getProfessionals).mockRejectedValue(new Error("API Error"));
+    vi.mocked(apiClient.getAllAccountsAdmin).mockRejectedValue(new Error("API Error"));
 
     const { result } = renderHook(() => useProfessionals());
 
@@ -128,6 +197,8 @@ describe("useProfessional", () => {
       phone: "+1234567890",
       created_at: "2023-01-01T00:00:00Z",
       updated_at: "2023-01-01T00:00:00Z",
+      role_id: "role-2",
+      role_name: "professional",
       license_number: "LIC123",
       years_experience: 5,
       rate_cents: 50000,
@@ -143,7 +214,48 @@ describe("useProfessional", () => {
       timezone: "America/Bogota",
     };
 
-    vi.mocked(apiClient.getProfessional).mockResolvedValue(mockProfessional);
+    // Extract account data (AccountWithRole)
+    const account: AccountWithRole = {
+      id: mockProfessional.id,
+      email: mockProfessional.email,
+      full_name: mockProfessional.full_name,
+      phone: mockProfessional.phone,
+      phone_country_code: undefined,
+      phone_number: undefined,
+      is_active: mockProfessional.is_active,
+      is_verified: mockProfessional.is_verified,
+      created_at: mockProfessional.created_at,
+      updated_at: mockProfessional.updated_at,
+      role_id: mockProfessional.role_id,
+      role_name: mockProfessional.role_name,
+    };
+    
+    // Create profile data (ProfessionalProfile)
+    const profile: ProfessionalProfile = {
+      account_id: mockProfessional.id,
+      license_number: mockProfessional.license_number,
+      years_experience: mockProfessional.years_experience,
+      rate_cents: mockProfessional.rate_cents,
+      custom_rate_cents: mockProfessional.rate_cents,
+      currency: mockProfessional.currency,
+      short_description: mockProfessional.bio,
+      academic_experience: mockProfessional.academic_experience,
+      work_experience: mockProfessional.work_experience,
+      certifications: mockProfessional.certifications,
+      languages: mockProfessional.languages,
+      timezone: mockProfessional.timezone,
+      emergency_contact_name: undefined,
+      emergency_phone_country_code: undefined,
+      emergency_phone_number: undefined,
+    };
+
+    const mockResponseData = {
+      account,
+      role: "professional",
+      profile,
+    };
+
+    vi.mocked(apiClient.getAccountById).mockResolvedValue(mockResponseData);
 
     const { result } = renderHook(() => useProfessional("prof-1"));
 
@@ -151,14 +263,14 @@ describe("useProfessional", () => {
       await result.current.fetchProfessional();
     });
 
-    expect(result.current.professional).toEqual(mockProfessional);
+    expect(result.current.professional).toEqual(mockResponseData);
     expect(result.current.isLoading).toBe(false);
     expect(result.current.error).toBe(null);
-    expect(apiClient.getProfessional).toHaveBeenCalledWith("prof-1");
+    expect(apiClient.getAccountById).toHaveBeenCalledWith("prof-1");
   });
 
   it("should handle fetch single professional error", async () => {
-    vi.mocked(apiClient.getProfessional).mockRejectedValue(new Error("Professional not found"));
+    vi.mocked(apiClient.getAccountById).mockRejectedValue(new Error("Professional not found"));
 
     const { result } = renderHook(() => useProfessional("prof-1"));
 
@@ -178,7 +290,7 @@ describe("useProfessional", () => {
       await result.current.fetchProfessional();
     });
 
-    expect(apiClient.getProfessional).not.toHaveBeenCalled();
+    expect(apiClient.getAccountById).not.toHaveBeenCalled();
     expect(result.current.professional).toBe(null);
   });
 });

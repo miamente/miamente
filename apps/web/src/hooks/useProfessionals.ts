@@ -4,7 +4,7 @@
 import { useState, useCallback } from "react";
 
 import { apiClient } from "@/lib/api";
-import type { AccountWithProfile, ProfessionalProfile } from "@/lib/types";
+import type { AccountWithProfile } from "@/lib/types";
 
 export function useProfessionals() {
   const [professionals, setProfessionals] = useState<AccountWithProfile[]>([]);

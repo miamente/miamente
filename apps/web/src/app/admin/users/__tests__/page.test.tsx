@@ -5,9 +5,9 @@ import AdminUsers from "../page";
 
 // Mock the API client
 const mockApiClient = vi.hoisted(() => ({
-  getUsers: vi.fn(),
-  toggleUserStatus: vi.fn(),
-  deleteUser: vi.fn(),
+  getAllAccountsAdmin: vi.fn(),
+  toggleAccountStatus: vi.fn(),
+  deleteAccount: vi.fn(),
 }));
 
 vi.mock("@/lib/api", () => ({
@@ -173,7 +173,7 @@ describe("AdminUsers", () => {
     };
 
     mockUseAdminData.data = [mockUser];
-    mockApiClient.toggleUserStatus.mockResolvedValue({ ...mockUser, is_active: false });
+    mockApiClient.toggleAccountStatus.mockResolvedValue({ ...mockUser, is_active: false });
 
     render(<AdminUsers />);
 
@@ -181,7 +181,7 @@ describe("AdminUsers", () => {
     fireEvent.click(toggleButton);
 
     await waitFor(() => {
-      expect(mockApiClient.toggleUserStatus).toHaveBeenCalledWith("user-1", false);
+      expect(mockApiClient.toggleAccountStatus).toHaveBeenCalledWith("user-1", false);
       expect(mockUseAdminData.updateItem).toHaveBeenCalledWith("user-1", { ...mockUser, is_active: false });
     });
   });
@@ -198,7 +198,7 @@ describe("AdminUsers", () => {
     };
 
     mockUseAdminData.data = [mockUser];
-    mockApiClient.toggleUserStatus.mockRejectedValue(new Error("API Error"));
+    mockApiClient.toggleAccountStatus.mockRejectedValue(new Error("API Error"));
 
     render(<AdminUsers />);
 
@@ -223,7 +223,7 @@ describe("AdminUsers", () => {
 
     mockUseAdminData.data = [mockUser];
     mockConfirm.mockReturnValue(true);
-    mockApiClient.deleteUser.mockResolvedValue({});
+    mockApiClient.deleteAccount.mockResolvedValue({});
 
     render(<AdminUsers />);
 
@@ -232,7 +232,7 @@ describe("AdminUsers", () => {
 
     await waitFor(() => {
       expect(mockConfirm).toHaveBeenCalledWith("¿Estás seguro de que quieres eliminar este usuario?");
-      expect(mockApiClient.deleteUser).toHaveBeenCalledWith("user-1");
+      expect(mockApiClient.deleteAccount).toHaveBeenCalledWith("user-1");
       expect(mockUseAdminData.removeItem).toHaveBeenCalledWith("user-1");
     });
   });
@@ -258,7 +258,7 @@ describe("AdminUsers", () => {
 
     await waitFor(() => {
       expect(mockConfirm).toHaveBeenCalledWith("¿Estás seguro de que quieres eliminar este usuario?");
-      expect(mockApiClient.deleteUser).not.toHaveBeenCalled();
+      expect(mockApiClient.deleteAccount).not.toHaveBeenCalled();
       expect(mockUseAdminData.removeItem).not.toHaveBeenCalled();
     });
   });
@@ -276,7 +276,7 @@ describe("AdminUsers", () => {
 
     mockUseAdminData.data = [mockUser];
     mockConfirm.mockReturnValue(true);
-    mockApiClient.deleteUser.mockRejectedValue(new Error("API Error"));
+    mockApiClient.deleteAccount.mockRejectedValue(new Error("API Error"));
 
     render(<AdminUsers />);
 

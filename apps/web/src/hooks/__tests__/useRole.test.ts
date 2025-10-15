@@ -23,18 +23,16 @@ describe("useRole", () => {
 
   it("should initialize with correct initial state when no user", async () => {
     mockUseAuth.mockReturnValue({
-      user: null,
+      account: null,
+      profile: null,
       isLoading: false,
       isAuthenticated: false,
-      loginUser: vi.fn(),
-      loginProfessional: vi.fn(),
+      role: null,
       loginUnified: vi.fn(),
       registerUser: vi.fn(),
       registerProfessional: vi.fn(),
-      registerUnified: vi.fn(),
       logout: vi.fn(),
       refreshUser: vi.fn(),
-      getAuthHeaders: vi.fn(),
     });
 
     const { result } = renderHook(() => useRole());
@@ -51,18 +49,17 @@ describe("useRole", () => {
   });
 
   it("should fetch user profile when user is authenticated", async () => {
-    const mockUser = {
-      type: UserRole.USER,
-      data: {
-        id: "user-123",
-        email: "test@example.com",
-        full_name: "Test User",
-        is_verified: true,
-        is_active: true,
-        phone: "+1234567890",
-        created_at: "2023-01-01T00:00:00Z",
-        updated_at: "2023-01-01T00:00:00Z",
-      },
+    const mockAccount = {
+      id: "user-123",
+      email: "test@example.com",
+      full_name: "Test User",
+      is_verified: true,
+      is_active: true,
+      phone: "+1234567890",
+      created_at: "2023-01-01T00:00:00Z",
+      updated_at: "2023-01-01T00:00:00Z",
+      role_name: "user",
+      role_id: "role-1",
     };
 
     const mockApiResponse = {
@@ -77,18 +74,16 @@ describe("useRole", () => {
     };
 
     mockUseAuth.mockReturnValue({
-      user: mockUser,
+      account: mockAccount,
+      profile: null,
       isLoading: false,
       isAuthenticated: true,
-      loginUser: vi.fn(),
-      loginProfessional: vi.fn(),
+      role: "user" as UserRole,
       loginUnified: vi.fn(),
       registerUser: vi.fn(),
       registerProfessional: vi.fn(),
-      registerUnified: vi.fn(),
       logout: vi.fn(),
       refreshUser: vi.fn(),
-      getAuthHeaders: vi.fn(),
     });
 
     mockApiClient.get.mockResolvedValue(mockApiResponse);
@@ -111,31 +106,17 @@ describe("useRole", () => {
   });
 
   it("should handle professional user type", async () => {
-    const mockProfessional = {
-      type: UserRole.PROFESSIONAL,
-      data: {
-        id: "prof-123",
-        email: "prof@example.com",
-        full_name: "Test Professional",
-        is_verified: true,
-        is_active: true,
-        phone: "+1234567890",
-        created_at: "2023-01-01T00:00:00Z",
-        updated_at: "2023-01-01T00:00:00Z",
-        license_number: "LIC123",
-        years_experience: 5,
-        rate_cents: 50000,
-        currency: "COP",
-        bio: "Test bio",
-        academic_experience: [],
-        work_experience: [],
-        certifications: [],
-        languages: [],
-        therapy_approaches_ids: [],
-        specialty_ids: [],
-        modalities: [],
-        timezone: "America/Bogota",
-      },
+    const mockAccount = {
+      id: "prof-123",
+      email: "prof@example.com",
+      full_name: "Test Professional",
+      is_verified: true,
+      is_active: true,
+      phone: "+1234567890",
+      created_at: "2023-01-01T00:00:00Z",
+      updated_at: "2023-01-01T00:00:00Z",
+      role_id: "role-2",
+      role_name: "professional",
     };
 
     const mockApiResponse = {
@@ -150,18 +131,16 @@ describe("useRole", () => {
     };
 
     mockUseAuth.mockReturnValue({
-      user: mockProfessional,
+      account: mockAccount,
+      profile: null,
       isLoading: false,
       isAuthenticated: true,
-      loginUser: vi.fn(),
-      loginProfessional: vi.fn(),
+      role: "professional" as UserRole,
       loginUnified: vi.fn(),
       registerUser: vi.fn(),
       registerProfessional: vi.fn(),
-      registerUnified: vi.fn(),
       logout: vi.fn(),
       refreshUser: vi.fn(),
-      getAuthHeaders: vi.fn(),
     });
 
     mockApiClient.get.mockResolvedValue(mockApiResponse);
@@ -179,33 +158,30 @@ describe("useRole", () => {
   });
 
   it("should handle API errors gracefully", async () => {
-    const mockUser = {
-      type: UserRole.USER,
-      data: {
-        id: "user-123",
-        email: "test@example.com",
-        full_name: "Test User",
-        is_verified: true,
-        is_active: true,
-        phone: "+1234567890",
-        created_at: "2023-01-01T00:00:00Z",
-        updated_at: "2023-01-01T00:00:00Z",
-      },
+    const mockAccount = {
+      id: "user-123",
+      email: "test@example.com",
+      full_name: "Test User",
+      is_verified: true,
+      is_active: true,
+      phone: "+1234567890",
+      created_at: "2023-01-01T00:00:00Z",
+      updated_at: "2023-01-01T00:00:00Z",
+      role_name: "user",
+      role_id: "role-1",
     };
 
     mockUseAuth.mockReturnValue({
-      user: mockUser,
+      account: mockAccount,
+      profile: null,
       isLoading: false,
       isAuthenticated: true,
-      loginUser: vi.fn(),
-      loginProfessional: vi.fn(),
+      role: "user" as UserRole,
       loginUnified: vi.fn(),
       registerUser: vi.fn(),
       registerProfessional: vi.fn(),
-      registerUnified: vi.fn(),
       logout: vi.fn(),
       refreshUser: vi.fn(),
-      getAuthHeaders: vi.fn(),
     });
 
     mockApiClient.get.mockRejectedValue(new Error("API Error"));
@@ -221,18 +197,17 @@ describe("useRole", () => {
   });
 
   it("should correctly identify user roles", async () => {
-    const mockUser = {
-      type: UserRole.USER,
-      data: {
-        id: "user-123",
-        email: "test@example.com",
-        full_name: "Test User",
-        is_verified: true,
-        is_active: true,
-        phone: "+1234567890",
-        created_at: "2023-01-01T00:00:00Z",
-        updated_at: "2023-01-01T00:00:00Z",
-      },
+    const mockAccount = {
+      id: "user-123",
+      email: "test@example.com",
+      full_name: "Test User",
+      is_verified: true,
+      is_active: true,
+      phone: "+1234567890",
+      created_at: "2023-01-01T00:00:00Z",
+      updated_at: "2023-01-01T00:00:00Z",
+      role_name: "user",
+      role_id: "role-1",
     };
 
     const mockApiResponse = {
@@ -247,18 +222,16 @@ describe("useRole", () => {
     };
 
     mockUseAuth.mockReturnValue({
-      user: mockUser,
+      account: mockAccount,
+      profile: null,
       isLoading: false,
       isAuthenticated: true,
-      loginUser: vi.fn(),
-      loginProfessional: vi.fn(),
+      role: "user" as UserRole,
       loginUnified: vi.fn(),
       registerUser: vi.fn(),
       registerProfessional: vi.fn(),
-      registerUnified: vi.fn(),
       logout: vi.fn(),
       refreshUser: vi.fn(),
-      getAuthHeaders: vi.fn(),
     });
 
     mockApiClient.get.mockResolvedValue(mockApiResponse);
@@ -282,18 +255,16 @@ describe("useRole", () => {
 
   it("should handle loading state correctly", () => {
     mockUseAuth.mockReturnValue({
-      user: null,
+      account: null,
+      profile: null,
       isLoading: true,
       isAuthenticated: false,
-      loginUser: vi.fn(),
-      loginProfessional: vi.fn(),
+      role: null,
       loginUnified: vi.fn(),
       registerUser: vi.fn(),
       registerProfessional: vi.fn(),
-      registerUnified: vi.fn(),
       logout: vi.fn(),
       refreshUser: vi.fn(),
-      getAuthHeaders: vi.fn(),
     });
 
     const { result } = renderHook(() => useRole());
@@ -302,18 +273,17 @@ describe("useRole", () => {
   });
 
   it("should clear user profile when user becomes null", async () => {
-    const mockUser = {
-      type: UserRole.USER,
-      data: {
-        id: "user-123",
-        email: "test@example.com",
-        full_name: "Test User",
-        is_verified: true,
-        is_active: true,
-        phone: "+1234567890",
-        created_at: "2023-01-01T00:00:00Z",
-        updated_at: "2023-01-01T00:00:00Z",
-      },
+    const mockAccount = {
+      id: "user-123",
+      email: "test@example.com",
+      full_name: "Test User",
+      is_verified: true,
+      is_active: true,
+      phone: "+1234567890",
+      created_at: "2023-01-01T00:00:00Z",
+      updated_at: "2023-01-01T00:00:00Z",
+      role_name: "user",
+      role_id: "role-1",
     };
 
     const mockApiResponse = {
@@ -328,18 +298,16 @@ describe("useRole", () => {
 
     // Start with authenticated user
     mockUseAuth.mockReturnValue({
-      user: mockUser,
+      account: mockAccount,
+      profile: null,
       isLoading: false,
       isAuthenticated: true,
-      loginUser: vi.fn(),
-      loginProfessional: vi.fn(),
+      role: "user" as UserRole,
       loginUnified: vi.fn(),
       registerUser: vi.fn(),
       registerProfessional: vi.fn(),
-      registerUnified: vi.fn(),
       logout: vi.fn(),
       refreshUser: vi.fn(),
-      getAuthHeaders: vi.fn(),
     });
 
     mockApiClient.get.mockResolvedValue(mockApiResponse);
@@ -354,18 +322,16 @@ describe("useRole", () => {
 
     // Change to no user
     mockUseAuth.mockReturnValue({
-      user: null,
+      account: null,
+      profile: null,
+      role: null,
       isLoading: false,
       isAuthenticated: false,
-      loginUser: vi.fn(),
-      loginProfessional: vi.fn(),
       loginUnified: vi.fn(),
       registerUser: vi.fn(),
       registerProfessional: vi.fn(),
-      registerUnified: vi.fn(),
       logout: vi.fn(),
       refreshUser: vi.fn(),
-      getAuthHeaders: vi.fn(),
     });
 
     rerender();

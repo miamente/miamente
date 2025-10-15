@@ -97,13 +97,13 @@ describe("ProfessionalInfoForm", () => {
     modalities: [
       {
         id: "mod1",
-        modalityId: "individual",
-        modalityName: "Individual",
-        virtualPrice: 50000,
-        presencialPrice: 60000,
-        offersPresencial: true,
+        modality_id: "individual",
+        modality_name: "Individual",
+        virtual_price: 50000,
+        presencial_price: 60000,
+        offers_presencial: true,
         description: "Terapia individual",
-        isDefault: true,
+        is_default: true,
       },
     ],
   };
@@ -251,13 +251,13 @@ describe("ProfessionalInfoForm", () => {
     const newModalities = [
       {
         id: "mod2",
-        modalityId: "pareja",
-        modalityName: "Pareja",
-        virtualPrice: 70000,
-        presencialPrice: 80000,
-        offersPresencial: true,
+        modality_id: "pareja",
+        modality_name: "Pareja",
+        virtual_price: 70000,
+        presencial_price: 80000,
+        offers_presencial: true,
         description: "Terapia de pareja",
-        isDefault: false,
+        is_default: false,
       },
     ];
 

@@ -88,7 +88,10 @@ export function UserMenu({
           <div className="p-2">
             {/* User Info */}
             <div className="px-3 py-2 text-sm">
-              <div className="font-medium">{userName || "Usuario"}</div>
+              <div className="font-medium" data-testid="user-name">{userName || "Usuario"}</div>
+              <div className="text-xs text-gray-500" data-testid="user-role">{userRole || "user"}</div>
+              <div className="text-xs text-gray-500" data-testid="user-email">{userEmail || ""}</div>
+              <div className="hidden" data-testid="user-authenticated">{isAuthenticated.toString()}</div>
             </div>
 
             {/* Menu Options */}

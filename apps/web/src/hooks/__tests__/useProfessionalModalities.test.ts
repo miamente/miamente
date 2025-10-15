@@ -56,23 +56,23 @@ describe("useProfessionalModalities", () => {
     const mockModalities = [
       {
         id: "1",
-        modalityId: "mod-1",
-        modalityName: "Virtual",
-        virtualPrice: 50000,
-        presencialPrice: 0,
-        offersPresencial: false,
+        modality_id: "mod-1",
+        modality_name: "Virtual",
+        virtual_price: 50000,
+        presencial_price: 0,
+        offers_presencial: false,
         description: "Virtual therapy sessions",
-        isDefault: true,
+        is_default: true,
       },
       {
         id: "2",
-        modalityId: "mod-2",
-        modalityName: "Presencial",
-        virtualPrice: 0,
-        presencialPrice: 80000,
-        offersPresencial: true,
+        modality_id: "mod-2",
+        modality_name: "Presencial",
+        virtual_price: 0,
+        presencial_price: 80000,
+        offers_presencial: true,
         description: "In-person therapy sessions",
-        isDefault: false,
+        is_default: false,
       },
     ];
 
@@ -120,13 +120,13 @@ describe("useProfessionalModalities", () => {
   it("should create modality successfully", async () => {
     const mockModality = {
       id: "3",
-      modalityId: "mod-3",
-      modalityName: "Hybrid",
-      virtualPrice: 60000,
-      presencialPrice: 90000,
-      offersPresencial: true,
+      modality_id: "mod-3",
+      modality_name: "Hybrid",
+      virtual_price: 60000,
+      presencial_price: 90000,
+      offers_presencial: true,
       description: "Hybrid therapy sessions",
-      isDefault: false,
+      is_default: false,
     };
 
     mockApiClient.getProfessionalModalities.mockResolvedValue([]);
@@ -139,13 +139,13 @@ describe("useProfessionalModalities", () => {
     });
 
     const modalityData = {
-      modalityId: "mod-3",
-      modalityName: "Hybrid",
-      virtualPrice: 60000,
-      presencialPrice: 90000,
-      offersPresencial: true,
+      modality_id: "mod-3",
+      modality_name: "Hybrid",
+      virtual_price: 60000,
+      presencial_price: 90000,
+      offers_presencial: true,
       description: "Hybrid therapy sessions",
-      isDefault: false,
+      is_default: false,
     };
 
     await act(async () => {
@@ -160,13 +160,13 @@ describe("useProfessionalModalities", () => {
     const { result } = renderHook(() => useProfessionalModalities());
 
     const modalityData = {
-      modalityId: "mod-3",
-      modalityName: "Hybrid",
-      virtualPrice: 60000,
-      presencialPrice: 90000,
-      offersPresencial: true,
+      modality_id: "mod-3",
+      modality_name: "Hybrid",
+      virtual_price: 60000,
+      presencial_price: 90000,
+      offers_presencial: true,
       description: "Hybrid therapy sessions",
-      isDefault: false,
+      is_default: false,
     };
 
     await act(async () => {
@@ -189,13 +189,13 @@ describe("useProfessionalModalities", () => {
     });
 
     const modalityData = {
-      modalityId: "mod-3",
-      modalityName: "Hybrid",
-      virtualPrice: 60000,
-      presencialPrice: 90000,
-      offersPresencial: true,
+      modality_id: "mod-3",
+      modality_name: "Hybrid",
+      virtual_price: 60000,
+      presencial_price: 90000,
+      offers_presencial: true,
       description: "Hybrid therapy sessions",
-      isDefault: false,
+      is_default: false,
     };
 
     await act(async () => {
@@ -208,13 +208,13 @@ describe("useProfessionalModalities", () => {
   it("should update modality successfully", async () => {
     const mockModality = {
       id: "1",
-      modalityId: "mod-1",
-      modalityName: "Virtual",
-      virtualPrice: 55000,
-      presencialPrice: 0,
-      offersPresencial: false,
+      modality_id: "mod-1",
+      modality_name: "Virtual",
+      virtual_price: 55000,
+      presencial_price: 0,
+      offers_presencial: false,
       description: "Updated description",
-      isDefault: true,
+      is_default: true,
     };
 
     mockApiClient.getProfessionalModalities.mockResolvedValue([]);
@@ -227,7 +227,7 @@ describe("useProfessionalModalities", () => {
     });
 
     const updateData = {
-      virtualPrice: 55000,
+      virtual_price: 55000,
       description: "Updated description",
     };
 
@@ -251,7 +251,7 @@ describe("useProfessionalModalities", () => {
     });
 
     const updateData = {
-      virtualPrice: 55000,
+      virtual_price: 55000,
       description: "Updated description",
     };
 
@@ -266,23 +266,23 @@ describe("useProfessionalModalities", () => {
     const mockModalities = [
       {
         id: "1",
-        modalityId: "mod-1",
-        modalityName: "Virtual",
-        virtualPrice: 50000,
-        presencialPrice: 0,
-        offersPresencial: false,
+        modality_id: "mod-1",
+        modality_name: "Virtual",
+        virtual_price: 50000,
+        presencial_price: 0,
+        offers_presencial: false,
         description: "Virtual therapy sessions",
-        isDefault: true,
+        is_default: true,
       },
       {
         id: "2",
-        modalityId: "mod-2",
-        modalityName: "Presencial",
-        virtualPrice: 0,
-        presencialPrice: 80000,
-        offersPresencial: true,
+        modality_id: "mod-2",
+        modality_name: "Presencial",
+        virtual_price: 0,
+        presencial_price: 80000,
+        offers_presencial: true,
         description: "In-person therapy sessions",
-        isDefault: false,
+        is_default: false,
       },
     ];
 
@@ -327,23 +327,23 @@ describe("useProfessionalModalities", () => {
     const mockModalities = [
       {
         id: "1",
-        modalityId: "mod-1",
-        modalityName: "Virtual",
-        virtualPrice: 50000,
-        presencialPrice: 0,
-        offersPresencial: false,
+        modality_id: "mod-1",
+        modality_name: "Virtual",
+        virtual_price: 50000,
+        presencial_price: 0,
+        offers_presencial: false,
         description: "Virtual therapy sessions",
-        isDefault: false,
+        is_default: false,
       },
       {
         id: "2",
-        modalityId: "mod-2",
-        modalityName: "Presencial",
-        virtualPrice: 0,
-        presencialPrice: 80000,
-        offersPresencial: true,
+        modality_id: "mod-2",
+        modality_name: "Presencial",
+        virtual_price: 0,
+        presencial_price: 80000,
+        offers_presencial: true,
         description: "In-person therapy sessions",
-        isDefault: true,
+        is_default: true,
       },
     ];
 
@@ -363,8 +363,8 @@ describe("useProfessionalModalities", () => {
       await result.current.setDefaultModality("2");
     });
 
-    expect(result.current.modalities[0].isDefault).toBe(false);
-    expect(result.current.modalities[1].isDefault).toBe(true);
+    expect(result.current.modalities[0].is_default).toBe(false);
+    expect(result.current.modalities[1].is_default).toBe(true);
   });
 
   it("should handle set default modality errors", async () => {

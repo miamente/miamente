@@ -120,4 +120,3 @@ class ProfessionalProfileResponse(ProfessionalProfileBase):
         return value or {}
 
     model_config = ConfigDict(from_attributes=True)
-

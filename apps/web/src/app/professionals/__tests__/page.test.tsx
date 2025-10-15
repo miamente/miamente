@@ -131,20 +131,76 @@ vi.mock("next/link", () => ({
 describe("ProfessionalsPage", () => {
   const mockProfessionals = [
     {
-      id: "1",
-      full_name: "Dr. John Doe",
-      bio: "Experienced therapist with 10 years of practice",
-      rate_cents: 50000,
-      specialty_ids: ["specialty-1", "specialty-2"],
-      profile_picture: "/images/profile.jpg",
+      account: {
+        id: "1",
+        full_name: "Dr. John Doe",
+        email: "john@example.com",
+        phone_country_code: "+1",
+        phone_number: "123456789",
+        is_active: true,
+        is_verified: true,
+        role_id: "role-2",
+        role_name: "professional",
+        profile_picture: "/images/profile.jpg",
+        created_at: "2024-01-01T00:00:00Z",
+        updated_at: "2024-01-01T00:00:00Z",
+      },
+      role: "professional",
+      profile: {
+        account_id: "1",
+        license_number: "LIC-123",
+        years_experience: 5,
+        rate_cents: 50000,
+        custom_rate_cents: null,
+        currency: "COP",
+        short_description: "Experienced therapist with 10 years of practice",
+        academic_experience: [],
+        work_experience: [],
+        certifications: [],
+        languages: ["spanish", "english"],
+        timezone: "America/Bogota",
+        working_hours: {},
+        emergency_contact_name: null,
+        emergency_phone_country_code: null,
+        emergency_phone_number: null,
+        specialty_ids: ["specialty-1", "specialty-2"],
+      },
     },
     {
-      id: "2",
-      full_name: "Dr. Jane Smith",
-      bio: "Specialized in cognitive behavioral therapy",
-      rate_cents: 75000,
-      specialty_ids: ["specialty-3"],
-      profile_picture: undefined,
+      account: {
+        id: "2",
+        full_name: "Dr. Jane Smith",
+        email: "jane@example.com",
+        phone_country_code: "+1",
+        phone_number: "987654321",
+        is_active: true,
+        is_verified: true,
+        role_id: "role-2",
+        role_name: "professional",
+        profile_picture: undefined,
+        created_at: "2024-01-01T00:00:00Z",
+        updated_at: "2024-01-01T00:00:00Z",
+      },
+      role: "professional",
+      profile: {
+        account_id: "2",
+        license_number: "LIC-456",
+        years_experience: 8,
+        rate_cents: 75000,
+        custom_rate_cents: null,
+        currency: "COP",
+        short_description: "Specialized in cognitive behavioral therapy",
+        academic_experience: [],
+        work_experience: [],
+        certifications: [],
+        languages: ["spanish", "english"],
+        timezone: "America/Bogota",
+        working_hours: {},
+        emergency_contact_name: null,
+        emergency_phone_country_code: null,
+        emergency_phone_number: null,
+        specialty_ids: ["specialty-1", "specialty-2"],
+      },
     },
   ];
 
@@ -274,7 +330,7 @@ describe("ProfessionalsPage", () => {
     renderWithAct(<ProfessionalsPage />);
 
     await waitFor(() => {
-      expect(screen.getByText("Sin foto")).toBeInTheDocument();
+      expect(screen.getAllByText("Sin foto")).toHaveLength(2);
     });
   });
 
@@ -520,6 +576,51 @@ describe("ProfessionalsPage", () => {
   });
 
   it("should render professional images correctly", async () => {
+    const professionalsWithImages = [
+      {
+        account: {
+          id: "1",
+          full_name: "Dr. John Doe",
+          email: "john@example.com",
+          phone_country_code: "+1",
+          phone_number: "123456789",
+          is_active: true,
+          is_verified: true,
+          role_id: "role-2",
+          role_name: "professional",
+        },
+        role: {
+          id: "role-2",
+          name: "professional",
+        },
+        profile: {
+          account_id: "1",
+          license_number: "LIC-123",
+          years_experience: 5,
+          rate_cents: 50000,
+          custom_rate_cents: null,
+          currency: "COP",
+          short_description: "Experienced therapist with 10 years of practice",
+          academic_experience: [],
+          work_experience: [],
+          certifications: [],
+          languages: ["spanish", "english"],
+          timezone: "America/Bogota",
+          working_hours: {},
+          emergency_contact_name: null,
+          emergency_phone_country_code: null,
+          emergency_phone_number: null,
+          specialty_ids: ["specialty-1", "specialty-2"],
+          profile_picture: "/images/profile.jpg",
+        },
+      },
+    ];
+
+    mockQueryProfessionals.mockResolvedValue({
+      professionals: professionalsWithImages,
+      lastSnapshot: null,
+    });
+
     renderWithAct(<ProfessionalsPage />);
 
     await waitFor(() => {
@@ -553,12 +654,41 @@ describe("ProfessionalsPage", () => {
   it("should handle professionals without specialties", async () => {
     const professionalsWithoutSpecialties = [
       {
-        id: "1",
-        full_name: "Dr. John Doe",
-        bio: "Experienced therapist",
-        rate_cents: 50000,
-        specialty_ids: [],
-        profile_picture: "/images/profile.jpg",
+        account: {
+          id: "1",
+          full_name: "Dr. John Doe",
+          email: "john@example.com",
+          phone_country_code: "+1",
+          phone_number: "123456789",
+          is_active: true,
+          is_verified: true,
+          role_id: "role-2",
+          role_name: "professional",
+        },
+        role: {
+          id: "role-2",
+          name: "professional",
+        },
+        profile: {
+          account_id: "1",
+          license_number: "LIC-123",
+          years_experience: 5,
+          rate_cents: 50000,
+          custom_rate_cents: null,
+          currency: "COP",
+          short_description: "Experienced therapist",
+          academic_experience: [],
+          work_experience: [],
+          certifications: [],
+          languages: ["spanish", "english"],
+          timezone: "America/Bogota",
+          working_hours: {},
+          emergency_contact_name: null,
+          emergency_phone_country_code: null,
+          emergency_phone_number: null,
+          specialty_ids: [],
+          profile_picture: "/images/profile.jpg",
+        },
       },
     ];
 
@@ -577,12 +707,41 @@ describe("ProfessionalsPage", () => {
   it("should handle external image URLs", async () => {
     const professionalsWithExternalImages = [
       {
-        id: "1",
-        full_name: "Dr. John Doe",
-        bio: "Experienced therapist",
-        rate_cents: 50000,
-        specialty_ids: ["specialty-1"],
-        profile_picture: "https://example.com/image.jpg",
+        account: {
+          id: "1",
+          full_name: "Dr. John Doe",
+          email: "john@example.com",
+          phone_country_code: "+1",
+          phone_number: "123456789",
+          is_active: true,
+          is_verified: true,
+          role_id: "role-2",
+          role_name: "professional",
+        },
+        role: {
+          id: "role-2",
+          name: "professional",
+        },
+        profile: {
+          account_id: "1",
+          license_number: "LIC-123",
+          years_experience: 5,
+          rate_cents: 50000,
+          custom_rate_cents: null,
+          currency: "COP",
+          short_description: "Experienced therapist",
+          academic_experience: [],
+          work_experience: [],
+          certifications: [],
+          languages: ["spanish", "english"],
+          timezone: "America/Bogota",
+          working_hours: {},
+          emergency_contact_name: null,
+          emergency_phone_country_code: null,
+          emergency_phone_number: null,
+          specialty_ids: ["specialty-1"],
+          profile_picture: "https://example.com/image.jpg",
+        },
       },
     ];
 

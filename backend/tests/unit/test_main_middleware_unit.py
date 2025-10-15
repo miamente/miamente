@@ -1,11 +1,12 @@
+import os
+from unittest.mock import MagicMock, patch
+
+import pytest
+from fastapi.testclient import TestClient
+
 """
 Unit tests for app.main middleware functionality.
 """
-
-import pytest
-from unittest.mock import patch, MagicMock
-from fastapi.testclient import TestClient
-import os
 
 
 @pytest.fixture

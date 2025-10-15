@@ -18,7 +18,7 @@ export default function UserProfilePage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
-  const [profile, setProfile] = useState<UserProfile | null>(null);
+  const [, setProfile] = useState<UserProfile | null>(null);
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [currentPhotoUrl] = useState<string | null>(null);
 

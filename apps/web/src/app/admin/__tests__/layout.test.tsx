@@ -52,15 +52,22 @@ vi.mock("@/lib/utils", () => ({
 // Mock authentication hooks
 vi.mock("@/hooks/useAuth", () => ({
   useAuth: () => ({
-    user: { id: "1", email: "admin@example.com", role: "admin" },
+    account: { id: "1", email: "admin@example.com", role_name: "admin" },
     isLoading: false,
+    isAuthenticated: true,
+  }),
+  useUnifiedAuth: () => ({
+    account: { id: "1", email: "admin@example.com", role_name: "admin" },
+    isLoading: false,
+    isAuthenticated: true,
+    role: "admin",
   }),
 }));
 
 vi.mock("@/hooks/useRole", () => ({
   useRole: () => ({
     hasAnyRole: () => true,
-    userProfile: { role: "admin" },
+    userProfile: { id: "1", role: "admin" },
     loading: false,
   }),
 }));

@@ -7,9 +7,9 @@ import { apiClient } from "@/lib/api";
 // Mock the API client
 vi.mock("@/lib/api", () => ({
   apiClient: {
-    getAllProfessionalsAdmin: vi.fn(),
-    deleteProfessional: vi.fn(),
-    toggleProfessionalStatus: vi.fn(),
+    getAllAccountsAdmin: vi.fn(),
+    deleteAccount: vi.fn(),
+    toggleAccountStatus: vi.fn(),
   },
 }));
 
@@ -65,6 +65,8 @@ const mockProfessionals = [
     is_verified: true,
     created_at: "2024-01-01T00:00:00Z",
     updated_at: "2024-01-10T00:00:00Z",
+    role_id: "role-1",
+    role_name: "professional",
     license_number: "LIC-123",
     years_experience: 5,
     rate_cents: 5000,
@@ -79,6 +81,8 @@ const mockProfessionals = [
     is_active: false,
     is_verified: false,
     created_at: "2024-01-02T00:00:00Z",
+    role_id: "role-1",
+    role_name: "professional",
     license_number: "LIC-456",
     years_experience: 8,
     rate_cents: 7500,
@@ -90,8 +94,8 @@ const mockProfessionals = [
 describe("AdminProfessionalsPage", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(apiClient.getAllProfessionalsAdmin).mockResolvedValue({
-      items: mockProfessionals as unknown as import("@/lib/types").ProfessionalWithCountResponse[],
+    vi.mocked(apiClient.getAllAccountsAdmin).mockResolvedValue({
+      items: mockProfessionals,
       total: 2,
       page: 1,
       page_size: 10,
@@ -159,7 +163,7 @@ describe("AdminProfessionalsPage", () => {
     fireEvent.click(searchButton);
     
     await waitFor(() => {
-      expect(apiClient.getAllProfessionalsAdmin).toHaveBeenCalled();
+      expect(apiClient.getAllAccountsAdmin).toHaveBeenCalled();
     });
   });
 
@@ -174,12 +178,12 @@ describe("AdminProfessionalsPage", () => {
     fireEvent.click(clearButton);
     
     await waitFor(() => {
-      expect(apiClient.getAllProfessionalsAdmin).toHaveBeenCalled();
+      expect(apiClient.getAllAccountsAdmin).toHaveBeenCalled();
     });
   });
 
   it("shows loading state", () => {
-    vi.mocked(apiClient.getAllProfessionalsAdmin).mockImplementation(() => new Promise(() => {}));
+    vi.mocked(apiClient.getAllAccountsAdmin).mockImplementation(() => new Promise(() => {}));
     
     render(<AdminProfessionalsPage />);
     
@@ -187,7 +191,7 @@ describe("AdminProfessionalsPage", () => {
   });
 
   it("shows error message when API fails", async () => {
-    vi.mocked(apiClient.getAllProfessionalsAdmin).mockRejectedValue(new Error("API Error"));
+    vi.mocked(apiClient.getAllAccountsAdmin).mockRejectedValue(new Error("API Error"));
     
     render(<AdminProfessionalsPage />);
     
@@ -197,7 +201,7 @@ describe("AdminProfessionalsPage", () => {
   });
 
   it("shows no results message when no professionals", async () => {
-    vi.mocked(apiClient.getAllProfessionalsAdmin).mockResolvedValue({
+    vi.mocked(apiClient.getAllAccountsAdmin).mockResolvedValue({
       items: [],
       total: 0,
       page: 1,

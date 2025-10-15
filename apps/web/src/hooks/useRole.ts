@@ -14,13 +14,13 @@ export interface UserProfile {
 }
 
 export function useRole() {
-  const { user, isLoading: authLoading } = useAuth();
+  const { account, isLoading: authLoading, isAuthenticated } = useAuth();
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!user) {
+    if (!isAuthenticated || !account) {
       setUserProfile(null);
       setLoading(false);
       return;
@@ -62,7 +62,7 @@ export function useRole() {
     };
 
     fetchUserProfile();
-  }, [user]);
+  }, [account, isAuthenticated]);
 
   const hasRole = (role: UserRole): boolean => {
     return userProfile?.role === role;

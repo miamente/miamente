@@ -108,11 +108,14 @@ describe("ApiClient", () => {
     await expect(apiClient.get("/test")).rejects.toThrow("Network error");
   });
 
-  it("should login user and store token", async () => {
-    const credentials = { email: "test@example.com", password: TEST_PASSWORD };
+  it("should login and store token", async () => {
+    const email = "test@example.com";
+    const password = TEST_PASSWORD;
     const mockResponse = {
-      user: { id: "1", email: "test@example.com" },
+      account: { id: "1", email: "test@example.com" },
       access_token: "new-token",
+      role: "user",
+      profile: {},
     };
 
     vi.mocked(fetch).mockResolvedValue({
@@ -120,7 +123,7 @@ describe("ApiClient", () => {
       json: () => Promise.resolve(mockResponse),
     } as Response);
 
-    const result = await apiClient.loginUser(credentials);
+    const result = await apiClient.login(email, password);
 
     expect(localStorageMock.setItem).toHaveBeenCalledWith("access_token", "new-token");
     expect(result).toEqual(mockResponse);
@@ -138,16 +141,20 @@ describe("ApiClient", () => {
   });
 
   it("should get current user with stored token", async () => {
-    const mockUser = { id: "1", email: "test@example.com", full_name: "Test User" };
+    const mockResponse = {
+      account: { id: "1", email: "test@example.com", full_name: "Test User" },
+      role: "user",
+      profile: {},
+    };
     vi.mocked(fetch).mockResolvedValue({
       ok: true,
-      json: () => Promise.resolve(mockUser),
+      json: () => Promise.resolve(mockResponse),
     } as Response);
 
     const result = await apiClient.getCurrentUser();
 
     expect(fetch).toHaveBeenCalledWith(
-      "/api/v1/auth/me",
+      "/api/v1/accounts/me",
       expect.objectContaining({
         method: "GET",
         headers: expect.objectContaining({
@@ -156,7 +163,7 @@ describe("ApiClient", () => {
         }),
       }),
     );
-    expect(result).toEqual(mockUser);
+    expect(result).toEqual(mockResponse);
   });
 
   // Additional comprehensive tests for better coverage
@@ -219,38 +226,24 @@ describe("ApiClient", () => {
   });
 
   describe("Authentication Methods", () => {
-    it("should login professional and store token", async () => {
-      const credentials = { email: "prof@example.com", password: TEST_PASSWORD };
-      const mockResponse = {
-        professional: { id: "1", email: "prof@example.com" },
-        access_token: "prof-token",
-      };
-
-      vi.mocked(fetch).mockResolvedValue({
-        ok: true,
-        json: () => Promise.resolve(mockResponse),
-      } as Response);
-
-      const result = await apiClient.loginProfessional(credentials);
-
-      expect(fetch).toHaveBeenCalledWith(
-        expect.stringContaining("/auth/login/professional"),
-        expect.objectContaining({
-          method: "POST",
-          body: JSON.stringify(credentials),
-        }),
-      );
-      expect(localStorageMock.setItem).toHaveBeenCalledWith("access_token", "prof-token");
-      expect(result).toEqual(mockResponse);
-    });
-
     it("should register user", async () => {
       const userData = {
         email: "new@example.com",
         password: TEST_PASSWORD,
         full_name: "New User",
+        phone_country_code: "+57",
+        phone_number: "3001234567",
+        date_of_birth: "1990-01-01",
+        emergency_contact_name: "Emergency Contact",
+        emergency_contact_relationship: "Parent",
+        emergency_contact_phone: "+573009876543",
       };
-      const mockResponse = { id: "1", email: "new@example.com" };
+      const mockResponse = {
+        account: { id: "1", email: "new@example.com" },
+        access_token: "new-token",
+        role: "user",
+        profile: {},
+      };
 
       vi.mocked(fetch).mockResolvedValue({
         ok: true,
@@ -260,12 +253,13 @@ describe("ApiClient", () => {
       const result = await apiClient.registerUser(userData);
 
       expect(fetch).toHaveBeenCalledWith(
-        expect.stringContaining("/auth/register/user"),
+        expect.stringContaining("/accounts/register/user"),
         expect.objectContaining({
           method: "POST",
           body: JSON.stringify(userData),
         }),
       );
+      expect(localStorageMock.setItem).toHaveBeenCalledWith("access_token", "new-token");
       expect(result).toEqual(mockResponse);
     });
 
@@ -274,10 +268,26 @@ describe("ApiClient", () => {
         email: "newprof@example.com",
         password: TEST_PASSWORD,
         full_name: "New Professional",
-        specialty: "Psychology",
+        phone_country_code: "+57",
+        phone_number: "3001234567",
+        date_of_birth: "1985-01-01",
+        emergency_contact_name: "Emergency Contact",
+        emergency_contact_relationship: "Spouse",
+        emergency_contact_phone: "+573009876543",
+        license_number: "PSY-12345",
+        years_experience: 5,
         rate_cents: 10000,
+        currency: "USD",
+        short_description: "Professional description",
+        languages: ["Spanish", "English"],
+        timezone: "America/Bogota",
       };
-      const mockResponse = { id: "1", email: "newprof@example.com" };
+      const mockResponse = {
+        account: { id: "1", email: "newprof@example.com" },
+        access_token: "prof-token",
+        role: "professional",
+        profile: {},
+      };
 
       vi.mocked(fetch).mockResolvedValue({
         ok: true,
@@ -287,45 +297,54 @@ describe("ApiClient", () => {
       const result = await apiClient.registerProfessional(professionalData);
 
       expect(fetch).toHaveBeenCalledWith(
-        expect.stringContaining("/auth/register/professional"),
+        expect.stringContaining("/accounts/register/professional"),
         expect.objectContaining({
           method: "POST",
           body: JSON.stringify(professionalData),
         }),
       );
+      expect(localStorageMock.setItem).toHaveBeenCalledWith("access_token", "prof-token");
       expect(result).toEqual(mockResponse);
     });
   });
 
-  describe("User Methods", () => {
-    it("should get user by id", async () => {
-      const mockUser = { id: "1", email: "user@example.com" };
+  describe("Account Methods", () => {
+    it("should get account by id", async () => {
+      const mockResponse = {
+        account: { id: "1", email: "user@example.com" },
+        role: "user",
+        profile: {},
+      };
       vi.mocked(fetch).mockResolvedValue({
         ok: true,
-        json: () => Promise.resolve(mockUser),
+        json: () => Promise.resolve(mockResponse),
       } as Response);
 
-      const result = await apiClient.getUser("1");
+      const result = await apiClient.getAccountById("1");
 
       expect(fetch).toHaveBeenCalledWith(
-        expect.stringContaining("/users/1"),
+        expect.stringContaining("/accounts/1"),
         expect.objectContaining({ method: "GET" }),
       );
-      expect(result).toEqual(mockUser);
+      expect(result).toEqual(mockResponse);
     });
 
-    it("should update user", async () => {
+    it("should update account", async () => {
       const updateData = { full_name: "Updated Name" };
-      const mockResponse = { id: "1", full_name: "Updated Name" };
+      const mockResponse = {
+        account: { id: "1", full_name: "Updated Name" },
+        role: "user",
+        profile: {},
+      };
       vi.mocked(fetch).mockResolvedValue({
         ok: true,
         json: () => Promise.resolve(mockResponse),
       } as Response);
 
-      const result = await apiClient.updateUser("1", updateData);
+      const result = await apiClient.updateAccount("1", updateData);
 
       expect(fetch).toHaveBeenCalledWith(
-        expect.stringContaining("/users/1"),
+        expect.stringContaining("/accounts/1"),
         expect.objectContaining({
           method: "PATCH",
           body: JSON.stringify(updateData),
@@ -334,108 +353,66 @@ describe("ApiClient", () => {
       expect(result).toEqual(mockResponse);
     });
 
-    it("should delete user", async () => {
+    it("should delete account", async () => {
       vi.mocked(fetch).mockResolvedValue({
         ok: true,
         json: () => Promise.resolve({}),
       } as Response);
 
-      await apiClient.deleteUser("1");
+      await apiClient.deleteAccount("1");
 
       expect(fetch).toHaveBeenCalledWith(
-        expect.stringContaining("/users/1"),
+        expect.stringContaining("/accounts/1"),
         expect.objectContaining({ method: "DELETE" }),
       );
     });
-  });
 
-  describe("Professional Methods", () => {
-    it("should get professional by id", async () => {
-      const mockProfessional = { id: "1", email: "prof@example.com" };
-      vi.mocked(fetch).mockResolvedValue({
-        ok: true,
-        json: () => Promise.resolve(mockProfessional),
-      } as Response);
-
-      const result = await apiClient.getProfessional("1");
-
-      expect(fetch).toHaveBeenCalledWith(
-        expect.stringContaining("/professionals/1"),
-        expect.objectContaining({ method: "GET" }),
-      );
-      expect(result).toEqual(mockProfessional);
-    });
-
-    it("should get professionals with parameters", async () => {
-      const mockResponse = [{ id: "1", email: "test@example.com", full_name: "Test Professional" }];
+    it("should toggle account status", async () => {
+      const mockResponse = {
+        account: { id: "1", is_active: false },
+        role: "user",
+        profile: {},
+      };
       vi.mocked(fetch).mockResolvedValue({
         ok: true,
         json: () => Promise.resolve(mockResponse),
       } as Response);
 
-      const result = await apiClient.getProfessionals({
-        skip: 0,
-        limit: 10,
-        specialty: "Psychology",
-      });
+      const result = await apiClient.toggleAccountStatus("1", false);
 
       expect(fetch).toHaveBeenCalledWith(
-        expect.stringContaining("/professionals?limit=10&specialty=Psychology"),
-        expect.objectContaining({ method: "GET" }),
-      );
-      expect(result).toEqual(mockResponse);
-    });
-
-    it("should get professionals without parameters", async () => {
-      const mockResponse = [{ id: "1", email: "test@example.com", full_name: "Test Professional" }];
-      vi.mocked(fetch).mockResolvedValue({
-        ok: true,
-        json: () => Promise.resolve(mockResponse),
-      } as Response);
-
-      const result = await apiClient.getProfessionals();
-
-      expect(fetch).toHaveBeenCalledWith(
-        expect.stringContaining("/professionals"),
-        expect.objectContaining({ method: "GET" }),
-      );
-      expect(result).toEqual(mockResponse);
-    });
-
-    it("should update professional", async () => {
-      const updateData = { bio: "Updated bio" };
-      const mockResponse = { id: "1", bio: "Updated bio" };
-      vi.mocked(fetch).mockResolvedValue({
-        ok: true,
-        json: () => Promise.resolve(mockResponse),
-      } as Response);
-
-      const result = await apiClient.updateProfessional("1", updateData);
-
-      expect(fetch).toHaveBeenCalledWith(
-        expect.stringContaining("/professionals/1"),
+        expect.stringContaining("/accounts/1/status"),
         expect.objectContaining({
           method: "PATCH",
-          body: JSON.stringify(updateData),
+          body: JSON.stringify({ is_active: false }),
         }),
       );
       expect(result).toEqual(mockResponse);
     });
 
-    it("should delete professional", async () => {
+    it("should get all accounts (admin)", async () => {
+      const mockResponse = {
+        items: [{ id: "1", email: "user@example.com" }],
+        total: 1,
+        page: 1,
+        page_size: 10,
+        total_pages: 1,
+      };
       vi.mocked(fetch).mockResolvedValue({
         ok: true,
-        json: () => Promise.resolve({}),
+        json: () => Promise.resolve(mockResponse),
       } as Response);
 
-      await apiClient.deleteProfessional("1");
+      const result = await apiClient.getAllAccountsAdmin();
 
       expect(fetch).toHaveBeenCalledWith(
-        expect.stringContaining("/professionals/1"),
-        expect.objectContaining({ method: "DELETE" }),
+        expect.stringContaining("/accounts/admin/all"),
+        expect.objectContaining({ method: "GET" }),
       );
+      expect(result).toEqual(mockResponse);
     });
   });
+
 
   describe("Error Handling", () => {
     it("should handle error responses without JSON", async () => {

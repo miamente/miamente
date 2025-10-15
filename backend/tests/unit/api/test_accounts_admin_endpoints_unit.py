@@ -18,7 +18,6 @@ from app.api.v1.endpoints.accounts import (
 )
 from app.models.account import Account
 from app.models.role import Role
-from app.models.user_profile import UserProfile
 from app.schemas.account import AccountUpdate, AccountStatusUpdate
 
 # Mark all tests in this module as asyncio
@@ -70,7 +69,9 @@ class TestGetAllAccountsAdmin:
     """Tests for GET /accounts/admin/all endpoint."""
 
     @patch("app.api.v1.endpoints.accounts.AccountService")
-    async def test_get_all_accounts_admin_success(self, mock_service_class, mock_db, mock_admin_user, mock_user_account):
+    async def test_get_all_accounts_admin_success(
+        self, mock_service_class, mock_db, mock_admin_user, mock_user_account
+    ):
         """Test successful retrieval of all accounts with pagination."""
         # Setup mock service
         mock_service = mock_service_class.return_value
@@ -130,9 +131,7 @@ class TestGetAccountById:
         assert response.account.email == "user@test.com"
 
     @patch("app.api.v1.endpoints.accounts.AccountService")
-    async def test_get_account_by_id_forbidden_other_account(
-        self, mock_service_class, mock_db, mock_user_account
-    ):
+    async def test_get_account_by_id_forbidden_other_account(self, mock_service_class, mock_db, mock_user_account):
         """Test that non-admin cannot access other accounts."""
         mock_service = mock_service_class.return_value
         mock_service.get_account_by_id.return_value = mock_user_account
@@ -140,9 +139,7 @@ class TestGetAccountById:
         other_account_id = str(uuid.uuid4())
 
         with pytest.raises(HTTPException) as exc_info:
-            await get_account_by_id(
-                account_id=other_account_id, db=mock_db, current_user_id=str(mock_user_account.id)
-            )
+            await get_account_by_id(account_id=other_account_id, db=mock_db, current_user_id=str(mock_user_account.id))
 
         assert exc_info.value.status_code == 403
 
@@ -169,7 +166,7 @@ class TestUpdateAccountById:
         """Test successful account update."""
         mock_service = mock_service_class.return_value
         mock_service.get_account_by_id.return_value = mock_user_account
-        
+
         updated_account = Account(
             id=mock_user_account.id,
             role_id=mock_user_account.role_id,
@@ -181,7 +178,7 @@ class TestUpdateAccountById:
             created_at=datetime.utcnow(),
         )
         updated_account.role = mock_user_account.role
-        
+
         mock_service.update_account.return_value = updated_account
         mock_service.get_account_with_profile.return_value = {
             "account": updated_account,
@@ -210,7 +207,9 @@ class TestDeleteAccountById:
         mock_service = mock_service_class.return_value
         mock_service.get_account_by_id.return_value = mock_user_account
 
-        result = await delete_account_by_id(account_id=str(mock_user_account.id), db=mock_db, _admin_user=mock_admin_user)
+        result = await delete_account_by_id(
+            account_id=str(mock_user_account.id), db=mock_db, _admin_user=mock_admin_user
+        )
 
         assert result is None
         mock_db.delete.assert_called_once_with(mock_user_account)
@@ -232,7 +231,9 @@ class TestToggleAccountStatus:
     """Tests for PATCH /accounts/{account_id}/status endpoint."""
 
     @patch("app.api.v1.endpoints.accounts.AccountService")
-    async def test_toggle_account_status_activate(self, mock_service_class, mock_db, mock_admin_user, mock_user_account):
+    async def test_toggle_account_status_activate(
+        self, mock_service_class, mock_db, mock_admin_user, mock_user_account
+    ):
         """Test activating an account."""
         mock_service = mock_service_class.return_value
         mock_service.activate_account.return_value = True
@@ -279,4 +280,3 @@ class TestToggleAccountStatus:
             )
 
         assert exc_info.value.status_code == 404
-

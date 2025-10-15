@@ -12,7 +12,7 @@ import { TherapeuticApproachesSelector } from "./TherapeuticApproachesSelector";
 import { ModalitiesEditor } from "./ModalitiesEditor";
 import { useProfessionalSpecialties } from "@/hooks/useProfessionalSpecialties";
 import { useProfessionalTherapeuticApproaches } from "@/hooks/useProfessionalTherapeuticApproaches";
-import type { ProfessionalModality } from "@/lib/types";
+import type { ProfessionalModalityFrontend, ProfessionalModality } from "@/lib/types";
 
 interface ProfessionalInfoFormProps {
   readonly professionalId: string;
@@ -154,7 +154,7 @@ export function ProfessionalInfoForm({
       {/* Modalidades */}
       <ModalitiesEditor
         disabled={disabled}
-        value={formData.modalities}
+        value={formData.modalities as unknown as readonly ProfessionalModalityFrontend[]}
         onChange={(modalities) => handleInputChange("modalities", modalities)}
       />
 

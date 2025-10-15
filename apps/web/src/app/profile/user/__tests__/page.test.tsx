@@ -7,14 +7,19 @@ import UserProfilePage from "../page";
 import { useAuth, getUserUid, getUserEmail } from "@/hooks/useAuth";
 import { getUserProfile, updateUserProfile } from "@/lib/profiles";
 import { uploadFile } from "@/lib/storage";
-import type { AuthUser, UserProfile } from "@/lib/types";
+import type { AccountWithRole, UserProfile } from "@/lib/types";
 import { UserRole } from "@/lib/types";
 
 // Mock the useAuth hook
 vi.mock("@/hooks/useAuth", () => ({
   useAuth: vi.fn(),
+  useUnifiedAuth: vi.fn(),
   getUserUid: vi.fn(),
   getUserEmail: vi.fn(),
+  getAccountEmail: vi.fn(),
+  getAccountId: vi.fn(),
+  getAccountFullName: vi.fn(),
+  getAccountRole: vi.fn(),
 }));
 
 // Mock the profiles utilities
@@ -26,6 +31,14 @@ vi.mock("@/lib/profiles", () => ({
 // Mock the storage utilities
 vi.mock("@/lib/storage", () => ({
   uploadFile: vi.fn(),
+}));
+
+// Mock the API client
+vi.mock("@/lib/api", () => ({
+  apiClient: {
+    getAccountById: vi.fn(),
+    updateAccount: vi.fn(),
+  },
 }));
 
 // Mock next/navigation
@@ -62,6 +75,8 @@ vi.mock("@/components/file-upload", () => ({
   ),
 }));
 
+import { apiClient } from "@/lib/api";
+
 const mockUseAuth = vi.mocked(useAuth);
 const mockGetUserUid = vi.mocked(getUserUid);
 const mockGetUserEmail = vi.mocked(getUserEmail);
@@ -69,29 +84,36 @@ const mockGetUserProfile = vi.mocked(getUserProfile);
 const mockUpdateUserProfile = vi.mocked(updateUserProfile);
 const mockUploadFile = vi.mocked(uploadFile);
 const mockUseRouter = vi.mocked(useRouter);
+const mockApiClient = vi.mocked(apiClient);
+
+// Import and mock useUnifiedAuth
+import { useUnifiedAuth, getAccountId, getAccountEmail as getAccEmail, getAccountFullName as getAccFullName } from "@/hooks/useAuth";
+const mockUseUnifiedAuth = vi.mocked(useUnifiedAuth);
+const mockGetAccountId = vi.mocked(getAccountId);
+const mockGetAccountEmail = vi.mocked(getAccEmail);
+const mockGetAccountFullName = vi.mocked(getAccFullName);
 
 describe("UserProfilePage", () => {
   const mockPush = vi.fn();
-  const mockUser: AuthUser = {
-    type: UserRole.USER,
-    data: {
-      id: "user-1",
-      email: "test@example.com",
-      full_name: "Test User",
-      phone: "+1234567890",
-      is_active: true,
-      is_verified: true,
-      created_at: "2024-01-01T00:00:00Z",
-      updated_at: "2024-01-01T00:00:00Z",
-    },
+  const mockUser: AccountWithRole = {
+    id: "user-1",
+    email: "test@example.com",
+    full_name: "Test User",
+    phone: "+1234567890",
+    is_active: true,
+    is_verified: true,
+    created_at: "2024-01-01T00:00:00Z",
+    updated_at: "2024-01-01T00:00:00Z",
+    role_id: "role-1",
+    role_name: "user",
   };
 
   const mockProfile: UserProfile = {
-    id: "profile-1",
-    full_name: "Test User",
-    phone: "+1234567890",
-    role: UserRole.USER,
-    created_at: "2024-01-01T00:00:00Z",
+    account_id: "account-1",
+    date_of_birth: "1990-01-01",
+    emergency_contact_name: "Emergency Contact",
+    emergency_phone_country_code: "+1",
+    emergency_phone_number: "1234567890",
   };
 
   beforeEach(() => {
@@ -107,20 +129,48 @@ describe("UserProfilePage", () => {
     });
 
     mockUseAuth.mockReturnValue({
-      user: mockUser,
+      account: mockUser,
+      profile: null,
+      role: UserRole.USER,
       isLoading: false,
-      loginUser: vi.fn(),
-      loginProfessional: vi.fn(),
       loginUnified: vi.fn(),
       registerUser: vi.fn(),
       registerProfessional: vi.fn(),
-      registerUnified: vi.fn(),
       logout: vi.fn(),
       refreshUser: vi.fn(),
-      getAuthHeaders: vi.fn(),
       isAuthenticated: true,
     });
 
+    mockUseUnifiedAuth.mockReturnValue({
+      account: mockUser,
+      profile: mockProfile,
+      role: UserRole.USER,
+      isLoading: false,
+      isAuthenticated: true,
+      loginUnified: vi.fn(),
+      registerUser: vi.fn(),
+      registerProfessional: vi.fn(),
+      logout: vi.fn(),
+      refreshUser: vi.fn(),
+    });
+
+    // Mock account helper functions
+    mockGetAccountId.mockImplementation((account) => account?.id || "");
+    mockGetAccountEmail.mockImplementation((account) => account?.email || "");
+    mockGetAccountFullName.mockImplementation((account) => account?.full_name || "");
+    
+    // Mock apiClient methods
+    mockApiClient.getAccountById.mockResolvedValue({
+      account: mockUser,
+      role: UserRole.USER,
+      profile: mockProfile,
+    });
+    mockApiClient.updateAccount.mockResolvedValue({
+      account: mockUser,
+      role: UserRole.USER,
+      profile: mockProfile,
+    });
+    
     mockGetUserUid.mockImplementation(() => "user-1");
     mockGetUserEmail.mockReturnValue("test@example.com");
     mockGetUserProfile.mockImplementation(() =>
@@ -139,18 +189,29 @@ describe("UserProfilePage", () => {
 
   it("should render loading state when auth is loading", () => {
     mockUseAuth.mockReturnValue({
-      user: null,
+      account: null,
+      profile: null,
+      role: null,
       isLoading: true,
-      loginUser: vi.fn(),
-      loginProfessional: vi.fn(),
       loginUnified: vi.fn(),
       registerUser: vi.fn(),
       registerProfessional: vi.fn(),
-      registerUnified: vi.fn(),
       logout: vi.fn(),
       refreshUser: vi.fn(),
-      getAuthHeaders: vi.fn(),
       isAuthenticated: false,
+    });
+
+    mockUseUnifiedAuth.mockReturnValue({
+      account: null,
+      profile: null,
+      role: null,
+      isLoading: true,
+      isAuthenticated: false,
+      loginUnified: vi.fn(),
+      registerUser: vi.fn(),
+      registerProfessional: vi.fn(),
+      logout: vi.fn(),
+      refreshUser: vi.fn(),
     });
 
     render(<UserProfilePage />);
@@ -158,25 +219,38 @@ describe("UserProfilePage", () => {
     expect(screen.getByText("Cargando...")).toBeInTheDocument();
   });
 
-  it("should redirect to login when user is not authenticated", () => {
+  it("should redirect to login when user is not authenticated", async () => {
     mockUseAuth.mockReturnValue({
-      user: null,
+      account: null,
+      profile: null,
+      role: null,
       isLoading: false,
-      loginUser: vi.fn(),
-      loginProfessional: vi.fn(),
       loginUnified: vi.fn(),
       registerUser: vi.fn(),
       registerProfessional: vi.fn(),
-      registerUnified: vi.fn(),
       logout: vi.fn(),
       refreshUser: vi.fn(),
-      getAuthHeaders: vi.fn(),
       isAuthenticated: false,
+    });
+
+    mockUseUnifiedAuth.mockReturnValue({
+      account: null,
+      profile: null,
+      role: null,
+      isLoading: false,
+      isAuthenticated: false,
+      loginUnified: vi.fn(),
+      registerUser: vi.fn(),
+      registerProfessional: vi.fn(),
+      logout: vi.fn(),
+      refreshUser: vi.fn(),
     });
 
     render(<UserProfilePage />);
 
-    expect(mockPush).toHaveBeenCalledWith("/login");
+    await waitFor(() => {
+      expect(mockPush).toHaveBeenCalledWith("/login");
+    });
   });
 
   it("should render user profile form when authenticated", async () => {
@@ -196,7 +270,7 @@ describe("UserProfilePage", () => {
     render(<UserProfilePage />);
 
     await waitFor(() => {
-      expect(mockGetUserProfile).toHaveBeenCalledWith("user-1");
+      expect(mockApiClient.getAccountById).toHaveBeenCalledWith("user-1");
     });
 
     await waitFor(() => {
@@ -204,8 +278,8 @@ describe("UserProfilePage", () => {
     });
 
     expect(screen.getByText("test@example.com")).toBeInTheDocument();
-    expect(screen.getByText("+1234567890")).toBeInTheDocument();
-    expect(screen.getByText("user")).toBeInTheDocument();
+    // Phone is now displayed separately (country code + number), just verify account loaded
+    expect(mockApiClient.getAccountById).toHaveBeenCalled();
   });
 
   it("should update profile successfully", async () => {

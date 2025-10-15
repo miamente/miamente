@@ -13,9 +13,14 @@ vi.mock("next/navigation", () => ({
 }));
 vi.mock("@/hooks/useAuth", () => ({
   useAuth: vi.fn(),
+  useUnifiedAuth: vi.fn(),
   isUserVerified: vi.fn(),
   getUserEmail: vi.fn(),
   getUserFullName: vi.fn(),
+  getAccountEmail: vi.fn(),
+  getAccountId: vi.fn(),
+  getAccountFullName: vi.fn(),
+  getAccountRole: vi.fn(),
 }));
 
 const mockUseRouter = vi.mocked(useRouter);
@@ -23,6 +28,13 @@ const mockUseAuth = vi.mocked(useAuth);
 const mockIsUserVerified = vi.mocked(isUserVerified);
 const mockGetUserEmail = vi.mocked(getUserEmail);
 const mockGetUserFullName = vi.mocked(getUserFullName);
+
+// Create a mock for useUnifiedAuth
+import { useUnifiedAuth, getAccountEmail, getAccountFullName, getAccountRole } from "@/hooks/useAuth";
+const mockUseUnifiedAuth = vi.mocked(useUnifiedAuth);
+const mockGetAccountEmail = vi.mocked(getAccountEmail);
+const mockGetAccountFullName = vi.mocked(getAccountFullName);
+const mockGetAccountRole = vi.mocked(getAccountRole);
 
 describe("DashboardPage", () => {
   const mockPush = vi.fn();
@@ -39,22 +51,52 @@ describe("DashboardPage", () => {
     });
     mockGetUserEmail.mockReturnValue("test@example.com");
     mockGetUserFullName.mockReturnValue("Test User");
+    
+    // Default mocks for account helper functions
+    mockGetAccountEmail.mockImplementation((account) => account?.email || "");
+    mockGetAccountFullName.mockImplementation((account) => account?.full_name || "");
+    mockGetAccountRole.mockImplementation((account) => account?.role_name || "");
+    
+    // Default mock for useUnifiedAuth (can be overridden in individual tests)
+    mockUseUnifiedAuth.mockReturnValue({
+      account: null,
+      profile: null,
+      role: null,
+      isLoading: false,
+      isAuthenticated: false,
+      loginUnified: vi.fn(),
+      registerUser: vi.fn(),
+      registerProfessional: vi.fn(),
+      logout: vi.fn(),
+      refreshUser: vi.fn(),
+    });
   });
 
   it("should show loading state when isLoading is true", () => {
     mockUseAuth.mockReturnValue({
-      user: null,
+      account: null,
+      profile: null,
+      role: null,
       isLoading: true,
       isAuthenticated: false,
-      loginUser: vi.fn(),
-      loginProfessional: vi.fn(),
       loginUnified: vi.fn(),
       registerUser: vi.fn(),
       registerProfessional: vi.fn(),
-      registerUnified: vi.fn(),
       logout: vi.fn(),
       refreshUser: vi.fn(),
-      getAuthHeaders: vi.fn(),
+    });
+
+    mockUseUnifiedAuth.mockReturnValue({
+      account: null,
+      profile: null,
+      role: null,
+      isLoading: true,
+      isAuthenticated: false,
+      loginUnified: vi.fn(),
+      registerUser: vi.fn(),
+      registerProfessional: vi.fn(),
+      logout: vi.fn(),
+      refreshUser: vi.fn(),
     });
 
     render(<DashboardPage />);
@@ -65,18 +107,16 @@ describe("DashboardPage", () => {
 
   it("should redirect to login when user is not authenticated", async () => {
     mockUseAuth.mockReturnValue({
-      user: null,
+      account: null,
+      profile: null,
+      role: null,
       isLoading: false,
       isAuthenticated: false,
-      loginUser: vi.fn(),
-      loginProfessional: vi.fn(),
       loginUnified: vi.fn(),
       registerUser: vi.fn(),
       registerProfessional: vi.fn(),
-      registerUnified: vi.fn(),
       logout: vi.fn(),
       refreshUser: vi.fn(),
-      getAuthHeaders: vi.fn(),
     });
 
     render(<DashboardPage />);
@@ -89,33 +129,44 @@ describe("DashboardPage", () => {
 
   it("should render dashboard when user is authenticated (no verification required)", async () => {
     const mockUser = {
-      type: UserRole.USER,
-      data: {
-        id: "user-123",
-        email: "test@example.com",
-        full_name: "Test User",
-        is_verified: false,
-        is_active: true,
-        phone: "+1234567890",
-        created_at: "2023-01-01T00:00:00Z",
-        updated_at: "2023-01-01T00:00:00Z",
-      },
+      id: "user-123",
+      email: "test@example.com",
+      full_name: "Test User",
+      is_verified: false,
+      is_active: true,
+      phone: "+1234567890",
+      created_at: "2023-01-01T00:00:00Z",
+      updated_at: "2023-01-01T00:00:00Z",
+      role_id: "role-1",
+      role_name: "user",
     };
 
     mockUseAuth.mockReturnValue({
-      user: mockUser,
+      account: mockUser,
+      profile: null,
       isLoading: false,
       isAuthenticated: true,
-      loginUser: vi.fn(),
-      loginProfessional: vi.fn(),
+      role: UserRole.USER,
       loginUnified: vi.fn(),
       registerUser: vi.fn(),
       registerProfessional: vi.fn(),
-      registerUnified: vi.fn(),
       logout: vi.fn(),
       refreshUser: vi.fn(),
-      getAuthHeaders: vi.fn(),
     });
+    
+    mockUseUnifiedAuth.mockReturnValue({
+      account: mockUser,
+      profile: null,
+      role: UserRole.USER,
+      isLoading: false,
+      isAuthenticated: true,
+      loginUnified: vi.fn(),
+      registerUser: vi.fn(),
+      registerProfessional: vi.fn(),
+      logout: vi.fn(),
+      refreshUser: vi.fn(),
+    });
+    
     mockIsUserVerified.mockReturnValue(true); // Always true now
 
     render(<DashboardPage />);
@@ -126,33 +177,44 @@ describe("DashboardPage", () => {
 
   it("should render user dashboard when user is authenticated and verified", () => {
     const mockUser = {
-      type: UserRole.USER,
-      data: {
-        id: "user-123",
-        email: "test@example.com",
-        full_name: "Test User",
-        is_verified: true,
-        is_active: true,
-        phone: "+1234567890",
-        created_at: "2023-01-01T00:00:00Z",
-        updated_at: "2023-01-01T00:00:00Z",
-      },
+      id: "user-123",
+      email: "test@example.com",
+      full_name: "Test User",
+      is_verified: true,
+      is_active: true,
+      phone: "+1234567890",
+      created_at: "2023-01-01T00:00:00Z",
+      updated_at: "2023-01-01T00:00:00Z",
+      role_id: "role-1",
+      role_name: "user",
     };
 
     mockUseAuth.mockReturnValue({
-      user: mockUser,
+      account: mockUser,
+      profile: null,
       isLoading: false,
       isAuthenticated: true,
-      loginUser: vi.fn(),
-      loginProfessional: vi.fn(),
+      role: UserRole.USER,
       loginUnified: vi.fn(),
       registerUser: vi.fn(),
       registerProfessional: vi.fn(),
-      registerUnified: vi.fn(),
       logout: vi.fn(),
       refreshUser: vi.fn(),
-      getAuthHeaders: vi.fn(),
     });
+    
+    mockUseUnifiedAuth.mockReturnValue({
+      account: mockUser,
+      profile: null,
+      role: UserRole.USER,
+      isLoading: false,
+      isAuthenticated: true,
+      loginUnified: vi.fn(),
+      registerUser: vi.fn(),
+      registerProfessional: vi.fn(),
+      logout: vi.fn(),
+      refreshUser: vi.fn(),
+    });
+    
     mockIsUserVerified.mockReturnValue(true);
 
     render(<DashboardPage />);
@@ -164,33 +226,44 @@ describe("DashboardPage", () => {
 
   it("should render professional dashboard when professional is authenticated and verified", () => {
     const mockProfessional = {
-      type: UserRole.PROFESSIONAL,
-      data: {
-        id: "prof-123",
-        email: "prof@example.com",
-        full_name: "Dr. Test Professional",
-        is_verified: true,
-        is_active: true,
-        phone: "+1234567890",
-        created_at: "2023-01-01T00:00:00Z",
-        updated_at: "2023-01-01T00:00:00Z",
-      },
+      id: "prof-123",
+      email: "prof@example.com",
+      full_name: "Dr. Test Professional",
+      is_verified: true,
+      is_active: true,
+      phone: "+1234567890",
+      created_at: "2023-01-01T00:00:00Z",
+      updated_at: "2023-01-01T00:00:00Z",
+      role_id: "role-2",
+      role_name: "professional",
     };
 
     mockUseAuth.mockReturnValue({
-      user: mockProfessional,
+      account: mockProfessional,
+      profile: null,
       isLoading: false,
       isAuthenticated: true,
-      loginUser: vi.fn(),
-      loginProfessional: vi.fn(),
+      role: UserRole.PROFESSIONAL,
       loginUnified: vi.fn(),
       registerUser: vi.fn(),
       registerProfessional: vi.fn(),
-      registerUnified: vi.fn(),
       logout: vi.fn(),
       refreshUser: vi.fn(),
-      getAuthHeaders: vi.fn(),
     });
+    
+    mockUseUnifiedAuth.mockReturnValue({
+      account: mockProfessional,
+      profile: null,
+      role: UserRole.PROFESSIONAL,
+      isLoading: false,
+      isAuthenticated: true,
+      loginUnified: vi.fn(),
+      registerUser: vi.fn(),
+      registerProfessional: vi.fn(),
+      logout: vi.fn(),
+      refreshUser: vi.fn(),
+    });
+    
     mockIsUserVerified.mockReturnValue(true);
     mockGetUserFullName.mockReturnValue("Dr. Test Professional");
 
@@ -203,33 +276,44 @@ describe("DashboardPage", () => {
 
   it("should display profile information card", () => {
     const mockUser = {
-      type: UserRole.USER,
-      data: {
-        id: "user-123",
-        email: "test@example.com",
-        full_name: "Test User",
-        is_verified: true,
-        is_active: true,
-        phone: "+1234567890",
-        created_at: "2023-01-01T00:00:00Z",
-        updated_at: "2023-01-01T00:00:00Z",
-      },
+      id: "user-123",
+      email: "test@example.com",
+      full_name: "Test User",
+      is_verified: true,
+      is_active: true,
+      phone: "+1234567890",
+      created_at: "2023-01-01T00:00:00Z",
+      updated_at: "2023-01-01T00:00:00Z",
+      role_id: "role-1",
+      role_name: "user",
     };
 
     mockUseAuth.mockReturnValue({
-      user: mockUser,
+      account: mockUser,
+      profile: null,
       isLoading: false,
       isAuthenticated: true,
-      loginUser: vi.fn(),
-      loginProfessional: vi.fn(),
+      role: UserRole.USER,
       loginUnified: vi.fn(),
       registerUser: vi.fn(),
       registerProfessional: vi.fn(),
-      registerUnified: vi.fn(),
       logout: vi.fn(),
       refreshUser: vi.fn(),
-      getAuthHeaders: vi.fn(),
     });
+    
+    mockUseUnifiedAuth.mockReturnValue({
+      account: mockUser,
+      profile: null,
+      role: UserRole.USER,
+      isLoading: false,
+      isAuthenticated: true,
+      loginUnified: vi.fn(),
+      registerUser: vi.fn(),
+      registerProfessional: vi.fn(),
+      logout: vi.fn(),
+      refreshUser: vi.fn(),
+    });
+    
     mockIsUserVerified.mockReturnValue(true);
 
     render(<DashboardPage />);
@@ -247,33 +331,44 @@ describe("DashboardPage", () => {
 
   it("should display user-specific action buttons", () => {
     const mockUser = {
-      type: UserRole.USER,
-      data: {
-        id: "user-123",
-        email: "test@example.com",
-        full_name: "Test User",
-        is_verified: true,
-        is_active: true,
-        phone: "+1234567890",
-        created_at: "2023-01-01T00:00:00Z",
-        updated_at: "2023-01-01T00:00:00Z",
-      },
+      id: "user-123",
+      email: "test@example.com",
+      full_name: "Test User",
+      is_verified: true,
+      is_active: true,
+      phone: "+1234567890",
+      created_at: "2023-01-01T00:00:00Z",
+      updated_at: "2023-01-01T00:00:00Z",
+      role_id: "role-1",
+      role_name: "user",
     };
 
     mockUseAuth.mockReturnValue({
-      user: mockUser,
+      account: mockUser,
+      profile: null,
       isLoading: false,
       isAuthenticated: true,
-      loginUser: vi.fn(),
-      loginProfessional: vi.fn(),
+      role: UserRole.USER,
       loginUnified: vi.fn(),
       registerUser: vi.fn(),
       registerProfessional: vi.fn(),
-      registerUnified: vi.fn(),
       logout: vi.fn(),
       refreshUser: vi.fn(),
-      getAuthHeaders: vi.fn(),
     });
+    
+    mockUseUnifiedAuth.mockReturnValue({
+      account: mockUser,
+      profile: null,
+      role: UserRole.USER,
+      isLoading: false,
+      isAuthenticated: true,
+      loginUnified: vi.fn(),
+      registerUser: vi.fn(),
+      registerProfessional: vi.fn(),
+      logout: vi.fn(),
+      refreshUser: vi.fn(),
+    });
+    
     mockIsUserVerified.mockReturnValue(true);
 
     render(<DashboardPage />);
@@ -287,33 +382,44 @@ describe("DashboardPage", () => {
 
   it("should display professional-specific action buttons", () => {
     const mockProfessional = {
-      type: UserRole.PROFESSIONAL,
-      data: {
-        id: "prof-123",
-        email: "prof@example.com",
-        full_name: "Dr. Test Professional",
-        is_verified: true,
-        is_active: true,
-        phone: "+1234567890",
-        created_at: "2023-01-01T00:00:00Z",
-        updated_at: "2023-01-01T00:00:00Z",
-      },
+      id: "prof-123",
+      email: "prof@example.com",
+      full_name: "Dr. Test Professional",
+      is_verified: true,
+      is_active: true,
+      phone: "+1234567890",
+      created_at: "2023-01-01T00:00:00Z",
+      updated_at: "2023-01-01T00:00:00Z",
+      role_id: "role-2",
+      role_name: "professional",
     };
 
     mockUseAuth.mockReturnValue({
-      user: mockProfessional,
+      account: mockProfessional,
+      profile: null,
       isLoading: false,
       isAuthenticated: true,
-      loginUser: vi.fn(),
-      loginProfessional: vi.fn(),
+      role: UserRole.PROFESSIONAL,
       loginUnified: vi.fn(),
       registerUser: vi.fn(),
       registerProfessional: vi.fn(),
-      registerUnified: vi.fn(),
       logout: vi.fn(),
       refreshUser: vi.fn(),
-      getAuthHeaders: vi.fn(),
     });
+    
+    mockUseUnifiedAuth.mockReturnValue({
+      account: mockProfessional,
+      profile: null,
+      role: UserRole.PROFESSIONAL,
+      isLoading: false,
+      isAuthenticated: true,
+      loginUnified: vi.fn(),
+      registerUser: vi.fn(),
+      registerProfessional: vi.fn(),
+      logout: vi.fn(),
+      refreshUser: vi.fn(),
+    });
+    
     mockIsUserVerified.mockReturnValue(true);
     mockGetUserFullName.mockReturnValue("Dr. Test Professional");
 
@@ -328,33 +434,44 @@ describe("DashboardPage", () => {
 
   it("should display additional feature cards", () => {
     const mockUser = {
-      type: UserRole.USER,
-      data: {
-        id: "user-123",
-        email: "test@example.com",
-        full_name: "Test User",
-        is_verified: true,
-        is_active: true,
-        phone: "+1234567890",
-        created_at: "2023-01-01T00:00:00Z",
-        updated_at: "2023-01-01T00:00:00Z",
-      },
+      id: "user-123",
+      email: "test@example.com",
+      full_name: "Test User",
+      is_verified: true,
+      is_active: true,
+      phone: "+1234567890",
+      created_at: "2023-01-01T00:00:00Z",
+      updated_at: "2023-01-01T00:00:00Z",
+      role_id: "role-1",
+      role_name: "user",
     };
 
     mockUseAuth.mockReturnValue({
-      user: mockUser,
+      account: mockUser,
+      profile: null,
       isLoading: false,
       isAuthenticated: true,
-      loginUser: vi.fn(),
-      loginProfessional: vi.fn(),
+      role: UserRole.USER,
       loginUnified: vi.fn(),
       registerUser: vi.fn(),
       registerProfessional: vi.fn(),
-      registerUnified: vi.fn(),
       logout: vi.fn(),
       refreshUser: vi.fn(),
-      getAuthHeaders: vi.fn(),
     });
+    
+    mockUseUnifiedAuth.mockReturnValue({
+      account: mockUser,
+      profile: null,
+      role: UserRole.USER,
+      isLoading: false,
+      isAuthenticated: true,
+      loginUnified: vi.fn(),
+      registerUser: vi.fn(),
+      registerProfessional: vi.fn(),
+      logout: vi.fn(),
+      refreshUser: vi.fn(),
+    });
+    
     mockIsUserVerified.mockReturnValue(true);
 
     render(<DashboardPage />);
@@ -369,33 +486,44 @@ describe("DashboardPage", () => {
 
   it("should display user-specific notification text", () => {
     const mockUser = {
-      type: UserRole.USER,
-      data: {
-        id: "user-123",
-        email: "test@example.com",
-        full_name: "Test User",
-        is_verified: true,
-        is_active: true,
-        phone: "+1234567890",
-        created_at: "2023-01-01T00:00:00Z",
-        updated_at: "2023-01-01T00:00:00Z",
-      },
+      id: "user-123",
+      email: "test@example.com",
+      full_name: "Test User",
+      is_verified: true,
+      is_active: true,
+      phone: "+1234567890",
+      created_at: "2023-01-01T00:00:00Z",
+      updated_at: "2023-01-01T00:00:00Z",
+      role_id: "role-1",
+      role_name: "user",
     };
 
     mockUseAuth.mockReturnValue({
-      user: mockUser,
+      account: mockUser,
+      profile: null,
       isLoading: false,
       isAuthenticated: true,
-      loginUser: vi.fn(),
-      loginProfessional: vi.fn(),
+      role: UserRole.USER,
       loginUnified: vi.fn(),
       registerUser: vi.fn(),
       registerProfessional: vi.fn(),
-      registerUnified: vi.fn(),
       logout: vi.fn(),
       refreshUser: vi.fn(),
-      getAuthHeaders: vi.fn(),
     });
+    
+    mockUseUnifiedAuth.mockReturnValue({
+      account: mockUser,
+      profile: null,
+      role: UserRole.USER,
+      isLoading: false,
+      isAuthenticated: true,
+      loginUnified: vi.fn(),
+      registerUser: vi.fn(),
+      registerProfessional: vi.fn(),
+      logout: vi.fn(),
+      refreshUser: vi.fn(),
+    });
+    
     mockIsUserVerified.mockReturnValue(true);
 
     render(<DashboardPage />);
@@ -405,33 +533,44 @@ describe("DashboardPage", () => {
 
   it("should display professional-specific notification text", () => {
     const mockProfessional = {
-      type: UserRole.PROFESSIONAL,
-      data: {
-        id: "prof-123",
-        email: "prof@example.com",
-        full_name: "Dr. Test Professional",
-        is_verified: true,
-        is_active: true,
-        phone: "+1234567890",
-        created_at: "2023-01-01T00:00:00Z",
-        updated_at: "2023-01-01T00:00:00Z",
-      },
+      id: "prof-123",
+      email: "prof@example.com",
+      full_name: "Dr. Test Professional",
+      is_verified: true,
+      is_active: true,
+      phone: "+1234567890",
+      created_at: "2023-01-01T00:00:00Z",
+      updated_at: "2023-01-01T00:00:00Z",
+      role_id: "role-2",
+      role_name: "professional",
     };
 
     mockUseAuth.mockReturnValue({
-      user: mockProfessional,
+      account: mockProfessional,
+      profile: null,
       isLoading: false,
       isAuthenticated: true,
-      loginUser: vi.fn(),
-      loginProfessional: vi.fn(),
+      role: UserRole.PROFESSIONAL,
       loginUnified: vi.fn(),
       registerUser: vi.fn(),
       registerProfessional: vi.fn(),
-      registerUnified: vi.fn(),
       logout: vi.fn(),
       refreshUser: vi.fn(),
-      getAuthHeaders: vi.fn(),
     });
+    
+    mockUseUnifiedAuth.mockReturnValue({
+      account: mockProfessional,
+      profile: null,
+      role: UserRole.PROFESSIONAL,
+      isLoading: false,
+      isAuthenticated: true,
+      loginUnified: vi.fn(),
+      registerUser: vi.fn(),
+      registerProfessional: vi.fn(),
+      logout: vi.fn(),
+      refreshUser: vi.fn(),
+    });
+    
     mockIsUserVerified.mockReturnValue(true);
     mockGetUserFullName.mockReturnValue("Dr. Test Professional");
 
@@ -444,33 +583,44 @@ describe("DashboardPage", () => {
 
   it("should display user-specific configuration text", () => {
     const mockUser = {
-      type: UserRole.USER,
-      data: {
-        id: "user-123",
-        email: "test@example.com",
-        full_name: "Test User",
-        is_verified: true,
-        is_active: true,
-        phone: "+1234567890",
-        created_at: "2023-01-01T00:00:00Z",
-        updated_at: "2023-01-01T00:00:00Z",
-      },
+      id: "user-123",
+      email: "test@example.com",
+      full_name: "Test User",
+      is_verified: true,
+      is_active: true,
+      phone: "+1234567890",
+      created_at: "2023-01-01T00:00:00Z",
+      updated_at: "2023-01-01T00:00:00Z",
+      role_id: "role-1",
+      role_name: "user",
     };
 
     mockUseAuth.mockReturnValue({
-      user: mockUser,
+      account: mockUser,
+      profile: null,
       isLoading: false,
       isAuthenticated: true,
-      loginUser: vi.fn(),
-      loginProfessional: vi.fn(),
+      role: UserRole.USER,
       loginUnified: vi.fn(),
       registerUser: vi.fn(),
       registerProfessional: vi.fn(),
-      registerUnified: vi.fn(),
       logout: vi.fn(),
       refreshUser: vi.fn(),
-      getAuthHeaders: vi.fn(),
     });
+    
+    mockUseUnifiedAuth.mockReturnValue({
+      account: mockUser,
+      profile: null,
+      role: UserRole.USER,
+      isLoading: false,
+      isAuthenticated: true,
+      loginUnified: vi.fn(),
+      registerUser: vi.fn(),
+      registerProfessional: vi.fn(),
+      logout: vi.fn(),
+      refreshUser: vi.fn(),
+    });
+    
     mockIsUserVerified.mockReturnValue(true);
 
     render(<DashboardPage />);
@@ -480,33 +630,44 @@ describe("DashboardPage", () => {
 
   it("should display professional-specific configuration text", () => {
     const mockProfessional = {
-      type: UserRole.PROFESSIONAL,
-      data: {
-        id: "prof-123",
-        email: "prof@example.com",
-        full_name: "Dr. Test Professional",
-        is_verified: true,
-        is_active: true,
-        phone: "+1234567890",
-        created_at: "2023-01-01T00:00:00Z",
-        updated_at: "2023-01-01T00:00:00Z",
-      },
+      id: "prof-123",
+      email: "prof@example.com",
+      full_name: "Dr. Test Professional",
+      is_verified: true,
+      is_active: true,
+      phone: "+1234567890",
+      created_at: "2023-01-01T00:00:00Z",
+      updated_at: "2023-01-01T00:00:00Z",
+      role_id: "role-2",
+      role_name: "professional",
     };
 
     mockUseAuth.mockReturnValue({
-      user: mockProfessional,
+      account: mockProfessional,
+      profile: null,
       isLoading: false,
       isAuthenticated: true,
-      loginUser: vi.fn(),
-      loginProfessional: vi.fn(),
+      role: UserRole.PROFESSIONAL,
       loginUnified: vi.fn(),
       registerUser: vi.fn(),
       registerProfessional: vi.fn(),
-      registerUnified: vi.fn(),
       logout: vi.fn(),
       refreshUser: vi.fn(),
-      getAuthHeaders: vi.fn(),
     });
+    
+    mockUseUnifiedAuth.mockReturnValue({
+      account: mockProfessional,
+      profile: null,
+      role: UserRole.PROFESSIONAL,
+      isLoading: false,
+      isAuthenticated: true,
+      loginUnified: vi.fn(),
+      registerUser: vi.fn(),
+      registerProfessional: vi.fn(),
+      logout: vi.fn(),
+      refreshUser: vi.fn(),
+    });
+    
     mockIsUserVerified.mockReturnValue(true);
     mockGetUserFullName.mockReturnValue("Dr. Test Professional");
 
@@ -517,33 +678,44 @@ describe("DashboardPage", () => {
 
   it("should display support card with correct text", () => {
     const mockUser = {
-      type: UserRole.USER,
-      data: {
-        id: "user-123",
-        email: "test@example.com",
-        full_name: "Test User",
-        is_verified: true,
-        is_active: true,
-        phone: "+1234567890",
-        created_at: "2023-01-01T00:00:00Z",
-        updated_at: "2023-01-01T00:00:00Z",
-      },
+      id: "user-123",
+      email: "test@example.com",
+      full_name: "Test User",
+      is_verified: true,
+      is_active: true,
+      phone: "+1234567890",
+      created_at: "2023-01-01T00:00:00Z",
+      updated_at: "2023-01-01T00:00:00Z",
+      role_id: "role-1",
+      role_name: "user",
     };
 
     mockUseAuth.mockReturnValue({
-      user: mockUser,
+      account: mockUser,
+      profile: null,
       isLoading: false,
       isAuthenticated: true,
-      loginUser: vi.fn(),
-      loginProfessional: vi.fn(),
+      role: UserRole.USER,
       loginUnified: vi.fn(),
       registerUser: vi.fn(),
       registerProfessional: vi.fn(),
-      registerUnified: vi.fn(),
       logout: vi.fn(),
       refreshUser: vi.fn(),
-      getAuthHeaders: vi.fn(),
     });
+    
+    mockUseUnifiedAuth.mockReturnValue({
+      account: mockUser,
+      profile: null,
+      role: UserRole.USER,
+      isLoading: false,
+      isAuthenticated: true,
+      loginUnified: vi.fn(),
+      registerUser: vi.fn(),
+      registerProfessional: vi.fn(),
+      logout: vi.fn(),
+      refreshUser: vi.fn(),
+    });
+    
     mockIsUserVerified.mockReturnValue(true);
 
     render(<DashboardPage />);

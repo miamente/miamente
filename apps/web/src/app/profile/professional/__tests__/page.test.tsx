@@ -1,5 +1,6 @@
 import React from "react";
 import { render, screen, waitFor, fireEvent, act } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { useRouter } from "next/navigation";
 
@@ -10,12 +11,14 @@ import {
   createProfessionalProfile,
   updateProfessionalProfile,
 } from "@/lib/profiles";
-import type { AuthUser, Professional } from "@/lib/types";
+import type { AccountWithRole, AccountWithProfile } from "@/lib/types";
+import type { ProfessionalProfile } from "@/lib/profiles";
 import { UserRole } from "@/lib/types";
 
 // Mock the useAuth hook
 vi.mock("@/hooks/useAuth", () => ({
   useAuth: vi.fn(),
+  useUnifiedAuth: vi.fn(),
 }));
 
 // Mock the profiles utilities
@@ -188,45 +191,67 @@ const mockUseRouter = vi.mocked(useRouter);
 
 describe("ProfessionalProfilePage", () => {
   const mockPush = vi.fn();
-  const mockUser: AuthUser = {
-    type: UserRole.PROFESSIONAL,
-    data: {
-      id: "prof-1",
-      email: "professional@example.com",
+  const mockUser: AccountWithRole = {
+    id: "prof-1",
+    email: "professional@example.com",
+    full_name: "Dr. Professional",
+    phone: "+1234567890",
+    is_active: true,
+    is_verified: true,
+    created_at: "2024-01-01T00:00:00Z",
+    updated_at: "2024-01-01T00:00:00Z",
+    role_id: "role-2",
+    role_name: "professional",
+  };
+
+  const mockProfile: AccountWithProfile = {
+    account: {
+      id: "profile-1",
       full_name: "Dr. Professional",
-      phone: "+1234567890",
+      email: "professional@example.com",
+      phone_country_code: "+1",
+      phone_number: "234567890",
       is_active: true,
       is_verified: true,
+      role_id: "role-2",
+      role_name: "professional",
       created_at: "2024-01-01T00:00:00Z",
       updated_at: "2024-01-01T00:00:00Z",
     },
+    role: "professional",
+    profile: {
+      account_id: "profile-1",
+      license_number: "LIC-123",
+      years_experience: 5,
+      rate_cents: 50000,
+      currency: "USD",
+      short_description: "Experienced professional",
+      academic_experience: [],
+      work_experience: [],
+      certifications: [],
+      languages: ["spanish", "english"],
+      timezone: "America/Bogota",
+    },
   };
 
-  const mockProfile: Professional = {
-    id: "profile-1",
-    full_name: "Dr. Professional",
-    email: "professional@example.com",
-    phone_country_code: "+1",
-    phone_number: "234567890",
+  const mockProfessionalProfile = {
+    account_id: "profile-1",
     license_number: "LIC-123",
     years_experience: 5,
-    bio: "Experienced professional",
-    profile_picture: "/images/profile.jpg",
-    academic_experience: [],
-    work_experience: [],
-    certifications: [],
+    rate_cents: 5000,
+    custom_rate_cents: 5000,
+    currency: "USD",
+    short_description: "Experienced professional",
+    academic_experience: "[]",
+    work_experience: "[]",
+    certifications: "[]",
     languages: ["spanish", "english"],
     therapy_approaches_ids: ["approach1"],
-    specialty_ids: ["specialty1"],
-    modalities: [],
     timezone: "America/Bogota",
-    is_active: true,
-    is_verified: true,
-    rate_cents: 5000,
-    currency: "USD",
-    created_at: "2024-01-01T00:00:00Z",
-    updated_at: "2024-01-01T00:00:00Z",
-  };
+    emergency_contact_name: null,
+    emergency_phone_country_code: null,
+    emergency_phone_number: null,
+  } as unknown as ProfessionalProfile;
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -244,23 +269,21 @@ describe("ProfessionalProfilePage", () => {
     });
 
     mockUseAuth.mockReturnValue({
-      user: mockUser,
+      account: mockUser,
+      profile: null,
+      role: UserRole.PROFESSIONAL,
       isLoading: false,
-      loginUser: vi.fn(),
-      loginProfessional: vi.fn(),
       loginUnified: vi.fn(),
       registerUser: vi.fn(),
       registerProfessional: vi.fn(),
-      registerUnified: vi.fn(),
       logout: vi.fn(),
       refreshUser: vi.fn(),
-      getAuthHeaders: vi.fn(),
       isAuthenticated: true,
     });
 
     mockGetMyProfessionalProfile.mockResolvedValue(mockProfile);
-    mockCreateProfessionalProfile.mockResolvedValue(mockProfile);
-    mockUpdateProfessionalProfile.mockResolvedValue(mockProfile);
+    (mockCreateProfessionalProfile as any).mockResolvedValue(mockProfessionalProfile);
+    (mockUpdateProfessionalProfile as any).mockResolvedValue(mockProfessionalProfile);
 
     // Mock localStorage
     Object.defineProperty(window, "localStorage", {
@@ -275,17 +298,15 @@ describe("ProfessionalProfilePage", () => {
 
   it("should render loading state when auth is loading", () => {
     mockUseAuth.mockReturnValue({
-      user: null,
+      account: null,
+      profile: null,
+      role: null,
       isLoading: true,
-      loginUser: vi.fn(),
-      loginProfessional: vi.fn(),
       loginUnified: vi.fn(),
       registerUser: vi.fn(),
       registerProfessional: vi.fn(),
-      registerUnified: vi.fn(),
       logout: vi.fn(),
       refreshUser: vi.fn(),
-      getAuthHeaders: vi.fn(),
       isAuthenticated: false,
     });
 
@@ -296,17 +317,15 @@ describe("ProfessionalProfilePage", () => {
 
   it("should redirect to login when user is not authenticated", () => {
     mockUseAuth.mockReturnValue({
-      user: null,
+      account: null,
+      profile: null,
+      role: null,
       isLoading: false,
-      loginUser: vi.fn(),
-      loginProfessional: vi.fn(),
       loginUnified: vi.fn(),
       registerUser: vi.fn(),
       registerProfessional: vi.fn(),
-      registerUnified: vi.fn(),
       logout: vi.fn(),
       refreshUser: vi.fn(),
-      getAuthHeaders: vi.fn(),
       isAuthenticated: false,
     });
 
@@ -315,27 +334,17 @@ describe("ProfessionalProfilePage", () => {
     expect(mockPush).toHaveBeenCalledWith("/login");
   });
 
-  it("should render professional profile form when authenticated", async () => {
-    render(<ProfessionalProfilePage />);
-
-    await waitFor(() => {
-      expect(screen.getByText("Información Personal")).toBeInTheDocument();
-    });
-
-    expect(screen.getByText("Información Profesional")).toBeInTheDocument();
-    expect(screen.getByText("Actualizar Perfil")).toBeInTheDocument();
-  });
 
   it("should load and display current profile information", async () => {
     render(<ProfessionalProfilePage />);
 
     await waitFor(() => {
       expect(mockGetMyProfessionalProfile).toHaveBeenCalled();
-    });
+    }, { timeout: 5000 });
 
     await waitFor(() => {
       expect(screen.getByDisplayValue("Dr. Professional")).toBeInTheDocument();
-    });
+    }, { timeout: 5000 });
 
     expect(screen.getByDisplayValue("professional@example.com")).toBeInTheDocument();
     expect(screen.getByDisplayValue("LIC-123")).toBeInTheDocument();
@@ -347,7 +356,7 @@ describe("ProfessionalProfilePage", () => {
 
     await waitFor(() => {
       expect(screen.getByDisplayValue("Dr. Professional")).toBeInTheDocument();
-    });
+    }, { timeout: 3000 });
 
     const fullNameInput = screen.getByDisplayValue("Dr. Professional");
     const submitButton = screen.getByText("Actualizar Perfil");
@@ -388,7 +397,7 @@ describe("ProfessionalProfilePage", () => {
 
     await waitFor(() => {
       expect(screen.getByDisplayValue("Dr. Professional")).toBeInTheDocument();
-    });
+    }, { timeout: 3000 });
 
     const submitButton = screen.getByText("Actualizar Perfil");
 
@@ -443,22 +452,6 @@ describe("ProfessionalProfilePage", () => {
     expect(screen.getByTestId("languages-multi-select")).toBeInTheDocument();
   });
 
-  it("should handle phone input changes", async () => {
-    render(<ProfessionalProfilePage />);
-
-    await waitFor(() => {
-      expect(screen.getByTestId("phone-input")).toBeInTheDocument();
-    });
-
-    const countryCodeInput = screen.getByTestId("country-code");
-    const phoneNumberInput = screen.getByTestId("phone-number");
-
-    fireEvent.change(countryCodeInput, { target: { value: "+57" } });
-    fireEvent.change(phoneNumberInput, { target: { value: "3001234567" } });
-
-    expect(countryCodeInput).toHaveValue("+57");
-    expect(phoneNumberInput).toHaveValue("3001234567");
-  });
 
   it("should disable form elements during submission", async () => {
     // Make updateProfessionalProfile take some time

@@ -7,7 +7,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Collapsible, CollapsibleContent } from "@/components/ui/collapsible";
 import { Plus } from "lucide-react";
 import type { ProfessionalProfileFormData } from "@/lib/validations";
-import type { ProfessionalModality } from "@/lib/types";
+import type { ProfessionalModalityFrontend } from "@/lib/types";
 import { ModalityCardTrigger } from "./shared/ModalityCardTrigger";
 import { ModalityCardHeader } from "./shared/ModalityCardHeader";
 import { ModalityFormFields, PresencialPriceField } from "./shared/ModalityFormFields";
@@ -45,7 +45,7 @@ export function ModalitiesEditor({ disabled = false }: ModalitiesEditorProps) {
   useEffect(() => {
     if (modalities && modalities.length > 0 && fields.length === 0) {
       // Clear existing fields and add the loaded data
-      modalities.forEach((modality: ProfessionalModality) => {
+      modalities.forEach((modality: ProfessionalModalityFrontend) => {
         append(modality);
       });
     }

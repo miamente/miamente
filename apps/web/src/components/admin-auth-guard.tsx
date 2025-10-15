@@ -10,7 +10,7 @@ interface AdminAuthGuardProps {
 }
 
 export function AdminAuthGuard({ children }: AdminAuthGuardProps) {
-  const { user, isLoading: authLoading } = useAuth();
+  const { account, isAuthenticated, isLoading: authLoading } = useAuth();
   const { hasAnyRole, userProfile, loading: roleLoading } = useRole();
   const router = useRouter();
 
@@ -19,7 +19,7 @@ export function AdminAuthGuard({ children }: AdminAuthGuardProps) {
     if (authLoading || roleLoading) return;
 
     // If no user, redirect to admin login
-    if (!user) {
+    if (!isAuthenticated || !account) {
       router.push("/admin/login");
       return;
     }
@@ -33,7 +33,7 @@ export function AdminAuthGuard({ children }: AdminAuthGuardProps) {
     if (!hasAnyRole([UserRole.ADMIN])) {
       router.push("/admin/login");
     }
-  }, [user, userProfile, authLoading, roleLoading, hasAnyRole, router]);
+  }, [account, isAuthenticated, userProfile, authLoading, roleLoading, hasAnyRole, router]);
 
   // Show loading while checking authentication
   if (authLoading || roleLoading) {
@@ -48,7 +48,7 @@ export function AdminAuthGuard({ children }: AdminAuthGuardProps) {
   }
 
   // If no user, show loading (redirect is happening)
-  if (!user) {
+  if (!isAuthenticated || !account) {
     return (
       <div className="flex h-screen items-center justify-center">
         <div className="flex flex-col items-center space-y-4">

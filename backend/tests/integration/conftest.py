@@ -3,8 +3,13 @@ Pytest configuration for integration tests.
 """
 
 import os
-import pytest
 from datetime import datetime
+
+import pytest
+import requests
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.testclient import TestClient
 from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
@@ -13,10 +18,6 @@ from sqlalchemy.pool import StaticPool
 from app.api.v1.api import api_router
 from app.core.config import get_settings
 from app.core.database import Base, get_db
-from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
-from fastapi.testclient import TestClient
-import requests
 
 pytestmark = pytest.mark.integration
 

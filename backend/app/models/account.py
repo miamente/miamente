@@ -42,4 +42,3 @@ class Account(Base, TimestampMixin):
 
     def __repr__(self):
         return f"<Account(id={self.id}, email={self.email}, role_id={self.role_id})>"
-

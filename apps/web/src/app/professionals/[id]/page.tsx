@@ -23,7 +23,8 @@ import { apiClient } from "@/lib/api";
 import { useUnifiedAuth, getAccountId } from "@/hooks/useAuth";
 import { useTherapyApproachNames } from "@/hooks/useTherapyApproachNames";
 import { useSpecialtyNames } from "@/hooks/useSpecialtyNames";
-import type { AccountWithProfile, ProfessionalProfile } from "@/lib/types";
+import { useProfessionalSpecialties } from "@/hooks/useProfessionalSpecialties";
+import type { AccountWithProfile, ProfessionalProfile, AcademicExperience, Certification } from "@/lib/types";
 
 // Helper function to construct full image URLs
 const getImageUrl = (imagePath: string | undefined): string | undefined => {
@@ -50,11 +51,13 @@ export default function ProfessionalProfilePage() {
   const professionalId = params.id as string;
 
   // Get therapy approach names (will fetch them separately)
-  const { getNames: getTherapyApproachNames, loading: therapyApproachesLoading } =
-    useTherapyApproachNames([]);
+  useTherapyApproachNames([]);
 
   // Get specialty names
-  const { getNames: getSpecialtyNames, loading: specialtiesLoading } = useSpecialtyNames();
+  const { loading: specialtiesLoading } = useSpecialtyNames();
+  
+  // Get professional specialties
+  const { specialties: professionalSpecialties, loading: specialtiesDataLoading } = useProfessionalSpecialties(professionalId);
 
   // Check if the logged-in user is the same as the professional being viewed
   const isOwnProfile = account && professionalAccount && getAccountId(account) === professionalAccount.account.id;
@@ -119,7 +122,7 @@ export default function ProfessionalProfilePage() {
     );
   }
 
-  if (error || !professional) {
+  if (error || !professionalAccount) {
     return (
       <div className="container mx-auto px-4 py-8">
         <div className="mb-6">
@@ -159,12 +162,26 @@ export default function ProfessionalProfilePage() {
   const professionalProfile = professionalAccount.profile as ProfessionalProfile | null;
 
   const renderSpecialtyInfo = () => {
-    if (specialtiesLoading) {
+    if (specialtiesLoading || specialtiesDataLoading) {
       return <Skeleton className="h-4 w-32" />;
     }
 
-    // TODO: Fetch specialties from junction table
-    return "Especialidades disponibles próximamente";
+    if (professionalSpecialties && professionalSpecialties.length > 0) {
+      return (
+        <div className="flex flex-wrap gap-1">
+          {professionalSpecialties.map((specialty) => (
+            <span
+              key={specialty.id}
+              className="rounded-full bg-blue-100 px-2 py-1 text-xs text-blue-800"
+            >
+              {specialty.name}
+            </span>
+          ))}
+        </div>
+      );
+    }
+
+    return "Especialidad no especificada";
   };
 
   return (
@@ -280,7 +297,7 @@ export default function ProfessionalProfilePage() {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
-                    {academicExp.map((education: any) => (
+                    {academicExp.map((education: AcademicExperience) => (
                       <div
                         key={`${education.degree}-${education.institution}`}
                         className="border-l-4 border-blue-200 pl-4"
@@ -318,7 +335,7 @@ export default function ProfessionalProfilePage() {
                 </CardHeader>
                 <CardContent>
                   <ul className="space-y-2">
-                    {certs.map((cert: any) => (
+                    {certs.map((cert: Certification) => (
                       <li key={cert.name} className="flex items-center">
                         <span className="mr-3 h-2 w-2 rounded-full bg-blue-500"></span>
                         <span className="text-gray-700">{cert.name}</span>

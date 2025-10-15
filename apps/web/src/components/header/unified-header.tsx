@@ -36,9 +36,9 @@ export function UnifiedHeader({
   const isAdminVariant = variant === "admin";
 
   // Use the same authentication context for all variants
-  const { user, isLoading: authLoading, logout: authLogout } = useAuthContext();
+  const { account, isLoading: authLoading, logout: authLogout } = useAuthContext();
 
-  // Don't show user menu on login page if configured
+  // Don't show account menu on login page if configured
   const isLoginPage = pathname === "/admin/login";
   const shouldHideUserMenu = finalConfig.hideUserMenuOnLogin && isLoginPage;
 
@@ -56,10 +56,10 @@ export function UnifiedHeader({
     }
   };
 
-  const isAuthenticated = !!user && !authLoading;
-  const userRole = user?.type;
-  const userName = getUserFullName(user);
-  const userEmail = getUserEmail(user);
+  const isAuthenticated = !!account && !authLoading;
+  const accountRole = account?.role_name;
+  const accountName = getUserFullName(account);
+  const accountEmail = getUserEmail(account);
 
   // Get variant-specific configurations
   const getVariantConfig = () => {
@@ -135,7 +135,7 @@ export function UnifiedHeader({
           {/* Desktop Navigation */}
           <Navigation
             navigationItems={variantConfig.navigationItems}
-            userRole={userRole}
+            userRole={accountRole || ""}
             className="flex-1 justify-center"
           />
 
@@ -145,9 +145,9 @@ export function UnifiedHeader({
             {finalConfig.showUserMenu && !shouldHideUserMenu && (
               <div className="hidden lg:block">
                 <UserMenu
-                  userRole={userRole}
-                  userName={userName}
-                  userEmail={userEmail}
+                  userRole={accountRole || ""}
+                  userName={accountName}
+                  userEmail={accountEmail}
                   userMenuOptions={variantConfig.menuOptions}
                   onUserMenuAction={handleUserMenuAction}
                   isAuthenticated={isAuthenticated}
@@ -179,8 +179,8 @@ export function UnifiedHeader({
           navigationItems={variantConfig.navigationItems}
           userMenuOptions={variantConfig.menuOptions}
           onUserMenuAction={handleUserMenuAction}
-          userRole={userRole}
-          userName={userName}
+          userRole={accountRole}
+          userName={accountName}
           isAuthenticated={isAuthenticated}
         />
       )}

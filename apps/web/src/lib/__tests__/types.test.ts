@@ -2,13 +2,12 @@ import { describe, it, expect } from "vitest";
 import {
   UserRole,
   type BaseEntity,
-  type User,
-  type Professional,
+  type AccountWithRole,
+  type AccountWithProfile,
   type AcademicExperience,
   type WorkExperience,
   type Certification,
-  type AuthUser,
-  type LoginResponse,
+  type UnifiedAuthResponse,
   type ApiResponse,
   type PaginatedResponse,
   type ErrorResponse,
@@ -61,107 +60,119 @@ describe("Type Definitions", () => {
     });
   });
 
-  describe("User Types", () => {
-    describe("User", () => {
+  describe("Account Types", () => {
+    describe("AccountWithRole", () => {
       it("should have all required properties", () => {
-        const user: User = {
+        const account: AccountWithRole = {
           id: "123",
           created_at: "2023-01-01T00:00:00Z",
           email: "test@example.com",
           full_name: "Test User",
           is_active: true,
           is_verified: false,
+          role_id: "role-1",
+          role_name: "user",
         };
 
-        expect(user.id).toBe("123");
-        expect(user.email).toBe("test@example.com");
-        expect(user.full_name).toBe("Test User");
-        expect(user.is_active).toBe(true);
-        expect(user.is_verified).toBe(false);
+        expect(account.id).toBe("123");
+        expect(account.email).toBe("test@example.com");
+        expect(account.full_name).toBe("Test User");
+        expect(account.is_active).toBe(true);
+        expect(account.is_verified).toBe(false);
+        expect(account.role_name).toBe("user");
       });
 
       it("should allow optional properties", () => {
-        const user: User = {
+        const account: AccountWithRole = {
           id: "123",
           created_at: "2023-01-01T00:00:00Z",
           email: "test@example.com",
           full_name: "Test User",
           is_active: true,
           is_verified: true,
+          role_id: "role-1",
+          role_name: "user",
           phone: "+1234567890",
-          profile_picture: "https://example.com/avatar.jpg",
-          date_of_birth: "1990-01-01",
-          emergency_contact: "Emergency Contact",
-          emergency_phone: "+0987654321",
-          preferences: '{"theme": "dark"}',
+          phone_country_code: "+1",
+          phone_number: "234567890",
         };
 
-        expect(user.phone).toBe("+1234567890");
-        expect(user.profile_picture).toBe("https://example.com/avatar.jpg");
-        expect(user.preferences).toBe('{"theme": "dark"}');
+        expect(account.phone).toBe("+1234567890");
+        expect(account.phone_country_code).toBe("+1");
+        expect(account.phone_number).toBe("234567890");
       });
     });
   });
 
-  describe("Professional Types", () => {
-    describe("Professional", () => {
+  describe("Account with Profile Types", () => {
+    describe("AccountWithProfile", () => {
       it("should have all required properties", () => {
-        const professional: Professional = {
-          id: "123",
-          created_at: "2023-01-01T00:00:00Z",
-          email: "pro@example.com",
-          full_name: "Professional User",
-          is_active: true,
-          is_verified: false,
-          years_experience: 5,
-          rate_cents: 50000,
-          currency: "USD",
-          academic_experience: [],
-          work_experience: [],
-          certifications: [],
-          languages: [],
-          therapy_approaches_ids: [],
-          specialty_ids: [],
-          modalities: [],
-          timezone: "UTC",
+        const account: AccountWithProfile = {
+          account: {
+            id: "123",
+            created_at: "2023-01-01T00:00:00Z",
+            email: "pro@example.com",
+            full_name: "Professional User",
+            is_active: true,
+            is_verified: false,
+            role_id: "role-2",
+            role_name: "professional",
+          },
+          role: "professional",
+          profile: {
+            account_id: "123",
+            license_number: "LIC123",
+            years_experience: 5,
+            rate_cents: 50000,
+            currency: "USD",
+            academic_experience: [],
+            work_experience: [],
+            certifications: [],
+            languages: [],
+            timezone: "UTC",
+          },
         };
 
-        expect(professional.years_experience).toBe(5);
-        expect(professional.rate_cents).toBe(50000);
-        expect(professional.currency).toBe("USD");
-        expect(professional.timezone).toBe("UTC");
+        expect((account.profile as any)?.years_experience).toBe(5);
+        expect((account.profile as any)?.rate_cents).toBe(50000);
+        expect((account.profile as any)?.currency).toBe("USD");
+        expect((account.profile as any)?.timezone).toBe("UTC");
       });
 
-      it("should allow optional professional properties", () => {
-        const professional: Professional = {
-          id: "123",
-          created_at: "2023-01-01T00:00:00Z",
-          email: "pro@example.com",
-          full_name: "Professional User",
-          is_active: true,
-          is_verified: true,
-          years_experience: 10,
-          rate_cents: 75000,
-          currency: "USD",
-          academic_experience: [],
-          work_experience: [],
-          certifications: [],
-          languages: ["English", "Spanish"],
-          therapy_approaches_ids: ["approach1"],
-          specialty_ids: ["specialty1"],
-          modalities: [],
-          timezone: "America/New_York",
-          phone_country_code: "+1",
-          phone_number: "1234567890",
-          license_number: "LIC123",
-          custom_rate_cents: 80000,
-          bio: "Experienced therapist",
-          working_hours: '{"monday": {"start": "09:00", "end": "17:00"}}',
+      it("should allow optional profile properties", () => {
+        const account: AccountWithProfile = {
+          account: {
+            id: "123",
+            created_at: "2023-01-01T00:00:00Z",
+            email: "pro@example.com",
+            full_name: "Professional User",
+            is_active: true,
+            is_verified: true,
+            role_id: "role-2",
+            role_name: "professional",
+            phone_country_code: "+1",
+            phone_number: "1234567890",
+          },
+          role: "professional",
+          profile: {
+            account_id: "123",
+            license_number: "LIC123",
+            years_experience: 10,
+            rate_cents: 75000,
+            custom_rate_cents: 80000,
+            currency: "USD",
+            academic_experience: [],
+            work_experience: [],
+            certifications: [],
+            languages: ["English", "Spanish"],
+            timezone: "America/New_York",
+            short_description: "Experienced therapist",
+          },
         };
 
-        expect(professional.phone_country_code).toBe("+1");
-        expect(professional.license_number).toBe("LIC123");
-        expect(professional.bio).toBe("Experienced therapist");
+        expect(account.account.phone_country_code).toBe("+1");
+        expect((account.profile as any)?.license_number).toBe("LIC123");
+        expect((account.profile as any)?.short_description).toBe("Experienced therapist");
       });
     });
   });
@@ -252,88 +263,54 @@ describe("Type Definitions", () => {
   });
 
   describe("Auth Types", () => {
-    describe("AuthUser", () => {
-      it("should work with User type", () => {
-        const user: User = {
+    describe("UnifiedAuthResponse", () => {
+      it("should have all required properties", () => {
+        const account: AccountWithRole = {
           id: "123",
           created_at: "2023-01-01T00:00:00Z",
           email: "test@example.com",
           full_name: "Test User",
           is_active: true,
           is_verified: false,
+          role_id: "role-1",
+          role_name: "user",
         };
 
-        const authUser: AuthUser = {
-          type: UserRole.USER,
-          data: user,
+        const authResponse: UnifiedAuthResponse = {
+          access_token: "token123",
+          refresh_token: "refresh123",
+          token_type: "bearer",
+          account: account,
+          role: "user",
         };
 
-        expect(authUser.type).toBe(UserRole.USER);
-        expect(authUser.data).toEqual(user);
+        expect(authResponse.access_token).toBe("token123");
+        expect(authResponse.account).toEqual(account);
+        expect(authResponse.role).toBe("user");
       });
 
-      it("should work with Professional type", () => {
-        const professional: Professional = {
+      it("should work with professional account", () => {
+        const account: AccountWithRole = {
           id: "123",
           created_at: "2023-01-01T00:00:00Z",
           email: "pro@example.com",
           full_name: "Professional User",
           is_active: true,
           is_verified: false,
-          years_experience: 5,
-          rate_cents: 50000,
-          currency: "USD",
-          academic_experience: [],
-          work_experience: [],
-          certifications: [],
-          languages: [],
-          therapy_approaches_ids: [],
-          specialty_ids: [],
-          modalities: [],
-          timezone: "UTC",
+          role_id: "role-2",
+          role_name: "professional",
         };
 
-        const authUser: AuthUser = {
-          type: UserRole.PROFESSIONAL,
-          data: professional,
-        };
-
-        expect(authUser.type).toBe(UserRole.PROFESSIONAL);
-        expect(authUser.data).toEqual(professional);
-      });
-    });
-
-    describe("LoginResponse", () => {
-      it("should have required properties", () => {
-        const response: LoginResponse = {
-          access_token: "jwt-token",
+        const authResponse: UnifiedAuthResponse = {
+          access_token: "token123",
+          refresh_token: "refresh123",
           token_type: "bearer",
-          user_type: "user",
+          account: account,
+          role: "professional",
         };
 
-        expect(response.access_token).toBe("jwt-token");
-        expect(response.token_type).toBe("bearer");
-        expect(response.user_type).toBe("user");
-      });
-
-      it("should allow user data", () => {
-        const user: User = {
-          id: "123",
-          created_at: "2023-01-01T00:00:00Z",
-          email: "test@example.com",
-          full_name: "Test User",
-          is_active: true,
-          is_verified: false,
-        };
-
-        const response: LoginResponse = {
-          access_token: "jwt-token",
-          token_type: "bearer",
-          user_type: "user",
-          user,
-        };
-
-        expect(response.user).toEqual(user);
+        expect(authResponse.role).toBe("professional");
+        expect(authResponse.account).toEqual(account);
       });
     });
   });
@@ -362,7 +339,7 @@ describe("Type Definitions", () => {
 
     describe("PaginatedResponse", () => {
       it("should have all required properties", () => {
-        const response: PaginatedResponse<User> = {
+        const response: PaginatedResponse<AccountWithRole> = {
           data: [],
           total: 0,
           page: 1,

@@ -26,6 +26,7 @@ def browser():
     driver.quit()
 
 
+@pytest.mark.smoke
 def test_smoke_test(browser):
     """Verifica la carga básica y los elementos clave de la página de aterrizaje.
 

@@ -3,8 +3,9 @@ Root pytest configuration for UNIT tests only. Prevents DB connections by defaul
 Integration tests have their own Postgres-backed setup in tests/integration/conftest.py.
 """
 
-import pytest
 from unittest.mock import MagicMock
+
+import pytest
 
 
 @pytest.fixture(scope="function")

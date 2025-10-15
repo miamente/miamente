@@ -103,7 +103,7 @@ describe("Auth Functions", () => {
 
       const result = await registerWithEmail(registerData);
 
-      expect(mockApiClient.post).toHaveBeenCalledWith("/auth/register/user", registerData);
+      expect(mockApiClient.post).toHaveBeenCalledWith("/accounts/register/user", registerData);
       expect(result).toEqual(mockUser);
     });
 
@@ -143,7 +143,7 @@ describe("Auth Functions", () => {
 
       const result = await registerWithEmail(registerData);
 
-      expect(mockApiClient.post).toHaveBeenCalledWith("/auth/register/user", registerData);
+      expect(mockApiClient.post).toHaveBeenCalledWith("/accounts/register/user", registerData);
       expect(result).toEqual(mockUser);
     });
   });
@@ -166,7 +166,7 @@ describe("Auth Functions", () => {
 
       const result = await loginWithEmail(email, password);
 
-      expect(mockApiClient.post).toHaveBeenCalledWith("/auth/login", {
+      expect(mockApiClient.post).toHaveBeenCalledWith("/accounts/login", {
         email,
         password,
       });
@@ -237,11 +237,11 @@ describe("Auth Functions", () => {
         updated_at: "2024-01-01T00:00:00Z",
       };
 
-      mockApiClient.get.mockResolvedValue({ data: mockUser });
+      mockApiClient.get.mockResolvedValue({ account: mockUser });
 
       const result = await getUserProfile();
 
-      expect(mockApiClient.get).toHaveBeenCalledWith("/users/me");
+      expect(mockApiClient.get).toHaveBeenCalledWith("/accounts/me");
       expect(result).toEqual(mockUser);
     });
 
@@ -382,7 +382,7 @@ describe("Auth Functions", () => {
         created_at: "2024-01-01T00:00:00Z",
         updated_at: "2024-01-01T00:00:00Z",
       };
-      mockApiClient.get.mockResolvedValue({ data: mockUser });
+      mockApiClient.get.mockResolvedValue({ account: mockUser });
 
       const profile = await getUserProfile();
       expect(profile).toEqual(mockUser);

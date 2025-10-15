@@ -12,6 +12,7 @@ import { UserRole } from "@/lib/types";
 // Mock the useAuth hook
 vi.mock("@/hooks/useAuth", () => ({
   useAuth: vi.fn(),
+  useUnifiedAuth: vi.fn(),
   isUserVerified: vi.fn(),
 }));
 
@@ -30,6 +31,10 @@ const mockIsUserVerified = vi.mocked(isUserVerified);
 const mockRegisterWithEmail = vi.mocked(registerWithEmail);
 const mockUseRouter = vi.mocked(useRouter);
 
+// Import and mock useUnifiedAuth
+import { useUnifiedAuth } from "@/hooks/useAuth";
+const mockUseUnifiedAuth = vi.mocked(useUnifiedAuth);
+
 describe("RegisterPage", () => {
   const mockPush = vi.fn();
 
@@ -44,6 +49,20 @@ describe("RegisterPage", () => {
       refresh: vi.fn(),
       prefetch: vi.fn(),
     });
+
+    // Default mock for useUnifiedAuth
+    mockUseUnifiedAuth.mockReturnValue({
+      account: null,
+      profile: null,
+      role: null,
+      isLoading: false,
+      isAuthenticated: false,
+      loginUnified: vi.fn(),
+      registerUser: vi.fn(),
+      registerProfessional: vi.fn(),
+      logout: vi.fn(),
+      refreshUser: vi.fn(),
+    });
   });
 
   afterEach(() => {
@@ -52,18 +71,16 @@ describe("RegisterPage", () => {
 
   it("should render registration form when user is not authenticated", () => {
     mockUseAuth.mockReturnValue({
-      user: null,
+      account: null,
+      profile: null,
+      role: null,
       isLoading: false,
       isAuthenticated: false,
-      loginUser: vi.fn(),
-      loginProfessional: vi.fn(),
       loginUnified: vi.fn(),
       registerUser: vi.fn(),
       registerProfessional: vi.fn(),
-      registerUnified: vi.fn(),
       logout: vi.fn(),
       refreshUser: vi.fn(),
-      getAuthHeaders: vi.fn(),
     });
 
     render(<RegisterPage />);
@@ -79,33 +96,30 @@ describe("RegisterPage", () => {
   });
 
   it("should show redirecting message when user is authenticated", () => {
-    const mockUser = {
-      type: UserRole.USER,
-      data: {
-        id: "user-123",
-        email: "test@example.com",
-        full_name: "Test User",
-        is_verified: false,
-        is_active: true,
-        phone: "+1234567890",
-        created_at: "2023-01-01T00:00:00Z",
-        updated_at: "2023-01-01T00:00:00Z",
-      },
+    const mockAccount = {
+      id: "user-123",
+      email: "test@example.com",
+      full_name: "Test User",
+      is_verified: false,
+      is_active: true,
+      phone: "+1234567890",
+      created_at: "2023-01-01T00:00:00Z",
+      updated_at: "2023-01-01T00:00:00Z",
+      role_id: "role-1",
+      role_name: "user",
     };
 
-    mockUseAuth.mockReturnValue({
-      user: mockUser,
+    mockUseUnifiedAuth.mockReturnValue({
+      account: mockAccount,
+      profile: null,
+      role: UserRole.USER,
       isLoading: false,
       isAuthenticated: true,
-      loginUser: vi.fn(),
-      loginProfessional: vi.fn(),
       loginUnified: vi.fn(),
       registerUser: vi.fn(),
       registerProfessional: vi.fn(),
-      registerUnified: vi.fn(),
       logout: vi.fn(),
       refreshUser: vi.fn(),
-      getAuthHeaders: vi.fn(),
     });
 
     render(<RegisterPage />);
@@ -114,34 +128,31 @@ describe("RegisterPage", () => {
   });
 
   it("should redirect to dashboard when user is verified", () => {
-    const mockUser = {
-      type: UserRole.USER,
-      data: {
-        id: "user-123",
-        email: "test@example.com",
-        full_name: "Test User",
-        is_verified: true,
-        is_active: true,
-        phone: "+1234567890",
-        created_at: "2023-01-01T00:00:00Z",
-        updated_at: "2023-01-01T00:00:00Z",
-      },
+    const mockAccount = {
+      id: "user-123",
+      email: "test@example.com",
+      full_name: "Test User",
+      is_verified: true,
+      is_active: true,
+      phone: "+1234567890",
+      created_at: "2023-01-01T00:00:00Z",
+      updated_at: "2023-01-01T00:00:00Z",
+      role_id: "role-1",
+      role_name: "user",
     };
 
     mockIsUserVerified.mockReturnValue(true);
-    mockUseAuth.mockReturnValue({
-      user: mockUser,
+    mockUseUnifiedAuth.mockReturnValue({
+      account: mockAccount,
+      profile: null,
+      role: UserRole.USER,
       isLoading: false,
       isAuthenticated: true,
-      loginUser: vi.fn(),
-      loginProfessional: vi.fn(),
       loginUnified: vi.fn(),
       registerUser: vi.fn(),
       registerProfessional: vi.fn(),
-      registerUnified: vi.fn(),
       logout: vi.fn(),
       refreshUser: vi.fn(),
-      getAuthHeaders: vi.fn(),
     });
 
     render(<RegisterPage />);
@@ -150,34 +161,32 @@ describe("RegisterPage", () => {
   });
 
   it("should redirect to verify when user is not verified", () => {
-    const mockUser = {
-      type: UserRole.USER,
-      data: {
-        id: "user-123",
-        email: "test@example.com",
-        full_name: "Test User",
-        is_verified: false,
-        is_active: true,
-        phone: "+1234567890",
-        created_at: "2023-01-01T00:00:00Z",
-        updated_at: "2023-01-01T00:00:00Z",
-      },
+    const mockAccount = {
+      id: "user-123",
+      email: "test@example.com",
+      full_name: "Test User",
+      is_verified: false,
+      is_active: true,
+      phone: "+1234567890",
+      created_at: "2023-01-01T00:00:00Z",
+      updated_at: "2023-01-01T00:00:00Z",
+      role_id: "role-1",
+      role_name: "user",
     };
 
     mockIsUserVerified.mockReturnValue(false);
-    mockUseAuth.mockReturnValue({
-      user: mockUser,
+    
+    mockUseUnifiedAuth.mockReturnValue({
+      account: mockAccount,
+      profile: null,
+      role: UserRole.USER,
       isLoading: false,
       isAuthenticated: true,
-      loginUser: vi.fn(),
-      loginProfessional: vi.fn(),
       loginUnified: vi.fn(),
       registerUser: vi.fn(),
       registerProfessional: vi.fn(),
-      registerUnified: vi.fn(),
       logout: vi.fn(),
       refreshUser: vi.fn(),
-      getAuthHeaders: vi.fn(),
     });
 
     render(<RegisterPage />);
@@ -188,19 +197,17 @@ describe("RegisterPage", () => {
   it("should handle successful registration and redirect to dashboard", async () => {
     const mockRegisterUser = vi.fn().mockResolvedValue(undefined);
 
-    mockUseAuth.mockReturnValue({
-      user: null,
+    mockUseUnifiedAuth.mockReturnValue({
+      account: null,
+      profile: null,
+      role: null,
       isLoading: false,
       isAuthenticated: false,
-      loginUser: vi.fn(),
-      loginProfessional: vi.fn(),
       loginUnified: vi.fn(),
       registerUser: mockRegisterUser,
       registerProfessional: vi.fn(),
-      registerUnified: vi.fn(),
       logout: vi.fn(),
       refreshUser: vi.fn(),
-      getAuthHeaders: vi.fn(),
     });
 
     render(<RegisterPage />);
@@ -234,19 +241,17 @@ describe("RegisterPage", () => {
     const user = userEvent.setup();
     const mockRegisterUser = vi.fn().mockRejectedValue(new Error("Email already exists"));
 
-    mockUseAuth.mockReturnValue({
-      user: null,
+    mockUseUnifiedAuth.mockReturnValue({
+      account: null,
+      profile: null,
+      role: null,
       isLoading: false,
       isAuthenticated: false,
-      loginUser: vi.fn(),
-      loginProfessional: vi.fn(),
       loginUnified: vi.fn(),
       registerUser: mockRegisterUser,
       registerProfessional: vi.fn(),
-      registerUnified: vi.fn(),
       logout: vi.fn(),
       refreshUser: vi.fn(),
-      getAuthHeaders: vi.fn(),
     });
 
     render(<RegisterPage />);
@@ -271,19 +276,17 @@ describe("RegisterPage", () => {
       .fn()
       .mockImplementation(() => new Promise((resolve) => setTimeout(resolve, 100)));
 
-    mockUseAuth.mockReturnValue({
-      user: null,
+    mockUseUnifiedAuth.mockReturnValue({
+      account: null,
+      profile: null,
+      role: null,
       isLoading: false,
       isAuthenticated: false,
-      loginUser: vi.fn(),
-      loginProfessional: vi.fn(),
       loginUnified: vi.fn(),
       registerUser: mockRegisterUser,
       registerProfessional: vi.fn(),
-      registerUnified: vi.fn(),
       logout: vi.fn(),
       refreshUser: vi.fn(),
-      getAuthHeaders: vi.fn(),
     });
 
     render(<RegisterPage />);
@@ -313,18 +316,16 @@ describe("RegisterPage", () => {
     const user = userEvent.setup();
 
     mockUseAuth.mockReturnValue({
-      user: null,
+      account: null,
+      profile: null,
+      role: null,
       isLoading: false,
       isAuthenticated: false,
-      loginUser: vi.fn(),
-      loginProfessional: vi.fn(),
       loginUnified: vi.fn(),
       registerUser: vi.fn(),
       registerProfessional: vi.fn(),
-      registerUnified: vi.fn(),
       logout: vi.fn(),
       refreshUser: vi.fn(),
-      getAuthHeaders: vi.fn(),
     });
 
     render(<RegisterPage />);
@@ -338,59 +339,21 @@ describe("RegisterPage", () => {
     });
   });
 
-  it.skip("should show validation error for invalid email", async () => {
-    const user = userEvent.setup();
-
-    mockUseAuth.mockReturnValue({
-      user: null,
-      isLoading: false,
-      isAuthenticated: false,
-      loginUser: vi.fn(),
-      loginProfessional: vi.fn(),
-      loginUnified: vi.fn(),
-      registerUser: vi.fn(),
-      registerProfessional: vi.fn(),
-      registerUnified: vi.fn(),
-      logout: vi.fn(),
-      refreshUser: vi.fn(),
-      getAuthHeaders: vi.fn(),
-    });
-
-    render(<RegisterPage />);
-
-    // Fill out form with invalid email
-    await user.type(screen.getByPlaceholderText("Nombre completo"), "Test User");
-    await user.type(screen.getByPlaceholderText("Email"), "invalid-email");
-    await user.type(screen.getByPlaceholderText("Contraseña"), "password123");
-    await user.type(screen.getByPlaceholderText("Confirmar Contraseña"), "password123");
-    await user.click(screen.getByRole("checkbox", { name: /acepto los términos/i }));
-
-    // Submit the form
-    await user.click(screen.getByRole("button", { name: "Crear Cuenta" }));
-
-    // Check that email validation error appears immediately
-    expect(screen.getByText("Email inválido")).toBeInTheDocument();
-
-    // Verify that registerWithEmail was not called due to validation error
-    expect(mockRegisterWithEmail).not.toHaveBeenCalled();
-  });
 
   it("should show validation error for password mismatch", async () => {
     const user = userEvent.setup();
 
     mockUseAuth.mockReturnValue({
-      user: null,
+      account: null,
+      profile: null,
+      role: null,
       isLoading: false,
       isAuthenticated: false,
-      loginUser: vi.fn(),
-      loginProfessional: vi.fn(),
       loginUnified: vi.fn(),
       registerUser: vi.fn(),
       registerProfessional: vi.fn(),
-      registerUnified: vi.fn(),
       logout: vi.fn(),
       refreshUser: vi.fn(),
-      getAuthHeaders: vi.fn(),
     });
 
     render(<RegisterPage />);
@@ -413,18 +376,16 @@ describe("RegisterPage", () => {
     const user = userEvent.setup();
 
     mockUseAuth.mockReturnValue({
-      user: null,
+      account: null,
+      profile: null,
+      role: null,
       isLoading: false,
       isAuthenticated: false,
-      loginUser: vi.fn(),
-      loginProfessional: vi.fn(),
       loginUnified: vi.fn(),
       registerUser: vi.fn(),
       registerProfessional: vi.fn(),
-      registerUnified: vi.fn(),
       logout: vi.fn(),
       refreshUser: vi.fn(),
-      getAuthHeaders: vi.fn(),
     });
 
     render(<RegisterPage />);
@@ -446,18 +407,16 @@ describe("RegisterPage", () => {
 
   it("should have proper links to terms and privacy", () => {
     mockUseAuth.mockReturnValue({
-      user: null,
+      account: null,
+      profile: null,
+      role: null,
       isLoading: false,
       isAuthenticated: false,
-      loginUser: vi.fn(),
-      loginProfessional: vi.fn(),
       loginUnified: vi.fn(),
       registerUser: vi.fn(),
       registerProfessional: vi.fn(),
-      registerUnified: vi.fn(),
       logout: vi.fn(),
       refreshUser: vi.fn(),
-      getAuthHeaders: vi.fn(),
     });
 
     render(<RegisterPage />);
@@ -471,18 +430,16 @@ describe("RegisterPage", () => {
 
   it("should have proper link to login page", () => {
     mockUseAuth.mockReturnValue({
-      user: null,
+      account: null,
+      profile: null,
+      role: null,
       isLoading: false,
       isAuthenticated: false,
-      loginUser: vi.fn(),
-      loginProfessional: vi.fn(),
       loginUnified: vi.fn(),
       registerUser: vi.fn(),
       registerProfessional: vi.fn(),
-      registerUnified: vi.fn(),
       logout: vi.fn(),
       refreshUser: vi.fn(),
-      getAuthHeaders: vi.fn(),
     });
 
     render(<RegisterPage />);

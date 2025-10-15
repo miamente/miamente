@@ -73,12 +73,12 @@ export interface ProfessionalProfile {
   custom_rate_cents?: number;
   currency: string;
   short_description?: string;
-  academic_experience?: string; // JSON string
-  work_experience?: string; // JSON string
-  certifications?: string; // JSON string
+  academic_experience?: AcademicExperience[]; // Array of objects (parsed from JSON)
+  work_experience?: WorkExperience[]; // Array of objects (parsed from JSON)
+  certifications?: Certification[]; // Array of objects (parsed from JSON)
   languages?: string[];
   timezone: string;
-  working_hours?: string; // JSON string
+  working_hours?: Record<string, any>; // Object (parsed from JSON)
   emergency_contact_name?: string;
   emergency_phone_country_code?: string;
   emergency_phone_number?: string;
@@ -92,6 +92,7 @@ export interface UnifiedAuthResponse {
   role: string;
   profile?: UserProfile | ProfessionalProfile | null;
 }
+
 
 export interface UnifiedLogin {
   email: string;
@@ -293,6 +294,18 @@ export interface ProfessionalModality {
   updated_at?: string;
 }
 
+// Frontend-friendly version with camelCase (for forms and tests)
+export interface ProfessionalModalityFrontend {
+  id: string;
+  modalityId: string;
+  modalityName: string;
+  virtualPrice: number;
+  presencialPrice: number;
+  offersPresencial: boolean;
+  description?: string;
+  isDefault: boolean;
+}
+
 // Alias for clarity
 export type ProfessionalModalityBackend = ProfessionalModality;
 
@@ -435,7 +448,7 @@ export interface ProfessionalProfileFormData {
   languages: string[];
   therapy_approaches_ids: string[];
   specialty_ids: string[];
-  modalities: ProfessionalModality[];
+  modalities: ProfessionalModalityFrontend[];
   timezone: string;
 }
 

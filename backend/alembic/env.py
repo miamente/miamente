@@ -11,15 +11,17 @@ import sys
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 
 from app.core.database import Base
+
+# Import all models for Alembic autogenerate to detect them
 from app.models import (
-    User,
-    Professional,
-    Specialty,
-    ProfessionalSpecialty,
-    Modality,
-    TherapeuticApproach,
-    ProfessionalTherapeuticApproach,
-    ProfessionalModality,
+    User,  # noqa: F401
+    Professional,  # noqa: F401
+    Specialty,  # noqa: F401
+    ProfessionalSpecialty,  # noqa: F401
+    Modality,  # noqa: F401
+    TherapeuticApproach,  # noqa: F401
+    ProfessionalTherapeuticApproach,  # noqa: F401
+    ProfessionalModality,  # noqa: F401
 )
 
 # this is the Alembic Config object, which provides

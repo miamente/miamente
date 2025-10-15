@@ -1,14 +1,14 @@
-"""
-Unit tests for TherapeuticApproachService.
-"""
+from unittest.mock import Mock
 
 import pytest
-from unittest.mock import Mock
 from sqlalchemy.orm import Session
-
 from app.services.therapeutic_approach_service import TherapeuticApproachService
 from app.models.therapeutic_approach import TherapeuticApproach
 from app.schemas.therapeutic_approach import TherapeuticApproachCreate, TherapeuticApproachUpdate
+
+"""
+Unit tests for TherapeuticApproachService.
+"""
 
 
 class TestTherapeuticApproachServiceUnit:
