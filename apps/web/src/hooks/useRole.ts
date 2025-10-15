@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 
 import { useAuth } from "./useAuth";
 import { apiClient } from "@/lib/api";
-import { UserRole } from "@/lib/types";
+import { UserRole, AccountWithRole } from "@/lib/types";
 
 export interface UserProfile {
   id: string;
@@ -31,27 +31,34 @@ export function useRole() {
         setLoading(true);
         setError(null);
 
-        const response = await apiClient.get<{ type: string; data: UserProfile }>(`/auth/me`);
+        const response = await apiClient.get<{ role: string, account: AccountWithRole, profile: any }>(`/accounts/me`);
 
-        // The response has structure: {type: "user"|"professional", data: {...}}
-        const userData = response.data;
-        const userType = response.type;
+        // The response has structure: {role: "admin", account: {...}, profile: {...}}
+        const accountData = response.account;
+        const roleName = response.role;
 
-        // Determine role: if userData has a role field, use it; otherwise use user type
+        // Determine role from role name string
         let userRole: UserRole;
-        if (userData.role) {
-          userRole = userData.role;
-        } else {
-          userRole = userType === "professional" ? UserRole.PROFESSIONAL : UserRole.USER;
+        switch (roleName) {
+          case "admin":
+            userRole = UserRole.ADMIN;
+            break;
+          case "professional":
+            userRole = UserRole.PROFESSIONAL;
+            break;
+          case "user":
+          default:
+            userRole = UserRole.USER;
+            break;
         }
 
         setUserProfile({
-          id: userData.id,
+          id: accountData.id,
           role: userRole,
-          full_name: userData.full_name,
-          email: userData.email,
-          phone: userData.phone,
-          is_verified: userData.is_verified,
+          full_name: accountData.full_name,
+          email: accountData.email,
+          phone: accountData.phone,
+          is_verified: accountData.is_verified,
         });
       } catch (err) {
         console.error("Error fetching user profile:", err);

@@ -342,45 +342,36 @@ export default function AdminTherapeuticApproaches() {
               </tbody>
             </table>
           </div>
-          <Pagination
-            totalItems={totalItems}
-            currentPage={currentPage}
-            pageSize={pageSize}
-            onPageChange={(p) => setCurrentPage(p)}
-            onPageSizeChange={(s) => {
-              setPageSize(s);
-              setCurrentPage(1);
-            }}
-            compact
-          />
+          
+          {pagedApproaches.length === 0 && !loading && (
+            <div className="text-center py-8">
+              <Brain className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+              <p className="text-gray-500">
+                {appliedSearch 
+                  ? `No hay enfoques terapéuticos que coincidan con "${appliedSearch}"`
+                  : "No hay enfoques terapéuticos registrados"
+                }
+              </p>
+            </div>
+          )}
+          
+          {totalItems > pageSize && (
+            <div className="border-t px-6 py-4">
+              <Pagination
+                totalItems={totalItems}
+                currentPage={currentPage}
+                pageSize={pageSize}
+                onPageChange={(p) => setCurrentPage(p)}
+                onPageSizeChange={(s) => {
+                  setPageSize(s);
+                  setCurrentPage(1);
+                }}
+                compact
+              />
+            </div>
+          )}
         </CardContent>
       </Card>
-
-      {totalItems === 0 && !loading && (
-        <Card>
-          <CardContent className="py-12 text-center text-gray-500">
-            <Brain className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">
-              {appliedSearch 
-                ? "No se encontraron enfoques terapéuticos"
-                : "No hay enfoques terapéuticos registrados"
-              }
-            </h3>
-            <p className="text-gray-500">
-              {appliedSearch 
-                ? `No hay enfoques terapéuticos que coincidan con "${appliedSearch}"`
-                : "Comienza agregando tu primer enfoque terapéutico"
-              }
-            </p>
-            {!appliedSearch && (
-              <Button onClick={handleCreateApproach} className="mt-4">
-                <Plus className="mr-2 h-4 w-4" />
-                Agregar Enfoque Terapéutico
-              </Button>
-            )}
-          </CardContent>
-        </Card>
-      )}
 
       {/* Create/Edit Dialog */}
       <EntityFormDialog

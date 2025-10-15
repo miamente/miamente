@@ -1,8 +1,7 @@
 "use client";
 import React, { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { useAuth } from "@/hooks/useAuth";
-import { useRole } from "@/hooks/useRole";
+import { useAuth, getAccountRole } from "@/hooks/useAuth";
 import { UserRole } from "@/lib/types";
 
 interface AdminAuthGuardProps {
@@ -11,12 +10,11 @@ interface AdminAuthGuardProps {
 
 export function AdminAuthGuard({ children }: AdminAuthGuardProps) {
   const { account, isAuthenticated, isLoading: authLoading } = useAuth();
-  const { hasAnyRole, userProfile, loading: roleLoading } = useRole();
   const router = useRouter();
 
   useEffect(() => {
     // Don't redirect while loading
-    if (authLoading || roleLoading) return;
+    if (authLoading) return;
 
     // If no user, redirect to admin login
     if (!isAuthenticated || !account) {
@@ -24,19 +22,15 @@ export function AdminAuthGuard({ children }: AdminAuthGuardProps) {
       return;
     }
 
-    // If user exists but userProfile is not loaded yet, wait
-    if (!userProfile) {
-      return;
-    }
-
-    // If user exists but doesn't have admin role, redirect to admin login
-    if (!hasAnyRole([UserRole.ADMIN])) {
+    // Check if user has admin role directly from account
+    const roleName = getAccountRole(account);
+    if (roleName !== "admin") {
       router.push("/admin/login");
     }
-  }, [account, isAuthenticated, userProfile, authLoading, roleLoading, hasAnyRole, router]);
+  }, [account, isAuthenticated, authLoading, router]);
 
   // Show loading while checking authentication
-  if (authLoading || roleLoading) {
+  if (authLoading) {
     return (
       <div className="flex h-screen items-center justify-center">
         <div className="flex flex-col items-center space-y-4">
@@ -59,20 +53,10 @@ export function AdminAuthGuard({ children }: AdminAuthGuardProps) {
     );
   }
 
-  // If userProfile is not loaded yet, show loading
-  if (!userProfile) {
-    return (
-      <div className="flex h-screen items-center justify-center">
-        <div className="flex flex-col items-center space-y-4">
-          <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-red-600" role="status" aria-label="loading" />
-          <p className="text-sm text-gray-600">Loading...</p>
-        </div>
-      </div>
-    );
-  }
-
-  // If user exists but not admin, show loading (redirect is happening)
-  if (!hasAnyRole([UserRole.ADMIN])) {
+  // Check if user has admin role
+  const roleName = getAccountRole(account);
+  if (roleName !== "admin") {
+    // Not admin, show loading (redirect is happening)
     return (
       <div className="flex h-screen items-center justify-center">
         <div className="flex flex-col items-center space-y-4">

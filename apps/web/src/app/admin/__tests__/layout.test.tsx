@@ -62,6 +62,7 @@ vi.mock("@/hooks/useAuth", () => ({
     isAuthenticated: true,
     role: "admin",
   }),
+  getAccountRole: vi.fn((account) => account?.role_name || account?.role?.name),
 }));
 
 vi.mock("@/hooks/useRole", () => ({

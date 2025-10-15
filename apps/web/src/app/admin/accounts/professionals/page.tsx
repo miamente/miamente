@@ -1,146 +1,179 @@
 "use client";
-import React from "react";
-import { UserCheck, ArrowLeft, Plus, Trash2, Eye, EyeOff } from "lucide-react";
-import Link from "next/link";
+import React, { useEffect, useState } from "react";
+import { Plus, Trash2, Stethoscope, Eye, EyeOff } from "lucide-react";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Pagination } from "@/components/ui/pagination";
 import { DeleteConfirmDialog } from "@/components/admin/DeleteConfirmDialog";
 import { ToggleStatusDialog } from "@/components/admin/ToggleStatusDialog";
 import { SearchResultsInfo } from "@/components/admin/SearchResultsInfo";
 import { SearchCard } from "@/components/admin/SearchCard";
-import { ProfessionalCreateDialog, ProfessionalCreateData } from "@/components/admin/ProfessionalCreateDialog";
+import { ProfessionalCreateDialog, type ProfessionalCreateData } from "@/components/admin/ProfessionalCreateDialog";
 import { apiClient } from "@/lib/api";
-import type { AccountWithRole } from "@/lib/types";
+import type { AccountWithRole, ProfessionalCreate } from "@/lib/types";
+
+interface AdminProfessional extends AccountWithRole {
+  last_login?: string;
+  specialties_count?: number;
+  modalities_count?: number;
+}
 
 export default function AdminProfessionalsPage() {
-  const [professionals, setProfessionals] = React.useState<AccountWithRole[]>([]);
-  const [totalItems, setTotalItems] = React.useState<number>(0);
-  const [loading, setLoading] = React.useState<boolean>(true);
-  const [error, setError] = React.useState<string>("");
+  const [professionals, setProfessionals] = useState<AdminProfessional[]>([]);
+  const [totalItems, setTotalItems] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [appliedSearch, setAppliedSearch] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
 
-  const [search, setSearch] = React.useState<string>("");
-  const [appliedSearch, setAppliedSearch] = React.useState<string>("");
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [deletingProfessional, setDeletingProfessional] = useState<AdminProfessional | null>(null);
+  const [isToggleDialogOpen, setIsToggleDialogOpen] = useState(false);
+  const [togglingProfessional, setTogglingProfessional] = useState<AdminProfessional | null>(null);
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
 
-  const [currentPage, setCurrentPage] = React.useState<number>(1);
-  const [pageSize, setPageSize] = React.useState<number>(10);
+  const handleSearch = () => {
+    setAppliedSearch(searchTerm);
+    setCurrentPage(1);
+  };
 
-  const [deleting, setDeleting] = React.useState<AccountWithRole | null>(null);
-  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = React.useState<boolean>(false);
+  const handleClearSearch = () => {
+    setSearchTerm("");
+    setAppliedSearch("");
+    setCurrentPage(1);
+  };
 
-  const [toggling, setToggling] = React.useState<AccountWithRole | null>(null);
-  const [isToggleDialogOpen, setIsToggleDialogOpen] = React.useState<boolean>(false);
-
-  const [isCreateDialogOpen, setIsCreateDialogOpen] = React.useState<boolean>(false);
-
-  const loadProfessionals = async () => {
+  const fetchProfessionals = async () => {
+    setLoading(true);
+    setError(null);
     try {
-      setLoading(true);
-      setError("");
+      const response = await apiClient.getAllAccountsAdmin(currentPage, pageSize, "professional", appliedSearch || undefined);
       
-      // Use new unified accounts endpoint
-      const response = await apiClient.getAllAccountsAdmin(
-        currentPage,
-        pageSize,
-        "professional",
-        appliedSearch || undefined
-      );
-      
-      setProfessionals(response.items);
-      setTotalItems(response.total);
+      if (response.items) {
+        const convertedProfessionals: AdminProfessional[] = response.items.map((account: AccountWithRole) => ({
+          id: account.id,
+          email: account.email,
+          full_name: account.full_name,
+          phone: account.phone,
+          is_active: account.is_active,
+          is_verified: account.is_verified,
+          profile_picture: account.profile_picture,
+          created_at: account.created_at,
+          updated_at: account.updated_at,
+          role_id: account.role_id,
+          role_name: account.role_name,
+          last_login: account.last_login,
+          specialties_count: 0, // TODO: Get actual count from profile
+          modalities_count: 0, // TODO: Get actual count from profile
+        }));
+        
+        setProfessionals(convertedProfessionals);
+        setTotalItems(response.total || 0);
+      }
     } catch (err) {
-      console.error("Error loading professionals:", err);
-      setError("Error cargando profesionales");
-      setProfessionals([]);
-      setTotalItems(0);
+      console.error("Error fetching professionals:", err);
+      setError("Error al cargar los profesionales");
     } finally {
       setLoading(false);
     }
   };
 
-  React.useEffect(() => {
-    loadProfessionals();
+  useEffect(() => {
+    fetchProfessionals();
   }, [currentPage, pageSize, appliedSearch]);
 
-  const handleSearch = () => {
-    setAppliedSearch(search);
-    setCurrentPage(1);
+  const handleToggleActive = (professional: AdminProfessional) => {
+    setTogglingProfessional(professional);
+    setIsToggleDialogOpen(true);
   };
 
-  const handleClearSearch = () => {
-    setSearch("");
-    setAppliedSearch("");
-    setCurrentPage(1);
+  const handleDeleteProfessional = (professional: AdminProfessional) => {
+    setDeletingProfessional(professional);
+    setIsDeleteDialogOpen(true);
   };
 
-  const handleDelete = async (professional: AccountWithRole) => {
+  const confirmToggleStatus = async () => {
+    if (!togglingProfessional) return;
+    
     try {
-      await apiClient.deleteAccount(professional.id);
-      setProfessionals(prev => prev.filter(p => p.id !== professional.id));
-      setTotalItems(prev => prev - 1);
-      setIsDeleteDialogOpen(false);
-      setDeleting(null);
-    } catch (err) {
-      console.error("Error deleting professional:", err);
-      setError("Error al eliminar el profesional");
-    }
-  };
-
-  const handleToggleStatus = async (professional: AccountWithRole) => {
-    try {
-      // For now, we'll need to implement this functionality
-      // This would require a backend endpoint to toggle account status
-      setError("Funcionalidad de toggle de estado no implementada aún");
+      const updatedAccount = await apiClient.toggleUserStatus(togglingProfessional.id, !togglingProfessional.is_active);
+      setProfessionals(prev => prev.map(professional => 
+        professional.id === togglingProfessional.id 
+          ? { ...professional, is_active: updatedAccount.is_active }
+          : professional
+      ));
       setIsToggleDialogOpen(false);
-      setToggling(null);
+      setTogglingProfessional(null);
     } catch (err) {
       console.error("Error updating professional status:", err);
       setError("Error al actualizar el estado del profesional");
     }
   };
 
+  const confirmDelete = async () => {
+    if (!deletingProfessional) return;
+    
+    try {
+      await apiClient.deleteUser(deletingProfessional.id);
+      setProfessionals(prev => prev.filter(professional => professional.id !== deletingProfessional.id));
+      setTotalItems(prev => prev - 1);
+      setIsDeleteDialogOpen(false);
+      setDeletingProfessional(null);
+    } catch (err) {
+      console.error("Error deleting professional:", err);
+      setError("Error al eliminar el profesional");
+    }
+  };
+
   const handleCreateProfessional = async (data: ProfessionalCreateData) => {
     try {
-      // Convert ProfessionalCreateData to ProfessionalCreate format
-      const professionalData = {
-        email: data.email,
+      const professionalData: ProfessionalCreate = {
         full_name: `${data.first_name} ${data.last_name}`,
+        email: data.email,
         password: data.password,
-        phone_number: data.phone,
+        phone_country_code: "+57",
+        phone_number: data.phone || "",
+        license_number: "",
+        years_experience: 0,
+        short_description: "",
+        academic_experience: [],
+        work_experience: [],
+        certifications: [],
+        languages: ["es"],
+        timezone: "America/Bogota",
       };
-      
+
       await apiClient.registerProfessional(professionalData);
       setIsCreateDialogOpen(false);
-      await loadProfessionals(); // Reload to show new professional
+      fetchProfessionals(); // Reload the list
     } catch (err) {
       console.error("Error creating professional:", err);
       setError("Error al crear el profesional");
-      throw err; // Re-throw so dialog can handle it
     }
   };
+
+  const formatDate = (dateString?: string) => {
+    if (!dateString) return "Nunca";
+    return new Date(dateString).toLocaleDateString("es-ES");
+  };
+
+  const pagedProfessionals = professionals;
 
   if (loading && professionals.length === 0) {
     return (
       <div className="space-y-6">
-        <div className="flex items-center space-x-4">
-          <Link href="/admin/accounts">
-            <Button variant="ghost" size="sm">
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Volver a Cuentas
-            </Button>
-          </Link>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">Gestión de Profesionales</h1>
+            <p className="mt-2 text-gray-600">Administrar profesionales de la salud</p>
+          </div>
         </div>
         <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center space-x-2">
-              <UserCheck className="h-5 w-5" />
-              <span>Profesionales</span>
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-center py-8">
+          <CardContent className="p-6">
+            <div className="text-center">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-red-600 mx-auto"></div>
               <p className="mt-2 text-gray-600">Cargando profesionales...</p>
             </div>
@@ -152,179 +185,183 @@ export default function AdminProfessionalsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center space-x-4">
-        <Link href="/admin/accounts">
-          <Button variant="ghost" size="sm">
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Volver a Cuentas
-          </Button>
-        </Link>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">Gestión de Profesionales</h1>
+          <p className="mt-2 text-gray-600">Administrar profesionales de la salud</p>
+        </div>
+        <Button onClick={() => setIsCreateDialogOpen(true)} className="flex items-center space-x-2">
+          <Plus className="h-4 w-4" />
+          <span>Agregar Profesional</span>
+        </Button>
       </div>
 
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <CardTitle className="flex items-center space-x-2">
-              <UserCheck className="h-5 w-5" />
-              <span>Profesionales ({totalItems})</span>
-            </CardTitle>
-            <Button onClick={() => setIsCreateDialogOpen(true)}>
-              <Plus className="h-4 w-4 mr-2" />
-              Crear Profesional
-            </Button>
-          </div>
-        </CardHeader>
-        <CardContent>
-          {error && (
-            <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-md">
-              <p className="text-red-600 text-sm">{error}</p>
-            </div>
-          )}
+      {error && (
+        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
+          <strong className="font-bold">Error:</strong>
+          <span className="block sm:inline"> {error}</span>
+        </div>
+      )}
 
-          <div className="space-y-4">
-            <SearchCard
-              title="Buscar Profesionales"
-              placeholder="Buscar profesionales por nombre, email o especialidad..."
-              searchTerm={search}
-              onSearchTermChange={setSearch}
-              onSearch={handleSearch}
-              onClearSearch={handleClearSearch}
-              entityName="profesional"
-            />
+      <SearchCard
+        title="Buscar Profesionales"
+        placeholder="Buscar profesionales por nombre o email..."
+        searchTerm={searchTerm}
+        onSearchTermChange={setSearchTerm}
+        onSearch={handleSearch}
+        onClearSearch={handleClearSearch}
+        entityName="profesional"
+      />
 
-            {appliedSearch && (
-              <SearchResultsInfo
-                appliedSearch={appliedSearch}
-                totalItems={totalItems}
-                entityName="profesional"
-                entityNamePlural="profesionales"
-                onClearSearch={handleClearSearch}
-              />
-            )}
+      <SearchResultsInfo
+        appliedSearch={appliedSearch}
+        totalItems={totalItems}
+        entityName="profesional"
+        entityNamePlural="profesionales"
+        showClearButton={true}
+        onClearSearch={handleClearSearch}
+      />
 
-            {loading ? (
-              <div className="text-center py-8">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-red-600 mx-auto"></div>
-                <p className="mt-2 text-gray-600">Cargando...</p>
-              </div>
-            ) : professionals.length === 0 ? (
-              <div className="text-center py-8">
-                <UserCheck className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                <p className="text-gray-600">
-                  {appliedSearch 
-                    ? `No se encontraron profesionales para "${appliedSearch}"`
-                    : "No hay profesionales registrados"
-                  }
-                </p>
-                {!appliedSearch && (
-                  <Button 
-                    onClick={() => setIsCreateDialogOpen(true)} 
-                    className="mt-4"
-                  >
-                    <Plus className="h-4 w-4 mr-2" />
-                    Crear el primer profesional
-                  </Button>
-                )}
-              </div>
-            ) : (
-              <>
-                <div className="space-y-3">
-                  {professionals.map((professional) => (
-                    <div
-                      key={professional.id}
-                      className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50"
-                    >
-                      <div className="flex items-center space-x-4">
-                        <div className="flex-shrink-0">
-                          <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
-                            <UserCheck className="h-5 w-5 text-green-600" />
+      <Card className="p-0">
+        <CardContent className="p-0">
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead className="border-b bg-gray-50">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Profesional
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Email
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Teléfono
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Especialidades
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Modalidades
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Estado
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Último Acceso
+                  </th>
+                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Acciones
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {pagedProfessionals.map((professional) => (
+                  <tr key={professional.id} className="hover:bg-gray-50 transition-colors">
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="flex items-center">
+                        <Stethoscope className="h-5 w-5 text-green-600 mr-3 flex-shrink-0" />
+                        <div className="min-w-0">
+                          <div className="text-sm font-medium text-gray-900 truncate">
+                            {professional.full_name}
                           </div>
                         </div>
-                        <div>
-                          <h3 className="font-medium text-gray-900">
-                            {professional.full_name}
-                          </h3>
-                          <p className="text-sm text-gray-600">{professional.email}</p>
-                          <p className="text-xs text-gray-500">
-                            Profesional verificado
-                          </p>
-                        </div>
                       </div>
-                      <div className="flex items-center space-x-2">
-                        <span
-                          className={`px-2 py-1 text-xs rounded-full ${
-                            professional.is_active
-                              ? "bg-green-100 text-green-800"
-                              : "bg-red-100 text-red-800"
-                          }`}
-                        >
-                          {professional.is_active ? "Activo" : "Inactivo"}
-                        </span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      {professional.email}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      {professional.phone || "-"}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      {professional.specialties_count || 0}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      {professional.modalities_count || 0}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span
+                        className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                          professional.is_active ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"
+                        }`}
+                      >
+                        {professional.is_active ? "Activo" : "Inactivo"}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      {formatDate(professional.last_login)}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                      <div className="flex items-center justify-end space-x-2">
                         <Button
-                          size="sm"
                           variant="outline"
-                          onClick={() => {
-                            setToggling(professional);
-                            setIsToggleDialogOpen(true);
-                          }}
+                          size="sm"
+                          onClick={() => handleToggleActive(professional)}
+                          title={professional.is_active ? "Desactivar profesional" : "Activar profesional"}
                         >
-                          {professional.is_active ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                          {professional.is_active ? "Desactivar" : "Activar"}
+                          {professional.is_active ? (
+                            <EyeOff className="h-4 w-4" />
+                          ) : (
+                            <Eye className="h-4 w-4" />
+                          )}
                         </Button>
                         <Button
-                          size="sm"
                           variant="destructive"
-                          onClick={() => {
-                            setDeleting(professional);
-                            setIsDeleteDialogOpen(true);
-                          }}
+                          size="sm"
+                          onClick={() => handleDeleteProfessional(professional)}
+                          title="Eliminar profesional"
                         >
                           <Trash2 className="h-4 w-4" />
-                          Eliminar
                         </Button>
                       </div>
-                    </div>
-                  ))}
-                </div>
-
-                {totalItems > pageSize && (
-                  <div className="mt-6">
-                    <Pagination
-                      totalItems={totalItems}
-                      currentPage={currentPage}
-                      pageSize={pageSize}
-                      onPageChange={setCurrentPage}
-                    />
-                  </div>
-                )}
-              </>
-            )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
+          
+          {pagedProfessionals.length === 0 && !loading && (
+            <div className="text-center py-8">
+              <Stethoscope className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+              <p className="text-gray-500">No hay profesionales registrados</p>
+            </div>
+          )}
+          
+          {totalItems > pageSize && (
+            <div className="border-t px-6 py-4">
+              <Pagination
+                totalItems={totalItems}
+                currentPage={currentPage}
+                pageSize={pageSize}
+                onPageChange={setCurrentPage}
+              />
+            </div>
+          )}
         </CardContent>
       </Card>
 
-      {/* Dialogs */}
       <DeleteConfirmDialog
         isOpen={isDeleteDialogOpen}
         onClose={() => {
           setIsDeleteDialogOpen(false);
-          setDeleting(null);
+          setDeletingProfessional(null);
         }}
-        onConfirm={() => deleting && handleDelete(deleting)}
+        onConfirm={confirmDelete}
         entityName="profesional"
-        entityDisplayName={deleting?.full_name || ""}
+        entityDisplayName={deletingProfessional?.full_name || ""}
       />
 
       <ToggleStatusDialog
         isOpen={isToggleDialogOpen}
         onClose={() => {
           setIsToggleDialogOpen(false);
-          setToggling(null);
+          setTogglingProfessional(null);
         }}
-        onConfirm={() => toggling && handleToggleStatus(toggling)}
+        onConfirm={confirmToggleStatus}
         entityName="profesional"
-        entityDisplayName={toggling?.full_name || ""}
-        isCurrentlyActive={toggling?.is_active || false}
+        entityDisplayName={togglingProfessional?.full_name || ""}
+        isCurrentlyActive={togglingProfessional?.is_active || false}
       />
 
       <ProfessionalCreateDialog

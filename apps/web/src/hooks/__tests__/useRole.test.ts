@@ -63,14 +63,15 @@ describe("useRole", () => {
     };
 
     const mockApiResponse = {
-      type: "user",
-      data: {
+      role: "user",
+      account: {
         id: "user-123",
         full_name: "Test User",
         email: "test@example.com",
         phone: "+1234567890",
         is_verified: true,
       },
+      profile: null,
     };
 
     mockUseAuth.mockReturnValue({
@@ -94,7 +95,7 @@ describe("useRole", () => {
       expect(result.current.loading).toBe(false);
     });
 
-    expect(mockApiClient.get).toHaveBeenCalledWith("/auth/me");
+    expect(mockApiClient.get).toHaveBeenCalledWith("/accounts/me");
     expect(result.current.userProfile).toEqual({
       id: "user-123",
       role: UserRole.USER,
@@ -120,14 +121,15 @@ describe("useRole", () => {
     };
 
     const mockApiResponse = {
-      type: "professional",
-      data: {
+      role: "professional",
+      account: {
         id: "prof-123",
         full_name: "Test Professional",
         email: "prof@example.com",
         phone: "+1234567890",
         is_verified: true,
       },
+      profile: null,
     };
 
     mockUseAuth.mockReturnValue({
@@ -211,14 +213,15 @@ describe("useRole", () => {
     };
 
     const mockApiResponse = {
-      type: "user",
-      data: {
+      role: "user",
+      account: {
         id: "user-123",
         full_name: "Test User",
         email: "test@example.com",
         phone: "+1234567890",
         is_verified: true,
       },
+      profile: null,
     };
 
     mockUseAuth.mockReturnValue({
@@ -287,13 +290,15 @@ describe("useRole", () => {
     };
 
     const mockApiResponse = {
-      data: {
+      role: "user",
+      account: {
         id: "user-123",
         full_name: "Test User",
         email: "test@example.com",
         phone: "+1234567890",
         is_verified: true,
       },
+      profile: null,
     };
 
     // Start with authenticated user

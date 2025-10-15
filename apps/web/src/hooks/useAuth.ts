@@ -42,6 +42,10 @@ export function getAccountFullName(account: AccountWithRole | null): string | un
 }
 
 export function getAccountRole(account: AccountWithRole | null): string | undefined {
+  // Handle both structures: account.role.name (from backend response) and account.role_name (from type)
+  if (account?.role?.name) {
+    return account.role.name;
+  }
   return account?.role_name;
 }
 
@@ -98,7 +102,7 @@ export function useUnifiedAuth() {
       }
 
       // Get current user using new /accounts/me endpoint
-      const response = await apiClient.get<{ account: AccountWithRole; role: string; profile?: UserProfile | ProfessionalProfile | null }>("/accounts/me");
+      const response = await apiClient.get<{ role: string; account: AccountWithRole; profile?: UserProfile | ProfessionalProfile | null }>("/accounts/me");
       
       // Parse response from new unified format
       const { account, role: roleName, profile } = response;

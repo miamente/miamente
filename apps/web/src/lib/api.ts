@@ -568,15 +568,15 @@ class ApiClient {
 
   // Admin user management methods
   async getUsers(page: number = 1, pageSize: number = 10): Promise<PaginatedAccountsResponse> {
-    return this.get<PaginatedAccountsResponse>(`/admin/users?page=${page}&page_size=${pageSize}`);
+    return this.get<PaginatedAccountsResponse>(`/accounts/admin/all?page=${page}&page_size=${pageSize}&role=user`);
   }
 
   async toggleUserStatus(userId: string, isActive: boolean): Promise<AccountWithRole> {
-    return this.put<AccountWithRole>(`/admin/users/${userId}/status`, { is_active: isActive });
+    return this.put<AccountWithRole>(`/accounts/${userId}/status`, { is_active: isActive });
   }
 
   async deleteUser(userId: string): Promise<void> {
-    return this.delete<void>(`/admin/users/${userId}`);
+    return this.delete<void>(`/accounts/${userId}`);
   }
 
   // Health check

@@ -55,6 +55,13 @@ export interface Account {
 
 export interface AccountWithRole extends Account {
   role_name: string;
+  role?: {
+    id: string;
+    name: string;
+    description: string;
+    created_at: string;
+    updated_at: string;
+  };
 }
 
 export interface UserProfile {

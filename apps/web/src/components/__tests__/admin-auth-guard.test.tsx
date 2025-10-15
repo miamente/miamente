@@ -29,6 +29,7 @@ const mockUseRole = {
 vi.mock("@/hooks/useAuth", () => ({
   useAuth: vi.fn(() => mockUseAuth),
   useUnifiedAuth: vi.fn(() => mockUseAuth),
+  getAccountRole: vi.fn((account) => account?.role_name || account?.role?.name),
 }));
 
 vi.mock("@/hooks/useRole", () => ({
@@ -195,8 +196,8 @@ describe("AdminAuthGuard", () => {
     expect(mockPush).not.toHaveBeenCalled();
   });
 
-  it("should not redirect while role is loading", () => {
-    mockUseRole.loading = true;
+  it("should not redirect while auth is loading", () => {
+    mockUseAuth.isLoading = true;
 
     render(
       <AdminAuthGuard>
@@ -207,36 +208,6 @@ describe("AdminAuthGuard", () => {
     expect(mockPush).not.toHaveBeenCalled();
   });
 
-  it("should call hasAnyRole with correct parameters", () => {
-    mockUseAuth.account = {
-      id: "1",
-      email: "admin@example.com",
-      full_name: "Admin User",
-      phone: "+1234567890",
-      is_active: true,
-      is_verified: true,
-      created_at: "2024-01-01T00:00:00Z",
-      updated_at: "2024-01-01T00:00:00Z",
-      role_name: "admin",
-    };
-    mockUseAuth.isAuthenticated = true;
-    mockUseRole.userProfile = {
-      account_id: "1",
-      date_of_birth: "1990-01-01",
-      emergency_contact_name: "Emergency Contact",
-      emergency_phone_country_code: "+1",
-      emergency_phone_number: "1234567890",
-    };
-    mockUseRole.hasAnyRole.mockReturnValue(true);
-
-    render(
-      <AdminAuthGuard>
-        <div data-testid="admin-content">Admin Content</div>
-      </AdminAuthGuard>,
-    );
-
-    expect(mockUseRole.hasAnyRole).toHaveBeenCalledWith([UserRole.ADMIN]);
-  });
 
   it("should show loading spinner with correct styling", () => {
     mockUseAuth.isLoading = true;
@@ -258,37 +229,6 @@ describe("AdminAuthGuard", () => {
     );
   });
 
-  it("should handle multiple role checks correctly", () => {
-    mockUseAuth.account = {
-      id: "1",
-      email: "admin@example.com",
-      full_name: "Admin User",
-      phone: "+1234567890",
-      is_active: true,
-      is_verified: true,
-      created_at: "2024-01-01T00:00:00Z",
-      updated_at: "2024-01-01T00:00:00Z",
-      role_name: "admin",
-    };
-    mockUseAuth.isAuthenticated = true;
-    mockUseRole.userProfile = {
-      account_id: "1",
-      date_of_birth: "1990-01-01",
-      emergency_contact_name: "Emergency Contact",
-      emergency_phone_country_code: "+1",
-      emergency_phone_number: "1234567890",
-    };
-    mockUseRole.hasAnyRole.mockReturnValue(true);
-
-    render(
-      <AdminAuthGuard>
-        <div data-testid="admin-content">Admin Content</div>
-      </AdminAuthGuard>,
-    );
-
-    expect(mockUseRole.hasAnyRole).toHaveBeenCalledTimes(2);
-    expect(screen.getByTestId("admin-content")).toBeInTheDocument();
-  });
 
   it("should re-evaluate when user changes", async () => {
     const { rerender } = render(

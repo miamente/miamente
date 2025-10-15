@@ -302,28 +302,37 @@ export default function AdminSpecialties() {
                 ))}
               </tbody>
             </table>
-              </div>
-          <Pagination
-            totalItems={totalItems}
-            currentPage={currentPage}
-            pageSize={pageSize}
-            onPageChange={(p) => setCurrentPage(p)}
-            onPageSizeChange={(s) => {
-              setPageSize(s);
-              setCurrentPage(1);
-            }}
-            compact
-          />
-            </CardContent>
-          </Card>
-
-      {totalItems === 0 && (
-        <Card>
-          <CardContent className="py-8 text-center text-gray-500">
-            {searchTerm ? "No hay especialidades que coincidan con la búsqueda" : "No hay especialidades registradas"}
-          </CardContent>
-        </Card>
-      )}
+          </div>
+          
+          {pagedSpecialties.length === 0 && !loading && (
+            <div className="text-center py-8">
+              <Stethoscope className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+              <p className="text-gray-500">
+                {appliedSearch 
+                  ? `No hay especialidades que coincidan con "${appliedSearch}"`
+                  : "No hay especialidades registradas"
+                }
+              </p>
+            </div>
+          )}
+          
+          {totalItems > pageSize && (
+            <div className="border-t px-6 py-4">
+              <Pagination
+                totalItems={totalItems}
+                currentPage={currentPage}
+                pageSize={pageSize}
+                onPageChange={(p) => setCurrentPage(p)}
+                onPageSizeChange={(s) => {
+                  setPageSize(s);
+                  setCurrentPage(1);
+                }}
+                compact
+              />
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
       {/* Create/Edit Dialog */}
       <EntityFormDialog

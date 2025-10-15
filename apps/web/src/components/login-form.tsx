@@ -37,7 +37,9 @@ export function LoginForm({ isAdminLogin = false, redirectPath }: LoginFormProps
         // Redirect based on login type
         if (isAdminLogin) {
           // Check if account has admin role
-          if (account.role_name === "admin") {
+          // The account structure has role as an object with name property
+          const roleName = account.role?.name || account.role_name;
+          if (roleName === "admin") {
             router.push(redirectPath || "/admin");
           } else {
             setError("No tienes permisos de administrador");
