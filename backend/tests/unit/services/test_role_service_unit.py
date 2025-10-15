@@ -192,5 +192,3 @@ class TestRoleServiceUnit:
         # Assert
         # Should not create new roles if they already exist
         mock_db_session.add.assert_not_called()
-
-

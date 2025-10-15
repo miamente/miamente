@@ -1,8 +1,8 @@
 import { apiClient } from "./api";
-import type { UserRole, User, LoginResponse, UserCreate } from "./types";
+import type { UserRole, AccountWithRole, UnifiedAuthResponse } from "./types";
 
-// Re-export types for backward compatibility
-export type { UserRole, User, LoginResponse, UserCreate };
+// Re-export UserRole for backward compatibility
+export type { UserRole };
 
 export interface UserProfile {
   id: string;
@@ -23,17 +23,17 @@ export interface RegisterRequest {
   role?: UserRole;
 }
 
-export async function registerWithEmail(data: RegisterRequest): Promise<User> {
+export async function registerWithEmail(data: RegisterRequest): Promise<AccountWithRole> {
   try {
     const response = await apiClient.post("/accounts/register/user", data);
-    return response as User;
+    return response as AccountWithRole;
   } catch (error) {
     console.error("Registration error:", error);
     throw error;
   }
 }
 
-export async function loginWithEmail(email: string, password: string): Promise<LoginResponse> {
+export async function loginWithEmail(email: string, password: string): Promise<UnifiedAuthResponse> {
   try {
     const response = await apiClient.post("/accounts/login", {
       email,
@@ -41,13 +41,13 @@ export async function loginWithEmail(email: string, password: string): Promise<L
     });
 
     // Store the token
-    const { access_token } = response as LoginResponse;
+    const { access_token } = response as UnifiedAuthResponse;
     localStorage.setItem("access_token", access_token);
 
     // Set the token in the API client for future requests
     apiClient.setToken(access_token);
 
-    return response as LoginResponse;
+    return response as UnifiedAuthResponse;
   } catch (error) {
     console.error("Login error:", error);
     throw error;
@@ -72,10 +72,10 @@ export async function logout(): Promise<void> {
   }
 }
 
-export async function getUserProfile(): Promise<User | null> {
+export async function getUserProfile(): Promise<AccountWithRole | null> {
   try {
     const response = await apiClient.get("/accounts/me");
-    return (response as { data: User }).data;
+    return (response as { account: AccountWithRole }).account;
   } catch (error) {
     console.error("Get user profile error:", error);
     return null;

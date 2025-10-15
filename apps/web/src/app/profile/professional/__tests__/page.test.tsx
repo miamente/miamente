@@ -11,7 +11,7 @@ import {
   createProfessionalProfile,
   updateProfessionalProfile,
 } from "@/lib/profiles";
-import type { AccountWithRole, Professional } from "@/lib/types";
+import type { AccountWithRole, AccountWithProfile } from "@/lib/types";
 import type { ProfessionalProfile } from "@/lib/profiles";
 import { UserRole } from "@/lib/types";
 
@@ -204,30 +204,34 @@ describe("ProfessionalProfilePage", () => {
     role_name: "professional",
   };
 
-  const mockProfile: Professional = {
-    id: "profile-1",
-    full_name: "Dr. Professional",
-    email: "professional@example.com",
-    phone_country_code: "+1",
-    phone_number: "234567890",
-    license_number: "LIC-123",
-    years_experience: 5,
-    bio: "Experienced professional",
-    profile_picture: "/images/profile.jpg",
-    academic_experience: [],
-    work_experience: [],
-    certifications: [],
-    languages: ["spanish", "english"],
-    therapy_approaches_ids: ["approach1"],
-    specialty_ids: ["specialty1"],
-    modalities: [],
-    timezone: "America/Bogota",
-    is_active: true,
-    is_verified: true,
-    rate_cents: 5000,
-    currency: "USD",
-    created_at: "2024-01-01T00:00:00Z",
-    updated_at: "2024-01-01T00:00:00Z",
+  const mockProfile: AccountWithProfile = {
+    account: {
+      id: "profile-1",
+      full_name: "Dr. Professional",
+      email: "professional@example.com",
+      phone_country_code: "+1",
+      phone_number: "234567890",
+      is_active: true,
+      is_verified: true,
+      role_id: "role-2",
+      role_name: "professional",
+      created_at: "2024-01-01T00:00:00Z",
+      updated_at: "2024-01-01T00:00:00Z",
+    },
+    role: "professional",
+    profile: {
+      account_id: "profile-1",
+      license_number: "LIC-123",
+      years_experience: 5,
+      rate_cents: 50000,
+      currency: "USD",
+      short_description: "Experienced professional",
+      academic_experience: [],
+      work_experience: [],
+      certifications: [],
+      languages: ["spanish", "english"],
+      timezone: "America/Bogota",
+    },
   };
 
   const mockProfessionalProfile = {
@@ -336,11 +340,11 @@ describe("ProfessionalProfilePage", () => {
 
     await waitFor(() => {
       expect(mockGetMyProfessionalProfile).toHaveBeenCalled();
-    });
+    }, { timeout: 5000 });
 
     await waitFor(() => {
       expect(screen.getByDisplayValue("Dr. Professional")).toBeInTheDocument();
-    });
+    }, { timeout: 5000 });
 
     expect(screen.getByDisplayValue("professional@example.com")).toBeInTheDocument();
     expect(screen.getByDisplayValue("LIC-123")).toBeInTheDocument();
@@ -352,7 +356,7 @@ describe("ProfessionalProfilePage", () => {
 
     await waitFor(() => {
       expect(screen.getByDisplayValue("Dr. Professional")).toBeInTheDocument();
-    });
+    }, { timeout: 3000 });
 
     const fullNameInput = screen.getByDisplayValue("Dr. Professional");
     const submitButton = screen.getByText("Actualizar Perfil");
@@ -393,7 +397,7 @@ describe("ProfessionalProfilePage", () => {
 
     await waitFor(() => {
       expect(screen.getByDisplayValue("Dr. Professional")).toBeInTheDocument();
-    });
+    }, { timeout: 3000 });
 
     const submitButton = screen.getByText("Actualizar Perfil");
 

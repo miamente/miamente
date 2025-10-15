@@ -237,7 +237,7 @@ describe("Auth Functions", () => {
         updated_at: "2024-01-01T00:00:00Z",
       };
 
-      mockApiClient.get.mockResolvedValue({ data: mockUser });
+      mockApiClient.get.mockResolvedValue({ account: mockUser });
 
       const result = await getUserProfile();
 
@@ -382,7 +382,7 @@ describe("Auth Functions", () => {
         created_at: "2024-01-01T00:00:00Z",
         updated_at: "2024-01-01T00:00:00Z",
       };
-      mockApiClient.get.mockResolvedValue({ data: mockUser });
+      mockApiClient.get.mockResolvedValue({ account: mockUser });
 
       const profile = await getUserProfile();
       expect(profile).toEqual(mockUser);

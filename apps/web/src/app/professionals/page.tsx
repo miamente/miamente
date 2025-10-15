@@ -13,7 +13,7 @@ import {
   queryProfessionals,
   type ProfessionalsQueryResult,
 } from "@/lib/profiles";
-import type { Professional } from "@/lib/types";
+import type { AccountWithProfile } from "@/lib/types";
 import { useSpecialtyNames } from "@/hooks/useSpecialtyNames";
 
 // Helper function to construct full image URLs
@@ -117,17 +117,18 @@ export default function ProfessionalsPage() {
     fetchPage(false);
   };
 
-  const renderSpecialtyInfo = (pro: Professional) => {
+  const renderSpecialtyInfo = (pro: AccountWithProfile) => {
     if (specialtiesLoading) {
       return <div className="h-4 w-32 animate-pulse rounded bg-neutral-200"></div>;
     }
 
-    if (pro.specialty_ids && pro.specialty_ids.length > 0) {
+    const specialtyIds = (pro.profile as any)?.specialty_ids;
+    if (specialtyIds && specialtyIds.length > 0) {
       return (
         <div className="flex flex-wrap gap-1">
-          {getSpecialtyNames(pro.specialty_ids).map((specialty: string, index: number) => (
+          {getSpecialtyNames(specialtyIds).map((specialty: string, index: number) => (
             <span
-              key={`${pro.id}-specialty-${index}`}
+              key={`${pro.account.id}-specialty-${index}`}
               className="rounded-full bg-blue-100 px-2 py-1 text-xs text-blue-800"
             >
               {specialty}
@@ -171,14 +172,16 @@ export default function ProfessionalsPage() {
 
     return (
       <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-        {items.map((pro) => (
-          <Link key={pro.id} href={`/professionals/${pro.id}`}>
+        {items.map((pro) => {
+          if (!pro.account) return null;
+          return (
+          <Link key={pro.account.id} href={`/professionals/${pro.account.id}`}>
             <Card className="flex cursor-pointer flex-col transition-shadow duration-200 hover:shadow-lg">
               <CardHeader>
-                <CardTitle className="text-xl">{pro.full_name}</CardTitle>
+                <CardTitle className="text-xl">{pro.account.full_name}</CardTitle>
                 <div className="text-sm text-neutral-600">{renderSpecialtyInfo(pro)}</div>
                 <p className="text-sm text-neutral-600">
-                  {(pro.rate_cents / 100).toLocaleString("es-CO", {
+                  {((pro.profile as any)?.rate_cents / 100).toLocaleString("es-CO", {
                     minimumFractionDigits: 0,
                     maximumFractionDigits: 0,
                   })}{" "}
@@ -186,25 +189,26 @@ export default function ProfessionalsPage() {
                 </p>
               </CardHeader>
               <CardContent className="flex flex-1 flex-col gap-3">
-                {getImageUrl(pro.profile_picture) ? (
+                {getImageUrl((pro.profile as any)?.profile_picture) ? (
                   <Image
-                    src={getImageUrl(pro.profile_picture)!}
-                    alt={`Foto del profesional ${pro.full_name}`}
+                    src={getImageUrl((pro.profile as any)?.profile_picture)!}
+                    alt={`Foto del profesional ${pro.account.full_name}`}
                     width={400}
                     height={160}
                     className="h-40 w-full rounded-md object-cover"
+                    data-testid="image"
                   />
                 ) : (
                   <div className="flex h-40 w-full items-center justify-center rounded-md bg-neutral-100 text-neutral-500">
                     Sin foto
                   </div>
                 )}
-                <p className="line-clamp-3 text-sm text-neutral-700">{pro.bio}</p>
+                <p className="line-clamp-3 text-sm text-neutral-700">{(pro.profile as any)?.short_description || "Sin descripción"}</p>
                 <div className="mt-auto">
                   <Button
                     className="w-full"
                     variant="outline"
-                    aria-label={`Ver perfil de ${pro.full_name}`}
+                    aria-label={`Ver perfil de ${pro.account.full_name}`}
                   >
                     Ver perfil
                   </Button>
@@ -212,7 +216,8 @@ export default function ProfessionalsPage() {
               </CardContent>
             </Card>
           </Link>
-        ))}
+          );
+        })}
       </div>
     );
   };

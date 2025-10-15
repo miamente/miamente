@@ -1,0 +1,11 @@
+[flake8]
+max-line-length = 120
+exclude = 
+    venv,
+    htmlcov,
+    .pytest_cache,
+    miamente_backend.egg-info,
+    alembic/versions/*.py
+per-file-ignores =
+    alembic/env.py:E402,F401
+    alembic/versions/*.py:E128,E501,E302

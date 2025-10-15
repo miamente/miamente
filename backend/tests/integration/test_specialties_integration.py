@@ -8,10 +8,11 @@ This test covers the complete specialties workflow including:
 - Error handling and edge cases
 """
 
+import uuid
+
 import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
-import uuid
 
 from app.models.specialty import Specialty as SpecialtyModel
 

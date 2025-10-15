@@ -294,5 +294,3 @@ class TestAccountsEndpointsUnit:
         # Assert
         mock_role_service.ensure_default_roles.assert_called_once()
         assert result == {"message": "Default roles ensured"}
-
-

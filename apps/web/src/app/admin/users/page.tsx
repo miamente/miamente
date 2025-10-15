@@ -5,10 +5,10 @@ import { Badge } from "@/components/ui/badge";
 import { AdminDataTable, type Column, commonRenderers } from "@/components/admin/AdminDataTable";
 import { useAdminData } from "@/hooks/useAdminData";
 import { apiClient } from "@/lib/api";
-import type { User as UserType, AccountWithRole } from "@/lib/types";
+import type { AccountWithRole } from "@/lib/types";
 
-// Extended User interface for admin users with role and last_login
-interface AdminUser extends UserType {
+// Extended AccountWithRole interface for admin users with role and last_login
+interface AdminUser extends AccountWithRole {
   role: string;
   last_login?: string;
 }

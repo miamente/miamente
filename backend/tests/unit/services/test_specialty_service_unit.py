@@ -1,14 +1,14 @@
-"""
-Unit tests for SpecialtyService.
-"""
+from unittest.mock import Mock
 
 import pytest
-from unittest.mock import Mock
 from sqlalchemy.orm import Session
-
 from app.services.specialty_service import SpecialtyService
 from app.models.specialty import Specialty
 from app.schemas.specialty import SpecialtyCreate, SpecialtyUpdate
+
+"""
+Unit tests for SpecialtyService.
+"""
 
 
 class TestSpecialtyServiceUnit:

@@ -1,5 +1,5 @@
 import { apiClient } from "./api";
-import type { AcademicExperience, WorkExperience, Certification, Professional, ProfessionalProfile } from "./types";
+import type { AcademicExperience, WorkExperience, Certification, AccountWithProfile, ProfessionalProfile } from "./types";
 
 // Re-export types for backward compatibility
 export type { AcademicExperience, WorkExperience, Certification, ProfessionalProfile };
@@ -68,7 +68,7 @@ export interface UpdateProfessionalProfileRequest {
  * @param professionalId - Professional account ID
  * @returns Professional profile data
  */
-export async function getProfessionalProfile(professionalId: string): Promise<Professional> {
+export async function getProfessionalProfile(professionalId: string): Promise<AccountWithProfile> {
   try {
     // Use new unified endpoint
     const response = await apiClient.getAccountById(professionalId);
@@ -78,40 +78,9 @@ export async function getProfessionalProfile(professionalId: string): Promise<Pr
     const profile = response.profile as ProfessionalProfile;
     
     return {
-      id: account.id,
-      email: account.email,
-      full_name: account.full_name,
-      phone: account.phone,
-      phone_country_code: account.phone_country_code,
-      phone_number: account.phone_number,
-      is_active: account.is_active,
-      is_verified: account.is_verified,
-      profile_picture: account.profile_picture,
-      created_at: account.created_at,
-      updated_at: account.updated_at,
-      
-      // Professional fields
-      license_number: profile?.license_number,
-      years_experience: profile?.years_experience || 0,
-      rate_cents: profile?.rate_cents || 0,
-      custom_rate_cents: profile?.custom_rate_cents,
-      currency: profile?.currency || "COP",
-      bio: profile?.short_description,
-      
-      academic_experience: profile?.academic_experience ? JSON.parse(profile.academic_experience) : [],
-      work_experience: profile?.work_experience ? JSON.parse(profile.work_experience) : [],
-      certifications: profile?.certifications ? JSON.parse(profile.certifications) : [],
-      languages: profile?.languages || [],
-      therapy_approaches_ids: [],
-      specialty_ids: [],
-      modalities: [],
-      
-      timezone: profile?.timezone || "America/Bogota",
-      emergency_contact: profile?.emergency_contact_name,
-      emergency_phone:
-        profile?.emergency_phone_country_code && profile?.emergency_phone_number
-          ? `${profile.emergency_phone_country_code}${profile.emergency_phone_number}`
-          : undefined,
+      account: account,
+      role: response.role,
+      profile: profile,
     };
   } catch (error) {
     console.error("Get professional profile error:", error);
@@ -125,7 +94,7 @@ export async function getProfessionalProfile(professionalId: string): Promise<Pr
 export async function updateProfessionalProfileById(
   professionalId: string,
   data: UpdateProfessionalProfileRequest,
-): Promise<Professional> {
+): Promise<AccountWithProfile> {
   try {
     // Convert to AccountUpdate format
     const accountUpdate = {
@@ -148,7 +117,7 @@ export async function updateProfessionalProfileById(
 /**
  * Get current user's professional profile (uses new unified system)
  */
-export async function getMyProfessionalProfile(): Promise<Professional | null> {
+export async function getMyProfessionalProfile(): Promise<AccountWithProfile | null> {
   try {
     const response = await apiClient.getCurrentUser();
     
@@ -162,33 +131,9 @@ export async function getMyProfessionalProfile(): Promise<Professional | null> {
     const profile = response.profile as ProfessionalProfile;
     
     return {
-      id: account.id,
-      email: account.email,
-      full_name: account.full_name,
-      phone: account.phone,
-      phone_country_code: account.phone_country_code,
-      phone_number: account.phone_number,
-      is_active: account.is_active,
-      is_verified: account.is_verified,
-      created_at: account.created_at,
-      updated_at: account.updated_at,
-      profile_picture: account.profile_picture,
-      
-      license_number: profile?.license_number,
-      years_experience: profile?.years_experience || 0,
-      rate_cents: profile?.rate_cents || 0,
-      custom_rate_cents: profile?.custom_rate_cents,
-      currency: profile?.currency || "COP",
-      bio: profile?.short_description,
-      timezone: profile?.timezone || "UTC",
-      
-      academic_experience: profile?.academic_experience ? JSON.parse(profile.academic_experience) : [],
-      work_experience: profile?.work_experience ? JSON.parse(profile.work_experience) : [],
-      certifications: profile?.certifications ? JSON.parse(profile.certifications) : [],
-      languages: profile?.languages || [],
-      specialty_ids: [],
-      therapy_approaches_ids: [],
-      modalities: [],
+      account: account,
+      role: response.role,
+      profile: profile,
     };
   } catch (error) {
     console.error("Get my professional profile error:", error);
@@ -203,7 +148,7 @@ export async function getMyProfessionalProfile(): Promise<Professional | null> {
  */
 export async function updateProfessionalProfile(
   data: UpdateProfessionalProfileRequest,
-): Promise<Professional> {
+): Promise<AccountWithProfile> {
   try {
     const currentUser = await apiClient.getCurrentUser();
     const userId = currentUser.account.id;
@@ -231,7 +176,7 @@ export async function createProfessionalProfile(
 
 // Legacy functions for compatibility
 export interface ProfessionalsQueryResult {
-  professionals: Professional[];
+  professionals: AccountWithProfile[];
   lastSnapshot: string | null;
 }
 
@@ -252,74 +197,24 @@ export async function queryProfessionals(
     
     const response = await apiClient.getAllAccountsAdmin(page, pageSize, "professional", search);
     
-    // Convert accounts to Professional format
-    const professionals: Professional[] = await Promise.all(
+    // Convert accounts to AccountWithProfile format
+    const professionals: AccountWithProfile[] = await Promise.all(
       response.items.map(async (account) => {
         try {
           const fullProfile = await apiClient.getAccountById(account.id);
           const profile = fullProfile.profile as ProfessionalProfile;
           
           return {
-            id: account.id,
-            email: account.email,
-            full_name: account.full_name,
-            phone: account.phone,
-            phone_country_code: account.phone_country_code,
-            phone_number: account.phone_number,
-            is_active: account.is_active,
-            is_verified: account.is_verified,
-            profile_picture: account.profile_picture,
-            created_at: account.created_at,
-            updated_at: account.updated_at,
-            
-            license_number: profile?.license_number,
-            years_experience: profile?.years_experience || 0,
-            rate_cents: profile?.rate_cents || 0,
-            custom_rate_cents: profile?.custom_rate_cents,
-            currency: profile?.currency || "COP",
-            bio: profile?.short_description,
-            
-            academic_experience: profile?.academic_experience ? JSON.parse(profile.academic_experience) : [],
-            work_experience: profile?.work_experience ? JSON.parse(profile.work_experience) : [],
-            certifications: profile?.certifications ? JSON.parse(profile.certifications) : [],
-            languages: profile?.languages || [],
-            therapy_approaches_ids: [],
-            specialty_ids: [],
-            modalities: [],
-            
-            timezone: profile?.timezone || "America/Bogota",
-            emergency_contact: profile?.emergency_contact_name,
-            emergency_phone:
-              profile?.emergency_phone_country_code && profile?.emergency_phone_number
-                ? `${profile.emergency_phone_country_code}${profile.emergency_phone_number}`
-                : undefined,
+            account: fullProfile.account,
+            role: fullProfile.role,
+            profile: profile,
           };
         } catch {
           // Fallback if full profile fails
           return {
-            id: account.id,
-            email: account.email,
-            full_name: account.full_name,
-            phone_country_code: account.phone_country_code,
-            phone_number: account.phone_number,
-            is_active: account.is_active,
-            is_verified: account.is_verified,
-            profile_picture: account.profile_picture,
-            created_at: account.created_at,
-            updated_at: account.updated_at,
-            license_number: "",
-            years_experience: 0,
-            rate_cents: 0,
-            currency: "COP",
-            bio: "",
-            academic_experience: [],
-            work_experience: [],
-            certifications: [],
-            languages: [],
-            therapy_approaches_ids: [],
-            specialty_ids: [],
-            modalities: [],
-            timezone: "America/Bogota",
+            account: account,
+            role: "professional",
+            profile: null,
           };
         }
       })

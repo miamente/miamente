@@ -1,9 +1,6 @@
-"""
-Unit tests for authentication utilities.
-"""
+from unittest.mock import Mock, patch
 
 import pytest
-from unittest.mock import Mock, patch
 from fastapi import HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials
 

@@ -73,12 +73,12 @@ export interface ProfessionalProfile {
   custom_rate_cents?: number;
   currency: string;
   short_description?: string;
-  academic_experience?: string; // JSON string
-  work_experience?: string; // JSON string
-  certifications?: string; // JSON string
+  academic_experience?: AcademicExperience[]; // Array of objects (parsed from JSON)
+  work_experience?: WorkExperience[]; // Array of objects (parsed from JSON)
+  certifications?: Certification[]; // Array of objects (parsed from JSON)
   languages?: string[];
   timezone: string;
-  working_hours?: string; // JSON string
+  working_hours?: Record<string, any>; // Object (parsed from JSON)
   emergency_contact_name?: string;
   emergency_phone_country_code?: string;
   emergency_phone_number?: string;
@@ -93,66 +93,6 @@ export interface UnifiedAuthResponse {
   profile?: UserProfile | ProfessionalProfile | null;
 }
 
-// ============================================================================
-// LEGACY TYPES (for backward compatibility)
-// ============================================================================
-
-/**
- * @deprecated Use AccountWithRole and UserProfile instead
- */
-export interface User {
-  id: string;
-  email: string;
-  full_name: string;
-  phone?: string;
-  is_active: boolean;
-  is_verified: boolean;
-  created_at: string;
-  updated_at?: string;
-  date_of_birth?: string;
-  emergency_contact?: string;
-  emergency_phone?: string;
-}
-
-/**
- * @deprecated Use AccountWithRole and ProfessionalProfile instead
- */
-export interface Professional extends User {
-  license_number?: string;
-  years_experience: number;
-  rate_cents: number;
-  custom_rate_cents?: number;
-  currency: string;
-  bio?: string;
-  academic_experience?: AcademicExperience[];
-  work_experience?: WorkExperience[];
-  certifications?: Certification[];
-  languages?: string[];
-  timezone: string;
-  specialty_ids?: string[];
-  therapy_approaches_ids?: string[];
-  profile_picture?: string;
-  phone_country_code?: string;
-  phone_number?: string;
-  modalities?: ProfessionalModalityFrontend[];
-}
-
-/**
- * @deprecated Use UnifiedAuthResponse instead
- */
-export interface LoginResponse {
-  access_token: string;
-  token_type: string;
-  user: User | Professional;
-}
-
-/**
- * @deprecated Use AccountWithProfile instead  
- */
-export interface AuthUser {
-  type: UserRole;
-  data: User | Professional;
-}
 
 export interface UnifiedLogin {
   email: string;

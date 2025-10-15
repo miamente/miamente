@@ -111,8 +111,8 @@ describe("profiles", () => {
       const result = await getProfessionalProfile("prof-123");
 
       expect(mockApiClient.getAccountById).toHaveBeenCalledWith("prof-123");
-      expect(result.id).toBe("prof-123");
-      expect(result.full_name).toBe(mockProfessional.full_name);
+      expect(result.account.id).toBe("prof-123");
+      expect(result.account.full_name).toBe(mockProfessional.full_name);
     });
 
     it("should handle API errors", async () => {
@@ -177,7 +177,7 @@ describe("profiles", () => {
       const result = await updateProfessionalProfileById("prof-123", updateData);
 
       expect(mockApiClient.updateAccount).toHaveBeenCalled();
-      expect(result.full_name).toBe("Dr. John Smith");
+      expect(result.account.full_name).toBe("Dr. John Smith");
     });
 
     it("should handle API errors", async () => {
@@ -243,7 +243,7 @@ describe("profiles", () => {
 
       expect(mockApiClient.getCurrentUser).toHaveBeenCalled();
       expect(result).toBeDefined();
-      expect(result?.id).toBe("prof-123");
+      expect(result?.account.id).toBe("prof-123");
     });
 
     it("should return null on error", async () => {
@@ -330,7 +330,7 @@ describe("profiles", () => {
       const result = await updateProfessionalProfile(updateData);
 
       expect(mockApiClient.getCurrentUser).toHaveBeenCalled();
-      expect(result.full_name).toBe("Dr. John Smith");
+      expect(result.account.full_name).toBe("Dr. John Smith");
     });
 
     it("should handle API errors", async () => {

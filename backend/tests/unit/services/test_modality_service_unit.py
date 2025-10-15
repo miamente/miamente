@@ -1,14 +1,14 @@
-"""
-Unit tests for ModalityService.
-"""
+from unittest.mock import Mock
 
 import pytest
-from unittest.mock import Mock
 from sqlalchemy.orm import Session
-
 from app.services.modality_service import ModalityService
 from app.models.modality import Modality
 from app.schemas.modality import ModalityCreate, ModalityUpdate
+
+"""
+Unit tests for ModalityService.
+"""
 
 
 class TestModalityServiceUnit:
