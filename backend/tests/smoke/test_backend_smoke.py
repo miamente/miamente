@@ -16,6 +16,7 @@ to catch basic deployment or configuration issues.
 import os
 import time
 import requests
+import pytest
 
 
 def wait_for_healthy(base_url: str, timeout_seconds: int = 120) -> None:
@@ -47,6 +48,7 @@ def wait_for_healthy(base_url: str, timeout_seconds: int = 120) -> None:
     raise AssertionError(f"/health did not become healthy: {last_error}")
 
 
+@pytest.mark.smoke
 def test_backend_smoke_health_and_docs():
     """Test basic backend API functionality and availability.
 
