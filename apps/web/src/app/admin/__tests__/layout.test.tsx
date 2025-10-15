@@ -106,9 +106,7 @@ describe("AdminLayout", () => {
 
     // Check for navigation items
     expect(screen.getByText("Dashboard")).toBeInTheDocument();
-    expect(screen.getByText("Usuarios Regulares")).toBeInTheDocument();
-    expect(screen.getByText("Usuarios Administrativos")).toBeInTheDocument();
-    expect(screen.getByText("Profesionales")).toBeInTheDocument();
+    expect(screen.getByText("Cuentas")).toBeInTheDocument();
     expect(screen.getByText("Especialidades")).toBeInTheDocument();
     expect(screen.getByText("Enfoques")).toBeInTheDocument();
   });
@@ -125,8 +123,6 @@ describe("AdminLayout", () => {
     render(<AdminLayout>{mockChildren}</AdminLayout>);
 
     expect(screen.getByTestId("users-icon")).toBeInTheDocument();
-    expect(screen.getByTestId("shield-icon")).toBeInTheDocument();
-    expect(screen.getByTestId("user-check-icon")).toBeInTheDocument();
     expect(screen.getAllByTestId("stethoscope-icon")).toHaveLength(2); // Especialidades and Enfoques both use Stethoscope
     expect(screen.getByTestId("bar-chart-icon")).toBeInTheDocument();
   });
@@ -145,11 +141,9 @@ describe("AdminLayout", () => {
     const links = screen.getAllByTestId("link");
 
     expect(links[0]).toHaveAttribute("href", "/admin");
-    expect(links[1]).toHaveAttribute("href", "/admin/users");
-    expect(links[2]).toHaveAttribute("href", "/admin/admin-users");
-    expect(links[3]).toHaveAttribute("href", "/admin/professionals");
-    expect(links[4]).toHaveAttribute("href", "/admin/specialties");
-    expect(links[5]).toHaveAttribute("href", "/admin/approaches");
+    expect(links[1]).toHaveAttribute("href", "/admin/accounts");
+    expect(links[2]).toHaveAttribute("href", "/admin/specialties");
+    expect(links[3]).toHaveAttribute("href", "/admin/approaches");
   });
 
   it("should highlight active navigation item", () => {
@@ -163,10 +157,10 @@ describe("AdminLayout", () => {
     ).mockReturnValue("/admin/users");
     render(<AdminLayout>{mockChildren}</AdminLayout>);
 
-    const activeLink = screen.getByText("Usuarios Regulares");
+    const activeLink = screen.getByText("Cuentas");
     // Just verify the link exists and has the correct href
     expect(activeLink).toBeInTheDocument();
-    expect(activeLink.closest("a")).toHaveAttribute("href", "/admin/users");
+    expect(activeLink.closest("a")).toHaveAttribute("href", "/admin/accounts");
   });
 
   it("should highlight admin users navigation item when on admin-users page", () => {
@@ -180,9 +174,9 @@ describe("AdminLayout", () => {
     ).mockReturnValue("/admin/admin-users");
     render(<AdminLayout>{mockChildren}</AdminLayout>);
 
-    const activeLink = screen.getByText("Usuarios Administrativos");
+    const activeLink = screen.getByText("Cuentas");
     expect(activeLink).toBeInTheDocument();
-    expect(activeLink.closest("a")).toHaveAttribute("href", "/admin/admin-users");
+    expect(activeLink.closest("a")).toHaveAttribute("href", "/admin/accounts");
   });
 
   it("should highlight professionals navigation item when on professionals page", () => {
@@ -196,9 +190,9 @@ describe("AdminLayout", () => {
     ).mockReturnValue("/admin/professionals");
     render(<AdminLayout>{mockChildren}</AdminLayout>);
 
-    const activeLink = screen.getByText("Profesionales");
+    const activeLink = screen.getByText("Cuentas");
     expect(activeLink).toBeInTheDocument();
-    expect(activeLink.closest("a")).toHaveAttribute("href", "/admin/professionals");
+    expect(activeLink.closest("a")).toHaveAttribute("href", "/admin/accounts");
   });
 
   it("should have correct layout structure", () => {
@@ -272,9 +266,9 @@ describe("AdminLayout", () => {
     ).mockReturnValue("/admin/users");
     render(<AdminLayout>{mockChildren}</AdminLayout>);
 
-    const inactiveLink = screen.getByText("Profesionales");
+    const inactiveLink = screen.getByText("Cuentas");
     // Just verify the link exists and has the correct href
     expect(inactiveLink).toBeInTheDocument();
-    expect(inactiveLink.closest("a")).toHaveAttribute("href", "/admin/professionals");
+    expect(inactiveLink.closest("a")).toHaveAttribute("href", "/admin/accounts");
   });
 });

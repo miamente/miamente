@@ -13,19 +13,17 @@ describe("AdminDashboard", () => {
     expect(screen.getByText("Panel de control para administrar la plataforma")).toBeInTheDocument();
 
     // Check action buttons in quick actions
-    expect(screen.getByText("Gestionar Usuarios")).toBeInTheDocument();
-    expect(screen.getByText("Gestionar Profesionales")).toBeInTheDocument();
+    expect(screen.getByText("Gestionar Cuentas")).toBeInTheDocument();
 
     // Check quick actions section
     expect(screen.getByText("Acciones Rápidas")).toBeInTheDocument();
 
     // Check all quick action buttons
     const quickActionButtons = screen.getAllByRole("link");
-    expect(quickActionButtons).toHaveLength(3); // 3 in quick actions (removed modalities)
+    expect(quickActionButtons).toHaveLength(2); // 2 in quick actions (Gestionar Cuentas, Gestionar Especialidades) (removed modalities)
 
     // Verify quick action links
-    expect(screen.getByRole("link", { name: /Gestionar Usuarios/i })).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: /Gestionar Profesionales/i })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /Gestionar Cuentas/i })).toHaveAttribute("href", "/admin/accounts");
     expect(screen.getByRole("link", { name: /Gestionar Especialidades/i })).toHaveAttribute(
       "href",
       "/admin/specialties",

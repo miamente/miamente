@@ -1,6 +1,6 @@
 "use client";
 import React from "react";
-import { Users, UserCheck, Shield, Stethoscope } from "lucide-react";
+import { Users, Stethoscope, Shield } from "lucide-react";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -26,15 +26,9 @@ export default function AdminDashboard() {
         <CardContent>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
             <Button asChild variant="outline" className="h-20 flex-col space-y-2">
-              <Link href="/admin/users">
+              <Link href="/admin/accounts">
                 <Users className="h-6 w-6" />
-                <span>Gestionar Usuarios</span>
-              </Link>
-            </Button>
-            <Button asChild variant="outline" className="h-20 flex-col space-y-2">
-              <Link href="/admin/professionals">
-                <UserCheck className="h-6 w-6" />
-                <span>Gestionar Profesionales</span>
+                <span>Gestionar Cuentas</span>
               </Link>
             </Button>
             <Button asChild variant="outline" className="h-20 flex-col space-y-2">
